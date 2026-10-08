@@ -67,50 +67,59 @@ or a Brass Locket.
   speed, water-keeping). Silver, gold and star quality tiers.
 - Fruit trees and wild trees with seasonal looks, tapping for syrup, resin, tar and sap.
 - A ruined greenhouse you can restore to grow all year.
-- A walk-in farmhouse: sleep in your bed (you wake up inside), warm up by the hearth, and read
-  the almanac for tomorrow's weather, this week's market demand and upcoming birthdays and
-  festivals. The carpenter sells renovations: a kitchen for instant home cooking (22 recipes),
-  a root cellar pantry, a featherbed and a grand hearth.
-- Furnish the farmhouse: armchairs, lamps, rugs, a fish tank, plants, a pet bed, and paintings
-  that Hazel gives you as your friendship grows.
-- Romance: give the Brass Locket to a villager you love. Your partner makes breakfast, helps
-  with chores and spends evenings by your hearth.
-- A farm pet: a stray cat or dog adopts you on day 3. Name it, pet it, fill its water bowl, and
-  it will follow you around, nap by the hearth and leave gifts at the door.
-- Professions: choose one of two perks at skill levels 5 and 10 (24 perks across 6 skills).
-- Cooked food grants timed buffs (speed, stamina, fishing, mining, luck, defense, farming).
-- Splitter filters and output priority, and arm stock limits, for tidy factories.
-- Mags' Traveling Cart visits on Fridays and Sundays with rare seeds, recipe cards and furniture.
-- Trading Guild contracts: weekly bulk orders delivered to a Freight Depot (arms can feed it),
-  with reputation ranks that raise shipping prices.
 - Coops and barns (3 tiers each) with chickens, ducks, rabbits, cows, goats, sheep, pigs and
   alpacas. They need hay (scythe tall grass into silos), love being petted, and lay better goods
   when happy.
 - Fishing with an original tension-reel minigame: 27 fish by location, season, hour and weather,
-  three legendaries, plus wicker traps for shellfish.
+  three legendaries (each gives a wall trophy), wicker traps for shellfish, and fish ponds that
+  grow a school and lay roe.
 - The Old Mine: 60 procedural floors in three themes (earth, frost, ember), ores, gems, geodes,
-  hidden ladders and shafts, lifts every 5 floors, 8 monsters, sword combat and health.
+  hidden ladders and shafts, lifts every 5 floors, 8 monsters, sword combat and health. Grand
+  treasure chests wait on every tenth floor, and infested floors must be cleared to go deeper.
+- Professions: choose one of two perks at skill levels 5 and 10 (24 perks across 6 skills).
+- Day/night with warm lighting, weather (sun, rain, storm with lightning, snow, wind), energy,
+  passing out at 2am, and the odd surprise overnight (meteorites, a crop fairy, windstorms).
+
+**Home**
+- A walk-in farmhouse: sleep in your bed (you wake up inside), warm up by the hearth, and read
+  the almanac for tomorrow's weather, this week's market demand, birthdays, festivals and a
+  Sunday recipe.
+- Renovations from the carpenter: a kitchen for instant home cooking, a root cellar pantry, a
+  featherbed and a grand hearth.
+- Cooking: 22 dishes. Villagers teach you their recipes as friendships grow. Cooked food gives
+  timed buffs (speed, stamina, fishing, mining, luck, defense, farming).
+- Furniture: armchairs, lamps, rugs, a fish tank, plants, a pet bed, cart-only curios, and
+  paintings from Hazel. Rugs stack under furniture and paintings hang on the wall.
+- A farm pet: a stray cat or dog adopts you on day 3. Name it, pet it and fill its water bowl,
+  and it will follow you around, nap in its bed and leave gifts by the door.
+
+**Town**
 - 13 villagers with schedules, A*-pathing, 37+ lines of dialogue each (by season, weather, time,
   weekday and friendship), gift tastes, birthdays, and four heart events with choices.
+  Friends drop by your farm on weekend afternoons.
+- Romance: give the Brass Locket to a villager you love. Your partner makes breakfast, helps
+  with chores and spends evenings by your hearth.
+- 9 shops plus Mags' Traveling Cart (Fridays and Sundays) with rare seeds, recipe cards and
+  furniture.
 - 4 festivals with minigames (Kite Day, Lantern Night, Pumpkin Roll, Frostlight Skate) and a
   token stall.
-- Day/night with warm lighting, weather (sun, rain, storm with lightning, snow, wind),
-  energy and passing out at 2am.
 
 **The factory layer**
 - Two-lane conveyor belts in 3 speed tiers, with curves, side-loading/merging, underground
-  belts and splitters. Belts are simulated as item lanes, downstream-first.
-- Arms: clockwork (spring-wound, no power), brass (fast), reaching, sorting (filter) and bulk.
+  belts and splitters (alternate, prefer a side, or filter one item out). Belts are simulated
+  as item lanes, downstream-first.
+- Arms: clockwork (spring-wound, no power), brass (fast), reaching, sorting (filter) and bulk,
+  with optional stock limits.
 - More than 25 machines with real recipes: kegs, preserves jars, furnaces, ovens, cheese presses,
   looms, seed sifters, compost bins, kilns, bee skeps, grist mills, sawmills, bottlers, bean
   roasters, rock crushers, steam kitchens, blast furnaces, tinker's benches and assemblers.
 - Power: water wheels (on the river), windmills (follow the wind), steam engines (burn fuel),
   sun lenses (daylight), spring batteries, three pole types. Grids are networks, and machines
   slow down when supply is short.
-- Harvest cranes, seed sowers, ore drills on quarry veins, fish traps and sap spigots.
+- Harvest cranes, seed sowers, ore drills on quarry veins, fish traps, fish ponds and sap spigots.
 - Bee crates (outbox, request, storage) and bumblebot drones for logistics and construction.
-- Blueprints: copy, rotate and paste with ghost previews; ghosts build themselves when the parts
-  are near. Bulk deconstruct and pipette.
+- Blueprints: copy, rotate and paste with ghost previews (settings included); ghosts build
+  themselves when the parts are near. Bulk deconstruct and pipette.
 - Production statistics: items made/used per minute at 3 time scales, with graphs, plus power
   grid graphs.
 - A 60-node research tree fed by 5 tiers of research bundles made from farm and factory goods.
@@ -118,13 +127,17 @@ or a Brass Locket.
 **Goals**
 - Guided first week (tutorial quests plus contextual tips), story quests, and daily town
   requests on the notice board.
+- Trading Guild contracts: three bulk orders every week, delivered to a Freight Depot that arms
+  can feed. Reputation ranks raise all shipping prices.
 - The Clocktower Restoration Board: 16 projects in 5 areas. Rewards include the greenhouse,
   restarting the town clock, and more.
 - Three late-game megaprojects (the Great Orrery, Skyship Dock, Starlight Beacon), built by
   feeding a construction site with belts and arms.
+- Founder's Day: every new year the Mayor reviews the farm on 18 criteria and lights up to four
+  candles, each tier unlocking a reward.
 - A dynamic market: flooding one product lowers its price, weekly in-demand goods, and
   daily drift. This nudges you to diversify the factory.
-- Museum donations, a collection log, mail, skills (6) and tool upgrades.
+- Museum donations, a collection log, mail, 37 feats, skills (6) and tool upgrades.
 
 **Tech**
 - TypeScript + Vite + Canvas 2D, with no engine and no assets. A fixed 60 Hz simulation is
