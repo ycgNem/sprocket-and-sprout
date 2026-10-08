@@ -79,4 +79,8 @@ Running log of design and technical decisions made while building autonomously.
     form short and makes the pet a small story beat (a letter, then a right-click). Its species and
     coat come from the world seed; you choose the name. Pets steer straight toward their target
     and slide along walls rather than using A*, which is good enough for a yard and a room.
+32. **Guild contracts are the factory's mid-game goal.** The market saturates on purpose, so a
+    single-product factory needs another outlet. Contracts take bulk goods at 1.5x base value with no
+    saturation, unlock with arms research, refresh weekly, and never punish you for missing one.
+    Reputation ranks add a small permanent shipping bonus, so steady suppliers get ahead over time.
 

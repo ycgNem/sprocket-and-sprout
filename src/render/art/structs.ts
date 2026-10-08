@@ -14,7 +14,7 @@ export const EXTRA_TOP: Record<string, number> = {
   sprinkler_1: 2, sprinkler_2: 3, sprinkler_3: 4, mist_tower: 18, scarecrow: 14, lamp: 16, pole_wood: 20, pole_iron: 22,
   pole_tower: 40, waterwheel: 10, windmill: 30, steam_engine: 18, sunlens: 8, spring_battery: 6, chest_wood: 2, chest_iron: 2,
   chest_brass: 3, crate_out: 2, crate_req: 2, crate_store: 2, hive: 18, shipping_crate: 3, coop_1: 18, coop_2: 20, coop_3: 22,
-  barn_1: 22, barn_2: 24, barn_3: 26, silo: 28, well: 8, construction_site: 16, sign: 6, flower_pot: 4, fence_wood: 2, fence_stone: 0,
+  barn_1: 22, barn_2: 24, barn_3: 26, silo: 28, well: 8, construction_site: 16, freight_depot: 20, sign: 6, flower_pot: 4, fence_wood: 2, fence_stone: 0,
   gate: 2, tapper: 0, fish_trap: 0,
 };
 
@@ -442,6 +442,30 @@ const ART: Record<string, Art> = {
     roofBand(pb, 2, t - 10, W - 4, 6, C.terracotta, false);
     pb.rect(W / 2 - 1, t, 2, 10, C.tan);
     pb.rect(W / 2 - 3, t + 8, 6, 4, C.oak);
+  },
+  freight_depot: (pb, W, H, t, f, on, s) => {
+    // a timber freight shed in guild colors, with a loading door and a pennant
+    pb.rect(1, t, W - 2, H - t - 1, C.oak);
+    for (let x = 1; x < W - 1; x += 4) pb.rect(x, t, 1, H - t - 1, C.walnut);
+    pb.rect(1, H - 3, W - 2, 2, C.bark);
+    roofBand(pb, 0, t - 14, W, 16, C.wine, s === 3);
+    // loading door with cross braces
+    const dx = 14, dw = 20, dy = t + 8;
+    pb.rect(dx, dy, dw, H - dy - 2, C.walnut);
+    pb.line(dx, dy, dx + dw - 1, H - 3, C.bark); pb.line(dx + dw - 1, dy, dx, H - 3, C.bark);
+    pb.rect(dx - 1, dy - 1, dw + 2, 1, C.tan);
+    // guild sign
+    pb.rect(dx + 4, t + 1, 12, 5, C.brass);
+    pb.rect(dx + 5, t + 2, 10, 3, C.wine);
+    pb.set(dx + 10, t + 3, C.butter);
+    // crates stacked by the wall
+    pb.rect(3, H - 12, 8, 9, C.tan); pb.line(3, H - 12, 10, H - 4, C.oak); pb.rect(3, H - 12, 8, 1, C.butter);
+    pb.rect(W - 11, H - 10, 8, 7, C.tan); pb.line(W - 4, H - 10, W - 11, H - 4, C.oak); pb.rect(W - 11, H - 10, 8, 1, C.butter);
+    // pennant on a pole
+    pb.rect(W - 8, t - 22, 1, 12, C.bark);
+    const wave = f % 2;
+    pb.rect(W - 7, t - 22, 6, 2, C.wine); pb.rect(W - 7, t - 20, 4 + wave, 2, C.wine); pb.set(W - 6, t - 21, C.brass);
+    void on;
   },
   construction_site: (pb, W, H, t) => {
     pb.rect(0, H - 8, W, 8, C.stone);

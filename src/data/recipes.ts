@@ -124,6 +124,7 @@ hand('assembler', 1, [['copper_gear', 4], ['iron_plate', 4], ['copper_coil', 4],
 hand('assembler_2', 1, [['assembler', 1], ['clockwork_core', 1], ['brass_gear', 4]], 'r_assembly2', 6);
 hand('blast_furnace', 1, [['brick', 20], ['iron_plate', 8], ['copper_coil', 4], ['spark_coil', 2]], 'r_blast', 6);
 hand('crusher', 1, [['iron_plate', 8], ['brass_gear', 6], ['spring', 2]], 'r_crusher', 5);
+hand('freight_depot', 1, [['plank', 60], ['copper_bar', 10], ['rope', 5]], 'r_arms');
 hand('kitchen', 1, [['oven', 1], ['iron_plate', 6], ['spark_coil', 2], ['copper_coil', 4]], 'r_kitchen', 6);
 hand('harvester', 1, [['iron_plate', 4], ['brass_gear', 4], ['copper_coil', 2], ['spring', 1]], 'r_harvester', 5);
 hand('planter', 1, [['iron_plate', 4], ['brass_gear', 4], ['copper_coil', 2], ['plank', 2]], 'r_planter', 5);

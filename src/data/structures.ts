@@ -159,6 +159,8 @@ const defs: S[] = [
   { id: 'well', name: 'Stone Well', kind: 'building', size: [2, 2], solid: true, price: 0, desc: 'Refill your watering can here.' },
   { id: 'construction_site', name: 'Grand Works Site', kind: 'megaproject', size: [4, 4], solid: true, price: 0,
     desc: 'The foundation for a megaproject. Feed it materials by hand or by arm.' },
+  { id: 'freight_depot', name: 'Guild Freight Depot', kind: 'depot', size: [3, 2], solid: true, price: 0,
+    desc: "Fill the Trading Guild's weekly bulk contracts here. Arms can feed it." },
 ];
 
 export const STRUCTURES: StructureDef[] = defs.map((d) => ({ ...d, item: d.item ?? d.id }));

@@ -21,6 +21,10 @@ const madeCat = (g: Game, cat: string) => {
 const npcs = (g: Game) => (g.sys.npcs?.list ?? []) as any[];
 
 export const FEATS: Feat[] = [
+  { id: 'contracts5', name: 'Reliable Supplier', desc: 'Fill 5 Trading Guild contracts.', test: (g) => c(g, 'contracts') >= 5, prog: (g) => `${c(g, 'contracts')}/5` },
+  { id: 'guild5', name: 'Guild Partner', desc: 'Reach the top Trading Guild rank.', test: (g) => (g.sys.guild?.rep ?? 0) >= 20, prog: (g) => `${g.sys.guild?.rep ?? 0}/20 rep` },
+  { id: 'pet', name: 'Best Friend', desc: 'Reach 5 hearts with your pet.', test: (g) => (g.sys.pet?.points ?? 0) >= 1000, prog: (g) => `${Math.floor((g.sys.pet?.points ?? 0) / 200)}/5 hearts` },
+  { id: 'homecook', name: 'Home Cooking', desc: 'Cook 25 dishes in your farmhouse kitchen.', test: (g) => c(g, 'cooked') >= 25, prog: (g) => `${c(g, 'cooked')}/25` },
   { id: 'harvest100', name: 'Green Thumb', desc: 'Harvest 100 crops.', test: (g) => c(g, 'harvested') >= 100, prog: (g) => `${c(g, 'harvested')}/100` },
   { id: 'harvest1000', name: 'Bountiful', desc: 'Harvest 1,000 crops.', test: (g) => c(g, 'harvested') >= 1000, prog: (g) => `${c(g, 'harvested')}/1000` },
   { id: 'earn1k', name: 'First Coins', desc: 'Earn 1,000 coins.', test: (g) => g.earned >= 1000, prog: (g) => `${g.earned}/1000` },

@@ -1,4 +1,5 @@
 // Player actions: tool use on tiles, planting, eating, and interacting with things.
+import { contractInsert } from './systems/contracts';
 import { fillBowl, petAt, petInteract } from './systems/pet';
 import { BUFF_INFO } from '../data/buffs';
 import { CROP_BY_ID, CROP_BY_SEED } from '../data/crops';
@@ -561,6 +562,15 @@ export function interactStruct(g: Game, e: Ent): boolean {
         g.emit({ t: 'float', text: `+${n}`, x: e.x + e.w / 2, y: e.y, c: 7 });
         return true;
       }
+    }
+  }
+  if (d.kind === 'depot' && held) {
+    const used = contractInsert(g, held.k, held.n);
+    if (used) {
+      p.inv.remove(held.k, used);
+      g.emit({ t: 'sfx', id: 'ship' });
+      g.emit({ t: 'float', text: `Delivered ${used}`, x: e.x + 1.5, y: e.y, c: 6 });
+      return true;
     }
   }
   if (d.kind === 'shipbin' && held) {

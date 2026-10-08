@@ -116,7 +116,7 @@ export interface RecipeDef {
 export type StructKind =
   | 'belt' | 'underground' | 'splitter' | 'arm' | 'machine' | 'chest' | 'pole' | 'generator' | 'lab'
   | 'harvester' | 'planter' | 'sprinkler' | 'drill' | 'hive' | 'fence' | 'path' | 'lamp' | 'scarecrow'
-  | 'shipbin' | 'fishtrap' | 'building' | 'decor' | 'tapper' | 'beehouse' | 'accumulator' | 'gate' | 'megaproject';
+  | 'shipbin' | 'fishtrap' | 'building' | 'decor' | 'tapper' | 'beehouse' | 'accumulator' | 'gate' | 'megaproject' | 'depot';
 
 export interface StructureDef {
   id: string;

@@ -16,6 +16,8 @@ import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { centered, frame } from './common';
 import { registerWindow, WinState } from './index';
+import { daysLeftInWeek, guildRank, specLabel } from '../../sim/systems/contracts';
+import { GUILD_RANKS } from '../../data/contracts';
 import { ICON } from '../font';
 import { itemTooltip } from '../tooltips';
 import { portrait, heartsRow } from './town';
@@ -47,8 +49,20 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
     ui.unclip();
   } else if (st.data.tab === 'quests') {
     const q = questSys(g);
-    let yy = by + 6 - ui.scrollOffset('jq', bx, by, bw, bh, 40 + q.active.length * 60 + q.done.length * 10);
+    const gs = g.sys.guild;
+    const guildH = gs?.unlocked ? 24 + gs.list.length * 10 : 0;
+    let yy = by + 6 - ui.scrollOffset('jq', bx, by, bw, bh, 40 + guildH + q.active.length * 60 + q.done.length * 10);
     ui.clip(bx, by, bw, bh);
+    if (gs?.unlocked) {
+      ui.text(`Trading Guild contracts (${daysLeftInWeek(g)} day${daysLeftInWeek(g) === 1 ? '' : 's'} left)`, bx + 8, yy, C.ink);
+      ui.text(GUILD_RANKS[guildRank(g)].name, bx + bw - 8, yy, C.oak, { align: 'right' });
+      yy += 11;
+      for (const c of gs.list) {
+        ui.text(`${c.done ? '+' : '-'} ${specLabel(c.spec)}: ${c.have}/${c.need}  (${ICON.coin}${c.reward.toLocaleString()})`, bx + 14, yy, c.done ? C.moss : C.walnut);
+        yy += 10;
+      }
+      yy += 8;
+    }
     for (const a of q.active) {
       const d = QUEST_BY_ID.get(a.id);
       if (!d) continue;

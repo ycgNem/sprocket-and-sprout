@@ -1,0 +1,41 @@
+// Guild contracts: depot sprite + panel, delivered by arm.
+import { chromium } from 'playwright';
+import fs from 'node:fs';
+const base = process.env.BASE ?? 'http://127.0.0.1:5173/';
+const out = 'e2e/out/guild';
+fs.mkdirSync(out, { recursive: true });
+const browser = await chromium.launch({ channel: 'chrome', headless: true });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
+page.on('console', (m) => { if (m.type() === 'warning' || m.type() === 'error') errors.push(m.text()); });
+await page.goto(base);
+await page.waitForTimeout(1200);
+const ev = (s) => page.evaluate(s);
+await ev(`(async () => {
+  const g = new window.__Game({ seed: 9, name: 'Wren', farmName: 'Hollow' });
+  for (const t of ['welcome', 'hoe', 'seeds', 'can', 'place', 'lab', 'belts', 'machine', 'power', 'blueprint', 'energy', 'night']) g.flags.add('tip_' + t);
+  window.__app.startGame(g, { skin: 2, hair: 9, hairStyle: 'long', shirt: 28, pants: 19 });
+  window.S = { g };
+  const B = await import('/src/sim/build.ts');
+  const I = await import('/src/sim/inventory.ts');
+  const Ct = await import('/src/sim/systems/contracts.ts');
+  const { O, Z } = await import('/src/sim/world/tilemap.ts');
+  g.research.done.add('r_belts'); g.research.done.add('r_arms');
+  const gs = Ct.guild(g); gs.unlocked = true; Ct.postContracts(g);
+  gs.list[0].have = Math.floor(gs.list[0].need * 0.6);
+  for (let y = 26; y < 34; y++) for (let x = 54; x < 66; x++) { g.map.setO(x, y, O.NONE); g.map.zone[g.map.idx(x, y)] = Z.FARM; g.soil.delete(g.map.idx(x, y)); }
+  const chest = B.place(g, 'chest_wood', 56, 29, 0);
+  chest.inv.add(I.key(gs.list[1].spec[0] === '#' ? 'radish' : gs.list[1].spec), 200);
+  B.place(g, 'arm_basic', 57, 29, 1);
+  window.__dep = B.place(g, 'freight_depot', 58, 28, 0);
+  g.player.x = 60; g.player.y = 31.5; g.time.min = 10 * 60;
+})()`);
+await page.waitForTimeout(2500);
+await page.screenshot({ path: `${out}/depot.png` });
+await ev(`window.__app.screen.openWindow('struct', window.__dep.id)`);
+await page.waitForTimeout(700);
+await page.screenshot({ path: `${out}/panel.png` });
+console.log(JSON.stringify(await ev(`S.g.sys.guild.list.map((c) => [c.spec, c.have, c.need, c.reward])`)));
+console.log('errors', errors.slice(0, 10));
+await browser.close();

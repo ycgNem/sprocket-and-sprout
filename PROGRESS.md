@@ -46,7 +46,11 @@
   Right-click to adopt and name it. It wanders the yard, follows you once it trusts you, heads
   inside at night or in bad weather and sleeps on the rug. It has a water bowl for the watering
   can, petting, 5 hearts, and morning gifts at 3+ hearts. Synthesized meow and bark.
-- Tests: 45 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Trading Guild contracts: unlocked by researching arms (a letter brings a Freight Depot). Three
+  bulk orders every Monday from a 27-contract pool in 3 tiers. Deliver by hand or by arm. They pay
+  1.5x value without saturating the market, and build reputation through 6 ranks (+3% shipping
+  each). Shown in the depot panel and the journal. 4 new feats.
+- Tests: 46 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 

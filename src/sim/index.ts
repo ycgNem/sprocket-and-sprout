@@ -13,6 +13,7 @@ import './systems/fishing';
 import './systems/mine';
 import './systems/quests';
 import './systems/goals';
+import './systems/contracts';
 import './systems/festivals';
 import './systems/bots';
 import './systems/achievements';

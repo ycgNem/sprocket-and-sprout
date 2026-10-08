@@ -1,5 +1,6 @@
 // Economy: dynamic market prices (supply saturation, weekly demand, daily drift),
 // overnight shipping, shop buying/selling, tool upgrades and building kits.
+import { guildBonus } from './contracts';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { BUILDING_KITS, SHOP_BY_ID, TOOL_UPGRADE_COST } from '../../data/shops';
 import type { ItemCategory, ShopEntry } from '../../data/types';
@@ -55,7 +56,7 @@ export function priceMult(g: Game, idx: number): number {
 export function unitPrice(g: Game, k: number): number {
   const d = kDef(k);
   if (d.price <= 0) return 0;
-  return Math.max(1, Math.round(d.price * QUALITY_MULT[k & 3] * priceMult(g, kIdx(k)) * (1 + g.mods.marketBonus + (g.sys.megaBonus?.market ?? 0))));
+  return Math.max(1, Math.round(d.price * QUALITY_MULT[k & 3] * priceMult(g, kIdx(k)) * (1 + g.mods.marketBonus + (g.sys.megaBonus?.market ?? 0) + guildBonus(g))));
 }
 
 /** Sell a stack right now (shipping or shops). Returns coins earned; updates saturation per unit. */

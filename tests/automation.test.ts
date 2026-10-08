@@ -197,3 +197,30 @@ describe('arms and machines', () => {
     expect(mill.mach!.outBuf.find((s) => s.k === key('flour'))?.n ?? 0).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe('guild contracts', () => {
+  it('an arm feeds the freight depot, completing a contract pays and raises rank', async () => {
+    const C = await import('../src/sim/systems/contracts');
+    const g = blank();
+    const gs = C.guild(g);
+    gs.unlocked = true;
+    C.postContracts(g);
+    expect(gs.list.length).toBe(3);
+    // replace with a known contract for the test
+    gs.list[0] = { id: 'c_test', spec: 'plank', label: 'Test planks', need: 20, have: 0, reward: 1000, rep: 2, done: false };
+    const chest = place(g, 'chest_wood', 5, 5, 0);
+    chest.inv!.add(key('plank'), 30);
+    chest.inv!.add(key('stone'), 10);
+    place(g, 'arm_basic', 6, 5, 1);
+    place(g, 'freight_depot', 7, 4, 0);
+    const money = g.player.money;
+    run(g, 90);
+    expect(gs.list[0].done).toBe(true);
+    expect(g.player.money).toBe(money + 1000);
+    expect(chest.inv!.count(key('plank'))).toBe(10);
+    // the depot refuses things no contract wants
+    expect(chest.inv!.count(key('stone'))).toBe(10);
+    expect(C.guildRank(g)).toBe(1);
+    expect(C.guildBonus(g)).toBeCloseTo(0.03);
+  });
+});
