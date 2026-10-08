@@ -28,6 +28,9 @@ Then open the URL Vite prints (usually http://localhost:5173).
 | `node e2e/bot.mjs 14` | Playwright bot plays 14 in-game days, screenshots every morning |
 | `node e2e/perf.mjs` | builds a 1300-belt / 260-machine factory and measures frame + tick times |
 | `node e2e/shots.mjs farm,town,npcs,minefloor,factory` | screenshots of scenes and windows |
+| `node e2e/flow.mjs` | real-input flow: new game, farm, go inside, sleep in the bed, continue |
+| `node e2e/house.mjs`, `pet.mjs`, `decor.mjs`, `guild.mjs`, `cart.mjs`, `pond.mjs`, `logi.mjs` | screenshots of the newer systems (into `e2e/out/`) |
+| `LONG=1 npx vitest run tests/longrun.test.ts` | the bot plays a whole in-game year, then saves and reloads |
 
 ## Controls (all rebindable in Settings)
 
