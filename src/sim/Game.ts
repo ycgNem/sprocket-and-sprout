@@ -204,6 +204,12 @@ export class Game {
     for (const s of SYSTEMS) s.dayStart?.(this);
   }
 
+  /** lifetime counters (tilled, fish caught, ...) */
+  counters: Record<string, number> = {};
+  count(k: string, n = 1) {
+    this.counters[k] = (this.counters[k] ?? 0) + n;
+  }
+
   emit(e: GameEvent) {
     this.events.push(e);
     if (this.events.length > 500) this.events.splice(0, this.events.length - 500);

@@ -69,8 +69,8 @@ export class Input {
       this.down.add(e.code);
       this.ctrl = e.ctrlKey || e.metaKey;
       this.shift = e.shiftKey;
-      if (this.textFocus && e.key.length === 1) this.text += e.key;
-      if (this.textFocus && e.key === 'Backspace') this.text += '\b';
+      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) this.text += e.key;
+      if (e.key === 'Backspace') this.text += '\b';
       if (e.code === 'Tab' || e.code === 'Space' || e.code.startsWith('Arrow') || (e.ctrlKey && ['KeyS', 'KeyC', 'KeyV', 'KeyZ'].includes(e.code)) || e.code === 'Backquote') e.preventDefault();
     });
     window.addEventListener('keyup', (e) => {
