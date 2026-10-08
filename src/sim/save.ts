@@ -183,7 +183,11 @@ export function serialize(g: Game, look: NPCLook): any {
     tomorrow: g.tomorrow,
     wind: g.wind,
     player: {
-      name: p.name, farmName: p.farmName, favorite: p.favorite, x: p.x, y: p.y, dir: p.dir,
+      name: p.name, farmName: p.farmName, favorite: p.favorite,
+      // saving underground puts you back at the mine entrance
+      x: p.where === 'mine' ? g.map.loc('mine_entrance')[0] + 0.5 : p.x,
+      y: p.where === 'mine' ? g.map.loc('mine_entrance')[1] + 0.9 : p.y,
+      dir: p.dir,
       energy: p.energy, maxEnergy: p.maxEnergy, hp: p.hp, maxHp: p.maxHp, money: p.money,
       inv: p.inv.toJSON(), sel: p.sel, water: p.water, skills: p.skills, xp: p.xp, upgrading: p.upgrading, rows: p.rows,
     },

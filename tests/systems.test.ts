@@ -96,9 +96,9 @@ describe('fishing', () => {
     g.time.min = 9 * 60;
     f.state = 'bite';
     f.press(g);
-    if (f.state !== 'reel') return; // trash or nothing biting: acceptable
+    if ((f.state as string) !== 'reel') return; // trash or nothing biting: acceptable
     let ticks = 0;
-    while (f.state === 'reel' && ticks++ < 60 * 60) {
+    while ((f.state as string) === 'reel' && ticks++ < 60 * 60) {
       // a perfect player keeps tension at the zone center
       f.reeling = f.tension < f.zone;
       g.tick();

@@ -78,11 +78,11 @@ export class App {
     this.audio.applySettings(this.settings);
   }
 
-  startGame(g: Game, look: NPCLook) {
+  startGame(g: Game, look: NPCLook, slot?: number) {
     setPlayerLook(look);
     registerMapBuildings(g.map);
     this.renderer.invalidateAll();
-    this.screen = new PlayScreen(this, g, look);
+    this.screen = new PlayScreen(this, g, look, slot);
   }
 
   toTitle() {
@@ -198,7 +198,7 @@ class TitleScreen implements Screen {
       this.importMsg = 'Could not load that save.';
       return;
     }
-    this.app.startGame(res.game, res.look);
+    this.app.startGame(res.game, res.look, res.slot);
   }
 
   loadMenu() {

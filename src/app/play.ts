@@ -516,7 +516,7 @@ export class PlayScreen implements Screen {
         this.holdT -= dt;
         if (input.mouse.pressed[0] || this.holdT <= 0) {
           if (useHeld(g, tx, ty)) this.holdT = 0.36;
-          else if (input.mouse.pressed[0] && d?.edible && !d.plant) eatHeld(g);
+          else if (input.mouse.pressed[0] && d?.edible && (d.cat === 'food' || d.tags?.includes('drink'))) eatHeld(g);
           else this.holdT = 0.1;
         }
       }
