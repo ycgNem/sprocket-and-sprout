@@ -58,6 +58,8 @@ const by = (Math.floor((uh - 230) / 2) + 230 - 28 + 10) * S;
 await page.mouse.click(bx, by);
 await wait(2000);
 await shot('04-farm');
+await page.keyboard.press('Enter');
+await wait(300);
 // walk around
 await page.keyboard.down('KeyD');
 await wait(900);

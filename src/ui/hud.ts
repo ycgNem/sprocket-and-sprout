@@ -5,7 +5,7 @@ import { ITEMS } from '../data/items';
 import { itemName, kDef } from '../sim/inventory';
 import { T, Z } from '../sim/world/tilemap';
 import { curMap } from '../sim/systems/player';
-import { ICON } from './font';
+import { ICON, wrapText, textWidth } from './font';
 import { itemTooltip } from './tooltips';
 import type { UI } from './ui';
 import type { PlayScreen } from '../app/play';
@@ -145,15 +145,19 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   });
 
   // ---- toasts (top center) ----
-  play.hud.toasts.forEach((t, i) => {
-    const a = t.t < 3.8 ? 1 : 1 - (t.t - 3.8) / 0.7;
-    ui.ctx.globalAlpha = Math.max(0, a);
-    const y = 28 + i * 16;
-    const w = Math.min(ui.w - 220, 12 + t.text.length * 5);
-    ui.panel(ui.w / 2 - w / 2, y, w, 14, 'dark', false);
-    ui.text(t.text, ui.w / 2, y + 4, t.color ?? C.cream, { align: 'center' });
+  let toastY = 28;
+  for (const t of play.hud.toasts) {
+    const life = t.text.startsWith('Tip:') ? 9 : 4.5;
+    const a = t.t < life - 0.7 ? 1 : 1 - (t.t - (life - 0.7)) / 0.7;
+    ui.ctx.globalAlpha = Math.max(0, Math.min(1, a, t.t * 6));
+    const lines = wrapText(t.text, Math.min(320, ui.w - 240));
+    const w = Math.max(...lines.map((l) => textWidth(l))) + 14;
+    const h = lines.length * 10 + 5;
+    ui.panel(ui.w / 2 - w / 2, toastY, w, h, 'dark', false);
+    lines.forEach((l, li) => ui.text(l, ui.w / 2, toastY + 4 + li * 10, t.color ?? C.cream, { align: 'center' }));
     ui.ctx.globalAlpha = 1;
-  });
+    toastY += h + 2;
+  }
 
   // ---- quest tracker (top left) ----
   const tracker: { title: string; lines: { text: string; done: boolean }[] }[] = g.sys.quests?.tracker?.(g) ?? [];

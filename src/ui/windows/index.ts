@@ -10,7 +10,7 @@ import { drawMenu } from './menu';
 import { drawStruct } from './struct';
 import { centered, frame } from './common';
 import { settingsPanel } from './settings';
-import { ICON } from '../font';
+import { ICON, wrapText } from '../font';
 import { applyResearchMods } from '../../sim/save';
 import { runPerfScene } from '../../app/perf';
 
@@ -165,8 +165,8 @@ function drawConfirm(ui: UI, play: PlayScreen, st: WinState): boolean {
 function drawMessage(ui: UI, play: PlayScreen, st: WinState): boolean {
   const a = st.arg as { title: string; text: string; icon?: string };
   const w = 280;
-  const lines = Math.ceil(a.text.length / 50) + a.text.split('\n').length;
-  const h = 60 + lines * 10;
+  const lines = wrapText(a.text, w - (a.icon ? 52 : 28)).length;
+  const h = 52 + lines * 10;
   const { x, y } = centered(ui, w, h);
   if (!frame(ui, x, y, w, h, a.title)) return false;
   if (a.icon) ui.itemIcon(key(a.icon), x + 14, y + 16, 16);

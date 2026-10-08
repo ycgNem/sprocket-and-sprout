@@ -20,6 +20,7 @@ import { WINDOWS, WinState } from '../ui/windows';
 import '../ui/windows/all';
 import { Blueprint, copyBlueprint, pasteBlueprint, rotateBlueprint, blueprintCost } from '../sim/blueprint';
 import type { App, Screen } from './app';
+import { checkTips } from './tips';
 
 export interface Toast { text: string; t: number; icon?: string; color?: number }
 
@@ -45,6 +46,7 @@ export class PlayScreen implements Screen {
   debug = false;
   autoBuildT = 0;
   playtime = 0;
+  tipT = 0;
 
   constructor(app: App, g: Game, look: NPCLook, slot?: number) {
     this.app = app;
@@ -231,7 +233,12 @@ export class PlayScreen implements Screen {
     app.audio.update(dt, g, near);
     // hud timers
     for (const t of this.hud.toasts) t.t += dt;
-    this.hud.toasts = this.hud.toasts.filter((t) => t.t < 4.5);
+    this.hud.toasts = this.hud.toasts.filter((t) => t.t < (t.text.startsWith('Tip:') ? 9 : 4.5));
+    this.tipT += dt;
+    if (this.tipT > 0.5) {
+      this.tipT = 0;
+      checkTips(this);
+    }
     for (const pk of this.hud.pickups) pk.t += dt;
     this.hud.pickups = this.hud.pickups.filter((pk) => pk.t < 3);
     // auto-build ghosts with your own inventory when close (tinker's satchel)
