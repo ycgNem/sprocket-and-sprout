@@ -143,7 +143,7 @@ export function pickRecipe(g: Game, e: Ent): RecipeDef | null {
 }
 
 export function updateMachines(g: Game, dt: number) {
-  const speedMod = g.mods.machineSpeed;
+  const speedMod = g.mods.machineSpeed + (g.sys.megaBonus?.machine ?? 0);
   for (const e of g.ents.machines) {
     const m = e.mach!;
     if (e.def.kind === 'beehouse') {

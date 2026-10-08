@@ -14,6 +14,7 @@ import { TILE } from '../render/art/terrain';
 import { structSize } from '../render/art/structs';
 import { drawHud, HudState } from '../ui/hud';
 import { WINDOWS, WinState } from '../ui/windows';
+import '../ui/windows/all';
 import { Blueprint, copyBlueprint, pasteBlueprint, rotateBlueprint, blueprintCost } from '../sim/blueprint';
 import type { App, Screen } from './app';
 

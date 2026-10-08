@@ -125,7 +125,15 @@ export interface GameOptions {
 }
 
 /** Systems added by later modules register here (keeps Game decoupled). */
-export type System = { name: string; tick?: (g: Game, dt: number) => void; dayStart?: (g: Game) => void; dayEnd?: (g: Game, s: DaySummary) => void };
+export type System = {
+  name: string;
+  tick?: (g: Game, dt: number) => void;
+  dayStart?: (g: Game) => void;
+  dayEnd?: (g: Game, s: DaySummary) => void;
+  save?: (g: Game) => any;
+  load?: (g: Game, d: any) => void;
+  afterLoad?: (g: Game) => void;
+};
 export const SYSTEMS: System[] = [];
 export function registerSystem(s: System) {
   const i = SYSTEMS.findIndex((x) => x.name === s.name);
@@ -215,8 +223,8 @@ export class Game {
     if (this.events.length > 500) this.events.splice(0, this.events.length - 500);
   }
 
-  toast(text: string, icon?: string) {
-    this.emit({ t: 'toast', text, icon });
+  toast(text: string, icon?: string, color?: number) {
+    this.emit({ t: 'toast', text, icon, color });
   }
 
   get dayIndex() {
@@ -331,6 +339,14 @@ export class Game {
     else p.energy = maxE;
     p.exhausted = false;
     p.hp = p.maxHp;
+    if (this.map.w > 100) {
+      // wake up at home
+      p.where = 'world';
+      p.x = PLAYER_START[0];
+      p.y = PLAYER_START[1];
+      p.dir = 2;
+      p.kx = p.ky = 0;
+    }
     this.sleeping = false;
     this.sleepMin = undefined;
     // weather

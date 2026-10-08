@@ -65,7 +65,7 @@ export function canPlant(g: Game, cr: CropDef, i: number): string | null {
   const s = g.soil.get(i);
   if (!s) return 'Till the soil first';
   if (s.crop) return 'Something is already planted';
-  if (!cr.seasons.includes(g.time.season) && !inGreenhouse(g, i)) return `${cr.name} won't grow in ${['spring', 'summer', 'fall', 'winter'][g.time.season]}`;
+  if (!cr.seasons.includes(g.time.season) && !inGreenhouse(g, i) && !g.sys.megaBonus?.beacon) return `${cr.name} won't grow in ${['spring', 'summer', 'fall', 'winter'][g.time.season]}`;
   return null;
 }
 
@@ -202,7 +202,7 @@ export function morningWater(g: Game) {
   // sprinklers
   for (const e of g.ents.others) {
     if (e.def.kind !== 'sprinkler' || e.def.powerUse) continue;
-    for (const [x, y] of sprinklerTiles(e.def.reach ?? 0, e.x, e.y)) {
+    for (const [x, y] of sprinklerTiles((e.def.reach ?? 0) + (g.sys.megaBonus?.beacon ? 1 : 0), e.x, e.y)) {
       if (!m.inb(x, y)) continue;
       const s = g.soil.get(m.idx(x, y));
       if (s) s.water = true;
@@ -211,6 +211,7 @@ export function morningWater(g: Game) {
 }
 
 function seasonChange(g: Game, newSeason: Season) {
+  if (g.sys.megaBonus?.beacon) return;
   for (const [i, s] of g.soil) {
     if (!s.crop || inGreenhouse(g, i)) continue;
     const cr = CROP_BY_ID.get(s.crop.id);

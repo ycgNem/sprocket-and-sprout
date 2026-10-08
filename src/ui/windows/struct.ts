@@ -40,6 +40,7 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
   let target: Inventory | ((k: number, n: number) => number) | undefined;
   if (STRUCT_PANELS[kind]) {
     st.data.topH = STRUCT_PANELS[kind](ui, play, e, x, top, w, st);
+    target = st.data.target;
   } else if (e.mach) {
     target = machinePanel(ui, play, e, x, top, w, st);
   } else if (kind === 'pole' || kind === 'generator' || kind === 'accumulator') {
