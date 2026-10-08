@@ -53,6 +53,11 @@ Then open the URL Vite prints (usually http://localhost:5173).
 | Pause / close | Esc |
 | Debug & cheat panel | ` (backtick) |
 
+The debug panel (backtick) can add money, skip time, unlock all research, give a factory kit
+or resources, warp around the map, and jump straight to the newer systems: a stray pet, the
+Trading Guild with its depot, a fully renovated farmhouse, every furniture piece, Founder's Day,
+or a Brass Locket.
+
 ## Features
 
 **Farming life**

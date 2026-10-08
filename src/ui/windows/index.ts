@@ -1,4 +1,7 @@
 // Window registry. Windows are immediate-mode draw functions returning "keep open".
+import { petSys } from '../../sim/systems/pet';
+import { guild, postContracts } from '../../sim/systems/contracts';
+import { FURNITURE } from '../../data/furniture';
 import { C } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { RESEARCH } from '../../data/research';
@@ -184,8 +187,8 @@ function drawMessage(ui: UI, play: PlayScreen, st: WinState): boolean {
 function drawDebug(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
   const app = play.app;
-  const w = 168, x = 4, y = 120;
-  ui.panel(x, y, w, 236, 'dark');
+  const w = 248, x = 4, y = 96;
+  ui.panel(x, y, w, 222, 'dark');
   ui.text('DEBUG (`)', x + 6, y + 5, C.amber);
   const L = app.loop;
   ui.text(`fps ${Math.round(L.fps)}  tick ${L.tickMs.toFixed(2)}ms  draw ${L.frameMs.toFixed(1)}ms`, x + 6, y + 15, C.cream);
@@ -199,10 +202,10 @@ function drawDebug(ui: UI, play: PlayScreen, st: WinState): boolean {
     const r = ui.button('dbg_' + id, x + 6 + (st.data.col ? 80 : 0), yy, 76, 15, label, { style: 'flat' });
     return r;
   };
+  const btns: [string, string, () => void][] = [];
   const row = (a: [string, string, () => void], c?: [string, string, () => void]) => {
-    if (ui.button('dbg_' + a[0], x + 6, yy, 76, 15, a[1], { style: 'flat' })) a[2]();
-    if (c && ui.button('dbg_' + c[0], x + 86, yy, 76, 15, c[1], { style: 'flat' })) c[2]();
-    yy += 17;
+    btns.push(a);
+    if (c) btns.push(c);
   };
   void b;
   row(['money', '+5000g', () => (g.player.money += 5000)], ['energy', 'Full energy', () => { g.player.energy = g.player.maxEnergy + g.mods.energy; g.player.hp = g.player.maxHp; }]);
@@ -213,10 +216,18 @@ function drawDebug(ui: UI, play: PlayScreen, st: WinState): boolean {
   row(['kit', 'Factory kit', () => giveKit(g)], ['res', 'Resources', () => giveRes(g)]);
   row(['perf', 'Perf scene', () => runPerfScene(play)], ['tp', 'Warp: town', () => { g.player.x = 133.5; g.player.y = 64.5; g.player.where = 'world'; }]);
   row(['tpq', 'Warp: quarry', () => { g.player.x = 178.5; g.player.y = 40.5; g.player.where = 'world'; }], ['tpf', 'Warp: farm', () => { g.player.x = 49.5; g.player.y = 24.5; g.player.where = 'world'; }]);
+  row(['pet', 'Stray pet', () => { const p = petSys(g); if (p.stage === 'none') { p.stage = 'stray'; p.map = 'world'; const [hx, hy] = g.map.loc('farmhouse'); p.x = hx - 1.5; p.y = hy + 2.5; } g.toast('A stray waits by the farmhouse.'); }], ['guild', 'Guild + depot', () => { g.research.done.add('r_belts'); g.research.done.add('r_arms'); const gs = guild(g); if (!gs.unlocked) { gs.unlocked = true; postContracts(g); } g.give(key('freight_depot'), 1); }]);
+  row(['home', 'Renovate', () => { for (const f of ['home_kitchen', 'home_featherbed', 'home_pantry', 'home_hearth']) g.flags.add(f); g.toast('Farmhouse fully renovated.'); }], ['furn', 'Furniture', () => { for (const f of FURNITURE) g.give(key(f.id), 1, false); g.toast('One of every furniture piece added.'); }]);
+  row(['year', 'Founders day', () => { g.flags.add('eval_pending'); }], ['locket', 'Locket', () => g.give(key('heart_charm'), 1)]);
   row(['mine', 'Mine +5 fl', () => g.sys.mine?.debugDescend?.(g, 5)], ['hearts', 'Friends +2h', () => { for (const n of g.sys.npcs?.list ?? []) n.points = Math.min(2500, (n.points ?? 0) + 500); }]);
+  btns.forEach(([id, label, fn], i) => {
+    const bx = x + 6 + (i % 3) * 80, by = yy + Math.floor(i / 3) * 17;
+    if (ui.button('dbg_' + id, bx, by, 76, 15, label, { style: 'flat' })) fn();
+  });
+  yy += Math.ceil(btns.length / 3) * 17;
   // give item by name
-  st.data.q = ui.textField('dbg_q', x + 6, yy, 110, st.data.q ?? '', 18);
-  if (ui.button('dbg_give', x + 120, yy, 42, 16, 'Give', { style: 'flat' })) {
+  st.data.q = ui.textField('dbg_q', x + 6, yy, 150, st.data.q ?? '', 18);
+  if (ui.button('dbg_give', x + 160, yy, 42, 16, 'Give', { style: 'flat' })) {
     const q = (st.data.q as string).toLowerCase().replace(/ /g, '_');
     const d = ITEM_BY_ID.get(q) ?? ITEMS.find((i) => i.name.toLowerCase().includes((st.data.q as string).toLowerCase()));
     if (d) g.give(key(d.id), d.stack === 1 ? 1 : 50);
