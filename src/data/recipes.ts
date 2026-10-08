@@ -57,7 +57,7 @@ hand('sprinkler_3', 1, [['gold_bar', 1], ['brass_gear', 1], ['iron_plate', 1]], 
 hand('mist_tower', 1, [['gold_bar', 2], ['spark_coil', 1], ['glass', 2], ['iron_plate', 4]], 'r_mist');
 
 // ---------------- Hand: metal parts ----------------
-hand('copper_gear', 1, [['copper_bar', 1]], 'r_metallurgy', 1);
+hand('copper_gear', 1, [['copper_bar', 1]], undefined, 1);
 hand('copper_coil', 2, [['copper_bar', 1]], 'r_metallurgy', 1);
 hand('iron_plate', 1, [['iron_bar', 1]], 'r_metallurgy', 1);
 hand('spring', 1, [['iron_bar', 1]], 'r_metallurgy', 1);
@@ -69,9 +69,9 @@ hand('concrete', 2, [['gravel', 2], ['sand', 1], ['clay', 1]], 'r_crusher');
 rec('assembler', [s('cloth', 3), s('linen', 2)], [s('quilt', 1)], 30, 'r_weaving', 'asm:quilt');
 
 // ---------------- Hand: research bundles ----------------
-rec('hand', [s('fiber', 2), s('#crop', 1)], [s('bundle_green', 1)], 2, 'flag:lab', 'hand:bundle_green');
-rec('hand', [s('fiber', 2), s('#fruit', 1)], [s('bundle_green', 1)], 2, 'flag:lab', 'hand:bundle_green_fruit');
-rec('hand', [s('fiber', 2), s('#forage', 1)], [s('bundle_green', 1)], 2, 'flag:lab', 'hand:bundle_green_forage');
+rec('hand', [s('fiber', 1), s('#crop', 1)], [s('bundle_green', 1)], 2, 'flag:lab', 'hand:bundle_green');
+rec('hand', [s('fiber', 1), s('#fruit', 1)], [s('bundle_green', 1)], 2, 'flag:lab', 'hand:bundle_green_fruit');
+rec('hand', [s('fiber', 1), s('#forage', 1)], [s('bundle_green', 1)], 2, 'flag:lab', 'hand:bundle_green_forage');
 rec('hand', [s('copper_gear', 1), s('plank', 2)], [s('bundle_copper', 1)], 3, 'r_metallurgy', 'hand:bundle_copper');
 rec('hand', [s('#preserve', 1), s('cloth', 1), s('#animal', 1)], [s('bundle_rose', 1)], 4, 'r_weaving', 'hand:bundle_rose');
 rec('hand', [s('brass_gear', 1), s('arm_basic', 1), s('belt_1', 2), s('glass', 1)], [s('bundle_brass', 1)], 5, 'r_spark', 'hand:bundle_brass');

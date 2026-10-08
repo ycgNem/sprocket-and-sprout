@@ -49,7 +49,7 @@ export const QUESTS: QuestDef[] = [
     objectives: [{ t: 'talk', npc: 'ottoline' }],
     reward: { items: [{ item: 'lab', n: 1 }, { item: 'bundle_green', n: 4 }], flag: 'lab' } },
   { id: 't_research', title: 'Study Hall', giver: 'ottoline', tutorial: true, after: ['t_professor'],
-    desc: 'Place the Study Desk on your farm. Craft Sprout Bundles (fiber + any crop) and put them in the desk. Pick "Conveyance" in the research tree (T).',
+    desc: 'Place the Study Desk on your farm. Craft Sprout Bundles (1 fiber + 1 crop) and put them in the desk. Pick "Conveyance" in the research tree (T).',
     hint: 'Right-click the desk with bundles in hand, or open it and drop them in.',
     objectives: [{ t: 'build', struct: 'lab', n: 1 }, { t: 'research', id: 'r_belts' }],
     reward: { money: 300, items: [{ item: 'belt_1', n: 24 }, { item: 'copper_gear', n: 4 }] } },

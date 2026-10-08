@@ -8,12 +8,12 @@ const cost = (n: number, ...b: string[]): Stack[] => b.map((item) => ({ item, n 
 export const RESEARCH: ResearchDef[] = [
   // ---- Tier 1: Sprout bundles ----
   { id: 'r_preserves', name: 'Preserving', desc: 'Jars of summer for the winter.', icon: 'jar', cost: cost(5, G), unitTime: 6, prereq: [], pos: [0, 0] },
-  { id: 'r_belts', name: 'Conveyance', desc: 'A canvas belt on rollers. Items that move themselves!', icon: 'belt_1', cost: cost(8, G), unitTime: 6, prereq: [], pos: [0, 2] },
+  { id: 'r_belts', name: 'Conveyance', desc: 'A canvas belt on rollers. Items that move themselves!', icon: 'belt_1', cost: cost(6, G), unitTime: 6, prereq: [], pos: [0, 2] },
   { id: 'r_fertilizer', name: 'Soil Science', desc: 'Richer composts, tonics and mulches.', icon: 'rich_compost', cost: cost(6, G), unitTime: 6, prereq: [], pos: [0, 4] },
-  { id: 'r_metallurgy', name: 'Metalwork', desc: 'Gears, coils and springs from smelted bars.', icon: 'copper_gear', cost: cost(6, G), unitTime: 6, prereq: [], pos: [0, 6] },
+  { id: 'r_metallurgy', name: 'Metalwork', desc: 'Coils, plates and springs from smelted bars.', icon: 'copper_coil', cost: cost(5, G), unitTime: 6, prereq: [], pos: [0, 6] },
   { id: 'r_woodworking', name: 'Woodcraft', desc: 'Charcoal kilns and finer joinery.', icon: 'charcoal_kiln', cost: cost(6, G), unitTime: 6, prereq: [], pos: [0, 8] },
   { id: 'r_brewing', name: 'Brewing', desc: 'Kegs for wine, ale and mead.', icon: 'keg', cost: cost(12, G), unitTime: 8, prereq: ['r_preserves'], pos: [1, 0] },
-  { id: 'r_arms', name: 'Clockwork Arms', desc: 'Spring-wound arms that move items for you. No power needed!', icon: 'arm_basic', cost: cost(12, G), unitTime: 8, prereq: ['r_belts'], pos: [1, 2] },
+  { id: 'r_arms', name: 'Clockwork Arms', desc: 'Spring-wound arms that move items for you. No power needed!', icon: 'arm_basic', cost: cost(8, G), unitTime: 8, prereq: ['r_belts'], pos: [1, 2] },
   { id: 'r_sprinklers', name: 'Irrigation', desc: 'Sprinklers that water crops every morning.', icon: 'sprinkler_1', cost: cost(10, G), unitTime: 8, prereq: ['r_fertilizer'], pos: [1, 4] },
   { id: 'r_seed_sifting', name: 'Seed Sifting', desc: 'Turn a crop back into seeds.', icon: 'seed_sifter', cost: cost(10, G), unitTime: 8, prereq: ['r_fertilizer'], pos: [1, 5] },
   { id: 'r_masonry', name: 'Masonry', desc: 'Brick kilns, stone walls and brick paths.', icon: 'brick_kiln', cost: cost(10, G), unitTime: 8, prereq: ['r_woodworking'], pos: [1, 8] },

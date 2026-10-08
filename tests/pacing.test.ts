@@ -1,0 +1,25 @@
+import { describe, expect, it } from 'vitest';
+import '../src/sim';
+import { Game } from '../src/sim/Game';
+import { Bot } from './bot';
+import { questSys } from '../src/sim/systems/quests';
+
+describe('pacing (scripted bot, first 3 weeks)', () => {
+  it('earns money steadily and unlocks automation in weeks 2-3', () => {
+    const g = new Game({ seed: 2024, name: 'Bot', farmName: 'Bolt' });
+    const bot = new Bot(g);
+    const days = Number(process.env.BOT_DAYS ?? 21);
+    for (let d = 0; d < days; d++) bot.playDay();
+    const rows = bot.log.map((l) => `day ${String(l.day).padStart(2)}  money ${String(l.money).padStart(6)}  earned ${String(l.earned).padStart(6)}  soil ${String(l.soil).padStart(3)}  E-left ${String(l.energyLeft).padStart(4)}  mine ${String(l.mineDeep).padStart(2)}  quests ${l.quests}  research ${l.research.length}  ${l.notes.join('; ')}`);
+    console.log(rows.join('\n'));
+    console.log('quests done:', questSys(g).done.join(', '));
+    console.log('active quests:', questSys(g).active.map((a) => a.id).join(', '));
+    const beltDay = bot.log.find((l) => l.research.includes('r_belts'))?.day;
+    const armDay = bot.log.find((l) => l.research.includes('r_arms'))?.day;
+    console.log('belts researched on day', beltDay, 'arms on day', armDay);
+    expect(bot.log[6].earned).toBeGreaterThan(300);
+    expect(beltDay).toBeDefined();
+    expect(beltDay!).toBeLessThanOrEqual(14);
+    if (days >= 21) expect(armDay!).toBeLessThanOrEqual(21);
+  }, 600000);
+});
