@@ -229,9 +229,9 @@ function drawRestoration(ui: UI, play: PlayScreen, st: WinState): boolean {
   st.data.area = st.data.area ?? areas[0];
   areas.forEach((a, i) => {
     const done = PROJECTS.filter((p) => p.area === a).every((p) => gs.doneProjects.includes(p.id));
-    if (ui.button('ra' + a, x + 10 + i * 82, y + 10, 78, 14, (done ? '+ ' : '') + a, { active: st.data.area === a })) st.data.area = a;
+    if (ui.button('ra' + a, x + 10 + i * Math.floor((w - 40) / areas.length), y + 10, Math.floor((w - 40) / areas.length) - 4, 14, (done ? '+ ' : '') + a, { active: st.data.area === a })) st.data.area = a;
   });
-  ui.text(`${gs.doneProjects.length}/${PROJECTS.length} projects`, x + w - 26, y + 14, C.walnut, { align: 'right' });
+  ui.text(`${gs.doneProjects.length}/${PROJECTS.length} projects restored`, x + w - 12, y + h - 58, C.walnut, { align: 'right' });
   const list = PROJECTS.filter((p) => p.area === st.data.area);
   let yy = y + 30;
   for (const p of list) {

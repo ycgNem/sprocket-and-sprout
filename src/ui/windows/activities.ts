@@ -36,13 +36,13 @@ function drawFishing(ui: UI, play: PlayScreen, st: WinState): boolean {
   f.reeling = reel;
   const W = 260, H = 70;
   const x = Math.floor((ui.w - W) / 2), y = Math.floor(ui.h * 0.62);
-  ui.panel(x, y - 26, W, H + 30);
+  ui.panel(x, y - 30, W, H + 40);
   const fish = f.fish!;
   ui.itemIcon(key(fish.id), x + 8, y - 20, 16);
   ui.text(fish.legendary ? '!!! ' + fish.name + ' !!!' : 'Something is on the line!', x + 28, y - 16, fish.legendary ? C.rose : C.ink);
-  ui.text(reel ? 'Reeling...' : 'Hold to reel, release to ease', x + W - 10, y - 16, C.walnut, { align: 'right' });
+  ui.text(reel ? 'Reeling...' : 'Hold the mouse (or Space) to reel, release to ease off', x + W / 2, y + 56, C.walnut, { align: 'center' });
   // tension gauge
-  const gx = x + 12, gy = y + 4, gw = W - 24, gh = 16;
+  const gx = x + 12, gy = y + 8, gw = W - 24, gh = 16;
   ui.fill(gx - 1, gy - 1, gw + 2, gh + 2, C.ink);
   ui.fill(gx, gy, gw, gh, C.river);
   // danger zone at the top end
