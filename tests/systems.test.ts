@@ -303,3 +303,29 @@ describe('cookbook', () => {
     expect(CB.unknownRecipes(g2).length).toBe(0);
   });
 });
+
+describe('farm visits', () => {
+  it('a friendly villager walks to the farm on a fine weekend afternoon', async () => {
+    const g = new Game({ seed: 16 });
+    for (const n of npcSys(g).list) { n.met = true; n.points = 3 * 250 + 10; }
+    let tries = 0;
+    while (!g.sys.visits && tries++ < 60) {
+      sleep(g);
+      if (g.weekday === 4) g.tomorrow = 'sun';
+      for (const n of npcSys(g).list) n.points = Math.max(n.points, 760);
+    }
+    expect(g.sys.visits).toBeTruthy();
+    const n = npcSys(g).byId.get(g.sys.visits.npc)!;
+    g.time.min = 13 * 60;
+    const [sx, sy] = g.map.loc('farm_visit');
+    let t = 0;
+    while (Math.hypot(n.x - sx, n.y - sy) > 3 && t++ < 60 * 400) g.tick();
+    expect(Math.hypot(n.x - sx, n.y - sy)).toBeLessThan(3);
+    const before = n.points;
+    g.events.length = 0;
+    npcSys(g).interact(g, n);
+    expect(n.points).toBeGreaterThanOrEqual(before + 25);
+    const dlg = g.events.find((e: any) => e.t === 'ui' && e.open === 'dialog') as any;
+    expect(dlg.arg.pages.join(' ').length).toBeGreaterThan(10);
+  });
+});

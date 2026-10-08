@@ -53,8 +53,11 @@
 - Cookbook: 7 starter recipes. 15 more are taught by 10 villagers at heart milestones (sent as
   letters with a note) or copied from the Sunday almanac. Unknown recipes show who teaches them.
   Older saves keep every recipe.
+- Farm visits: on fine weekend afternoons a villager with 3+ hearts may walk over to your farm.
+  Chatting there gives a farm-aware line (your pet, belts, crops, animals, greenhouse, kitchen)
+  and bonus friendship.
 - Fixed titled villagers showing as "Mayor"/"Dr."/"Old" in toasts, quests and the almanac.
-- Tests: 47 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Tests: 48 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 

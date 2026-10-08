@@ -331,7 +331,15 @@ export function talkTo(g: Game, n: NPCState) {
       return;
     }
   }
-  let text = chooseLine(g, n, d);
+  const visit: string | null = n.met ? g.sys.visitLine?.(g, n) ?? null : null;
+  let text = visit ?? chooseLine(g, n, d);
+  if (visit && !g.sys.visits.talked) {
+    // a visit to the farm is a good chat
+    g.sys.visits.talked = true;
+    addPoints(g, n, 25);
+    n.emote = 'happy';
+    n.emoteT = 2;
+  }
   if (!n.met) n.met = true;
   if (!n.talked) {
     n.talked = true;
