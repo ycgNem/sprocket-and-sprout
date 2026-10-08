@@ -82,7 +82,7 @@ export interface Player {
 export type GameEvent =
   | { t: 'sfx'; id: string; x?: number; y?: number; v?: number }
   | { t: 'toast'; text: string; icon?: string; color?: number }
-  | { t: 'fx'; kind: string; x: number; y: number; n?: number; c?: number; c2?: number }
+  | { t: 'fx'; kind: string; x: number; y: number; n?: number; c?: number; c2?: number; s?: string; dir?: number }
   | { t: 'pickup'; k: number; n: number; x: number; y: number }
   | { t: 'shake'; amt: number }
   | { t: 'float'; text: string; x: number; y: number; c?: number }

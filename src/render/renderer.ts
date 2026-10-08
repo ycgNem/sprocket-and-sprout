@@ -21,6 +21,7 @@ import { EXTRA_TOP } from './art/structs';
 import { Particles } from './particles';
 import { Lighting } from './lighting';
 import { Weather } from './weather';
+import { Ambient } from './ambient';
 
 const CH = TileMap.CHUNK;
 const FLAT_OBJ = new Set([
@@ -59,6 +60,7 @@ export class Renderer {
   particles = new Particles();
   lighting = new Lighting();
   weather = new Weather();
+  ambient = new Ambient();
   W = 0;
   H = 0;
   time = 0;
@@ -299,6 +301,8 @@ export class Renderer {
     for (const d of D) d.f();
     this.drawCount = D.length;
 
+    this.ambient.update(dt, g, this);
+    this.ambient.draw(ctx, this.time);
     // greenhouse glass roof
     if (m === g.map) this.drawGreenhouseRoof(g);
     if (m === g.map) this.drawTownExtras(g);

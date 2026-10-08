@@ -170,6 +170,7 @@ function hitTree(g: Game, x: number, y: number, power: number, tier: number) {
   if (big) drop(g, 'sap', g.rng.int(1, 3), x, y);
   if (big && def && g.rng.next() < 0.5) drop(g, def.sapling, 1, x, y);
   if (t.fruit > 0 && def?.fruit) drop(g, def.fruit, t.fruit, x, y);
+  g.emit({ t: 'fx', kind: 'treefall', x: x + 0.5, y: y + 0.95, s: `tree:${t.species}:${t.stage}:${g.time.season}:0:${m.deco[i] % 3}`, dir: g.player.x < x + 0.5 ? 1 : -1 });
   m.setO(x, y, big && def?.wild ? O.STUMP : O.NONE);
   fx(g, 'leaves', x, y, def?.look.leaf, 30);
   g.emit({ t: 'shake', amt: 0.4 });

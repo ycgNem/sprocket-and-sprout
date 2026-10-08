@@ -175,6 +175,7 @@ export class PlayScreen implements Screen {
         this.stepT = 0;
         const t = curMap(g).g(Math.floor(g.player.x), Math.floor(g.player.y));
         app.audio.sfx(t === 7 ? 'step_wood' : t === 6 || t === 9 ? 'step_stone' : 'step', 0.6);
+        if (t === 2 || t === 3 || t === 6 || t === 13) r.particles.burst(g.player.x * 16, g.player.y * 16, 2, [C.tan, C.pebble], { speed: 10, up: 6, g: 20, life: 0.35, size: 1 });
       }
     }
 
@@ -205,7 +206,17 @@ export class PlayScreen implements Screen {
     if (this.win) {
       this.win.t += dt;
       const def = WINDOWS[this.win.id];
+      const pop = Math.min(1, this.win.t / 0.12);
+      if (pop < 1 && def?.modal !== false) {
+        const sc = 0.94 + 0.06 * pop;
+        ui.ctx.save();
+        ui.ctx.translate(ui.w / 2, ui.h / 2);
+        ui.ctx.scale(sc, sc);
+        ui.ctx.translate(-ui.w / 2, -ui.h / 2);
+        ui.ctx.globalAlpha = 0.4 + 0.6 * pop;
+      }
       const keep = def ? def.draw(ui, this, this.win) : false;
+      if (pop < 1 && def?.modal !== false) ui.ctx.restore();
       if (!keep) this.closeWindow();
     }
     if (g.sleeping || this.sleepFade > 0.5) {
@@ -733,6 +744,7 @@ export class PlayScreen implements Screen {
             case 'coins': P.burst(x, y, 10, [C.amber, C.brass, C.butter], { speed: 60, up: 60, life: 0.7 }); break;
             case 'hit': P.burst(x, y - 8, n, [C.cream, C.rose], { speed: 70, up: 20, life: 0.3 }); break;
             case 'magic': P.burst(x, y - 8, n, [C.lavender, C.aqua, C.cream], { speed: 40, up: 30, g: -20, life: 1 }); break;
+            case 'treefall': if (e.s) r.ambient.treeFall(e.s, e.x, e.y, e.dir ?? 1); break;
             default: P.burst(x, y, n, [C.cream], {});
           }
           break;
