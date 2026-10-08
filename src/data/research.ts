@@ -19,7 +19,7 @@ export const RESEARCH: ResearchDef[] = [
   { id: 'r_masonry', name: 'Masonry', desc: 'Brick kilns, stone walls and brick paths.', icon: 'brick_kiln', cost: cost(10, G), unitTime: 8, prereq: ['r_woodworking'], pos: [1, 8] },
   { id: 'r_bees', name: 'Apiary', desc: 'Bee skeps for honey. Flowers nearby flavor it.', icon: 'bee_skep', cost: cost(10, G), unitTime: 8, prereq: ['r_preserves'], pos: [1, 1] },
   { id: 'r_tapping', name: 'Tapping', desc: 'Spigots for collecting tree sap and syrup.', icon: 'tapper', cost: cost(10, G), unitTime: 8, prereq: ['r_woodworking'], pos: [1, 9] },
-  { id: 'r_traps', name: 'Trapcraft', desc: 'Wicker fish traps and glowing bait.', icon: 'fish_trap', cost: cost(10, G), unitTime: 8, prereq: ['r_woodworking'], pos: [1, 10] },
+  { id: 'r_traps', name: 'Trapcraft', desc: 'Wicker fish traps, fish ponds and glowing bait.', icon: 'fish_trap', cost: cost(10, G), unitTime: 8, prereq: ['r_woodworking'], pos: [1, 10] },
 
   // ---- Tier 2: Tinker bundles ----
   { id: 'r_logistics', name: 'Logistics', desc: 'Splitters and burrow belts for tidy factories.', icon: 'splitter_1', cost: cost(15, G, CU), unitTime: 10, prereq: ['r_arms', 'r_metallurgy'], pos: [2, 2] },
