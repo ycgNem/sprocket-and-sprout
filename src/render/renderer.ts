@@ -1,5 +1,6 @@
 // World renderer: camera, chunk-baked ground, culled + y-sorted dynamic sprites,
 // belts with their items, arms, wires, lighting and weather.
+import { kId } from '../sim/inventory';
 import { C, PALETTE, rgba } from '../data/palette';
 import { CROP_BY_ID } from '../data/crops';
 import { MEGA_BY_ID } from '../data/goals';
@@ -388,6 +389,16 @@ export class Renderer {
       }
   }
 
+  /** a filtered splitter shows its item on the box */
+  private drawSplitFilter(root: Ent, cx: number, cy: number) {
+    const fk = root.belt?.sFilter ?? -1;
+    if (fk < 0) return;
+    const ic = sprite('i:' + kId(fk));
+    this.ctx.fillStyle = PALETTE[C.ink];
+    this.ctx.fillRect(cx - 5, cy - 5, 10, 10);
+    this.ctx.drawImage(ic.img, ic.x, ic.y, 16, 16, cx - 4, cy - 4, 8, 8);
+  }
+
   /** furniture the player placed inside the farmhouse */
   private drawDecor(g: Game, D: Drawable[]) {
     const ctx = this.ctx, t = this.time, season = g.time.season;
@@ -494,6 +505,7 @@ export class Renderer {
                 ctx.rotate((e.rot * Math.PI) / 2);
                 ctx.drawImage(box.img, box.x, box.y, 32, 16, -16, -8, 32, 16);
                 ctx.restore();
+                this.drawSplitFilter(e, cxp, cyp);
               } });
             } else {
               const root = e.parent;
@@ -510,6 +522,7 @@ export class Renderer {
                   ctx.rotate((root.rot * Math.PI) / 2);
                   ctx.drawImage(box.img, box.x, box.y, 32, 16, -16, -8, 32, 16);
                   ctx.restore();
+                  this.drawSplitFilter(root, cxp, cyp);
                 } });
                 this.collectBeltItems(root, beltItems, pos);
               }
