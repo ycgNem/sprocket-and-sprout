@@ -16,16 +16,25 @@ import { centered, frame, invGrid, SLOT } from './common';
 import { registerWindow, WinState } from './index';
 import { itemTooltip } from '../tooltips';
 
-function portrait(ui: UI, npcId: string, x: number, y: number, size = 48) {
+function portrait(ui: UI, npcId: string, x: number, y: number, size = 48, mood = 0) {
   ui.panel(x, y, size + 8, size + 8, 'inset', false);
-  const s = sprite(`ch:${npcId}:2:0`);
-  // draw the upper body big
-  ui.ctx.save();
-  ui.ctx.beginPath();
-  ui.ctx.rect(x + 4, y + 4, size, size);
-  ui.ctx.clip();
-  ui.ctx.drawImage(s.img, s.x, s.y, 16, 16, x + 4, y + 4 + 2, size, size);
-  ui.ctx.restore();
+  if (size < 32) {
+    // tiny: crop the walking sprite's head
+    const ch = sprite(`ch:${npcId}:2:0`);
+    ui.ctx.save();
+    ui.ctx.beginPath();
+    ui.ctx.rect(x + 4, y + 4, size, size);
+    ui.ctx.clip();
+    ui.ctx.drawImage(ch.img, ch.x, ch.y, 16, 16, x + 4, y + 6, size, size);
+    ui.ctx.restore();
+    return;
+  }
+  const elder = NPC_BY_ID.get(npcId)?.age === 'elder';
+  // a gentle blink every few seconds
+  const blink = mood !== 1 && Math.floor(ui.time * 10 + npcId.length * 7) % 47 === 0;
+  const s = sprite(`portrait:${npcId}:${blink ? 1 : mood}:${elder ? 1 : 0}`);
+  const sz = Math.floor(size / 32) * 32 || size;
+  ui.ctx.drawImage(s.img, s.x, s.y, 32, 32, x + 4 + Math.floor((size - sz) / 2), y + 4 + Math.floor((size - sz) / 2), sz, sz);
 }
 
 function heartsRow(ui: UI, h: number, x: number, y: number) {
@@ -33,20 +42,20 @@ function heartsRow(ui: UI, h: number, x: number, y: number) {
 }
 
 function drawDialog(ui: UI, play: PlayScreen, st: WinState): boolean {
-  const a = st.arg as { npc: string; name: string; pages: string[]; shop?: string; hearts: number };
+  const a = st.arg as { npc: string; name: string; pages: string[]; shop?: string; hearts: number; mood?: number };
   st.data.page = st.data.page ?? 0;
   st.data.chars = (st.data.chars ?? 0) + 1.6;
   const text = a.pages[st.data.page] ?? '';
-  const w = Math.min(420, ui.w - 20), h = 78;
+  const w = Math.min(440, ui.w - 20), h = 86;
   const x = Math.floor((ui.w - w) / 2), y = ui.h - h - 46;
   ui.panel(x, y, w, h);
-  portrait(ui, a.npc, x + 8, y + 10, 48);
+  portrait(ui, a.npc, x + 8, y + 7, 64, a.mood ?? 0);
   ui.panel(x + 8, y - 12, Math.max(70, a.name.length * 6 + 12), 14, 'brass', false);
   ui.text(a.name, x + 14, y - 8, C.ink);
   heartsRow(ui, a.hearts, x + w - 82, y - 8);
   const shown = text.slice(0, Math.floor(st.data.chars));
   if (Math.floor(st.data.chars) % 3 === 0 && st.data.chars < text.length) ui.sfx('talk');
-  wrapText(shown, w - 90).forEach((l, i) => ui.text(l, x + 70, y + 12 + i * 11, C.ink));
+  wrapText(shown, w - 104).forEach((l, i) => ui.text(l, x + 86, y + 12 + i * 11, C.ink));
   const done = st.data.chars >= text.length;
   if (done && Math.floor(ui.time * 2) % 2) ui.text(ICON.down, x + w - 14, y + h - 14, C.walnut);
   const adv = ui.clicked || ui.input.keyPressed('Space') || ui.input.keyPressed('Enter') || ui.input.wasPressed('interact');
@@ -91,7 +100,7 @@ function drawEvent(ui: UI, play: PlayScreen, st: WinState): boolean {
   if (st.data.reply) line = { who: NPC_BY_ID.get(a.npc)!.name, text: st.data.reply, npcId: a.npc };
   else if (st.data.i < a.lines.length) line = a.lines[st.data.i];
   else if (a.choice) choosing = true;
-  const w = Math.min(420, ui.w - 20), h = 80;
+  const w = Math.min(440, ui.w - 20), h = 86;
   const x = Math.floor((ui.w - w) / 2), y = ui.h - h - 30;
   if (choosing && a.choice) {
     ui.panel(x, y - 20, w, h + 20);
@@ -110,14 +119,15 @@ function drawEvent(ui: UI, play: PlayScreen, st: WinState): boolean {
     return false;
   }
   ui.panel(x, y, w, h);
-  if (line.npcId) portrait(ui, line.npcId, x + 8, y + 10, 48);
-  else if (line.who === g.player.name) portrait(ui, 'player', x + 8, y + 10, 48);
+  const emo = /!|haha|laugh|smile|grin/i.test(line.text) ? 1 : /sorry|sigh|sad|miss|alone|.../i.test(line.text) ? 2 : 0;
+  if (line.npcId) portrait(ui, line.npcId, x + 8, y + 7, 64, emo);
+  else if (line.who === g.player.name) portrait(ui, 'player', x + 8, y + 7, 64, emo);
   if (line.who) {
     ui.panel(x + 8, y - 12, Math.max(70, line.who.length * 6 + 12), 14, 'brass', false);
     ui.text(line.who, x + 14, y - 8, C.ink);
   }
   const shown = line.text.slice(0, Math.floor(st.data.chars));
-  wrapText(shown, w - 90).forEach((l, i) => ui.text(l, x + 70, y + 12 + i * 11, line!.who ? C.ink : C.walnut));
+  wrapText(shown, w - 104).forEach((l, i) => ui.text(l, x + 86, y + 12 + i * 11, line!.who ? C.ink : C.walnut));
   const adv = ui.clicked || ui.input.keyPressed('Space') || ui.input.keyPressed('Enter') || ui.input.wasPressed('interact');
   if (adv) {
     ui.eat();
@@ -151,8 +161,8 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
   st.data.tab = st.data.tab ?? 'Buy';
   tabs.forEach((t, i) => { if (ui.button('stab' + t, x + 10 + i * 62, y + 10, 58, 14, t, { active: st.data.tab === t })) st.data.tab = t; });
   ui.text(`${ICON.coin} ${g.player.money.toLocaleString()}`, x + w - 26, y + 14, C.walnut, { align: 'right' });
-  portrait(ui, shop.owner, x + w - 66, y + 30, 40);
-  ui.text(owner.name.split(' ')[0], x + w - 42, y + 82, C.walnut, { align: 'center' });
+  portrait(ui, shop.owner, x + w - 58, y + 30, 32, 1);
+  ui.text(owner.name.split(' ')[0], x + w - 38, y + 74, C.walnut, { align: 'center' });
   const listX = x + 10, listY = y + 30, listW = w - 86, listH = 150;
   if (st.data.tab === 'Buy') {
     ui.para(shop.greeting, listX, y + h - 96, listW, C.walnut);

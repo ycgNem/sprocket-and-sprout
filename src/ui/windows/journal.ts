@@ -216,7 +216,7 @@ function drawBoard(ui: UI, play: PlayScreen, st: WinState): boolean {
     const ry = y + 28 + i * 58;
     const d = NPC_BY_ID.get(r.npc)!;
     ui.panel(x + 12, ry, w - 24, 54, 'paper', false);
-    portrait(ui, r.npc, x + 16, ry + 4, 36);
+    portrait(ui, r.npc, x + 16, ry + 4, 32, 0);
     ui.text(d.name, x + 64, ry + 5, C.ink);
     ui.para(`"${r.text}"`, x + 64, ry + 15, w - 160, C.walnut, 9);
     ui.itemIcon(key(r.item), x + 64, ry + 34, 14);

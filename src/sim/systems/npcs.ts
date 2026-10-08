@@ -326,7 +326,7 @@ export function talkTo(g: Game, n: NPCState) {
       g.emit({ t: 'fx', kind: taste === 'love' ? 'hearts' : 'sparkle', x: n.x, y: n.y - 1 });
       g.emit({ t: 'sfx', id: taste === 'love' || taste === 'like' ? 'heart' : 'talk' });
       g.count('gifts');
-      openDialog(g, n, text);
+      openDialog(g, n, text, undefined, taste === 'love' || taste === 'like' ? 1 : taste === 'neutral' ? 0 : 2);
       return;
     }
   }
@@ -341,10 +341,10 @@ export function talkTo(g: Game, n: NPCState) {
   openDialog(g, n, text);
 }
 
-export function openDialog(g: Game, n: NPCState, text: string, shopAfter?: string) {
+export function openDialog(g: Game, n: NPCState, text: string, shopAfter?: string, mood?: number) {
   const d = NPC_BY_ID.get(n.id)!;
   g.sys.dialogue = { npc: n.id };
-  g.emit({ t: 'ui', open: 'dialog', arg: { npc: n.id, name: d.name, pages: splitPages(fillTokens(g, text)), shop: shopAfter, hearts: hearts(n) } });
+  g.emit({ t: 'ui', open: 'dialog', arg: { npc: n.id, name: d.name, pages: splitPages(fillTokens(g, text)), shop: shopAfter, hearts: hearts(n), mood: mood ?? (hearts(n) >= 3 && /!/.test(text) ? 1 : 0) } });
 }
 
 export function splitPages(text: string): string[] {

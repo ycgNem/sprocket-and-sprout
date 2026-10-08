@@ -194,7 +194,155 @@ function drawChar(look: NPCLook, dir: number, frame: number): PixBuf {
   return pb;
 }
 
+/** 32x32 dialogue portraits with moods: 0 neutral, 1 happy, 2 sad, 3 surprised */
+function drawPortrait(look: NPCLook, mood: number, elder: boolean): PixBuf {
+  const pb = new PixBuf(32, 32);
+  const S = look.skin, Sd = DARK[look.skin], Sl = LIGHT[look.skin] === C.cream && look.skin === C.cream ? C.cream : LIGHT[look.skin];
+  const H = look.hair, Hd = DARK[look.hair], Hl = LIGHT[look.hair] === C.cream && look.hair !== C.cream ? H : LIGHT[look.hair];
+  const child = look.height === 'short';
+  const hx = child ? 9 : 8, hw = child ? 14 : 16, hy = child ? 9 : 6, hh = child ? 16 : 18;
+  // hair behind the head (long styles)
+  if (look.hairStyle === 'long' || look.hairStyle === 'curly') pb.rect(hx - 2, hy + 4, hw + 4, hh + 4, Hd);
+  if (look.hairStyle === 'braids') {
+    for (let y = hy + 10; y < 31; y++) {
+      pb.set(hx - 1, y, y % 2 ? H : Hd);
+      pb.set(hx, y, y % 2 ? Hd : H);
+      pb.set(hx + hw - 1, y, y % 2 ? H : Hd);
+      pb.set(hx + hw, y, y % 2 ? Hd : H);
+    }
+  }
+  // shoulders + shirt
+  pb.ellipse(16, 31, 14, 6, look.shirt);
+  pb.rect(4, 28, 24, 4, look.shirt);
+  pb.rect(4, 28, 24, 1, LIGHT[look.shirt] === C.cream ? look.shirt : LIGHT[look.shirt]);
+  if (look.apron) { pb.rect(10, 27, 12, 5, C.cream); pb.rect(10, 27, 1, 5, C.pebble); pb.rect(21, 27, 1, 5, C.pebble); }
+  if (look.accent !== undefined && !look.apron) { pb.rect(12, 26, 8, 2, look.accent); pb.set(15, 28, look.accent); pb.set(16, 28, look.accent); }
+  // neck
+  pb.rect(13, hy + hh - 2, 6, 4, Sd);
+  // head
+  pb.rect(hx + 1, hy, hw - 2, hh, S);
+  pb.rect(hx, hy + 2, hw, hh - 4, S);
+  pb.rect(hx + hw - 2, hy + 3, 1, hh - 6, Sd);
+  pb.rect(hx + 2, hy + hh - 1, hw - 4, 1, Sd);
+  pb.rect(hx + 2, hy + 2, 3, 2, Sl);
+  // ears
+  pb.rect(hx - 1, hy + 8, 2, 4, S);
+  pb.rect(hx + hw - 1, hy + 8, 2, 4, S);
+  // eyes
+  const ey = hy + (child ? 8 : 9);
+  const exL = hx + 3, exR = hx + hw - 6;
+  if (mood === 1) {
+    // happy closed arcs
+    for (const ex of [exL, exR]) { pb.set(ex, ey + 1, C.ink); pb.set(ex + 1, ey, C.ink); pb.set(ex + 2, ey + 1, C.ink); }
+  } else {
+    for (const ex of [exL, exR]) {
+      pb.rect(ex, ey, 3, child ? 4 : 3, C.cream);
+      pb.rect(ex + 1, ey, 2, child ? 4 : 3, C.ink);
+      pb.set(ex + 1, ey, C.cream);
+    }
+  }
+  // brows
+  const by = ey - 2;
+  if (mood === 2) { pb.line(exL, by, exL + 2, by + 1, Hd); pb.line(exR, by + 1, exR + 2, by, Hd); }
+  else if (mood === 3) { pb.rect(exL, by - 1, 3, 1, Hd); pb.rect(exR, by - 1, 3, 1, Hd); }
+  else { pb.rect(exL, by, 3, 1, Hd); pb.rect(exR, by, 3, 1, Hd); }
+  // nose + cheeks
+  pb.set(16, ey + 3, Sd);
+  pb.set(16, ey + 4, Sd);
+  if (S !== C.bark && S !== C.walnut) { pb.rect(exL - 1, ey + 4, 2, 1, C.blush); pb.rect(exR + 2, ey + 4, 2, 1, C.blush); }
+  // mouth
+  const my = ey + 6;
+  if (mood === 1) { pb.rect(14, my, 4, 1, C.ink); pb.set(13, my - 1, C.ink); pb.set(18, my - 1, C.ink); pb.rect(14, my + 1, 4, 1, C.rose); }
+  else if (mood === 2) { pb.rect(14, my + 1, 4, 1, C.ink); pb.set(13, my + 2, C.ink); pb.set(18, my + 2, C.ink); }
+  else if (mood === 3) { pb.rect(15, my, 2, 2, C.ink); }
+  else { pb.rect(14, my, 4, 1, Sd); pb.set(14, my, C.ink); pb.set(17, my, C.ink); }
+  if (elder) { pb.set(exL - 1, ey + 2, Sd); pb.set(exR + 3, ey + 2, Sd); pb.rect(13, my + 3, 6, 1, Sd); }
+  // beard
+  if (look.beard) {
+    pb.rect(hx + 1, my - 1, hw - 2, hh - (my - hy) + 2, H);
+    pb.rect(14, my, 4, 1, mood === 1 ? C.rose : C.ink);
+    for (let x = hx + 2; x < hx + hw - 2; x += 2) pb.set(x, hy + hh, Hd);
+  }
+  // glasses
+  if (look.glasses) {
+    for (const ex of [exL, exR]) { pb.rect(ex - 1, ey - 1, 5, 1, C.ink); pb.rect(ex - 1, ey + 3, 5, 1, C.ink); pb.set(ex - 1, ey + 1, C.ink); pb.set(ex + 3, ey + 1, C.ink); }
+    pb.rect(exL + 4, ey, exR - exL - 5, 1, C.ink);
+  }
+  // hair on top
+  const top = () => {
+    pb.rect(hx, hy - 1, hw, 5, H);
+    pb.rect(hx + 1, hy - 2, hw - 2, 1, H);
+    pb.rect(hx + 2, hy - 1, hw - 6, 1, Hl);
+    pb.rect(hx - 1, hy + 2, 2, 6, H);
+    pb.rect(hx + hw - 1, hy + 2, 2, 6, H);
+  };
+  switch (look.hairStyle) {
+    case 'bald':
+      pb.rect(hx - 1, hy + 6, 2, 5, H);
+      pb.rect(hx + hw - 1, hy + 6, 2, 5, H);
+      pb.set(hx + 4, hy + 1, Sl);
+      break;
+    case 'short':
+      top();
+      pb.rect(hx + 3, hy + 4, 4, 1, H);
+      break;
+    case 'spiky':
+      top();
+      for (let x = hx; x < hx + hw; x += 3) { pb.set(x + 1, hy - 3, H); pb.set(x + 1, hy - 4, Hd); }
+      break;
+    case 'curly':
+      top();
+      for (let x = hx - 2; x < hx + hw + 2; x += 3) pb.disc(x + 1, hy - 1, 2, H);
+      for (let y = hy; y < hy + 16; y += 3) { pb.disc(hx - 2, y, 2, H); pb.disc(hx + hw + 1, y, 2, H); }
+      break;
+    case 'long':
+      top();
+      pb.rect(hx - 2, hy + 2, 3, 18, H);
+      pb.rect(hx + hw - 1, hy + 2, 3, 18, H);
+      break;
+    case 'braids':
+      top();
+      pb.set(hx - 1, 30, look.accent ?? C.rose);
+      pb.set(hx + hw, 30, look.accent ?? C.rose);
+      break;
+    case 'bun':
+      top();
+      pb.disc(16, hy - 4, 4, H);
+      pb.disc(15, hy - 5, 1.5, Hl);
+      break;
+    case 'ponytail':
+      top();
+      pb.rect(hx + hw, hy + 3, 3, 12, H);
+      pb.set(hx + hw + 1, hy + 15, Hd);
+      break;
+    case 'cap':
+    case 'hat': {
+      const hc = look.accent ?? C.brick;
+      pb.rect(hx - 1, hy + 2, 2, 6, H);
+      pb.rect(hx + hw - 1, hy + 2, 2, 6, H);
+      if (look.hairStyle === 'hat') {
+        pb.rect(hx - 4, hy + 2, hw + 8, 2, DARK[hc]);
+        pb.rect(hx + 1, hy - 5, hw - 2, 7, hc);
+        pb.rect(hx + 1, hy + 0, hw - 2, 1, C.ink);
+      } else {
+        pb.rect(hx, hy - 3, hw, 6, hc);
+        pb.rect(hx + 1, hy - 4, hw - 2, 1, hc);
+        pb.rect(hx + hw - 4, hy + 2, 8, 2, DARK[hc]);
+      }
+      break;
+    }
+  }
+  pb.outline(C.ink);
+  return pb;
+}
+
 export function registerCharSprites() {
+  defSpriteFamily('portrait:', (name) => {
+    const [, id, ms, es] = name.split(':');
+    const look = looks.get(id);
+    if (!look) return null;
+    return { w: 32, h: 32, draw: (ctx) => drawPortrait(look, +ms, es === '1').drawTo(ctx) };
+  });
   defSpriteFamily('ch:', (name) => {
     const [, id, ds, fs] = name.split(':');
     const look = looks.get(id);
