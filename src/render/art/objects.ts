@@ -551,6 +551,25 @@ function drawBuilding(d: BldDesc, season: number, state: number): PixBuf {
       if (!winter) for (let k = 0; k < 4; k++) pb.set(wx + 1 + k * 2, winY + 8, [C.rose, C.butter, C.lavender, C.blush][(k + i) % 4]);
     }
   }
+  // seasonal touches on homes
+  if (d.kind === 'farmhouse' || d.kind === 'house') {
+    if (winter) {
+      // wreath on the door and icicles along the eaves
+      pb.disc(doorX + 5, H - 15, 3.2, C.pine);
+      pb.disc(doorX + 5, H - 15, 1.4, C.walnut);
+      pb.set(doorX + 4, H - 18, C.rose); pb.set(doorX + 6, H - 18, C.rose); pb.set(doorX + 5, H - 17, C.brick);
+      for (let x = 3; x < W - 3; x += 4) { pb.rect(x, wallTop + 3, 1, 2 + ((x / 4) % 3), C.frost); }
+    } else if (season === 2) {
+      // pumpkins and a bundle of corn stalks by the door
+      pb.ellipse(doorX - 5, H - 6, 3.5, 2.5, C.apricot); pb.rect(doorX - 5, H - 9, 1, 2, C.moss);
+      pb.ellipse(doorX + 15, H - 6, 2.5, 2, C.terracotta); pb.set(doorX + 15, H - 8, C.moss);
+      pb.rect(doorX + 18, H - 14, 1, 10, C.tan); pb.rect(doorX + 19, H - 13, 1, 9, C.amber); pb.rect(doorX + 20, H - 14, 1, 10, C.tan);
+    } else if (season === 0) {
+      // potted tulips by the door
+      pb.rect(doorX - 5, H - 8, 4, 4, C.terracotta);
+      pb.set(doorX - 4, H - 10, C.rose); pb.set(doorX - 2, H - 10, C.butter); pb.set(doorX - 3, H - 9, C.leaf);
+    }
+  }
   // shop sign
   if (d.kind === 'shop') {
     pb.rect(doorX - 6, wallTop + 1, 22, 6, C.oak);
