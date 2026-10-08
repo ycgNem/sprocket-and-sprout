@@ -27,6 +27,12 @@ export const TIPS: Tip[] = [
   { id: 'can', when: (p) => held(p)?.tool?.kind === 'can', title: '', text: 'Water each planted tile every day (rain does it for you). Click the farm pond to refill.' },
   { id: 'energy', when: (p) => p.g.player.energy < 60, title: '', text: 'Energy is getting low. Eat something (H) or head to bed. Passing out at 2am costs coins!' },
   { id: 'night', when: (p) => p.g.time.min > 21 * 60 && p.g.dayIndex < 3, title: '', text: 'It is getting late. Head inside the farmhouse and right-click the bed to sleep; the shipping crate pays out overnight.' },
+  { id: 'home', when: (p) => p.g.player.where === 'house', title: '', text: 'Home sweet home. Right-click the bed to sleep, the almanac for the forecast and market news, and the hearth to warm up. Juniper at the Joinery can renovate.' },
+  { id: 'stray', when: (p) => p.g.sys.pet?.stage === 'stray' && p.g.player.where === 'world' && Math.hypot(p.g.sys.pet.x - p.g.player.x, p.g.sys.pet.y - p.g.player.y) < 8, title: '', text: 'A stray is hanging around your farmhouse. Right-click it to say hello!' },
+  { id: 'depot', when: (p) => p.g.player.inv.countId('freight_depot') > 0, title: '', text: 'Place the Freight Depot anywhere on your farm. Deliver the weekly Guild contracts by hand or let arms feed it.' },
+  { id: 'furniture', when: (p) => !!held(p)?.furniture, title: '', text: 'Furniture goes inside your farmhouse: click a floor tile (or the wall, for paintings). Right-click a piece to pick it back up.' },
+  { id: 'perkhint', when: (p) => Object.values(p.g.player.skills).some((l) => l >= 4), title: '', text: 'At skill level 5 and 10 you choose a profession: a permanent perk for that skill.' },
+  { id: 'quickstack', when: (p) => p.g.player.inv.slots.slice(12).filter(Boolean).length >= 18 && p.g.ents.others.some((e) => e.def.kind === 'chest'), title: '', text: 'Bag getting full? Stand near your chests and press K to quick-stack matching items into them.' },
   { id: 'place', when: (p) => !!held(p)?.places, title: '', text: 'Building: click to place, R rotates, drag to place a line. Right-click picks a structure back up.' },
   {
     id: 'lab', big: true, title: 'The Study Desk',
