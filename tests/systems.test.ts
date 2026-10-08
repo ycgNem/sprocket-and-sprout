@@ -329,3 +329,32 @@ describe('farm visits', () => {
     expect(dlg.arg.pages.join(' ').length).toBeGreaterThan(10);
   });
 });
+
+describe('furniture', () => {
+  it('places, blocks, stacks on rugs, hangs on walls, picks up and saves', async () => {
+    const H = await import('../src/sim/systems/house');
+    const { serialize, deserialize } = await import('../src/sim/save');
+    const { solidAt } = await import('../src/sim/systems/player');
+    const g = new Game({ seed: 18 });
+    H.enterHouse(g);
+    g.player.x = 10.5; g.player.y = 8.5;
+    for (const id of ['f_rug_blue', 'f_armchair_rose', 'f_paint_sea', 'f_lamp']) g.player.inv.add(key(id), 1);
+    expect(H.placeDecor(g, 'f_rug_blue', 2, 6)).toBeNull();
+    expect(H.placeDecor(g, 'f_armchair_rose', 3, 7)).toBeNull(); // on the rug
+    expect(solidAt(g, 3, 7)).toBe(true);
+    expect(solidAt(g, 2, 6)).toBe(false); // rugs never block
+    expect(H.placeDecor(g, 'f_lamp', 3, 7)).toMatch(/taken/);
+    expect(H.placeDecor(g, 'f_paint_sea', 4, 5)).toMatch(/wall/);
+    expect(H.placeDecor(g, 'f_paint_sea', 6, 1)).toBeNull();
+    expect(H.placeDecor(g, 'f_lamp', HOUSE_DOOR_X(), 9)).toMatch(/doorway|taken/);
+    // the rug can't be lifted from under the chair
+    H.pickupDecor(g, 2, 6);
+    expect(H.decorList(g).length).toBe(3);
+    expect(H.pickupDecor(g, 3, 7)).toBe(true);
+    expect(g.player.inv.countId('f_armchair_rose')).toBe(1);
+    const data = JSON.parse(JSON.stringify(serialize(g, { skin: 1, hair: 2, hairStyle: 'short', shirt: 3, pants: 4 })));
+    const { game: g2 } = deserialize(data);
+    expect(H.decorList(g2).map((d) => d.id).sort()).toEqual(['f_paint_sea', 'f_rug_blue']);
+  });
+});
+function HOUSE_DOOR_X() { return 7; }

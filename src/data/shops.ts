@@ -2,6 +2,7 @@
 import { CROPS } from './crops';
 import { TREES } from './trees';
 import type { ShopDef, ShopEntry, Stack } from './types';
+import { FURNITURE } from './furniture';
 
 const seeds = (seasonsFilter: (s: number[]) => boolean, exclude: string[] = []): ShopEntry[] =>
   CROPS.filter((c) => seasonsFilter(c.seasons) && !exclude.includes(c.id)).map((c) => ({ item: c.seed, price: c.seedPrice, seasons: c.seasons as any }));
@@ -55,6 +56,7 @@ export const SHOPS: ShopDef[] = [
       { item: 'plum_sapling' }, { item: 'orange_sapling', seasons: [1, 2] }, { item: 'snowberry_sapling', seasons: [2, 3] },
       { item: 'bread', price: 140 }, { item: 'flour', price: 110 }, { item: 'sugar', price: 120 }, { item: 'oil', price: 220 },
       { item: 'chest_wood', price: 240 }, { item: 'scarecrow', price: 260 }, { item: 'sign', price: 40 },
+      ...FURNITURE.filter((f) => f.shop === 'general').map((f) => ({ item: f.id, price: f.price })),
     ],
     buys: ['crop', 'fruit', 'flower', 'forage', 'seed', 'artisan', 'food', 'animal'],
   },
@@ -75,6 +77,7 @@ export const SHOPS: ShopDef[] = [
       { item: 'wood', price: 12 }, { item: 'stone', price: 18 }, { item: 'hardwood', price: 120, daily: 40 }, { item: 'plank', price: 40 }, { item: 'clay', price: 60 },
       { item: 'fence_wood', price: 15 }, { item: 'gate', price: 60 }, { item: 'path_wood', price: 8 }, { item: 'path_stone', price: 10 },
       { item: 'chest_wood', price: 220 }, { item: 'lamp', price: 240 },
+      ...FURNITURE.filter((f) => f.shop === 'carpenter').map((f) => ({ item: f.id, price: f.price })),
     ],
     buys: ['resource'],
   },

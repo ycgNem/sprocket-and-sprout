@@ -107,7 +107,8 @@ function complete(g: Game, c: Contract) {
     g.toast(`Guild rank up: ${r.name}! Shipping prices +${Math.round(after * GUILD_BONUS_PER_RANK * 100)}%`, undefined, C.lime);
     send(g, 'guild_rank_' + after, {
       from: 'The Trading Guild', title: `Guild rank: ${r.name}`,
-      text: `The Thistlewick Trading Guild is pleased to name you ${r.name}. Merchants up and down the river now pay a premium for goods from your farm (+${Math.round(after * GUILD_BONUS_PER_RANK * 100)}% on everything you ship).${after === 2 || after === 4 ? ' Larger, finer contracts will follow.' : ''}\n- Factor Hollis, Trading Guild`,
+      items: after === 3 ? [{ item: 'f_banner', n: 1 }] : undefined,
+      text: `The Thistlewick Trading Guild is pleased to name you ${r.name}.${after === 3 ? ' Please accept the enclosed banner for your home.' : ''} Merchants up and down the river now pay a premium for goods from your farm (+${Math.round(after * GUILD_BONUS_PER_RANK * 100)}% on everything you ship).${after === 2 || after === 4 ? ' Larger, finer contracts will follow.' : ''}\n- Factor Hollis, Trading Guild`,
     });
   }
 }

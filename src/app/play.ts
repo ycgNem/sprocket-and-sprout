@@ -1,4 +1,6 @@
 // The in-game screen: input -> sim commands, camera, build tools, HUD + windows, events -> juice.
+import { canPlaceDecor, placeDecor } from '../sim/systems/house';
+import { FURN_BY_ID } from '../data/furniture';
 import { petAt, petHearts } from '../sim/systems/pet';
 import { C, PALETTE, rgba } from '../data/palette';
 import { STRUCT_BY_ID } from '../data/structures';
@@ -551,6 +553,13 @@ export class PlayScreen implements Screen {
     if (!this.reachOk(tx, ty, d?.tool || d?.weapon || d?.plant || d?.fertilizer ? toolReach : 2.3)) [tx, ty] = facingTile(g);
     this.lastTarget = [tx, ty];
     const chargeable = d?.tool && (d.tool.kind === 'hoe' || d.tool.kind === 'can') && d.tool.tier > 0;
+    if (d?.furniture && input.mouse.pressed[0]) {
+      if (p.where === 'house') {
+        const err = placeDecor(g, d.id, t.x, t.y);
+        if (err) this.toast(err);
+      } else this.toast('Furniture goes inside your farmhouse.');
+      return;
+    }
     const lmb = input.mouse.down[0] || input.mouse.pressed[0];
     if (lmb && !g.sys.fishing?.busy) {
       if (chargeable) {
@@ -590,6 +599,18 @@ export class PlayScreen implements Screen {
     const ctx = r.ctx;
     const grid = this.app.settings.showGrid;
     r.overlays.push(() => {
+      const hs = g.player.inv.slots[g.player.sel];
+      const hf = hs && g.player.where === 'house' ? FURN_BY_ID.get(kDef(hs.k).furniture ?? '') : null;
+      if (hf) {
+        // furniture ghost
+        const ok = !canPlaceDecor(g, hf, t.x, t.y);
+        ctx.globalAlpha = 0.6;
+        drawSprite(ctx, sprite(`hf:${hf.sprite}:${g.time.season}`), t.x * TILE, t.y * TILE);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = rgba(ok ? C.leaf : C.rose, 0.3);
+        ctx.fillRect(t.x * TILE, t.y * TILE, hf.w * TILE, hf.h * TILE);
+        return;
+      }
       if (this.mode === 'decon' || this.mode === 'copy') {
         const col = this.mode === 'decon' ? C.rose : C.sky;
         const s = this.rectStart ?? t;

@@ -3,6 +3,7 @@
 import { C, PALETTE, rgba } from '../data/palette';
 import { CROP_BY_ID } from '../data/crops';
 import { MEGA_BY_ID } from '../data/goals';
+import { FURN_BY_ID } from '../data/furniture';
 import { TREE_BY_ID } from '../data/trees';
 import { hash2 } from '../engine/rng';
 import type { Game } from '../sim/Game';
@@ -287,7 +288,10 @@ export class Renderer {
           D.push({ y: y + 0.9, f: () => drawSprite(ctx, s, x * TILE, y * TILE) });
         }
       }
-    if (g.player.where === 'house') this.drawHouse(g, m, D);
+    if (g.player.where === 'house') {
+      this.drawHouse(g, m, D);
+      this.drawDecor(g, D);
+    }
     // buildings
     for (const b of m.buildings) {
       if ((b.x + b.w) * TILE < vx0 || b.x * TILE > vx1 || (b.y - 3) * TILE > vy1 || (b.y + b.h) * TILE < vy0) continue;
@@ -382,6 +386,30 @@ export class Renderer {
           }
         } });
       }
+  }
+
+  /** furniture the player placed inside the farmhouse */
+  private drawDecor(g: Game, D: Drawable[]) {
+    const ctx = this.ctx, t = this.time, season = g.time.season;
+    for (const d of g.sys.house?.decor ?? []) {
+      const f = FURN_BY_ID.get(d.id);
+      if (!f) continue;
+      const s = sprite(`hf:${f.sprite}:${season}`);
+      const px = d.x * TILE, py = d.y * TILE;
+      const sy = f.flat ? -9 : f.wall ? -4 : d.y + f.h - 0.05;
+      D.push({ y: sy, f: () => {
+        drawSprite(ctx, s, px, py);
+        if (d.id === 'f_tank') {
+          // three goldfish drifting about
+          for (let k = 0; k < 3; k++) {
+            const fx = px + 6 + ((Math.sin(t * (0.5 + k * 0.2) + k * 2) + 1) / 2) * 18, fy = py - 4 + k * 2 + Math.sin(t * 1.3 + k) * 1.2;
+            ctx.fillStyle = PALETTE[k === 1 ? C.butter : C.amber];
+            ctx.fillRect(Math.round(fx), Math.round(fy), 2, 1);
+          }
+          if (Math.sin(t * 2.2) > 0.6) { ctx.fillStyle = PALETTE[C.frost]; ctx.fillRect(px + 22, py - 4 - Math.floor((t * 6) % 6), 1, 1); }
+        }
+      } });
+    }
   }
 
   private drawSoil(g: Game, tx0: number, ty0: number, tx1: number, ty1: number, D: Drawable[]) {

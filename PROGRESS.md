@@ -56,8 +56,13 @@
 - Farm visits: on fine weekend afternoons a villager with 3+ hearts may walk over to your farm.
   Chatting there gives a farm-aware line (your pet, belts, crops, animals, greenhouse, kitchen)
   and bonus friendship.
+- Furniture: 15 pieces (armchairs, reading lamp, bookcases, rugs, fish tank, plants, pet bed,
+  3 paintings Hazel mails you at 2/4/6 hearts, and a Guild banner at rank 3). Place them inside
+  the farmhouse with a ghost preview; furniture can stand on rugs, paintings hang on the wall,
+  right-click picks things up. Lamps and the tank give light, the goldfish swim, and your pet
+  sleeps in its bed. The journal's Friends tab shows your pet.
 - Fixed titled villagers showing as "Mayor"/"Dr."/"Old" in toasts, quests and the almanac.
-- Tests: 48 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Tests: 49 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 

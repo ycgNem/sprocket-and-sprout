@@ -1,6 +1,7 @@
 // Learning recipes: villagers mail their recipes as friendship grows; the almanac teaches one
 // unknown recipe every Sunday.
 import { RECIPE_TEACHERS, recipeFlag, shortName } from '../../data/cookbook';
+import { HAZEL_PAINTINGS } from '../../data/furniture';
 import { ITEM_BY_ID } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
 import { C } from '../../data/palette';
@@ -52,6 +53,16 @@ registerSystem({
       const who = shortName(NPC_BY_ID.get(t.npc)?.name ?? t.npc);
       send(g, 'recipe_' + out, { from: t.npc, title: `Recipe: ${ITEM_BY_ID.get(out)?.name}`, text: `${t.note}\n\nI copied it out for you. - ${who}` });
       learnRecipe(g, out, who);
+    }
+    // Hazel paints you something as your friendship grows
+    const hz = npcSys(g).byId.get('hazel');
+    if (hz) for (const [h, id] of HAZEL_PAINTINGS) {
+      if (hearts(hz) < h) continue;
+      send(g, 'painting_' + id, {
+        from: 'hazel', title: 'I made you something',
+        text: `I couldn't stop thinking about this scene, so I painted it, and then I realized it belonged on your wall. It's a gift! Hang it in your farmhouse. - Hazel`,
+        items: [{ item: id, n: 1 }],
+      });
     }
   },
   afterLoad(g) {

@@ -16,6 +16,7 @@ import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { centered, frame } from './common';
 import { registerWindow, WinState } from './index';
+import { sprite } from '../../render/atlas';
 import { daysLeftInWeek, guildRank, specLabel } from '../../sim/systems/contracts';
 import { GUILD_RANKS } from '../../data/contracts';
 import { ICON } from '../font';
@@ -91,9 +92,24 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
   } else if (st.data.tab === 'friends') {
     const list = npcSys(g).list;
     const rowH = 30;
-    const off = ui.scrollOffset('jf', bx, by, bw, bh, list.length * rowH + 4);
+    const pet = g.sys.pet?.stage === 'adopted' ? g.sys.pet : null;
+    const first = pet ? 1 : 0;
+    const off = ui.scrollOffset('jf', bx, by, bw, bh, (list.length + first) * rowH + 4);
     ui.clip(bx, by, bw, bh);
-    list.forEach((n, i) => {
+    if (pet) {
+      const ry = by + 2 - off;
+      ui.fill(bx + 4, ry, 22, 22, C.tan, 0.5);
+      const ps = sprite(`pet:${pet.kind}:${pet.coat}:2`);
+      ui.ctx.drawImage(ps.img, ps.x, ps.y, ps.w, ps.h, bx + 4, ry + 2, 20, 20);
+      ui.text(pet.name, bx + 34, ry + 3, C.ink);
+      ui.text(`Your ${pet.kind}`, bx + 34, ry + 13, C.oak);
+      const ph = Math.min(5, Math.floor(pet.points / 200));
+      ui.text(ICON.heart.repeat(ph) + '.'.repeat(5 - ph), bx + 230, ry + 3, C.rose);
+      ui.text(pet.bowlFull ? 'Water bowl full' : 'Water bowl empty', bx + 230, ry + 13, pet.bowlFull ? C.moss : C.walnut);
+      if (pet.petted) ui.text('petted', bx + bw - 8, ry + 3, C.moss, { align: 'right' });
+    }
+    list.forEach((n, i0) => {
+      const i = i0 + first;
       const d = NPC_BY_ID.get(n.id)!;
       const ry = by + 2 + i * rowH - off;
       if (ry < by - rowH || ry > by + bh) return;

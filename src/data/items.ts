@@ -7,6 +7,7 @@ import { FISH } from './fish';
 import { STRUCTURES, STRUCT_PRICE } from './structures';
 import type { ItemDef, ItemCategory, IconSpec } from './types';
 import { FOOD_BUFFS } from './buffs';
+import { FURNITURE } from './furniture';
 
 const list: ItemDef[] = [];
 function add(d: ItemDef) {
@@ -364,6 +365,10 @@ for (const s of STRUCTURES) {
   if (list.some((d) => d.id === s.item)) continue;
   it(s.item, s.name, 'placeable', Math.round((STRUCT_PRICE.get(s.id) ?? 0) / 2), { t: 'struct', c: [] }, s.desc, { places: s.id, tags: ['placeable'], stack: s.kind === 'building' ? 1 : 999 });
 }
+
+// ---------------- Furniture ----------------
+for (const f of FURNITURE)
+  it(f.id, f.name, 'furniture', Math.round(f.price * 0.25), { t: 'furn', s: f.sprite }, f.desc + (f.wall ? ' Hangs on a wall.' : ' Place it inside your farmhouse.'), { furniture: f.id, tags: ['furniture'], stack: 99 });
 
 // ---------------- Index ----------------
 export const ITEMS: ItemDef[] = list;

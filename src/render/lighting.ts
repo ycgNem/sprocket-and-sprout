@@ -2,6 +2,7 @@
 import { PALETTE_RGB, C } from '../data/palette';
 import type { Game } from '../sim/Game';
 import { O } from '../sim/world/tilemap';
+import { FURN_BY_ID } from '../data/furniture';
 import { curMap } from '../sim/systems/player';
 import type { Renderer } from './renderer';
 
@@ -100,6 +101,10 @@ export class Lighting {
           else if (o === O.STOVE && g.flags.has('home_kitchen')) out.push({ x: x + 0.5, y: y + 0.4, r: 1.8, i: 0.6, c: C.apricot, flicker: true });
           else if (o === O.DRESSER) out.push({ x: x + 0.3, y: y - 0.2, r: 1.6, i: 0.6, c: C.butter });
         }
+      for (const d of g.sys.house?.decor ?? []) {
+        const f = FURN_BY_ID.get(d.id);
+        if (f?.light) out.push({ x: d.x + f.w / 2, y: d.y - 0.2, r: f.light.r, i: 0.85, c: f.light.c, flicker: d.id === 'f_lamp' });
+      }
       return out;
     }
     out.push({ x: p.x, y: p.y - 0.6, r: underground ? 6 : 2.2, i: underground ? 1 : 0.5, c: underground ? C.amber : undefined, flicker: underground });

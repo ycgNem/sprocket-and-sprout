@@ -11,6 +11,7 @@ import { FESTIVALS } from '../../data/goals';
 import type { RecipeDef } from '../../data/types';
 import { Inventory, key } from '../inventory';
 import { almanacRecipe } from './cookbook';
+import { FURN_BY_ID, FurnDef } from '../../data/furniture';
 
 export const HOUSE_W = 14, HOUSE_H = 11;
 export const HOUSE_DOOR: [number, number] = [7, 10];
@@ -120,6 +121,11 @@ const HOVER: Partial<Record<O, [string, string]>> = {
 
 export function houseHover(g: Game, tx: number, ty: number): { text: string; color?: number }[] | null {
   const m = houseMap(g);
+  const dc = decorAt(g, tx, ty);
+  if (dc) {
+    const f = FURN_BY_ID.get(dc.id)!;
+    return [{ text: f.name, color: C.amber }, { text: 'Right-click to pick up', color: C.pebble }];
+  }
   const o = m.o(tx, ty) as O;
   const h = HOVER[o];
   if (!h) return null;
@@ -127,8 +133,89 @@ export function houseHover(g: Game, tx: number, ty: number): { text: string; col
   return sub ? [{ text: h[0], color: C.amber }, { text: sub, color: C.pebble }] : [{ text: h[0], color: C.amber }];
 }
 
+// ---------------- furniture ----------------
+export interface Decor { id: string; x: number; y: number }
+
+export function decorList(g: Game): Decor[] {
+  houseMap(g);
+  if (!g.sys.house.decor) g.sys.house.decor = [];
+  return g.sys.house.decor;
+}
+
+function covers(d: Decor, x: number, y: number) {
+  const f = FURN_BY_ID.get(d.id);
+  return !!f && x >= d.x && x < d.x + f.w && y >= d.y && y < d.y + f.h;
+}
+
+/** topmost decor on a tile (furniture before the rug under it) */
+export function decorAt(g: Game, x: number, y: number): Decor | null {
+  const list = decorList(g).filter((d) => covers(d, x, y));
+  return list.find((d) => !FURN_BY_ID.get(d.id)!.flat) ?? list[0] ?? null;
+}
+
+export function decorSolid(g: Game, x: number, y: number): boolean {
+  return decorList(g).some((d) => covers(d, x, y) && FURN_BY_ID.get(d.id)!.solid);
+}
+
+export function canPlaceDecor(g: Game, f: FurnDef, x: number, y: number): string | null {
+  const m = houseMap(g);
+  for (let yy = y; yy < y + f.h; yy++)
+    for (let xx = x; xx < x + f.w; xx++) {
+      if (f.wall) {
+        if (yy !== 1 || xx < 1 || xx > HOUSE_W - 2) return 'Paintings go on the wall.';
+        if (m.o(xx, yy)) return 'Something is already on that wall.';
+        if (decorList(g).some((d) => covers(d, xx, yy))) return 'Something is already on that wall.';
+        continue;
+      }
+      if (yy < 2 || yy > HOUSE_H - 2 || xx < 1 || xx > HOUSE_W - 2) return 'That has to go on the floor.';
+      const o = m.o(xx, yy);
+      if (o && !(o === O.RUG && !f.flat)) return 'That spot is taken.';
+      if (xx === HOUSE_DOOR[0] && yy >= HOUSE_DOOR[1] - 2) return 'Keep the doorway clear.';
+      for (const d of decorList(g)) {
+        if (!covers(d, xx, yy)) continue;
+        const other = FURN_BY_ID.get(d.id)!;
+        // furniture may stand on a rug, but not on other furniture
+        if (!(other.flat && !f.flat)) return 'That spot is taken.';
+      }
+      if (f.solid && Math.floor(g.player.x) === xx && Math.floor(g.player.y) === yy) return 'You are standing there.';
+    }
+  return null;
+}
+
+export function placeDecor(g: Game, id: string, x: number, y: number): string | null {
+  const f = FURN_BY_ID.get(id);
+  if (!f) return 'Unknown';
+  const err = canPlaceDecor(g, f, x, y);
+  if (err) return err;
+  if (g.player.inv.removeSpec(id, 1).length === 0) return 'You have none.';
+  decorList(g).push({ id, x, y });
+  g.emit({ t: 'sfx', id: 'place' });
+  g.count('decor');
+  return null;
+}
+
+export function pickupDecor(g: Game, x: number, y: number): boolean {
+  const d = decorAt(g, x, y);
+  if (!d) return false;
+  const f = FURN_BY_ID.get(d.id)!;
+  // a rug can't be lifted while furniture stands on it
+  if (f.flat && decorList(g).some((o) => o !== d && !FURN_BY_ID.get(o.id)!.flat && !FURN_BY_ID.get(o.id)!.wall && [...Array(f.w * f.h).keys()].some((k) => covers(o, d.x + (k % f.w), d.y + Math.floor(k / f.w))))) {
+    g.toast('Move the furniture off the rug first.');
+    return true;
+  }
+  if (g.player.inv.add(key(d.id), 1) > 0) {
+    g.toast('Your bag is full.');
+    return true;
+  }
+  const list = decorList(g);
+  list.splice(list.indexOf(d), 1);
+  g.emit({ t: 'sfx', id: 'pickup_struct' });
+  return true;
+}
+
 export function houseInteract(g: Game, tx: number, ty: number): boolean {
   const m = houseMap(g);
+  if (decorAt(g, tx, ty)) return pickupDecor(g, tx, ty);
   const o = m.o(tx, ty);
   switch (o) {
     case O.BED:
@@ -251,11 +338,12 @@ registerSystem({
   name: 'house',
   save(g) {
     const p = g.sys.house?.pantry as Inventory | undefined;
-    return p ? { pantry: p.toJSON() } : {};
+    return { pantry: p ? p.toJSON() : undefined, decor: g.sys.house?.decor ?? [] };
   },
   load(g, d) {
     houseMap(g);
     if (d?.pantry) g.sys.house.pantry = Inventory.fromJSON(d.pantry, 36);
+    g.sys.house.decor = (d?.decor ?? []).filter((x: Decor) => FURN_BY_ID.has(x.id));
   },
   tick(g) {
     if (g.player.where !== 'house') return;

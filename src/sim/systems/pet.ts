@@ -3,7 +3,7 @@
 import { Game, registerSystem } from '../Game';
 import { key } from '../inventory';
 import { O, TileMap } from '../world/tilemap';
-import { houseMap } from './house';
+import { decorList, decorSolid, houseMap } from './house';
 import { send } from './goals';
 import { C } from '../../data/palette';
 import { ITEM_BY_ID } from '../../data/items';
@@ -66,7 +66,7 @@ function free(g: Game, p: PetState, x: number, y: number): boolean {
   if (p.map === 'world') {
     const e = g.ents.at(tx, ty);
     if (e && !e.ghost && e.def.solid) return false;
-  }
+  } else if (decorSolid(g, tx, ty)) return false;
   return true;
 }
 
@@ -88,6 +88,11 @@ function nearHome(g: Game): [number, number] {
 /** the pet's preferred spot right now */
 function wantsInside(g: Game): boolean {
   return g.time.min >= 20 * 60 || g.isRaining() || g.weather === 'snow';
+}
+
+function petBedSpot(g: Game): [number, number] {
+  const bed = decorList(g).find((d) => d.id === 'f_petbed');
+  return bed ? [bed.x + 0.5, bed.y + 0.75] : [5.5, 6.6];
 }
 
 function setEmote(p: PetState, e: string, t = 1.6) {
@@ -195,8 +200,9 @@ function pickWander(g: Game, p: PetState) {
 function moveToMap(g: Game, p: PetState, map: 'world' | 'house') {
   p.map = map;
   if (map === 'house') {
-    // the rug by the hearth
-    p.x = 5.5; p.y = 6.6; p.mode = 'idle';
+    // its own bed if you bought one, else the rug by the hearth
+    const [bx, by] = petBedSpot(g);
+    p.x = bx; p.y = by; p.mode = 'idle';
   } else {
     const [hx, hy] = nearHome(g);
     p.x = hx; p.y = hy; p.mode = 'idle';
@@ -240,7 +246,11 @@ function tickPet(g: Game, dt: number) {
       if (p.t > 0) break;
       const r = g.rng.next();
       const night = g.time.min >= 21 * 60 || g.time.min < 7 * 60;
-      if (p.map === 'house' && night) { p.mode = 'sleep'; p.t = 20; if (g.rng.next() < 0.5) setEmote(p, 'zzz', 3); }
+      if (p.map === 'house' && night) {
+        const [bx, by] = petBedSpot(g);
+        if (Math.hypot(p.x - bx, p.y - by) > 0.4) { p.tx = bx; p.ty = by; p.mode = 'wander'; p.t = 8; }
+        else { p.mode = 'sleep'; p.t = 20; if (g.rng.next() < 0.5) setEmote(p, 'zzz', 3); }
+      }
       else if (r < 0.45) { pickWander(g, p); p.mode = 'wander'; p.t = 6; }
       else if (r < 0.75) { p.mode = 'sit'; p.t = 2 + g.rng.next() * 5; }
       else if (r < 0.85) { p.mode = 'sleep'; p.t = 6 + g.rng.next() * 8; }
@@ -296,7 +306,7 @@ registerSystem({
     } else if (p.stage === 'adopted') {
       // morning: the pet slept by the hearth, so it's inside with you
       p.map = 'house';
-      p.x = 6.5; p.y = 6.6;
+      [p.x, p.y] = petBedSpot(g);
       p.mode = 'sleep'; p.t = 4;
       morningGift(g, p);
       if (g.sys.pet.giftNote) { g.toast(g.sys.pet.giftNote, undefined, C.amber); g.sys.pet.giftNote = null; }

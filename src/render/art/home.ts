@@ -257,6 +257,135 @@ function doormat(): Furn {
   return { w: 16, h: 16, ox: 0, oy: 0, pb };
 }
 
+// ---------- placeable furniture ----------
+function armchair(v: number): Furn {
+  const pb = new PixBuf(16, 20);
+  const [a, b] = v ? [C.moss, C.pine] : [C.rose, C.wine];
+  pb.rect(2, 2, 12, 9, a);
+  pb.rect(3, 3, 10, 1, LIGHT[a] ?? a);
+  pb.rect(1, 8, 3, 8, b); pb.rect(12, 8, 3, 8, b);
+  pb.rect(1, 8, 3, 1, a); pb.rect(12, 8, 3, 1, a);
+  pb.rect(4, 10, 8, 5, a);
+  pb.rect(4, 10, 8, 1, LIGHT[a] ?? a);
+  pb.rect(2, 16, 2, 3, C.walnut); pb.rect(12, 16, 2, 3, C.walnut);
+  for (let x = 4; x < 12; x += 3) pb.set(x, 6, b);
+  pb.outline(C.ink);
+  return { w: 16, h: 20, ox: 0, oy: 4, pb };
+}
+
+function lamp(): Furn {
+  const pb = new PixBuf(16, 28);
+  pb.rect(4, 2, 8, 7, C.butter);
+  pb.rect(3, 8, 10, 2, C.apricot);
+  for (let x = 3; x < 13; x += 2) pb.set(x, 10, C.amber);
+  pb.rect(5, 2, 6, 1, C.cream);
+  pb.rect(7, 10, 2, 15, C.brass);
+  pb.rect(4, 25, 8, 2, C.brass); pb.rect(5, 24, 6, 1, C.copper);
+  pb.outline(C.ink);
+  return { w: 16, h: 28, ox: 0, oy: 12, pb };
+}
+
+function rug2(v: number): Furn {
+  const pb = new PixBuf(32, 32);
+  if (v === 0) {
+    for (let r = 14; r > 0; r -= 2) pb.ellipse(16, 16, r + 1, r, [C.deepsea, C.river, C.sky, C.frost][(r / 2) % 4]);
+  } else {
+    pb.rect(1, 3, 30, 26, C.moss);
+    pb.rect(3, 5, 26, 22, C.grass);
+    pb.rect(5, 7, 22, 18, C.leaf);
+    for (let i = 0; i < 9; i++) {
+      const x = 7 + (i % 3) * 8, y = 9 + Math.floor(i / 3) * 6;
+      pb.disc(x + 1, y + 1, 1.5, [C.rose, C.butter, C.cream][i % 3]);
+    }
+    for (let x = 1; x < 31; x += 2) { pb.set(x, 2, C.cream); pb.set(x, 29, C.cream); }
+  }
+  return { w: 32, h: 32, ox: 0, oy: 0, pb };
+}
+
+function tank(): Furn {
+  const pb = new PixBuf(32, 26);
+  pb.rect(1, 18, 30, 7, C.walnut);
+  pb.rect(1, 18, 30, 1, C.oak);
+  pb.rect(3, 21, 4, 2, C.bark); pb.rect(25, 21, 4, 2, C.bark);
+  pb.rect(2, 3, 28, 15, C.river);
+  pb.rect(3, 4, 26, 13, C.aqua);
+  pb.rect(3, 4, 26, 2, C.sky);
+  pb.rect(3, 14, 26, 3, C.tan);
+  pb.rect(6, 9, 1, 5, C.leaf); pb.rect(7, 7, 1, 7, C.grass); pb.rect(24, 8, 1, 6, C.leaf); pb.rect(25, 10, 1, 4, C.moss);
+  pb.rect(2, 2, 28, 1, C.slate);
+  pb.outline(C.ink);
+  return { w: 32, h: 26, ox: 0, oy: 10, pb };
+}
+
+function petbed(): Furn {
+  const pb = new PixBuf(16, 16);
+  pb.ellipse(8, 11, 7, 4, C.wine);
+  pb.ellipse(8, 10.5, 5, 2.6, C.blush);
+  pb.rect(4, 10, 3, 1, C.cream);
+  pb.outline(C.ink);
+  return { w: 16, h: 16, ox: 0, oy: 0, pb };
+}
+
+function painting(v: number): Furn {
+  const pb = new PixBuf(14, 12);
+  pb.rect(0, 0, 14, 12, C.brass);
+  pb.rect(1, 1, 12, 10, C.copper);
+  if (v === 0) {
+    pb.rect(2, 2, 10, 4, C.butter); pb.rect(2, 2, 10, 1, C.apricot);
+    pb.rect(2, 6, 10, 4, C.grass); pb.rect(2, 6, 10, 1, C.leaf);
+    pb.disc(9, 4, 1.4, C.cream); pb.set(4, 8, C.rose); pb.set(7, 7, C.cream);
+  } else if (v === 1) {
+    pb.rect(2, 2, 10, 4, C.slate); pb.rect(2, 6, 10, 4, C.deepsea);
+    pb.line(2, 7, 6, 5, C.frost); pb.line(6, 5, 11, 8, C.river); pb.set(9, 3, C.butter);
+  } else {
+    pb.rect(2, 2, 10, 8, C.violet); pb.rect(2, 7, 10, 3, C.plum);
+    pb.rect(6, 3, 3, 7, C.stone); pb.rect(6, 3, 3, 1, C.pebble); pb.set(7, 5, C.cream);
+    pb.set(3, 3, C.butter); pb.set(11, 4, C.butter);
+  }
+  pb.outline(C.ink);
+  return { w: 14, h: 12, ox: -1, oy: 9, pb };
+}
+
+function banner(): Furn {
+  const pb = new PixBuf(12, 16);
+  pb.rect(0, 0, 12, 1, C.brass);
+  pb.rect(1, 1, 10, 12, C.wine);
+  pb.set(1, 13, C.wine); pb.set(10, 13, C.wine); pb.rect(3, 13, 6, 1, C.wine); pb.rect(5, 14, 2, 1, C.wine);
+  pb.disc(6, 6, 2.5, C.brass); pb.set(6, 6, C.butter);
+  pb.rect(2, 10, 8, 1, C.brass);
+  pb.outline(C.ink);
+  return { w: 12, h: 16, ox: -2, oy: 10, pb };
+}
+
+/** furniture art by name ("armchair:1", "table:0:2" ...), shared by the world and item icons */
+export function furnArt(name: string): Furn | null {
+  const [kind, vs, ss] = name.split(':');
+  const v = +vs || 0, season = +ss || 0;
+  switch (kind) {
+    case 'bed': return bed(v);
+    case 'dresser': return dresser();
+    case 'fireplace': return fireplace();
+    case 'stove': return stove(v);
+    case 'shelf': return shelf(v);
+    case 'table': return table(season);
+    case 'chair': return chair();
+    case 'almanac': return almanac();
+    case 'plant': return plant(v);
+    case 'window': return windowArt(v, season);
+    case 'clock': return clockArt();
+    case 'rug': return rug();
+    case 'doormat': return doormat();
+    case 'armchair': return armchair(v);
+    case 'lamp': return lamp();
+    case 'rug2': return rug2(v);
+    case 'tank': return tank();
+    case 'petbed': return petbed();
+    case 'painting': return painting(v);
+    case 'banner': return banner();
+  }
+  return null;
+}
+
 // ---------- pets: pet:<kind>:<coat>:<pose> (0 stand, 1 walk, 2 sit, 3 sleep), facing right ----------
 const CAT_COATS = [[C.apricot, C.terracotta, C.cream], [C.pebble, C.stone, C.cream], [C.slate, C.plum, C.stone], [C.cream, C.terracotta, C.bark]];
 const DOG_COATS = [[C.butter, C.amber, C.cream], [C.oak, C.walnut, C.tan], [C.cream, C.bark, C.cream], [C.tan, C.bark, C.cream]];
@@ -370,24 +499,7 @@ export function registerHomeSprites() {
     return { w: 16, h: 16, ox: 0, oy: 0, draw: (ctx) => pb.drawTo(ctx) };
   });
   defSpriteFamily('hf:', (name) => {
-    const [, kind, vs, ss] = name.split(':');
-    const v = +vs || 0, season = +ss || 0;
-    let f: Furn | null = null;
-    switch (kind) {
-      case 'bed': f = bed(v); break;
-      case 'dresser': f = dresser(); break;
-      case 'fireplace': f = fireplace(); break;
-      case 'stove': f = stove(v); break;
-      case 'shelf': f = shelf(v); break;
-      case 'table': f = table(season); break;
-      case 'chair': f = chair(); break;
-      case 'almanac': f = almanac(); break;
-      case 'plant': f = plant(v); break;
-      case 'window': f = windowArt(v, season); break;
-      case 'clock': f = clockArt(); break;
-      case 'rug': f = rug(); break;
-      case 'doormat': f = doormat(); break;
-    }
+    const f = furnArt(name.slice(3));
     if (!f) return null;
     const pb = f.pb;
     return { w: f.w, h: f.h, ox: f.ox, oy: f.oy, draw: (ctx) => pb.drawTo(ctx) };

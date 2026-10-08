@@ -1,4 +1,5 @@
 // Item icons: 16x16 templates recolored per item from palette slots.
+import { furnArt } from './home';
 import { C, DARK, LIGHT } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { hash2 } from '../../engine/rng';
@@ -165,6 +166,20 @@ export function registerIconSprites(structIcon: (structId: string, ctx: CanvasRe
       draw: (ctx) => {
         if (d.icon.t === 'struct' && d.places) {
           structIcon(d.places, ctx);
+          return;
+        }
+        if (d.icon.t === 'furn' && d.icon.s) {
+          // shrink the furniture sprite to fit the 16x16 icon
+          const f = furnArt(d.icon.s);
+          if (f) {
+            const c = document.createElement('canvas');
+            c.width = f.w; c.height = f.h;
+            f.pb.drawTo(c.getContext('2d')!);
+            const sc = Math.min(1, 16 / Math.max(f.w, f.h));
+            const w = Math.round(f.w * sc), h = Math.round(f.h * sc);
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(c, Math.floor((16 - w) / 2), Math.floor((16 - h) / 2), w, h);
+          }
           return;
         }
         const pb = new PixBuf(16, 16);

@@ -8,7 +8,7 @@ export type Weather = 'sun' | 'rain' | 'storm' | 'snow' | 'wind';
 export type ItemCategory =
   | 'tool' | 'weapon' | 'seed' | 'crop' | 'fruit' | 'flower' | 'forage' | 'animal' | 'artisan'
   | 'fish' | 'mineral' | 'ore' | 'bar' | 'gem' | 'resource' | 'component' | 'food'
-  | 'placeable' | 'research' | 'misc' | 'monster' | 'fertilizer' | 'bait' | 'trash';
+  | 'placeable' | 'research' | 'misc' | 'monster' | 'fertilizer' | 'bait' | 'trash' | 'furniture';
 
 export type ToolKind = 'hoe' | 'can' | 'axe' | 'pick' | 'scythe' | 'rod' | 'sword';
 
@@ -16,6 +16,8 @@ export type ToolKind = 'hoe' | 'can' | 'axe' | 'pick' | 'scythe' | 'rod' | 'swor
 export interface IconSpec {
   t: string;
   c?: number[];
+  /** sprite name for icons drawn from a furniture sprite */
+  s?: string;
 }
 
 export interface ItemDef {
@@ -31,6 +33,8 @@ export interface ItemDef {
   edible?: { energy: number; health?: number; buff?: FoodBuff };
   /** structure placed by this item */
   places?: string;
+  /** farmhouse furniture placed by this item */
+  furniture?: string;
   tool?: { kind: ToolKind; tier: number };
   weapon?: { dmg: number; speed: number; knock: number };
   /** item supports quality tiers (silver/gold/star) */
