@@ -50,7 +50,11 @@
   bulk orders every Monday from a 27-contract pool in 3 tiers. Deliver by hand or by arm. They pay
   1.5x value without saturating the market, and build reputation through 6 ranks (+3% shipping
   each). Shown in the depot panel and the journal. 4 new feats.
-- Tests: 46 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Cookbook: 7 starter recipes. 15 more are taught by 10 villagers at heart milestones (sent as
+  letters with a note) or copied from the Sunday almanac. Unknown recipes show who teaches them.
+  Older saves keep every recipe.
+- Fixed titled villagers showing as "Mayor"/"Dr."/"Old" in toasts, quests and the almanac.
+- Tests: 47 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 

@@ -14,6 +14,7 @@ import './systems/mine';
 import './systems/quests';
 import './systems/goals';
 import './systems/contracts';
+import './systems/cookbook';
 import './systems/festivals';
 import './systems/bots';
 import './systems/achievements';

@@ -276,3 +276,30 @@ describe('farm pet', () => {
     expect(P.petSys(g2).map).toBe('house');
   });
 });
+
+describe('cookbook', () => {
+  it('villagers teach recipes at heart levels; the Sunday almanac teaches one; old saves know all', async () => {
+    const CB = await import('../src/sim/systems/cookbook');
+    const { serialize, deserialize } = await import('../src/sim/save');
+    const { RECIPE_BY_ID } = await import('../src/data/recipes');
+    const g = new Game({ seed: 14 });
+    const pancakes = RECIPE_BY_ID.get('cook:pancakes')!;
+    expect(g.unlocked(pancakes.unlock)).toBe(false);
+    expect(g.unlocked(RECIPE_BY_ID.get('cook:bread')!.unlock)).toBe(true);
+    npcSys(g).byId.get('rowan')!.points = 2 * 250 + 10;
+    sleep(g);
+    expect(g.unlocked(pancakes.unlock)).toBe(true);
+    expect(g.unlocked(RECIPE_BY_ID.get('cook:pizza')!.unlock)).toBe(false);
+    // almanac on a Sunday
+    while (g.weekday !== 6) sleep(g);
+    const before = CB.unknownRecipes(g).length;
+    expect(CB.almanacRecipe(g)).toBeTruthy();
+    expect(CB.almanacRecipe(g)).toBeNull(); // once per week
+    expect(CB.unknownRecipes(g).length).toBe(before - 1);
+    // a save from before the cookbook existed
+    const data = JSON.parse(JSON.stringify(serialize(g, { skin: 1, hair: 2, hairStyle: 'short', shirt: 3, pants: 4 })));
+    data.flags = data.flags.filter((f: string) => f !== 'cookbook_v1' && !f.startsWith('recipe_'));
+    const { game: g2 } = deserialize(data);
+    expect(CB.unknownRecipes(g2).length).toBe(0);
+  });
+});

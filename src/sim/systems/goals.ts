@@ -1,5 +1,6 @@
 // Long-term goals: the clocktower restoration board, megaprojects, museum donations,
 // collection log, and the mailbox.
+import { shortName } from '../../data/cookbook';
 import { MEGAPROJECTS, MEGA_BY_ID, PROJECTS, PROJECT_BY_ID } from '../../data/goals';
 import { ITEMS, ITEM_BY_ID, matchesSpec } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
@@ -248,14 +249,14 @@ function seasonalMail(g: Game) {
   // birthdays tomorrow
   for (const n of g.sys.npcs?.list ?? []) {
     const d = NPC_BY_ID.get(n.id)!;
-    if (d.birthday.season === t.season && d.birthday.day === t.day + 1 && n.met) send(g, `bday_${n.id}_${t.year}`, { from: 'marigold', title: 'Psst!', text: `${d.name.split(' ')[0]}'s birthday is tomorrow. A thoughtful gift goes a long way! - Marigold` });
+    if (d.birthday.season === t.season && d.birthday.day === t.day + 1 && n.met) send(g, `bday_${n.id}_${t.year}`, { from: 'marigold', title: 'Psst!', text: `${shortName(d.name)}'s birthday is tomorrow. A thoughtful gift goes a long way! - Marigold` });
   }
   // occasional gifts from close friends
   for (const n of g.sys.npcs?.list ?? []) {
     if (n.points >= 1000 && g.rng.next() < 0.015) {
       const d = NPC_BY_ID.get(n.id)!;
       const love = d.gifts.love.filter((x) => x[0] !== '#' && ITEM_BY_ID.has(x));
-      if (love.length) send(g, `gift_${n.id}_${g.dayIndex}`, { from: n.id, title: 'A little something', text: `I saw this and thought of you. - ${d.name.split(' ')[0]}`, items: [{ item: g.rng.pick(['cake', 'cookies', 'bread', 'tea', 'honey']), n: 1 }] });
+      if (love.length) send(g, `gift_${n.id}_${g.dayIndex}`, { from: n.id, title: 'A little something', text: `I saw this and thought of you. - ${shortName(d.name)}`, items: [{ item: g.rng.pick(['cake', 'cookies', 'bread', 'tea', 'honey']), n: 1 }] });
     }
   }
 }

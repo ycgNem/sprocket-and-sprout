@@ -1,4 +1,5 @@
 // The farmhouse interior: a small cozy room with a bed, fireplace, kitchen, almanac.
+import { shortName } from '../../data/cookbook';
 import { Game, registerSystem } from '../Game';
 import { O, T, TileMap, Z } from '../world/tilemap';
 import { C } from '../../data/palette';
@@ -9,6 +10,7 @@ import { HOME_UPGRADES } from '../../data/shops';
 import { FESTIVALS } from '../../data/goals';
 import type { RecipeDef } from '../../data/types';
 import { Inventory, key } from '../inventory';
+import { almanacRecipe } from './cookbook';
 
 export const HOUSE_W = 14, HOUSE_H = 11;
 export const HOUSE_DOOR: [number, number] = [7, 10];
@@ -84,7 +86,7 @@ function almanacText(g: Game): string {
   for (let d = 1; d <= 10; d++) {
     let day = t.day + d, season = t.season;
     if (day > 28) { day -= 28; season = (season + 1) % 4 as any; }
-    for (const n of NPCS) if (n.birthday.season === season && n.birthday.day === day) soon.push(`${n.name.split(' ')[0]}'s birthday (${SEASON_NAMES[season]} ${day})`);
+    for (const n of NPCS) if (n.birthday.season === season && n.birthday.day === day) soon.push(`${shortName(n.name)}'s birthday (${SEASON_NAMES[season]} ${day})`);
     const f = FESTIVALS.find((x) => x.season === season && x.day === day);
     if (f) soon.push(`${f.name} (${SEASON_NAMES[season]} ${day})`);
   }
@@ -100,7 +102,9 @@ function almanacText(g: Game): string {
     'Splitters share items evenly. Burrow belts tunnel under paths.',
     'Rain waters every outdoor crop. The greenhouse needs watering.',
   ];
-  return `Tomorrow will be ${W[g.tomorrow] ?? g.tomorrow}.\n\nIn demand at market this week: ${hot || 'nothing in particular'}.\n\nComing up: ${soon.length ? soon.join('; ') : 'a quiet week'}.\n\nAlmanac wisdom: ${tips[(g.dayIndex * 7 + 3) % tips.length]}`;
+  const rec = almanacRecipe(g);
+  const recLine = rec ? `\n\nRecipe of the week: ${ITEM_BY_ID.get(rec)!.name}. You copy it into your notebook.` : g.weekday === 6 ? '' : '\n\nA new recipe appears in every Sunday edition.';
+  return `Tomorrow will be ${W[g.tomorrow] ?? g.tomorrow}.\n\nIn demand at market this week: ${hot || 'nothing in particular'}.\n\nComing up: ${soon.length ? soon.join('; ') : 'a quiet week'}.\n\nAlmanac wisdom: ${tips[(g.dayIndex * 7 + 3) % tips.length]}${recLine}`;
 }
 
 const HOVER: Partial<Record<O, [string, string]>> = {

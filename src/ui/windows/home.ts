@@ -10,6 +10,9 @@ import { centered, frame, invGrid } from './common';
 import { registerWindow, WinState } from './index';
 import { itemTooltip } from '../tooltips';
 import { specIcon } from './menu';
+import { RECIPE_TEACHERS, shortName } from '../../data/cookbook';
+import { NPC_BY_ID } from '../../data/npcs';
+import { ICON } from '../font';
 import { adoptPet, declinePet, petSys, PET_COATS } from '../../sim/systems/pet';
 import { sprite } from '../../render/atlas';
 
@@ -34,15 +37,24 @@ function drawCooking(ui: UI, play: PlayScreen, st: WinState): boolean {
   ui.text(pan ? 'Uses ingredients from your bag and the root cellar.' : 'Uses ingredients from your bag. Shift-click Cook to make five.', x + 12, y + H - 14, C.walnut);
   const onlyReady = !!st.data.ready;
   if (ui.button('kready', x + W - 104, y + 12, 90, 14, onlyReady ? 'Show all' : 'Can cook now', { style: 'flat' })) st.data.ready = !onlyReady;
-  const list = OVEN.filter((r) => g.unlocked(r.unlock) && (!onlyReady || canCookHome(g, r)));
+  const list = OVEN.filter((r) => (!onlyReady || canCookHome(g, r))).sort((a, b) => (g.unlocked(a.unlock) ? 0 : 1) - (g.unlocked(b.unlock) ? 0 : 1));
   const colW = (W - 30) / 2;
   list.forEach((r, n) => {
     const col = n % 2, row = Math.floor(n / 2);
     const rx = x + 12 + col * (colW + 6), ry = y + 34 + row * 24;
     if (ry > y + H - 26) return;
     const can = canCookHome(g, r);
-    ui.fill(rx, ry, colW, 22, can ? C.cream : C.tan, can ? 0.6 : 0.35);
     const out = ITEM_BY_ID.get(r.out[0].item)!;
+    if (!g.unlocked(r.unlock)) {
+      // not learned yet: show who might teach it
+      ui.fill(rx, ry, colW, 22, C.tan, 0.2);
+      ui.itemIcon(key(out.id), rx + 3, ry + 3, 16, 0, 0.25);
+      const t = RECIPE_TEACHERS[out.id];
+      ui.text('Unknown recipe', rx + 22, ry + 2, C.oak);
+      ui.text(t ? `${shortName(NPC_BY_ID.get(t.npc)?.name ?? t.npc)} may teach it (${t.hearts}${ICON.heart})` : 'Not learned yet', rx + 22, ry + 12, C.walnut, { maxW: colW - 26 });
+      return;
+    }
+    ui.fill(rx, ry, colW, 22, can ? C.cream : C.tan, can ? 0.6 : 0.35);
     ui.itemIcon(key(out.id), rx + 3, ry + 3, 16);
     if (ui.hover(rx, ry, 20, 22)) ui.tip(itemTooltip(g, key(out.id), r.out[0].n));
     ui.text(out.name + (r.out[0].n > 1 ? ' x' + r.out[0].n : ''), rx + 22, ry + 2, can ? C.ink : C.walnut, { maxW: colW - 70 });

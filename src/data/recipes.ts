@@ -3,6 +3,7 @@
 import { CROPS } from './crops';
 import { FRUIT_LIST, VEG_LIST } from './items';
 import type { RecipeDef, Stack } from './types';
+import { RECIPE_TEACHERS, recipeFlag } from './cookbook';
 
 const R: RecipeDef[] = [];
 let auto = 0;
@@ -217,7 +218,7 @@ rec('crusher', [s('geode', 1)], [s('quartz', 1, 0.5), s('mica', 1, 0.25), s('top
 
 // ---------------- Cooking (oven, kitchen) ----------------
 const cook = (out: string, inp: [string, number][], time: number, n = 1) =>
-  rec('oven', inp.map(([i, k]) => s(i, k)), [s(out, n)], time, undefined, `cook:${out}`);
+  rec('oven', inp.map(([i, k]) => s(i, k)), [s(out, n)], time, RECIPE_TEACHERS[out] ? 'flag:' + recipeFlag(out) : undefined, `cook:${out}`);
 cook('bread', [['flour', 2]], 30);
 cook('salad', [['#greens', 2], ['radish', 1]], 20);
 cook('veggie_soup', [['#vegetable', 3]], 40);

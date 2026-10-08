@@ -1,4 +1,5 @@
 // Town doors: shops (open when the keeper is in), homes, the farmhouse bed, clocktower, mine.
+import { shortName } from '../../data/cookbook';
 import { enterHouse } from './house';
 import { SHOPS } from '../../data/shops';
 import { NPC_BY_ID } from '../../data/npcs';
@@ -50,7 +51,7 @@ export function door(g: Game, b: BuildingInfo) {
     const kt = keeper ? g.map.locs.get(keeper.target) : undefined;
     const keeperHome = !!keeper && !keeper.visible && !!inside && !!kt && kt[0] === inside[0] && kt[1] === inside[1];
     if (!st.open || !keeperHome) {
-      const who = NPC_BY_ID.get(shop.owner)?.name.split(' ')[0] ?? 'The keeper';
+      const who = shortName(NPC_BY_ID.get(shop.owner)?.name ?? '') ?? 'The keeper';
       g.toast(`${shop.name}: ${st.open ? `${who} isn't in right now.` : st.why}`);
       g.emit({ t: 'sfx', id: 'thud' });
       return;
@@ -76,7 +77,7 @@ export function door(g: Game, b: BuildingInfo) {
   const inside = npcSys(g).list.filter((n) => { const l = g.map.locs.get(n.target); return !n.visible && !!l && !!doorIn && l[0] === doorIn[0] && l[1] === doorIn[1]; });
   if (inside.length) {
     const n = inside[0];
-    openDialog(g, n, `${NPC_BY_ID.get(n.id)!.name.split(' ')[0]} calls through the door: "Just a minute! ...Actually, I'll see you in town, {player}!"`);
+    openDialog(g, n, `${shortName(NPC_BY_ID.get(n.id)!.name)} calls through the door: "Just a minute! ...Actually, I'll see you in town, {player}!"`);
   } else g.toast(`${b.name}. Nobody seems to be home.`);
   g.emit({ t: 'sfx', id: 'door' });
 }

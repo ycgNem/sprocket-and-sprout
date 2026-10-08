@@ -1,4 +1,5 @@
 // Quests: tutorial chain, story quests, daily town requests. Progress via notify() hooks + polling.
+import { shortName } from '../../data/cookbook';
 import { QUESTS, QUEST_BY_ID, REQUEST_POOL } from '../../data/goals';
 import { ITEM_BY_ID, ITEMS, matchesSpec } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
@@ -98,9 +99,9 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
   const item = (id: string) => (id[0] === '#' ? id.slice(1) + ' goods' : ITEM_BY_ID.get(id)?.name ?? id);
   switch (o.t) {
     case 'have': return `Have ${o.n} ${item(o.item)} (${Math.min(o.n, g.player.inv.countSpec(o.item))}/${o.n})`;
-    case 'deliver': return `Bring ${o.n} ${item(o.item)} to ${NPC_BY_ID.get(o.to)?.name.split(' ')[0]}`;
+    case 'deliver': return `Bring ${o.n} ${item(o.item)} to ${shortName(NPC_BY_ID.get(o.to)?.name ?? '')}`;
     case 'ship': return `Ship ${o.n} ${item(o.item)} (${Math.min(prog, o.n)}/${o.n})`;
-    case 'talk': return `Talk to ${NPC_BY_ID.get(o.npc)?.name.split(' ')[0]}`;
+    case 'talk': return `Talk to ${shortName(NPC_BY_ID.get(o.npc)?.name ?? '')}`;
     case 'build': return `Build ${o.n > 1 ? o.n + ' ' : 'a '}${STRUCT_BY_ID.get(o.struct)?.name} (${Math.min(prog, o.n)}/${o.n})`;
     case 'craft': return `Craft ${o.n > 1 ? o.n + ' ' : 'a '}${item(o.item)}`;
     case 'research': return `Research ${RESEARCH_BY_ID.get(o.id)?.name}`;
@@ -189,7 +190,7 @@ function tracker(g: Game) {
   }
   if (q.current >= 0 && q.requests[q.current] && !q.requests[q.current].done) {
     const r = q.requests[q.current];
-    out.unshift({ title: `Request: ${NPC_BY_ID.get(r.npc)!.name.split(' ')[0]}`, lines: [{ text: `Bring ${r.n} ${ITEM_BY_ID.get(r.item)!.name} (${Math.min(r.n, g.player.inv.countId(r.item))}/${r.n})`, done: g.player.inv.countId(r.item) >= r.n }] });
+    out.unshift({ title: `Request: ${shortName(NPC_BY_ID.get(r.npc)!.name)}`, lines: [{ text: `Bring ${r.n} ${ITEM_BY_ID.get(r.item)!.name} (${Math.min(r.n, g.player.inv.countId(r.item))}/${r.n})`, done: g.player.inv.countId(r.item) >= r.n }] });
   }
   return out;
 }
@@ -227,7 +228,7 @@ function tryDeliver(g: Game, npcId: string, k: number): boolean {
   const d = kDef(k);
   if (d.id !== r.item) return false;
   if (g.player.inv.countId(r.item) < r.n) {
-    g.toast(`${NPC_BY_ID.get(npcId)!.name.split(' ')[0]} needs ${r.n} ${d.name}. You have ${g.player.inv.countId(r.item)}.`);
+    g.toast(`${shortName(NPC_BY_ID.get(npcId)!.name)} needs ${r.n} ${d.name}. You have ${g.player.inv.countId(r.item)}.`);
     return true;
   }
   g.player.inv.removeSpec(r.item, r.n);

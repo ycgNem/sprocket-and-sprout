@@ -1,4 +1,5 @@
 // Town windows: NPC dialogue with portraits, heart-event cutscenes, shops.
+import { shortName } from '../../data/cookbook';
 import { C } from '../../data/palette';
 import { ITEM_BY_ID } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
@@ -163,7 +164,7 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
   tabs.forEach((t, i) => { if (ui.button('stab' + t, x + 10 + i * 62, y + 10, 58, 14, t, { active: st.data.tab === t })) st.data.tab = t; });
   ui.text(`${ICON.coin} ${g.player.money.toLocaleString()}`, x + w - 26, y + 14, C.walnut, { align: 'right' });
   portrait(ui, shop.owner, x + w - 58, y + 30, 32, 1);
-  ui.text(owner.name.split(' ')[0], x + w - 38, y + 74, C.walnut, { align: 'center' });
+  ui.text(shortName(owner.name), x + w - 38, y + 74, C.walnut, { align: 'center' });
   const listX = x + 10, listY = y + 30, listW = w - 86, listH = 150;
   if (st.data.tab === 'Buy') {
     ui.para(shop.greeting, listX, y + h - 96, listW, C.walnut);
@@ -196,7 +197,7 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
     });
     ui.unclip();
   } else if (st.data.tab === 'Sell') {
-    ui.text(`${owner.name.split(' ')[0]} buys: ${shop.buys!.join(', ')}. Click an item to sell the stack.`, listX, listY, C.walnut);
+    ui.text(`${shortName(owner.name)} buys: ${shop.buys!.join(', ')}. Click an item to sell the stack.`, listX, listY, C.walnut);
     ui.text('(Shipping it overnight pays about 10% more.)', listX, listY + 10, C.oak);
   } else if (st.data.tab === 'Upgrades') {
     const opts = upgradeOptions(g);

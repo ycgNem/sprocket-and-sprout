@@ -1,4 +1,5 @@
 // Activity windows: fishing tension reel, mine elevator, festivals and their minigames.
+import { shortName } from '../../data/cookbook';
 import { C } from '../../data/palette';
 import { FESTIVALS, TOKEN_SHOP } from '../../data/goals';
 import { ITEM_BY_ID } from '../../data/items';
@@ -119,7 +120,7 @@ function drawFestival(ui: UI, play: PlayScreen, st: WinState): boolean {
   }
   ui.text(`Best: ${g.counters['best_' + f.id] ?? 0}`, x + 140, y + 90, C.walnut);
   // token stall
-  ui.text(`Token stall (${host.name.split(' ')[0]}): you have ${g.player.inv.countId('ticket')} tokens`, x + 12, y + 114, C.ink);
+  ui.text(`Token stall (${shortName(host.name)}): you have ${g.player.inv.countId('ticket')} tokens`, x + 12, y + 114, C.ink);
   TOKEN_SHOP.forEach((t, i) => {
     const sx = x + 12 + (i % 4) * 70, sy = y + 128 + Math.floor(i / 4) * 34;
     const r = ui.slot(sx, sy, { k: key(t.item), n: 1 });

@@ -83,4 +83,8 @@ Running log of design and technical decisions made while building autonomously.
     single-product factory needs another outlet. Contracts take bulk goods at 1.5x base value with no
     saturation, unlock with arms research, refresh weekly, and never punish you for missing one.
     Reputation ranks add a small permanent shipping bonus, so steady suppliers get ahead over time.
+33. **Recipes are learned through friendship.** This gives hearts a practical reward and gives each
+    villager a signature dish. The Sunday almanac guarantees steady progress for players who don't
+    socialize. Saves made before the cookbook existed get every recipe, so no machine loses a
+    recipe it was already running.
 

@@ -162,7 +162,7 @@ function machinePanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w:
     if (res.click) setRecipe(g, e, m.locked && m.recipe?.id === r.id ? null : r);
   });
   ui.unclip();
-  if (locked) ui.text(`${locked} more recipe${locked > 1 ? 's' : ''} locked behind research`, x + 14, listY + areaH + 2, C.oak);
+  if (locked) ui.text(`${locked} more recipe${locked > 1 ? 's' : ''} ${m.station === 'oven' ? 'to learn from villagers and the almanac' : 'locked behind research'}`, x + 14, listY + areaH + 2, C.oak);
   void st;
   void availableRecipes;
   return (k, n) => {

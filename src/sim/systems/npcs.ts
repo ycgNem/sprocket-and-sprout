@@ -1,4 +1,5 @@
 // Villagers: daily schedules with A* pathing, dialogue selection, gifts, friendship, heart events.
+import { shortName } from '../../data/cookbook';
 import { NPCS, NPC_BY_ID } from '../../data/npcs';
 import { ITEM_BY_ID, matchesSpec } from '../../data/items';
 import type { DialogueLine, HeartEventDef, NPCDef, ScheduleDef } from '../../data/types';
@@ -275,7 +276,7 @@ export function addPoints(g: Game, n: NPCState, pts: number) {
   const after = hearts(n);
   if (after > before) {
     g.emit({ t: 'sfx', id: 'heart' });
-    g.toast(`${NPC_BY_ID.get(n.id)!.name.split(' ')[0]}: ${after} heart${after > 1 ? 's' : ''}!`, undefined, 28);
+    g.toast(`${shortName(NPC_BY_ID.get(n.id)!.name)}: ${after} heart${after > 1 ? 's' : ''}!`, undefined, 28);
     g.sys.quests?.notify?.(g, 'friend', after, n.id);
   }
 }
@@ -299,7 +300,7 @@ export function talkTo(g: Game, n: NPCState) {
     if (giftable) {
       const bday = isBirthday(g, d);
       if (n.giftedToday) {
-        openDialog(g, n, `${d.name.split(' ')[0]} smiles. "You already gave me something today, {player}."`);
+        openDialog(g, n, `${shortName(d.name)} smiles. "You already gave me something today, {player}."`);
         return;
       }
       if (n.giftsWeek >= 2 && !bday) {
