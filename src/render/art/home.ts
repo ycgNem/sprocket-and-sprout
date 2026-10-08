@@ -346,6 +346,47 @@ function painting(v: number): Furn {
   return { w: 14, h: 12, ox: -1, oy: 9, pb };
 }
 
+function trophy(v: number): Furn {
+  const pb = new PixBuf(16, 12);
+  // wooden plaque with a mounted fish
+  pb.rect(1, 1, 14, 10, C.walnut);
+  pb.rect(2, 2, 12, 8, C.oak);
+  const [a, b] = [[C.butter, C.amber], [C.slate, C.brass], [C.aqua, C.violet]][v] ?? [C.butter, C.amber];
+  pb.ellipse(7, 6, 4.5, 2.2, a);
+  pb.rect(3, 5, 9, 1, b);
+  pb.rect(11, 4, 1, 5, a); pb.rect(12, 3, 1, 2, a); pb.rect(12, 8, 1, 2, a);
+  pb.set(4, 5, C.ink);
+  pb.rect(6, 10, 4, 1, C.brass);
+  pb.outline(C.ink);
+  return { w: 16, h: 12, ox: 0, oy: 9, pb };
+}
+
+function lanternArt(): Furn {
+  const pb = new PixBuf(16, 26);
+  pb.rect(7, 12, 2, 12, C.bark);
+  pb.rect(4, 23, 8, 2, C.walnut);
+  pb.rect(4, 2, 8, 10, C.brass);
+  pb.rect(5, 3, 6, 8, C.butter);
+  pb.rect(7, 5, 2, 4, C.cream);
+  pb.rect(3, 1, 10, 2, C.copper); pb.rect(6, 0, 4, 1, C.copper);
+  pb.outline(C.ink);
+  return { w: 16, h: 26, ox: 0, oy: 10, pb };
+}
+
+function gildedClock(): Furn {
+  const pb = new PixBuf(16, 34);
+  pb.rect(3, 2, 10, 30, C.walnut);
+  pb.rect(2, 0, 12, 3, C.brass);
+  pb.rect(4, 4, 8, 8, C.brass);
+  pb.disc(8, 8, 3, C.cream);
+  pb.set(8, 6, C.ink); pb.set(8, 7, C.ink); pb.set(9, 8, C.ink);
+  pb.rect(5, 14, 6, 14, C.bark);
+  pb.rect(7, 15, 2, 9, C.brass); pb.disc(8, 25, 1.6, C.butter);
+  pb.rect(2, 31, 12, 3, C.brass);
+  pb.outline(C.ink);
+  return { w: 16, h: 34, ox: 0, oy: 18, pb };
+}
+
 function banner(): Furn {
   const pb = new PixBuf(12, 16);
   pb.rect(0, 0, 12, 1, C.brass);
@@ -382,6 +423,9 @@ export function furnArt(name: string): Furn | null {
     case 'petbed': return petbed();
     case 'painting': return painting(v);
     case 'banner': return banner();
+    case 'lantern': return lanternArt();
+    case 'gclock': return gildedClock();
+    case 'trophy': return trophy(v);
   }
   return null;
 }

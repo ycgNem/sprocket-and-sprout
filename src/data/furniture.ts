@@ -35,6 +35,11 @@ export const FURNITURE: FurnDef[] = [
   { id: 'f_paint_meadow', name: 'Painting: Meadow at Dawn', price: 0, desc: 'A gift from Hazel. Soft light over wet grass.', sprite: 'painting:0', w: 1, h: 1, wall: true, solid: false },
   { id: 'f_paint_sea', name: 'Painting: Stormy Sea', price: 0, desc: 'A gift from Hazel. You can almost hear the waves.', sprite: 'painting:1', w: 1, h: 1, wall: true, solid: false },
   { id: 'f_paint_tower', name: 'Painting: Clocktower at Dusk', price: 0, desc: 'A gift from Hazel. The town you helped restore.', sprite: 'painting:2', w: 1, h: 1, wall: true, solid: false },
+  { id: 'f_trophy_thistlefin', name: 'Mounted Thistlefin', price: 0, desc: 'Proof you landed the Golden Thistlefin.', sprite: 'trophy:0', w: 1, h: 1, wall: true, solid: false },
+  { id: 'f_trophy_clockjaw', name: 'Mounted Clockjaw', price: 0, desc: 'Old Clockjaw, still ticking (in spirit).', sprite: 'trophy:1', w: 1, h: 1, wall: true, solid: false },
+  { id: 'f_trophy_tidemother', name: 'Mounted Tidemother', price: 0, desc: 'The Tidemother herself. Wren wept.', sprite: 'trophy:2', w: 1, h: 1, wall: true, solid: false },
+  { id: 'f_lantern', name: "Founder's Lantern", price: 0, desc: "Lit by the Mayor on Founder's Day. It never seems to burn down.", sprite: 'lantern:0', w: 1, h: 1, solid: true, light: { r: 3.5, c: C.amber } },
+  { id: 'f_gilded_clock', name: 'Gilded Clock', price: 0, desc: 'A towering clock for a farm with four candles.', sprite: 'gclock:0', w: 1, h: 1, solid: true },
   { id: 'f_banner', name: 'Guild Banner', price: 0, desc: 'Awarded by the Trading Guild to its Purveyors.', sprite: 'banner:0', w: 1, h: 1, wall: true, solid: false },
 ];
 

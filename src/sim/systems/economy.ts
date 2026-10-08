@@ -1,5 +1,6 @@
 // Economy: dynamic market prices (supply saturation, weekly demand, daily drift),
 // overnight shipping, shop buying/selling, tool upgrades and building kits.
+import { foundersBonus } from './founders';
 import type { ItemDef } from '../../data/types';
 import { guildBonus } from './contracts';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
@@ -72,7 +73,7 @@ function perkPrice(g: Game, d: ItemDef): number {
 export function unitPrice(g: Game, k: number): number {
   const d = kDef(k);
   if (d.price <= 0) return 0;
-  return Math.max(1, Math.round(d.price * QUALITY_MULT[k & 3] * priceMult(g, kIdx(k)) * perkPrice(g, d) * (1 + g.mods.marketBonus + (g.sys.megaBonus?.market ?? 0) + guildBonus(g))));
+  return Math.max(1, Math.round(d.price * QUALITY_MULT[k & 3] * priceMult(g, kIdx(k)) * perkPrice(g, d) * (1 + g.mods.marketBonus + (g.sys.megaBonus?.market ?? 0) + guildBonus(g) + foundersBonus(g))));
 }
 
 /** Sell a stack right now (shipping or shops). Returns coins earned; updates saturation per unit. */

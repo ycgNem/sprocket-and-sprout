@@ -1,6 +1,8 @@
 // Fishing: charge a cast, wait for a bite, hook it, then play the tension-reel minigame:
 // hold to reel (tension rises), release to ease off. Keep tension inside the moving
 // sweet zone to land the fish; max tension snaps the line.
+import { C } from '../../data/palette';
+import { ITEM_BY_ID } from '../../data/items';
 import { FISH } from '../../data/fish';
 import type { FishDef } from '../../data/types';
 import { Game, registerSystem } from '../Game';
@@ -177,6 +179,12 @@ function land(g: Game, k: number, size: number) {
     g.sys.collections?.fish?.(g, d.id, size);
     g.addXp('fishing', Math.round(5 + (f.fish?.difficulty ?? 10) * 0.6 * (f.perfect ? 1.6 : 1)));
     g.sys.quests?.notify?.(g, 'catch', 1, d.id);
+    // the first catch of a legendary earns a wall trophy
+    if (d.tags?.includes('legendary') && !g.flags.has('trophy_' + d.id) && ITEM_BY_ID.has('f_trophy_' + d.id)) {
+      g.flags.add('trophy_' + d.id);
+      g.give(key('f_trophy_' + d.id), 1);
+      g.toast(`A legend! You get a mounted ${d.name} for your farmhouse wall.`, undefined, C.amber);
+    }
   }
   f.result = { ok: true, text: d.cat === 'trash' ? `You fished up... a ${d.name}.` : `Caught a ${d.name}!${size ? ` (${size} cm)` : ''}${f.perfect ? ' Perfect!' : ''}`, k, size };
   f.resultT = 2.5;

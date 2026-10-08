@@ -87,4 +87,7 @@ Running log of design and technical decisions made while building autonomously.
     villager a signature dish. The Sunday almanac guarantees steady progress for players who don't
     socialize. Saves made before the cookbook existed get every recipe, so no machine loses a
     recipe it was already running.
+34. **Founder's Day is a yearly review, not a one-off verdict.** Inspired by the classic year-end
+    evaluation but kinder: it repeats every year, rewards stay claimed, and the criteria span every
+    pillar (cozy and factory alike), so different play styles can all reach four candles.
 

@@ -7,3 +7,4 @@ import './activities';
 import './panels';
 import './home';
 import './perks';
+import './founders';

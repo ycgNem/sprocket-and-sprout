@@ -70,9 +70,14 @@
 - Mine variety: a grand treasure chest on floors 10/20/30/40/50 (once each, with coins and
   themed loot), occasional small chests, and infested floors (about 10%) with twice the
   monsters, where the ladder only appears after you clear them all. Chests glow in the dark.
+- Founder's Day: on Spring 1 of each new year Mayor Tobias reviews the farm on 18 criteria
+  (earnings, skills, friendships, automation, restoration, museum, fish, pet, home). The score
+  lights up to 4 candles, and each tier unlocks a one-time reward (coins, the Founder's Lantern,
+  a +5% shipping medal, the Gilded Clock).
+- Legendary fish give a mounted wall trophy the first time you catch them.
 - Fixed: a large XP gain now grants every level it crosses, not just one.
 - Fixed titled villagers showing as "Mayor"/"Dr."/"Old" in toasts, quests and the almanac.
-- Tests: 52 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Tests: 53 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 
