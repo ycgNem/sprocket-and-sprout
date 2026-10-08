@@ -89,9 +89,11 @@
 - Logistics: arm stock limits (fill a chest only up to N of each item) and splitter modes
   (alternate / prefer left / prefer right, or filter one item left and the rest right). All of
   them are saved and copied with blueprints.
+- Fixed: fainting in the mine among several monsters no longer crashes the monster loop (found by
+  the full-year bot run).
 - Fixed: a large XP gain now grants every level it crosses, not just one.
 - Fixed titled villagers showing as "Mayor"/"Dr."/"Old" in toasts, quests and the almanac.
-- Tests: 59 Vitest tests (+ a LONG=1 full-year run) (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Tests: 60 Vitest tests (+ a LONG=1 full-year run) (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 

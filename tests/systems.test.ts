@@ -543,3 +543,20 @@ describe('night events', () => {
     expect([...g.soil.values()].filter((s) => s.crop?.ready).length).toBeGreaterThan(5);
   });
 });
+
+describe('mine collapse regression', () => {
+  it('fainting among monsters carries you out without crashing the monster loop', async () => {
+    const { mine } = await import('../src/sim/systems/mine');
+    const g = new Game({ seed: 34 });
+    const st = mine(g);
+    st.enter(g, 25);
+    const proto = st.monsters[0];
+    expect(proto).toBeTruthy();
+    // surround the player
+    for (let k = 0; k < 8; k++) st.monsters.push({ ...proto, x: g.player.x + 0.1 * k, y: g.player.y, hp: 50, cool: 0, state: 1 });
+    g.player.hp = 1;
+    g.player.invuln = 0;
+    expect(() => { for (let i = 0; i < 120; i++) g.tick(); }).not.toThrow();
+    expect(g.player.where).toBe('world');
+  });
+});

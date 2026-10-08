@@ -526,8 +526,12 @@ function tickMonsters(g: Game, dt: number) {
   const m = st.map;
   if (!m) return;
   const p = g.player;
-  for (let i = st.monsters.length - 1; i >= 0; i--) {
-    const mo = st.monsters[i];
+  const list = st.monsters;
+  for (let i = list.length - 1; i >= 0; i--) {
+    // collapsing (hurtPlayer) carries you out of the mine and clears the floor mid-loop
+    if (st.monsters !== list || g.player.where !== 'mine') return;
+    const mo = list[i];
+    if (!mo) continue;
     mo.t += dt;
     mo.hurt = Math.max(0, mo.hurt - dt);
     mo.cool -= dt;
