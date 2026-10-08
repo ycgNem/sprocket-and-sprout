@@ -521,3 +521,25 @@ describe('traveling cart', () => {
     expect(C2.cartHere(g)).toBe(false); // Saturday
   });
 });
+
+describe('night events', () => {
+  it('meteorites drop starmetal rocks on the farm and the crop fairy ripens crops', async () => {
+    const { NIGHT_EVENTS } = await import('../src/sim/systems/nights');
+    const g = new Game({ seed: 32 });
+    expect(NIGHT_EVENTS.meteorite(g)).toMatch(/meteorite/);
+    let star = 0;
+    for (let i = 0; i < g.map.obj.length; i++) if (g.map.obj[i] === O.ORE_ROCK && g.map.objData[i] === 5) star++;
+    expect(star).toBeGreaterThanOrEqual(5);
+    // plant a patch and let the fairy visit
+    clear(g, 44, 26, 52, 32);
+    const { plant } = await import('../src/sim/systems/farming');
+    const { CROP_BY_ID } = await import('../src/data/crops');
+    for (let x = 45; x < 51; x++) for (let y = 27; y < 30; y++) {
+      const i = g.map.idx(x, y);
+      g.soil.set(i, { water: false, fert: null, idle: 0, crop: null } as any);
+      plant(g, CROP_BY_ID.get('radish')!, i);
+    }
+    expect(NIGHT_EVENTS.cropFairy(g)).toMatch(/fairy/);
+    expect([...g.soil.values()].filter((s) => s.crop?.ready).length).toBeGreaterThan(5);
+  });
+});

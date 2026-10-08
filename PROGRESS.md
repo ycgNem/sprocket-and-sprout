@@ -80,13 +80,16 @@
 - Mags' Traveling Cart: parks by the town square on Fridays and Sundays (8am-7pm) with a weekly
   rotating stock: rare seeds, a sapling, a gem or relic, a recipe card, a cart-only piece of
   furniture (globe, telescope, music box, tapestry), and sometimes a Brass Locket.
+- Night events (about 1 night in 9 after the first week): a meteorite of starmetal rocks, a
+  crop fairy that ripens a patch, a windstorm that scatters debris, or (in year 1) a coin
+  pouch from a secret friend. Shown in a message after the morning summary.
 - Legendary fish give a mounted wall trophy the first time you catch them.
 - Logistics: arm stock limits (fill a chest only up to N of each item) and splitter modes
   (alternate / prefer left / prefer right, or filter one item left and the rest right). All of
   them are saved and copied with blueprints.
 - Fixed: a large XP gain now grants every level it crosses, not just one.
 - Fixed titled villagers showing as "Mayor"/"Dr."/"Old" in toasts, quests and the almanac.
-- Tests: 57 Vitest tests (+ a LONG=1 full-year run) (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Tests: 58 Vitest tests (+ a LONG=1 full-year run) (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 

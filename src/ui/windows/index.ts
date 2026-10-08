@@ -142,6 +142,10 @@ function afterSummary(play: PlayScreen) {
   }
   play.app.audio.sfx('rooster', 0.6);
   play.g.sys.onMorning?.forEach?.((f: any) => f(play.g, play));
+  if (play.g.sys.nightMsg) {
+    play.openWindow('message', { title: 'During the night...', text: play.g.sys.nightMsg });
+    play.g.sys.nightMsg = null;
+  }
 }
 
 function drawConfirm(ui: UI, play: PlayScreen, st: WinState): boolean {
