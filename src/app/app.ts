@@ -53,10 +53,31 @@ export class App {
     window.addEventListener('pointerdown', unlock);
     window.addEventListener('keydown', unlock);
     this.screen = new TitleScreen(this);
+    // errors are reported but never freeze the game loop
+    let lastErr = 0;
+    const report = (where: string, e: unknown) => {
+      const now = performance.now();
+      if (now - lastErr > 2000) {
+        lastErr = now;
+        console.error(`[${where}]`, e);
+        (this.screen as any).toast?.('Oops, something went wrong (see console). The game keeps running.');
+      }
+    };
     this.loop = new GameLoop(
-      () => this.screen.tick?.(),
+      () => {
+        try {
+          this.screen.tick?.();
+        } catch (e) {
+          report('tick', e);
+        }
+      },
       (dt) => {
-        this.screen.frame(dt);
+        try {
+          this.screen.frame(dt);
+        } catch (e) {
+          report('frame', e);
+          this.ui.ctx?.restore?.();
+        }
         this.input.endFrame();
       },
     );

@@ -52,3 +52,13 @@ Running log of design and technical decisions made while building autonomously.
 23. **"Have" and "produce" quest objectives are polled**; event objectives (till, plant, ship...) use notify hooks.
 24. **Ghost structures are built automatically** from your own inventory when you're within ~9 tiles
     (a "tinker's satchel"), and by bumblebots from crates later.
+25. **Early balance (from the pacing bot)** — with a deliberately simple strategy the bot earns ~1.7k by
+    day 7 and researches Conveyance on day ~7 and Clockwork Arms on day ~11. Sprout Bundles cost
+    1 fiber + 1 crop. Copper gears need no research, so belts and arms are craftable as soon as they're
+    researched. Energy is 220 at a cost of about 2 per tool use: a full day of tilling, watering and
+    chopping lands near the bottom of the bar without forcing exhaustion. The first automation
+    therefore lands in week 2, comfortably inside the week 2-3 target.
+26. **Market saturation** halves a product's price after ~5000/price units are sold (min 25), decays
+    18%/day, and never drops below 30% of base. Big single-product factories are strongly pushed
+    to diversify, while small farms barely notice it.
+27. **The game loop catches and reports exceptions** (console + toast) instead of freezing.
