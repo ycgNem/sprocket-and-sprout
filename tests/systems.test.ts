@@ -404,3 +404,31 @@ describe('quick stack', () => {
     expect(g.player.inv.slots[15]!.n).toBe(30); // that chest is too far away
   });
 });
+
+describe('mine variety', () => {
+  it('grand treasure every tenth floor (once) and infested floors reveal a ladder when cleared', async () => {
+    const { mine } = await import('../src/sim/systems/mine');
+    const g = new Game({ seed: 24 });
+    const st = mine(g);
+    st.enter(g, 10);
+    const m = st.map!;
+    let ti = -1;
+    for (let i = 0; i < m.obj.length; i++) if (m.obj[i] === O.TREASURE && m.objData[i] === 1) ti = i;
+    expect(ti).toBeGreaterThanOrEqual(0);
+    const money = g.player.money;
+    expect(st.interact(g, ti % m.w, Math.floor(ti / m.w))).toBe(true);
+    expect(g.player.money).toBeGreaterThan(money);
+    expect(g.flags.has('treasure_10')).toBe(true);
+    st.enter(g, 10);
+    expect([...st.map!.obj].some((o, i) => o === O.TREASURE && st.map!.objData[i] === 1)).toBe(false);
+    // find an infested floor
+    let f = 7;
+    for (; f < 60; f++) { if (f % 5 === 0) continue; st.enter(g, f); if (st.infested) break; }
+    expect(st.infested).toBe(true);
+    g.player.hp = 99999;
+    for (const mo of st.monsters) mo.hp = 0;
+    g.tick();
+    expect(st.monsters.length).toBe(0);
+    expect(st.ladder).not.toBeNull();
+  });
+});

@@ -67,9 +67,12 @@
   or later from the Skills tab.
 - Quick stack (K): bag items go into nearby chests (or the root cellar indoors) that already
   hold the same item. The hotbar is never touched.
+- Mine variety: a grand treasure chest on floors 10/20/30/40/50 (once each, with coins and
+  themed loot), occasional small chests, and infested floors (about 10%) with twice the
+  monsters, where the ladder only appears after you clear them all. Chests glow in the dark.
 - Fixed: a large XP gain now grants every level it crosses, not just one.
 - Fixed titled villagers showing as "Mayor"/"Dr."/"Old" in toasts, quests and the almanac.
-- Tests: 51 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Tests: 52 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 

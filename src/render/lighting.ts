@@ -113,6 +113,7 @@ export class Lighting {
         const o = m.obj[m.idx(x, y)];
         if (o === O.LAMPPOST) out.push({ x: x + 0.5, y: y - 0.3, r: 5, i: 1, c: C.amber, flicker: true });
         else if (o === O.CRYSTAL) out.push({ x: x + 0.5, y: y + 0.3, r: 2.5, i: 0.7, c: C.lavender });
+        else if (o === O.TREASURE && m.objData[m.idx(x, y)] !== 2) out.push({ x: x + 0.5, y: y + 0.4, r: m.objData[m.idx(x, y)] === 1 ? 3 : 1.8, i: 0.8, c: C.amber, flicker: true });
       }
     if (m === g.map) {
       for (const b of m.buildings) {

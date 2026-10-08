@@ -1,5 +1,7 @@
 // The Old Mine: 60 procedural floors (earth, frost, ember), ores, gems, hidden ladders,
 // elevators every 5 floors, monsters with simple AI, sword combat.
+import { C } from '../../data/palette';
+import { ITEM_BY_ID } from '../../data/items';
 import { MONSTERS, MONSTER_BY_ID } from '../../data/creatures';
 import type { MonsterDef } from '../../data/types';
 import { Rng } from '../../engine/rng';
@@ -41,6 +43,8 @@ export interface MineState {
   deepest: number;
   ladder: [number, number] | null;
   hidden: number;
+  /** monsters swarm this floor: the ladder appears once they are all defeated */
+  infested: boolean;
   rockHits: Map<number, number>;
   // api
   solid: (g: Game, x: number, y: number) => boolean;
@@ -56,7 +60,7 @@ export interface MineState {
 export function mine(g: Game): MineState {
   if (!g.sys.mine) {
     g.sys.mine = {
-      floor: 0, map: null, theme: 0, monsters: [], bolts: [], lights: [], deepest: 0, ladder: null, hidden: -1, rockHits: new Map(),
+      floor: 0, map: null, theme: 0, monsters: [], bolts: [], lights: [], deepest: 0, ladder: null, hidden: -1, infested: false, rockHits: new Map(),
       solid: mineSolid, useTool: mineTool, attack, interact: mineInteract, enterPrompt, enter: enterFloor, leave, debugDescend,
     } as MineState;
   }
@@ -75,7 +79,7 @@ function mineSolid(g: Game, x: number, y: number): boolean {
 }
 
 // ---------------- generation ----------------
-function generateFloor(g: Game, floor: number): { map: TileMap; entry: [number, number]; hidden: number; monsters: Monster[] } {
+function generateFloor(g: Game, floor: number): { map: TileMap; entry: [number, number]; hidden: number; monsters: Monster[]; infested: boolean } {
   const rng = new Rng(g.seed * 31 + floor * 977 + g.dayIndex * 13);
   const m = new TileMap(MW, MH);
   const theme = themeOf(floor);
@@ -187,11 +191,12 @@ function generateFloor(g: Game, floor: number): { map: TileMap; entry: [number, 
       }
     }
   }
-  const hidden = floor >= MAX_FLOOR ? -1 : rocks.length ? rng.pick(rocks) : -1;
+  const infested = floor > 6 && floor % 5 !== 0 && floor < MAX_FLOOR && rng.next() < 0.1;
+  const hidden = floor >= MAX_FLOOR || infested ? -1 : rocks.length ? rng.pick(rocks) : -1;
   // monsters
   const monsters: Monster[] = [];
   const pool = MONSTERS.filter((d) => floor >= d.floors[0] && floor <= d.floors[1]);
-  const count = Math.min(16, 3 + Math.floor(floor / 5));
+  const count = Math.min(infested ? 26 : 16, (3 + Math.floor(floor / 5)) * (infested ? 2 : 1));
   for (let n = 0; n < count && pool.length; n++) {
     const i = rng.pick(floors);
     const x = i % MW, y = Math.floor(i / MW);
@@ -206,8 +211,21 @@ function generateFloor(g: Game, floor: number): { map: TileMap; entry: [number, 
     m.obj[i] = O.GEM_ROCK;
     m.objData[i] = 6;
   }
+  // treasure: a grand chest every tenth floor (once), and now and then a small one
+  const far = floors.filter((f) => Math.abs((f % MW) - entry[0]) + Math.abs(Math.floor(f / MW) - entry[1]) > 10 && !m.obj[f]);
+  if (far.length) {
+    if (floor % 10 === 0 && floor < MAX_FLOOR && !g.flags.has('treasure_' + floor)) {
+      const i = rng.pick(far);
+      m.obj[i] = O.TREASURE;
+      m.objData[i] = 1;
+    } else if (rng.next() < 0.06) {
+      const i = rng.pick(far);
+      m.obj[i] = O.TREASURE;
+      m.objData[i] = 0;
+    }
+  }
   for (let i = 0; i < m.deco.length; i++) m.deco[i] = Math.floor(rng.next() * 256);
-  return { map: m, entry, hidden, monsters };
+  return { map: m, entry, hidden, monsters, infested };
 }
 
 function lightsFor(st: MineState) {
@@ -229,6 +247,7 @@ export function enterFloor(g: Game, floor: number) {
   st.monsters = gen.monsters;
   st.bolts = [];
   st.hidden = gen.hidden;
+  st.infested = gen.infested;
   st.ladder = null;
   st.rockHits.clear();
   lightsFor(st);
@@ -244,6 +263,7 @@ export function enterFloor(g: Game, floor: number) {
     g.flags.add('elev_' + floor);
     g.toast(`Floor ${floor}: the old lift works here! You can ride down to this floor from the entrance.`);
   }
+  if (st.infested) g.toast('Monsters swarm this floor! Defeat them all to find the way down.', undefined, C.rose);
   g.emit({ t: 'sfx', id: 'door' });
   g.emit({ t: 'ui', open: 'fade' });
 }
@@ -291,11 +311,73 @@ function mineInteract(g: Game, tx: number, ty: number): boolean {
     leave(g);
     return true;
   }
+  if (o === O.TREASURE) return openTreasure(g, st, tx, ty);
   if (o === O.ELEVATOR) {
     enterPrompt(g);
     return true;
   }
   return false;
+}
+
+function revealLadderNear(g: Game, st: MineState) {
+  const m = st.map!;
+  const px = Math.floor(g.player.x), py = Math.floor(g.player.y);
+  for (let r = 2; r < 12; r++)
+    for (let k = 0; k < 16; k++) {
+      const a = (k / 16) * Math.PI * 2;
+      const x = Math.round(px + Math.cos(a) * r), y = Math.round(py + Math.sin(a) * r);
+      if (m.g(x, y) !== T.MINEFLOOR || m.o(x, y)) continue;
+      m.setO(x, y, O.LADDER);
+      st.ladder = [x, y];
+      g.emit({ t: 'sfx', id: 'chime' });
+      g.toast('The floor falls quiet... a ladder is revealed!');
+      return;
+    }
+}
+
+const GRAND_LOOT: Record<number, [string, number][]> = {
+  10: [['copper_bar', 8], ['geode', 4], ['sprinkler_2', 2]],
+  20: [['iron_bar', 6], ['geode', 5], ['super_tonic', 10]],
+  30: [['gold_bar', 4], ['sword_3', 1], ['geode', 6]],
+  40: [['gold_bar', 8], ['starpetal_seed', 6], ['geode', 8]],
+  50: [['starmetal_bar', 3], ['geode', 10], ['spark_coil', 4]],
+};
+
+function openTreasure(g: Game, st: MineState, x: number, y: number): boolean {
+  const m = st.map!;
+  const i = m.idx(x, y);
+  const kind = m.objData[i];
+  if (kind === 2) {
+    g.toast('Empty. Someone got here first. (You.)');
+    return true;
+  }
+  const d = (id: string, n = 1) => { if (ITEM_BY_ID.has(id)) spawnDrop(g, key(id), n, x + 0.5, y + 0.6); };
+  const floor = st.floor;
+  if (kind === 1) {
+    for (const [id, n] of GRAND_LOOT[floor] ?? [['geode', 5]]) d(id, n);
+    const coins = floor * 60;
+    g.player.money += coins;
+    g.earned += coins;
+    g.flags.add('treasure_' + floor);
+    g.toast(`A grand treasure chest! +${coins} coins`, undefined, C.amber);
+    g.emit({ t: 'sfx', id: 'quest' });
+  } else {
+    const ores = ['copper_ore', 'tin_ore', 'iron_ore', 'gold_ore'];
+    const ore = ores[Math.min(3, Math.floor(floor / 15))];
+    const roll = g.rng.next();
+    if (roll < 0.35) d(ore, 4 + g.rng.int(0, 4));
+    else if (roll < 0.6) d('geode', 2);
+    else if (roll < 0.8) d('coal', 6);
+    else d(g.rng.pick(['quartz', 'amethyst', 'topaz', 'jade']), 2);
+    d('bread', 1);
+    g.toast('A dusty old chest!');
+  }
+  m.objData[i] = 2;
+  m.setO(x, y, O.TREASURE);
+  g.emit({ t: 'sfx', id: 'chime' });
+  g.emit({ t: 'fx', kind: 'sparkle', x: x + 0.5, y: y + 0.5 });
+  g.count('treasures');
+  return true;
 }
 
 function rockDrops(g: Game, st: MineState, x: number, y: number, o: O, data: number) {
@@ -323,7 +405,7 @@ function rockDrops(g: Game, st: MineState, x: number, y: number, o: O, data: num
   const i = st.map!.idx(x, y);
   const rocksLeft = st.map!.obj.reduce((a, v) => a + (v === O.ROCK || v === O.ORE_ROCK || v === O.GEM_ROCK || v === O.ICE_ROCK ? 1 : 0), 0);
   const monstersLeft = st.monsters.length;
-  if (!st.ladder && floor < MAX_FLOOR && (i === st.hidden || g.rng.next() < 0.025 + (monstersLeft === 0 ? 0.04 : 0) || rocksLeft < 8)) {
+  if (!st.ladder && !st.infested && floor < MAX_FLOOR && (i === st.hidden || g.rng.next() < 0.025 + (monstersLeft === 0 ? 0.04 : 0) || rocksLeft < 8)) {
     const deep = floor >= 30 && g.rng.next() < 0.12;
     st.map!.setO(x, y, deep ? O.SHAFT : O.LADDER);
     st.ladder = [x, y];
@@ -525,6 +607,7 @@ function tickMonsters(g: Game, dt: number) {
       g.emit({ t: 'sfx', id: 'monster_die' });
       g.emit({ t: 'fx', kind: 'magic', x: mo.x, y: mo.y - 0.3, n: 14 });
       st.monsters.splice(i, 1);
+      if (st.infested && !st.monsters.length && !st.ladder) revealLadderNear(g, st);
     }
   }
   for (let i = st.bolts.length - 1; i >= 0; i--) {

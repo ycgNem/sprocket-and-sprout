@@ -28,7 +28,7 @@ const CH = TileMap.CHUNK;
 const FLAT_OBJ = new Set([
   O.ROCK, O.WEED, O.TWIG, O.STUMP, O.LOG, O.TALLGRASS, O.BUSH, O.FLOWER, O.ORE_ROCK, O.ARTIFACT, O.FENCE, O.BENCH,
   O.BARREL, O.GEM_ROCK, O.LADDER, O.SHAFT, O.REEDS, O.LILYPAD, O.MUSHROOM, O.SIGNPOST, O.WELL, O.MAILBOX, O.FLOWERBED,
-  O.HEDGE, O.CRATE, O.ELEVATOR, O.MINE_EXIT, O.ICE_ROCK, O.STALAGMITE, O.CRYSTAL, O.BOULDER,
+  O.HEDGE, O.CRATE, O.ELEVATOR, O.MINE_EXIT, O.ICE_ROCK, O.STALAGMITE, O.CRYSTAL, O.BOULDER, O.TREASURE,
 ]);
 
 interface Chunk { c: HTMLCanvasElement; ver: number; season: number; theme: number }
@@ -195,7 +195,7 @@ export class Renderer {
         }
         const o = m.obj[i] as O;
         if (o && FLAT_OBJ.has(o)) {
-          const s2 = sprite(`o:${o}:${o === O.FLOWER || o === O.FLOWERBED ? m.objData[i] % 6 : o === O.ORE_ROCK || o === O.GEM_ROCK ? m.objData[i] : v % 3}:${season}`);
+          const s2 = sprite(`o:${o}:${o === O.FLOWER || o === O.FLOWERBED ? m.objData[i] % 6 : o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.TREASURE ? m.objData[i] : v % 3}:${season}`);
           ctx.drawImage(s2.img, s2.x, s2.y, 16, 16, px, py, 16, 16);
         } else if (o === O.FORAGE) {
           const id = m.forage.get(i);

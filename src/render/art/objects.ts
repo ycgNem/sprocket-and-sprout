@@ -192,6 +192,25 @@ function drawObj(o: O, v: number, season: number): PixBuf {
       pb.rect(1, 3, 14, 1, winter ? C.cream : C.grass);
       pb.outline(C.ink);
       break;
+    case O.TREASURE: {
+      // 0 small chest, 1 grand gilded chest, 2 opened
+      const grand = v === 1;
+      const body = grand ? C.wine : C.oak, band = grand ? C.brass : C.stone;
+      pb.rect(2, 7, 12, 8, body);
+      pb.rect(2, 7, 12, 1, LIGHT[body] ?? body);
+      if (v === 2) {
+        pb.rect(2, 4, 12, 3, DARK[body] ?? body);
+        pb.rect(3, 7, 10, 2, C.ink);
+      } else {
+        pb.rect(2, 4, 12, 4, body);
+        pb.rect(2, 4, 12, 1, LIGHT[body] ?? body);
+        pb.rect(7, 7, 2, 3, C.butter);
+      }
+      pb.rect(4, 4, 1, 11, band); pb.rect(11, 4, 1, 11, band);
+      if (grand) { pb.set(3, 3, C.butter); pb.set(13, 2, C.cream); }
+      pb.outline(C.ink);
+      break;
+    }
     case O.FENCE:
       pb.rect(7, 3, 3, 12, C.oak);
       pb.rect(7, 3, 3, 1, C.tan);
