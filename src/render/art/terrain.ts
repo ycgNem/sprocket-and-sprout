@@ -163,8 +163,13 @@ export function paintTerrain(pb: PixBuf, t: T, season: number, v: number, ox = 0
       const alt = theme === 1 ? C.stone : theme === 2 ? C.plum : theme === 0 ? C.bark : C.slate;
       for (let y = 0; y < S; y++)
         for (let x = 0; x < S; x++) {
-          const h = at(x, y);
-          pb.set(ox + x, oy + y, h < 0.22 ? alt : h > 0.95 ? (theme === 1 ? C.frost : C.pebble) : base);
+          const b = blob(x, y, 10, 21 + t);
+          const h = W2(x, y);
+          let c = base;
+          if (b < 0.35 && h < 0.55) c = alt;
+          else if (W(x, y) > 0.992) c = theme === 1 ? C.frost : theme === 2 ? C.blush : C.pebble;
+          else if (t === T.MINEFLOOR && W(x + 3, y) > 0.985) c = alt;
+          pb.set(ox + x, oy + y, c);
         }
       if (t === T.ORE_VEIN) {
         const sc = ORE_SPECK[extra] ?? C.copper;
@@ -201,12 +206,23 @@ export function paintTerrain(pb: PixBuf, t: T, season: number, v: number, ox = 0
       break;
     }
     case T.MINEWALL: {
+      // dark rock with layered ledges, like the cliffs but deeper in shadow
       const base = extra === 1 ? C.slate : extra === 2 ? C.plum : C.bark;
-      for (let y = 0; y < S; y++)
+      const lit = extra === 1 ? C.stone : extra === 2 ? C.wine : C.walnut;
+      for (let y = 0; y < S; y++) {
+        const wy = gy + y;
+        const band = Math.floor(wy / 6);
+        const by = wy - band * 6;
         for (let x = 0; x < S; x++) {
-          const h = at(x, y);
-          pb.set(ox + x, oy + y, h < 0.25 ? C.ink : h > 0.9 ? (extra === 1 ? C.stone : extra === 2 ? C.wine : C.walnut) : base);
+          const wx = gx + x + band * 7;
+          const bw = 5 + Math.floor(hash2(band, Math.floor(wx / 8), 5) * 6);
+          let c = blob(x, y, 9, 33) > 0.5 ? base : C.ink;
+          if (by === 0) c = lit;
+          if (wx % bw === 0) c = C.ink;
+          if (W(x, y) > 0.985) c = lit;
+          pb.set(ox + x, oy + y, c);
         }
+      }
       break;
     }
     default:

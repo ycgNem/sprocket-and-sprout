@@ -11,7 +11,7 @@ import { armTiles } from '../sim/systems/arms';
 import { powerState } from '../sim/systems/power';
 import { curMap } from '../sim/systems/player';
 import { O, T, TileMap, Z } from '../sim/world/tilemap';
-import { GREENHOUSE } from '../sim/world/worldgen';
+import { GREENHOUSE, SHIPBIN_POS } from '../sim/world/worldgen';
 import { drawSprite, sprite, Sprite } from './atlas';
 import { makeCanvas, ctx2d } from './art/pixel';
 import { PRIO, FRINGE_SOURCES, TILE, paintTerrain } from './art/terrain';
@@ -132,6 +132,22 @@ export class Renderer {
         const t = m.ground[i] as T;
         const extra = t === T.ORE_VEIN ? m.objData[i] : t === T.MINEFLOOR || t === T.MINEWALL ? theme : 0;
         paintTerrain(pb, t, t === T.MINEFLOOR || t === T.MINEWALL ? 0 : season, m.deco[i] % 8, lx * TILE, ly * TILE, extra, x * TILE, y * TILE);
+        // cave walls: only faces next to open floor show rock; the rest is deep shadow
+        if (t === T.MINEWALL) {
+          const open = (xx: number, yy: number) => { const gg = m.g(xx, yy); return gg !== T.MINEWALL && gg !== T.VOID; };
+          const nearFloor = open(x, y + 1) || open(x, y + 2);
+          if (!nearFloor) {
+            const edge = open(x - 1, y) || open(x + 1, y) || open(x, y - 1);
+            for (let py = 0; py < TILE; py++)
+              for (let px = 0; px < TILE; px++) {
+                const hsh = hash2(x * TILE + px, y * TILE + py, 41);
+                pb.set(lx * TILE + px, ly * TILE + py, edge && (px < 2 || px > 13 || py < 2) ? C.plum : hsh < 0.03 ? C.plum : C.ink);
+              }
+          } else if (!open(x, y + 1)) {
+            // two tiles above floor: darken the top half
+            for (let py = 0; py < 8; py++) for (let px = 0; px < TILE; px++) if (hash2(px, py + y, 43) < 0.7) pb.set(lx * TILE + px, ly * TILE + py, C.ink);
+          }
+        }
       }
     pb.drawTo(ctx);
     for (let ly = 0; ly < CH; ly++)
@@ -284,6 +300,7 @@ export class Renderer {
 
     // greenhouse glass roof
     if (m === g.map) this.drawGreenhouseRoof(g);
+    if (m === g.map) this.drawTownExtras(g);
     // power wires
     if (m === g.map) this.drawWires(g);
     // ui overlays in world space (ghosts, highlights)
@@ -430,7 +447,7 @@ export class Renderer {
           if (d.kind === 'drill') this.drawDrillArrow(e);
           if (e.mach && e.mach.crafting) this.drawProgressPip(e, e.mach.progress);
           if (e.def.kind === 'decor' && e.def.id === 'sign' && e.st.k !== null && e.st.k !== undefined) {
-            const is = sprite('i:' + (g as any).itemIdOf?.(e.st.k));
+            const is = sprite('i:' + itemIdCache(e.st.k));
             if (is) ctx.drawImage(is.img, is.x, is.y, 16, 16, e.x * TILE + 3, e.y * TILE - 3, 10, 10);
           }
           if (e.def.kind === 'machine' && e.def.powerUse && e.sat < 0.5 && e.working) this.drawNoPower(e);
@@ -565,6 +582,66 @@ export class Renderer {
     }
   }
 
+  /** small world-space details: mailbox flag, festival bunting, clock hands, NPC name tags */
+  private drawTownExtras(g: Game) {
+    const ctx = this.ctx;
+    const m = g.map;
+    // mailbox flag when there's unread mail
+    const unread = g.sys.mail?.unread?.() ?? 0;
+    const mb = SHIPBIN_POS;
+    if (mb) {
+      const [mx, my] = [mb[0] + 2, mb[1]];
+      if (unread > 0) {
+        const wave = Math.round(Math.sin(this.time * 4));
+        ctx.fillStyle = PALETTE[C.ink];
+        ctx.fillRect(mx * TILE + 11, my * TILE - 6, 1, 8);
+        ctx.fillStyle = PALETTE[C.rose];
+        ctx.fillRect(mx * TILE + 12, my * TILE - 6 + wave * 0, 4, 3);
+        // bouncing letter hint
+        const by = my * TILE - 14 + Math.sin(this.time * 3) * 2;
+        ctx.fillStyle = PALETTE[C.ink];
+        ctx.fillRect(mx * TILE + 3, by - 1, 10, 8);
+        ctx.fillStyle = PALETTE[C.cream];
+        ctx.fillRect(mx * TILE + 4, by, 8, 6);
+        ctx.fillStyle = PALETTE[C.rose];
+        ctx.fillRect(mx * TILE + 7, by + 2, 2, 2);
+      }
+    }
+    // festival bunting around the square
+    if (g.sys.festivals?.active) {
+      const sq = m.locs.get('square');
+      if (sq) {
+        const cols = [C.rose, C.amber, C.sky, C.leaf, C.lavender];
+        const x0 = (sq[0] - 10) * TILE, x1 = (sq[0] + 11) * TILE, y0 = (sq[1] - 9) * TILE, y1 = (sq[1] + 5) * TILE;
+        const edge = (ax: number, ay: number, bx: number, by: number) => {
+          const n = Math.ceil(Math.hypot(bx - ax, by - ay) / 6);
+          for (let i = 0; i < n; i++) {
+            const t = i / n;
+            const x = ax + (bx - ax) * t, y = ay + (by - ay) * t + Math.sin(t * Math.PI * 4) * 3 - 20;
+            ctx.fillStyle = PALETTE[C.walnut];
+            ctx.fillRect(Math.round(x), Math.round(y), 6, 1);
+            ctx.fillStyle = PALETTE[cols[i % cols.length]];
+            ctx.fillRect(Math.round(x) + 1, Math.round(y) + 1, 3, 3);
+            ctx.fillRect(Math.round(x) + 2, Math.round(y) + 4, 1, 1);
+          }
+        };
+        edge(x0, y0, x1, y0);
+        edge(x0, y1, x1, y1);
+      }
+    }
+    // the restored clocktower shows the real time
+    if (g.flags.has('clock_fixed')) {
+      const b = m.buildings.find((x) => x.id === 'clocktower');
+      if (b) {
+        const cx = b.x * TILE + (b.w * TILE) / 2, cy = b.y * TILE - 18 + 30;
+        const h = (g.time.min / 60) % 12, mi = g.time.min % 60;
+        const ah = (h / 12) * Math.PI * 2 - Math.PI / 2, am = (mi / 60) * Math.PI * 2 - Math.PI / 2;
+        pxLine(ctx, cx, cy, cx + Math.cos(ah) * 4, cy + Math.sin(ah) * 4, C.ink, 1);
+        pxLine(ctx, cx, cy, cx + Math.cos(am) * 6, cy + Math.sin(am) * 6, C.brick, 1);
+      }
+    }
+  }
+
   private drawGreenhouseRoof(g: Game) {
     const ctx = this.ctx;
     const G = GREENHOUSE;
@@ -604,7 +681,8 @@ export class Renderer {
       if (p.anim) this.drawToolSwing(g);
       else {
         const held = p.inv.slots[p.sel];
-        if (held && (g as any).holdingItem?.(held.k)) {
+        const hd = held ? ITEMS[held.k >> 2] : null;
+        if (held && hd && !hd.tool && !hd.weapon && !hd.places && hd.cat !== 'seed' && hd.cat !== 'fertilizer' && !g.player.moving) {
           const is = sprite('i:' + itemIdCache(held.k));
           ctx.drawImage(is.img, is.x, is.y, 16, 16, Math.round(p.x * TILE - 5), Math.round(p.y * TILE - 34), 10, 10);
         }
@@ -674,6 +752,19 @@ export class Renderer {
           ctx.drawImage(is.img, is.x, is.y, 16, 16, Math.round(b.x * TILE - 3), Math.round(b.y * TILE - 12 + bob), 7, 7);
         }
       } });
+    }
+    // fireballs in the mine
+    if (m !== g.map) {
+      for (const b of g.sys.mine?.bolts ?? []) {
+        if (!onScreen(b.x, b.y)) continue;
+        D.push({ y: b.y + 0.5, f: () => {
+          const fl = Math.floor(this.time * 20) % 2;
+          ctx.fillStyle = PALETTE[C.terracotta];
+          ctx.fillRect(Math.round(b.x * TILE) - 3, Math.round(b.y * TILE) - 10, 6, 6);
+          ctx.fillStyle = PALETTE[fl ? C.amber : C.butter];
+          ctx.fillRect(Math.round(b.x * TILE) - 2, Math.round(b.y * TILE) - 9, 4, 4);
+        } });
+      }
     }
     // fishing line + bobber
     const fish = g.sys.fishing;

@@ -584,11 +584,6 @@ export function interactStruct(g: Game, e: Ent): boolean {
     e.st.k = held ? held.k : null;
     return true;
   }
-  if (d.kind === 'gate') {
-    e.st.open = !e.st.open;
-    e.def = { ...e.def, solid: !e.st.open };
-    return true;
-  }
   g.emit({ t: 'ui', open: 'struct', arg: e.id });
   return true;
 }
