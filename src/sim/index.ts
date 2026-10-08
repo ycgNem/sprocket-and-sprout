@@ -14,3 +14,4 @@ import './systems/quests';
 import './systems/goals';
 import './systems/festivals';
 import './systems/bots';
+import './systems/achievements';

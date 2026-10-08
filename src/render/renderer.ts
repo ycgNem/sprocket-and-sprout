@@ -2,6 +2,7 @@
 // belts with their items, arms, wires, lighting and weather.
 import { C, PALETTE, rgba } from '../data/palette';
 import { CROP_BY_ID } from '../data/crops';
+import { MEGA_BY_ID } from '../data/goals';
 import { TREE_BY_ID } from '../data/trees';
 import { hash2 } from '../engine/rng';
 import type { Game } from '../sim/Game';
@@ -433,6 +434,22 @@ export class Renderer {
           continue;
         }
         if (d.kind === 'path') continue;
+        if (d.kind === 'megaproject' && e.st.project) {
+          const def = MEGA_BY_ID.get(e.st.project);
+          if (def) {
+            let frac = 0;
+            if (!e.st.complete) {
+              const stg = def.stages[e.st.stage];
+              const tot = stg ? stg.items.reduce((a, i) => a + i.n, 0) : 1;
+              const got = stg ? stg.items.reduce((a, i) => a + Math.min(i.n, e.st.delivered?.[i.item] ?? 0), 0) : 0;
+              frac = (e.st.stage + got / tot) / def.stages.length;
+            } else frac = 1;
+            const q = e.st.complete ? 8 : Math.min(7, Math.floor(frac * 8));
+            const ms = sprite(`mega:${def.id}:${q}:${Math.floor(this.time * 2) % 2}`);
+            D.push({ y: e.y + e.h - 0.02, f: () => drawSprite(ctx, ms, e.x * TILE, e.y * TILE) });
+            continue;
+          }
+        }
         const on = e.working || (d.kind === 'lamp' && g.daylight < 0.6) || (d.kind === 'generator' && (e.gen?.out ?? 0) > 0) || (d.kind === 'hive' && e.st.bots > 0);
         const animated = on && (e.mach || d.kind === 'generator' || d.kind === 'drill' || d.kind === 'harvester' || d.kind === 'planter' || d.kind === 'beehouse');
         const f = d.id === 'waterwheel' ? Math.floor(this.time * 6) % 4 : animated ? frame : 0;

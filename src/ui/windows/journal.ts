@@ -11,6 +11,7 @@ import { hearts, npcSys, giftTaste } from '../../sim/systems/npcs';
 import { acceptRequest, objText, questSys } from '../../sim/systems/quests';
 import { donate, donateMuseum, goals, museumAccepts, MUSEUM_TOTAL, payProject, projectNeed, projectReady, readMail } from '../../sim/systems/goals';
 import { tileColor } from '../hud';
+import { FEATS, featsDone } from '../../sim/systems/achievements';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { centered, frame } from './common';
@@ -26,11 +27,25 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
   const { x, y } = centered(ui, w, h);
   if (!frame(ui, x, y, w, h, 'Journal')) return false;
   st.data.tab = st.data.tab ?? st.arg ?? 'quests';
-  const tabs = [['quests', 'Quests'], ['friends', 'Friends'], ['collect', 'Collections'], ['mail', 'Mail']];
+  const tabs = [['quests', 'Quests'], ['friends', 'Friends'], ['collect', 'Collections'], ['feats', 'Feats'], ['mail', 'Mail']];
   tabs.forEach(([id, label], i) => { if (ui.button('jt' + id, x + 10 + i * 70, y + 10, 66, 14, label, { active: st.data.tab === id })) st.data.tab = id; });
   const bx = x + 10, by = y + 30, bw = w - 20, bh = h - 40;
   ui.panel(bx, by, bw, bh, 'inset', false);
-  if (st.data.tab === 'quests') {
+  if (st.data.tab === 'feats') {
+    const done = featsDone(g);
+    ui.text(`${done.size} / ${FEATS.length} feats`, bx + bw - 8, by + 4, C.walnut, { align: 'right' });
+    const rowH = 20;
+    const off = ui.scrollOffset('jfeat', bx, by + 14, bw, bh - 14, Math.ceil(FEATS.length / 2) * rowH);
+    ui.clip(bx, by + 14, bw, bh - 14);
+    FEATS.forEach((f, i) => {
+      const cx = bx + 6 + (i % 2) * (bw / 2), cy = by + 16 + Math.floor(i / 2) * rowH - off;
+      if (cy < by - rowH || cy > by + bh) return;
+      const got = done.has(f.id);
+      ui.text((got ? ICON.star + ' ' : '- ') + f.name, cx, cy, got ? C.moss : C.ink);
+      ui.text(f.desc + (!got && f.prog ? `  (${f.prog(g)})` : ''), cx + 8, cy + 9, got ? C.oak : C.walnut);
+    });
+    ui.unclip();
+  } else if (st.data.tab === 'quests') {
     const q = questSys(g);
     let yy = by + 6 - ui.scrollOffset('jq', bx, by, bw, bh, 40 + q.active.length * 60 + q.done.length * 10);
     ui.clip(bx, by, bw, bh);

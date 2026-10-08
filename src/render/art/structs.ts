@@ -604,7 +604,69 @@ function drawArmBase(id: string): PixBuf {
   return pb;
 }
 
+/** Megaproject monuments (64x~110), drawn over the 4x4 site. stage: 0..n, done = finished look. */
+function drawMega(id: string, progress: number, frame: number): PixBuf {
+  const W = 64, H = 112, top = H - 64;
+  const pb = new PixBuf(W, H);
+  const done = progress >= 1;
+  // shared plinth
+  pb.rect(2, H - 10, W - 4, 10, C.stone);
+  pb.rect(2, H - 10, W - 4, 2, C.pebble);
+  for (let x = 4; x < W - 4; x += 6) pb.rect(x, H - 7, 1, 6, C.slate);
+  const levels = Math.ceil(progress * 4);
+  if (id === 'm_orrery') {
+    pb.rect(W / 2 - 3, top - 30, 6, H - top + 20, C.brass);
+    pb.rect(W / 2 - 3, top - 30, 2, H - top + 20, C.amber);
+    if (levels >= 2 || done) for (let r = 0; r < 3; r++) {
+      const rad = 14 + r * 7;
+      for (let a = 0; a < 64; a++) {
+        const t = (a / 64) * Math.PI * 2;
+        pb.set(W / 2 + Math.cos(t) * rad, top - 18 + Math.sin(t) * rad * 0.35, r % 2 ? C.copper : C.brass);
+      }
+    }
+    if (levels >= 3 || done) {
+      const planets: [number, number, number][] = [[0.3, 14, C.rose], [1.6, 21, C.sky], [3.6, 28, C.amber]];
+      for (const [ph, rad, col] of planets) {
+        const t = ph + frame * 0.2;
+        pb.disc(W / 2 + Math.cos(t) * rad, top - 18 + Math.sin(t) * rad * 0.35, 3, col);
+      }
+    }
+    if (done) { pb.disc(W / 2, top - 34, 5, C.butter); pb.disc(W / 2, top - 34, 3, C.cream); }
+  } else if (id === 'm_skyship') {
+    for (let y = top - 10; y < H - 10; y++) {
+      const w = 6 + Math.floor((y - top + 10) * 0.12);
+      pb.rect(W / 2 - w, y, 2, 1, C.walnut);
+      pb.rect(W / 2 + w - 2, y, 2, 1, C.walnut);
+      if (y % 6 === 0) pb.rect(W / 2 - w, y, w * 2, 1, C.oak);
+    }
+    if (levels >= 2 || done) { pb.ellipse(W / 2, top - 30, 24, 12, C.cream); pb.ellipse(W / 2, top - 32, 20, 8, C.pebble); for (let x = 10; x < W - 10; x += 8) pb.line(x, top - 38, x, top - 22, C.tan); }
+    if (levels >= 3 || done) { pb.rect(W / 2 - 10, top - 16, 20, 6, C.copper); pb.rect(W / 2 - 10, top - 16, 20, 1, C.brass); pb.line(W / 2 - 14, top - 24, W / 2 - 8, top - 16, C.ink); pb.line(W / 2 + 14, top - 24, W / 2 + 8, top - 16, C.ink); }
+    if (done) for (let i = 0; i < 5; i++) pb.set(10 + i * 10 + (frame % 2), top - 44, [C.rose, C.amber, C.sky, C.leaf, C.lavender][i]);
+  } else {
+    // lighthouse beacon
+    for (let y = top - 36; y < H - 10; y++) {
+      const w = 7 + Math.floor((y - top + 36) * 0.08);
+      pb.rect(W / 2 - w, y, w * 2, 1, Math.floor(y / 8) % 2 ? C.cream : C.rose);
+    }
+    pb.rect(W / 2 - 9, top - 46, 18, 10, levels >= 2 || done ? C.frost : C.slate);
+    pb.rect(W / 2 - 11, top - 48, 22, 3, C.brass);
+    pb.ellipse(W / 2, top - 52, 8, 4, C.copper);
+    if (done) { pb.disc(W / 2, top - 41, 4, frame % 2 ? C.butter : C.lavender); }
+  }
+  // scaffolding while unfinished
+  if (!done) {
+    for (let x = 4; x < W - 2; x += 14) pb.rect(x, top - 40 + Math.floor((1 - progress) * 30), 2, H - top + 30, C.oak);
+    for (let y = top - 30; y < H - 10; y += 12) pb.rect(2, y, W - 4, 2, C.walnut);
+  }
+  pb.outline(C.ink);
+  return pb;
+}
+
 export function registerStructSprites() {
+  defSpriteFamily('mega:', (name) => {
+    const [, id, ps, fs] = name.split(':');
+    return { w: 64, h: 112, ox: 0, oy: 112 - 64, draw: (ctx) => drawMega(id, +ps / 8, +fs).drawTo(ctx) };
+  });
   // st:<id>:<frame>:<on>:<season>
   defSpriteFamily('st:', (name) => {
     const [, id, fs, os, ss] = name.split(':');

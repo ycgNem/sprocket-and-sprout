@@ -161,7 +161,7 @@ function drawMinigame(ui: UI, play: PlayScreen, st: WinState, kind: string): boo
     // breeze band drifts up and down
     G.band = 0.5 + Math.sin(G.t * 0.9) * 0.25 + Math.sin(G.t * 2.3) * 0.08;
     G.h = G.h ?? 0.5;
-    G.v = (G.v ?? 0) + (down ? -1.2 : 0.9) * dt;
+    G.v = (G.v ?? 0) + (down ? 1.3 : -0.9) * dt;
     G.v *= 0.96;
     G.h = Math.max(0, Math.min(1, G.h + G.v * dt));
     const bandH = 0.22;

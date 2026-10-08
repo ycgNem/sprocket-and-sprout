@@ -141,6 +141,7 @@ export function harvest(g: Game, i: number, rng = g.rng): { k: number; n: number
     if (s.fert && ITEM_BY_ID.get(s.fert)?.fertilizer?.quality) s.fert = null;
   }
   g.addXp('farming', Math.max(2, Math.round(Math.sqrt(cr.price) * 0.9)));
+  g.count('harvested', n);
   g.sys.quests?.notify?.(g, 'harvest', n, cr.produce);
   return out;
 }
