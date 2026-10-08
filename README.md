@@ -11,12 +11,19 @@ files. Everything is original.
 
 ## Run it
 
+**On Windows, just double-click `Play.bat`.** It installs dependencies on the first run, starts
+the game and opens your browser. Keep its window open while you play.
+
+With Node.js on your PATH you can also run:
+
 ```bash
 npm install
 npm run dev
 ```
 
-Then open the URL Vite prints (usually http://localhost:5173).
+Then open the URL Vite prints (usually http://localhost:5173). If PowerShell says `npm` is not
+recognized, Node isn't on your PATH: use `Play.bat`, or install Node.js LTS from nodejs.org.
+See `HANDOFF.md` for details.
 
 | Command | What it does |
 |---|---|
