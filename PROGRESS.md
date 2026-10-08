@@ -74,13 +74,16 @@
   (earnings, skills, friendships, automation, restoration, museum, fish, pet, home). The score
   lights up to 4 candles, and each tier unlocks a one-time reward (coins, the Founder's Lantern,
   a +5% shipping medal, the Gilded Clock).
+- Partners: give the Brass Locket (festival token stall) to an adult villager at 8+ hearts.
+  Your partner makes you breakfast or waters crops most mornings, visits the farm on most fine
+  days, and spends evenings by your hearth to chat. Shown in the journal.
 - Legendary fish give a mounted wall trophy the first time you catch them.
 - Logistics: arm stock limits (fill a chest only up to N of each item) and splitter modes
   (alternate / prefer left / prefer right, or filter one item left and the rest right). All of
   them are saved and copied with blueprints.
 - Fixed: a large XP gain now grants every level it crosses, not just one.
 - Fixed titled villagers showing as "Mayor"/"Dr."/"Old" in toasts, quests and the almanac.
-- Tests: 55 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Tests: 56 Vitest tests (+ a LONG=1 full-year run) (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 

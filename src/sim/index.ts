@@ -5,6 +5,7 @@ import './systems/drops';
 import './systems/economy';
 import './systems/npcs';
 import './systems/visits';
+import './systems/partner';
 import './systems/town';
 import './systems/research';
 import './systems/automation';

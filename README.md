@@ -68,6 +68,8 @@ Then open the URL Vite prints (usually http://localhost:5173).
   a root cellar pantry, a featherbed and a grand hearth.
 - Furnish the farmhouse: armchairs, lamps, rugs, a fish tank, plants, a pet bed, and paintings
   that Hazel gives you as your friendship grows.
+- Romance: give the Brass Locket to a villager you love. Your partner makes breakfast, helps
+  with chores and spends evenings by your hearth.
 - A farm pet: a stray cat or dog adopts you on day 3. Name it, pet it, fill its water bowl, and
   it will follow you around, nap by the hearth and leave gifts at the door.
 - Professions: choose one of two perks at skill levels 5 and 10 (24 perks across 6 skills).

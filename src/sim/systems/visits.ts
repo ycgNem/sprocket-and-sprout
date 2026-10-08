@@ -61,12 +61,19 @@ registerSystem({
     g.sys.visits = null;
     g.sys.visitLine = visitLine;
     if (g.map.w < 100 || g.daysPlayed < 5) return;
-    if (g.weekday !== 5 && g.weekday !== 6) return;
     if (g.isRaining() || g.weather === 'snow' || g.weather === 'storm') return;
     if (g.sys.festivals?.today?.(g)) return;
-    const cands = npcSys(g).list.filter((n) => n.met && hearts(n) >= 3 && !keepsShopToday(g, n.id) && n.schedule);
-    if (!cands.length || g.rng.next() > 0.6) return;
-    const n = g.rng.pick(cands);
+    // your partner drops by most fine days; others only at weekends
+    const pid = [...g.flags].find((f) => f.startsWith('partner:'))?.slice(8);
+    const partner = pid ? npcSys(g).byId.get(pid) : undefined;
+    let n: NPCState | undefined;
+    if (partner && partner.schedule && !keepsShopToday(g, partner.id) && g.rng.next() < 0.7) n = partner;
+    else {
+      if (g.weekday !== 5 && g.weekday !== 6) return;
+      const cands = npcSys(g).list.filter((x) => x.met && hearts(x) >= 3 && !keepsShopToday(g, x.id) && x.schedule && x !== partner);
+      if (!cands.length || g.rng.next() > 0.6) return;
+      n = g.rng.pick(cands);
+    }
     if (!g.map.locs.has('farm_visit')) g.map.locs.set('farm_visit', visitSpot(g));
     const at = n.schedule!.at as [number, string][];
     const back = locAt(at, LEAVE);

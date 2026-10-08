@@ -294,6 +294,10 @@ export function talkTo(g: Game, n: NPCState) {
   const held = p.inv.slots[p.sel];
   // quests that want a delivery to this NPC take priority
   if (held && g.sys.quests?.tryDeliver?.(g, n.id, held.k)) return;
+  if (held && n.met && kDef(held.k).id === 'heart_charm') {
+    g.sys.offerLocket?.(g, n);
+    return;
+  }
   if (held && n.met) {
     const hd = kDef(held.k);
     const giftable = !hd.tool && !hd.weapon && hd.cat !== 'placeable' && hd.cat !== 'research' && hd.id !== 'heart_charm';

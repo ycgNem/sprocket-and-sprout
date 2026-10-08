@@ -457,3 +457,35 @@ describe("founder's day", () => {
     expect(F.claimCandles(g, 3)).toEqual([]);
   });
 });
+
+describe('partners', () => {
+  it('the locket needs 8 hearts and an adult; partners make breakfast and sit by the hearth', async () => {
+    const P = await import('../src/sim/systems/partner');
+    const H = await import('../src/sim/systems/house');
+    const g = new Game({ seed: 28 });
+    const s = npcSys(g);
+    const pip = s.byId.get('pip')!, rowan = s.byId.get('rowan')!;
+    pip.met = rowan.met = true;
+    pip.points = rowan.points = 9 * 250;
+    g.player.inv.slots[g.player.sel = 0] = { k: key('heart_charm'), n: 1 };
+    s.interact(g, pip);
+    expect(P.partnerId(g)).toBeNull();
+    rowan.points = 7 * 250;
+    s.interact(g, rowan);
+    expect(P.partnerId(g)).toBeNull();
+    rowan.points = 8 * 250 + 5;
+    s.interact(g, rowan);
+    expect(P.partnerId(g)).toBe('rowan');
+    expect(g.player.inv.countId('heart_charm')).toBe(0);
+    // a week of mornings brings at least one breakfast
+    const food = () => ['pancakes', 'omelet', 'bread', 'cookies', 'fruit_salad', 'veggie_soup', 'honey_bun'].reduce((a, id) => a + g.player.inv.countId(id), 0);
+    for (let i = 0; i < 7; i++) sleep(g);
+    expect(food()).toBeGreaterThan(0);
+    // evening by the hearth
+    H.enterHouse(g);
+    g.time.min = 21 * 60;
+    g.events.length = 0;
+    expect(H.houseInteract(g, 8, 7)).toBe(true);
+    expect(g.events.some((e: any) => e.t === 'ui' && e.open === 'dialog')).toBe(true);
+  });
+});

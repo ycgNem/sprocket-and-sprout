@@ -5,7 +5,7 @@ import { O, T, TileMap, Z } from '../world/tilemap';
 import { C } from '../../data/palette';
 import { SEASON_NAMES } from '../../data/types';
 import { ITEM_BY_ID } from '../../data/items';
-import { NPCS } from '../../data/npcs';
+import { NPCS, NPC_BY_ID } from '../../data/npcs';
 import { HOME_UPGRADES } from '../../data/shops';
 import { FESTIVALS } from '../../data/goals';
 import type { RecipeDef } from '../../data/types';
@@ -121,6 +121,10 @@ const HOVER: Partial<Record<O, [string, string]>> = {
 
 export function houseHover(g: Game, tx: number, ty: number): { text: string; color?: number }[] | null {
   const m = houseMap(g);
+  if (g.sys.partnerHome?.(g) && Math.abs(tx + 0.5 - 8.5) < 0.8 && Math.abs(ty + 0.5 - 7.1) < 1) {
+    const pid = [...g.flags].find((f) => f.startsWith('partner:'))!.slice(8);
+    return [{ text: NPC_BY_ID.get(pid)?.name ?? pid, color: C.rose }, { text: 'Right-click to sit and talk', color: C.pebble }];
+  }
   const dc = decorAt(g, tx, ty);
   if (dc) {
     const f = FURN_BY_ID.get(dc.id)!;
@@ -215,6 +219,7 @@ export function pickupDecor(g: Game, x: number, y: number): boolean {
 
 export function houseInteract(g: Game, tx: number, ty: number): boolean {
   const m = houseMap(g);
+  if (g.sys.partnerAt?.(g, tx, ty)) return true;
   if (decorAt(g, tx, ty)) return pickupDecor(g, tx, ty);
   const o = m.o(tx, ty);
   switch (o) {

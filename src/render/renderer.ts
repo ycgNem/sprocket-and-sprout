@@ -835,6 +835,15 @@ export class Renderer {
         if (a.emote) this.drawEmote(a.x, a.y - 1.4, a.emote);
       } });
     }
+    // your partner by the hearth in the evening
+    if (g.player.where === 'house' && g.sys.partnerHome?.(g)) {
+      const id = [...g.flags].find((f: string) => f.startsWith('partner:'))!.slice(8);
+      const [px, py] = [8.5, 7.5];
+      D.push({ y: py, f: () => {
+        drawSprite(ctx, sprite('shadow:12'), px * TILE, py * TILE);
+        drawSprite(ctx, sprite(`ch:${id}:2:0`), px * TILE, py * TILE);
+      } });
+    }
     // the farm pet and its water bowl
     const pet = g.sys.pet;
     if (pet && pet.stage !== 'none' && pet.map === g.player.where && onScreen(pet.x, pet.y)) {
