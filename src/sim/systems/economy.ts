@@ -1,5 +1,6 @@
 // Economy: dynamic market prices (supply saturation, weekly demand, daily drift),
 // overnight shipping, shop buying/selling, tool upgrades and building kits.
+import type { ItemDef } from '../../data/types';
 import { guildBonus } from './contracts';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { BUILDING_KITS, SHOP_BY_ID, TOOL_UPGRADE_COST } from '../../data/shops';
@@ -53,10 +54,25 @@ export function priceMult(g: Game, idx: number): number {
   return Math.max(0.3, sat * drift * hot);
 }
 
+/** profession price bonuses by category */
+function perkPrice(g: Game, d: ItemDef): number {
+  const pk = g.player.perks;
+  if (!pk.length) return 1;
+  let m = 1;
+  if ((d.cat === 'crop' || d.cat === 'fruit') && pk.includes('tiller')) m *= 1.1;
+  if (d.cat === 'animal' && pk.includes('rancher')) m *= 1.2;
+  if (d.cat === 'artisan' && pk.includes('artisan')) m *= 1.25;
+  if ((d.id === 'plank' || d.id === 'beam' || d.id === 'hardwood' || d.id === 'resin' || d.id === 'syrup') && pk.includes('tapper_pro')) m *= 1.4;
+  if ((d.cat === 'gem' || d.cat === 'mineral') && pk.includes('geologist')) m *= 1.3;
+  if (d.cat === 'bar' && pk.includes('blacksmith')) m *= 1.4;
+  if (d.cat === 'fish' && pk.includes('angler')) m *= 1.25;
+  return m;
+}
+
 export function unitPrice(g: Game, k: number): number {
   const d = kDef(k);
   if (d.price <= 0) return 0;
-  return Math.max(1, Math.round(d.price * QUALITY_MULT[k & 3] * priceMult(g, kIdx(k)) * (1 + g.mods.marketBonus + (g.sys.megaBonus?.market ?? 0) + guildBonus(g))));
+  return Math.max(1, Math.round(d.price * QUALITY_MULT[k & 3] * priceMult(g, kIdx(k)) * perkPrice(g, d) * (1 + g.mods.marketBonus + (g.sys.megaBonus?.market ?? 0) + guildBonus(g))));
 }
 
 /** Sell a stack right now (shipping or shops). Returns coins earned; updates saturation per unit. */

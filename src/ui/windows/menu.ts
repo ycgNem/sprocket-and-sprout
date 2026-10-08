@@ -5,6 +5,7 @@ import { STRUCT_BY_ID } from '../../data/structures';
 import { RESEARCH_BY_ID } from '../../data/research';
 import type { RecipeDef } from '../../data/types';
 import { SKILLS, XP_LEVELS } from '../../sim/Game';
+import { pendingPerk, perksFor } from '../../sim/perks';
 import { craft, canCraft, HAND_RECIPES, maxCraftable } from '../../sim/crafting';
 import { key, kDef } from '../../sim/inventory';
 import type { PlayScreen } from '../../app/play';
@@ -97,7 +98,11 @@ export function drawMenu(ui: UI, play: PlayScreen, st: WinState): boolean {
     const prev = XP_LEVELS[lvl];
     ui.bar(sx + 80, yy + 11, 118, 4, lvl >= 10 ? 1 : (xp - prev) / (next - prev), C.leaf);
     ui.text(SKILL_PERKS[s], sx + 210, yy, C.walnut);
-    ui.text(`Lv ${lvl}`, sx + 210, yy + 10, C.oak);
+    const chosen = perksFor(g, s);
+    ui.text(`Lv ${lvl}` + (chosen.length ? '  ' + chosen.map((p) => p.name).join(', ') : ''), sx + 210, yy + 10, chosen.length ? C.moss : C.oak);
+    if (chosen.length && ui.hover(sx + 210, yy + 8, 160, 10)) ui.tip(chosen.map((p) => ({ text: `${p.name}: ${p.desc}` })));
+    const pend = pendingPerk(g);
+    if (pend?.skill === s && ui.button('perkpick' + s, x + w - 78, yy, 60, 14, 'Choose!', { style: 'green' })) play.openWindow('perk');
   });
   return true;
 }

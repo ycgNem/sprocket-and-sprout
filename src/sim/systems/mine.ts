@@ -305,13 +305,14 @@ function rockDrops(g: Game, st: MineState, x: number, y: number, o: O, data: num
   if (o === O.ROCK || o === O.ICE_ROCK) {
     d('stone', 1 + (g.rng.next() < 0.3 ? 1 : 0));
     if (g.rng.next() < 0.08) d('coal');
-    if (g.rng.next() < 0.03 + floor * 0.001) d('geode');
+    const exc = g.hasPerk('excavator') ? 2 : 1;
+    if (g.rng.next() < (0.03 + floor * 0.001) * exc) d('geode');
     if (o === O.ICE_ROCK && g.rng.next() < 0.15) d('frost_shard');
-    if (g.rng.next() < 0.015) d(g.rng.pick(['old_cog', 'fossil_shell', 'clay_whistle', 'star_chart']));
+    if (g.rng.next() < 0.015 * exc) d(g.rng.pick(['old_cog', 'fossil_shell', 'clay_whistle', 'star_chart']));
     if (g.rng.next() < 0.04) d('clay');
   } else if (o === O.ORE_ROCK) {
     const ores = ['copper_ore', 'tin_ore', 'iron_ore', 'gold_ore', 'coal', 'starmetal_ore'];
-    d(ores[data] ?? 'copper_ore', 1 + g.rng.int(0, 2) + (g.rng.next() < lvl * 0.05 ? 1 : 0) + (g.rng.next() < g.buffLvl('mining') * 0.08 ? 1 : 0));
+    d(ores[data] ?? 'copper_ore', 1 + g.rng.int(0, 2) + (g.rng.next() < lvl * 0.05 ? 1 : 0) + (g.rng.next() < g.buffLvl('mining') * 0.08 ? 1 : 0) + (g.hasPerk('miner') ? 1 : 0));
   } else if (o === O.GEM_ROCK) {
     const gems = ['amethyst', 'topaz', 'jade', 'ruby', 'sapphire', 'opal', 'starstone'];
     d(gems[data] ?? 'quartz');
@@ -377,7 +378,7 @@ function attack(g: Game, tx: number, ty: number, w: { dmg: number; speed: number
     if (mo.def.behavior === 'burrow' && mo.state === 0) continue;
     if (Math.hypot(mo.x - cx, mo.y - 0.3 - cy) > 1.2) continue;
     const crit = g.rng.next() < 0.05 + lvl * 0.01;
-    const dmg = Math.round(w.dmg * (1 + lvl * 0.05) * (0.85 + g.rng.next() * 0.3) * (crit ? 2 : 1));
+    const dmg = Math.round(w.dmg * (1 + lvl * 0.05) * (g.hasPerk('brute') ? 1.15 : 1) * (g.hasPerk('warrior') ? 1.25 : 1) * (0.85 + g.rng.next() * 0.3) * (crit ? 2 : 1));
     mo.hp -= dmg;
     mo.hurt = 0.25;
     const kb = 6 * w.knock;
@@ -517,7 +518,7 @@ function tickMonsters(g: Game, dt: number) {
     const hidden = (mo.def.behavior === 'burrow' && mo.state === 0) || (mo.def.behavior === 'chase' && mo.state === 1);
     if (!hidden && dist < 0.7) hurtPlayer(g, mo.def.dmg, mo.x, mo.y);
     if (mo.hp <= 0) {
-      for (const d of mo.def.drops) if (g.rng.next() < d.chance) spawnDrop(g, key(d.item), d.n ? g.rng.int(d.n[0], d.n[1]) : 1, mo.x, mo.y);
+      for (const d of mo.def.drops) if (g.rng.next() < d.chance * (g.hasPerk('scavenger') ? 1.5 : 1)) spawnDrop(g, key(d.item), d.n ? g.rng.int(d.n[0], d.n[1]) : 1, mo.x, mo.y);
       g.addXp('combat', mo.def.xp);
       g.count('monsters');
       g.count('slain_' + mo.id);

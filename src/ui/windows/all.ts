@@ -6,3 +6,4 @@ import './journal';
 import './activities';
 import './panels';
 import './home';
+import './perks';

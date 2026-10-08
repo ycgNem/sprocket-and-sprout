@@ -61,8 +61,13 @@
   the farmhouse with a ghost preview; furniture can stand on rugs, paintings hang on the wall,
   right-click picks things up. Lamps and the tank give light, the goldfish swim, and your pet
   sleeps in its bed. The journal's Friends tab shows your pet.
+- Professions: at skill levels 5 and 10 you pick one of two perks (24 in total). They cover
+  price bonuses by category, crop growth, wood and forage, ore, geodes, damage, health, loot,
+  catch zone, bite speed, traps, machine and arm speed, and power use. Chosen in a card window
+  or later from the Skills tab.
+- Fixed: a large XP gain now grants every level it crosses, not just one.
 - Fixed titled villagers showing as "Mayor"/"Dr."/"Old" in toasts, quests and the almanac.
-- Tests: 49 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Tests: 50 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 

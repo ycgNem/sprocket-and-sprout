@@ -155,7 +155,7 @@ function growDay(g: Game, i: number, s: Soil) {
   if (!cr) return;
   if (!s.water) return;
   const sp = (s.fert && ITEM_BY_ID.get(s.fert)?.fertilizer?.speed) || 0;
-  c.frac += 1 + sp + (g.player.skills.farming >= 6 ? 0.1 : 0);
+  c.frac += 1 + sp + (g.player.skills.farming >= 6 ? 0.1 : 0) + (g.hasPerk('agriculturist') ? 0.1 : 0);
   while (c.frac >= 1) {
     c.frac -= 1;
     c.days++;

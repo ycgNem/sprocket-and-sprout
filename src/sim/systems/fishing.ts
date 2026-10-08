@@ -110,7 +110,7 @@ function cast(g: Game) {
   f.water = w;
   f.state = 'waiting';
   const bait = p.inv.countId('deluxe_bait') > 0 ? 2 : p.inv.countId('bait') > 0 ? 1 : 0;
-  f.waitFor = (2.5 + g.rng.next() * 7) * (bait === 2 ? 0.45 : bait === 1 ? 0.7 : 1);
+  f.waitFor = (2.5 + g.rng.next() * 7) * (bait === 2 ? 0.45 : bait === 1 ? 0.7 : 1) * (g.hasPerk('luremaster') ? 0.6 : 1);
   f.t = 0;
   g.emit({ t: 'fx', kind: 'splash', x: f.bx, y: f.by, n: 5 });
 }
@@ -146,6 +146,7 @@ function hook(g: Game) {
   f.zoneV = 0;
   const tier = Math.max(0, rodTier(g));
   f.zoneW = 0.16 + tier * 0.035 + (g.player.skills.fishing ?? 0) * 0.008 + g.buffLvl('fishing') * 0.025 - fish.difficulty * 0.0006;
+  if (g.hasPerk('steady')) f.zoneW *= 1.2;
   f.progress = 0.3;
   f.perfect = true;
   f.tug = 0;

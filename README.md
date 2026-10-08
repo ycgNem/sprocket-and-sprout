@@ -69,6 +69,7 @@ Then open the URL Vite prints (usually http://localhost:5173).
   that Hazel gives you as your friendship grows.
 - A farm pet: a stray cat or dog adopts you on day 3. Name it, pet it, fill its water bowl, and
   it will follow you around, nap by the hearth and leave gifts at the door.
+- Professions: choose one of two perks at skill levels 5 and 10 (24 perks across 6 skills).
 - Cooked food grants timed buffs (speed, stamina, fishing, mining, luck, defense, farming).
 - Trading Guild contracts: weekly bulk orders delivered to a Freight Depot (arms can feed it),
   with reputation ranks that raise shipping prices.

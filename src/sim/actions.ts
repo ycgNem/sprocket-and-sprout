@@ -169,9 +169,10 @@ function hitTree(g: Game, x: number, y: number, power: number, tier: number) {
   if (t.hp > 0) return;
   // tree falls
   const big = t.stage >= 4;
-  const wood = big ? (def?.wood ?? 8) + g.rng.int(-1, 3) + tier : t.stage === 3 ? 3 : 1;
+  const lj = g.hasPerk('lumberjack');
+  const wood = Math.round((big ? (def?.wood ?? 8) + g.rng.int(-1, 3) + tier : t.stage === 3 ? 3 : 1) * (lj ? 1.25 : 1));
   drop(g, 'wood', wood, x, y);
-  if (big && (t.species === 'oak' || t.species === 'maple') && g.rng.next() < 0.3) drop(g, 'hardwood', 1, x, y);
+  if (big && (t.species === 'oak' || t.species === 'maple') && g.rng.next() < (lj ? 0.6 : 0.3)) drop(g, 'hardwood', 1, x, y);
   if (big) drop(g, 'sap', g.rng.int(1, 3), x, y);
   if (big && def && g.rng.next() < 0.5) drop(g, def.sapling, 1, x, y);
   if (t.fruit > 0 && def?.fruit) drop(g, def.fruit, t.fruit, x, y);
@@ -506,8 +507,8 @@ export function interact(g: Game, tx: number, ty: number): boolean {
     if (id) {
       const lvl = p.skills.foraging ?? 0;
       const luck = g.buffLvl('luck');
-      const q = g.rng.next() < lvl * 0.05 + luck * 0.04 ? 2 : g.rng.next() < lvl * 0.08 + 0.1 ? 1 : 0;
-      g.give(key(id, ITEM_BY_ID.get(id)?.quality ? q : 0), g.rng.next() < luck * 0.1 ? 2 : 1);
+      const q = g.hasPerk('botanist') ? 2 : g.rng.next() < lvl * 0.05 + luck * 0.04 ? 2 : g.rng.next() < lvl * 0.08 + 0.1 ? 1 : 0;
+      g.give(key(id, ITEM_BY_ID.get(id)?.quality ? q : 0), g.rng.next() < luck * 0.1 + (g.hasPerk('gatherer') ? 0.2 : 0) ? 2 : 1);
       g.addXp('foraging', 7);
       g.emit({ t: 'sfx', id: 'pickup' });
     }

@@ -77,6 +77,8 @@ export interface Player {
   upgrading: { tool: string; to: string; days: number } | null;
   /** inventory rows unlocked (12 per row) */
   rows: number;
+  /** chosen professions */
+  perks: string[];
   /** active food buff (game minutes left) */
   buff: { kind: BuffKind; lvl: number; left: number; src: string } | null;
 }
@@ -193,7 +195,7 @@ export class Game {
       energy: 220, maxEnergy: 220, hp: 100, maxHp: 100, money: 500,
       inv: new Inventory(36), sel: 0, busy: 0, anim: null, water: 40, invuln: 0, where: 'world', exhausted: false,
       skills: Object.fromEntries(SKILLS.map((s) => [s, 0])), xp: Object.fromEntries(SKILLS.map((s) => [s, 0])),
-      kx: 0, ky: 0, upgrading: null, rows: 3, buff: null,
+      kx: 0, ky: 0, upgrading: null, rows: 3, buff: null, perks: [],
     };
     if (opts.blank) {
       this.player.x = 1.5;
@@ -216,6 +218,10 @@ export class Game {
 
   /** lifetime counters (tilled, fish caught, ...) */
   counters: Record<string, number> = {};
+  hasPerk(id: string): boolean {
+    return this.player.perks.includes(id);
+  }
+
   /** level of the active food buff of this kind (0 = none) */
   buffLvl(kind: BuffKind): number {
     const b = this.player.buff;
@@ -265,10 +271,10 @@ export class Game {
   addXp(skill: string, n: number) {
     const p = this.player;
     p.xp[skill] = (p.xp[skill] ?? 0) + n;
-    const lvl = p.skills[skill] ?? 0;
-    if (lvl < 10 && p.xp[skill] >= XP_LEVELS[lvl + 1]) {
-      p.skills[skill] = lvl + 1;
-      this.emit({ t: 'levelup', skill, level: lvl + 1 });
+    // a big XP gain can cross several levels at once
+    while ((p.skills[skill] ?? 0) < 10 && p.xp[skill] >= XP_LEVELS[(p.skills[skill] ?? 0) + 1]) {
+      const lvl = (p.skills[skill] = (p.skills[skill] ?? 0) + 1);
+      this.emit({ t: 'levelup', skill, level: lvl });
       this.emit({ t: 'sfx', id: 'levelup' });
     }
   }

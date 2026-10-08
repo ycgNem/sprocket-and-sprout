@@ -134,6 +134,7 @@ export function genCapacity(g: Game, e: Ent): number {
 }
 
 export function updatePower(g: Game, dt: number) {
+  const powerMul = g.hasPerk('conservator') ? 0.75 : 1;
   if (g.ents.powerDirty) rebuildPower(g);
   const ps = powerState(g);
   for (const n of ps.nets.values()) {
@@ -149,7 +150,7 @@ export function updatePower(g: Game, dt: number) {
     }
     const n = ps.nets.get(e.net);
     if (!n) continue;
-    n.demand += e.working ? e.def.powerUse ?? 0 : e.def.powerIdle ?? 0;
+    n.demand += (e.working ? e.def.powerUse ?? 0 : e.def.powerIdle ?? 0) * powerMul;
   }
   for (const e of g.ents.gens) {
     if (!e.net) continue;

@@ -358,3 +358,27 @@ describe('furniture', () => {
   });
 });
 function HOUSE_DOOR_X() { return 7; }
+
+describe('professions', () => {
+  it('level 5 and 10 offer a choice of two perks that change the game', async () => {
+    const P = await import('../src/sim/perks');
+    const { unitPrice } = await import('../src/sim/systems/economy');
+    const g = new Game({ seed: 20 });
+    expect(P.pendingPerk(g)).toBeNull();
+    g.player.skills.farming = 5;
+    expect(P.pendingPerk(g)).toEqual({ skill: 'farming', level: 5 });
+    const before = unitPrice(g, key('radish'));
+    expect(P.choosePerk(g, 'tiller')).toBe(true);
+    expect(P.choosePerk(g, 'rancher')).toBe(false); // only one per tier
+    expect(unitPrice(g, key('radish'))).toBeGreaterThan(before);
+    expect(P.pendingPerk(g)).toBeNull();
+    g.player.skills.combat = 10;
+    expect(P.pendingPerk(g)).toEqual({ skill: 'combat', level: 5 });
+    const hp = g.player.maxHp;
+    P.choosePerk(g, 'defender');
+    expect(g.player.maxHp).toBe(hp + 25);
+    expect(P.pendingPerk(g)).toEqual({ skill: 'combat', level: 10 });
+    expect(P.choosePerk(g, 'warrior')).toBe(true);
+    expect(P.perksFor(g, 'combat').map((p) => p.id)).toEqual(['defender', 'warrior']);
+  });
+});

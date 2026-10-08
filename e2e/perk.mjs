@@ -1,0 +1,30 @@
+import { chromium } from 'playwright';
+import fs from 'node:fs';
+const base = process.env.BASE ?? 'http://127.0.0.1:5173/';
+const out = 'e2e/out/win';
+fs.mkdirSync(out, { recursive: true });
+const browser = await chromium.launch({ channel: 'chrome', headless: true });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
+page.on('console', (m) => { if (m.type() === 'warning' || m.type() === 'error') errors.push(m.text()); });
+await page.goto(base);
+await page.waitForTimeout(1200);
+await page.evaluate(() => {
+  const g = new window.__Game({ seed: 3, name: 'Wren', farmName: 'Hollow' });
+  for (const t of ['welcome', 'hoe', 'seeds', 'can', 'place', 'lab', 'belts', 'machine', 'power', 'blueprint', 'energy', 'night']) g.flags.add('tip_' + t);
+  for (const q of g.sys.quests?.active ?? []) q.seen = true;
+  window.__app.startGame(g, { skin: 2, hair: 9, hairStyle: 'long', shirt: 28, pants: 19 });
+  window.S = { g };
+  g.addXp('mining', 2200);
+});
+await page.waitForTimeout(1500);
+await page.screenshot({ path: `${out}/perk.png` });
+const open = await page.evaluate(() => window.__play.win?.id);
+// click the first Choose button via real mouse: find it near the left card
+const btn = await page.evaluate(() => { const ui = window.__app.ui; const W = 340, H = 170; const x = Math.floor((ui.w - W) / 2), y = Math.floor((ui.h - H) / 2) - 10; const cw = (W - 28) / 2 - 6; return { x: (x + 14 + cw / 2) * ui.scale, y: (y + 124) * ui.scale }; });
+await page.mouse.click(btn.x / (await page.evaluate(() => window.__app.dpr)), btn.y / (await page.evaluate(() => window.__app.dpr)));
+await page.waitForTimeout(400);
+console.log('open', open, 'perks', JSON.stringify(await page.evaluate(() => S.g.player.perks)), 'win', await page.evaluate(() => window.__play.win?.id ?? null));
+console.log('errors', errors.slice(0, 10));
+await browser.close();

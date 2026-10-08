@@ -208,7 +208,7 @@ function trapDay(g: Game, e: Ent) {
   const gr = m.g(e.x, e.y);
   const ocean = gr === T.OCEAN || gr === T.DEEP;
   const pool = FISH.filter((f) => f.trap && (ocean ? f.where.includes('ocean') : !f.where.includes('ocean') || f.where.length > 1)).filter((f) => ocean === f.where.includes('ocean'));
-  const n = e.st.bait >= 2 ? 2 : 1;
+  const n = (e.st.bait >= 2 ? 2 : 1) + (g.hasPerk('trapper') ? 1 : 0);
   for (let i = 0; i < n; i++) {
     if (g.rng.next() < 0.1) e.inv!.add(key(g.rng.pick(['old_boot', 'tin_can', 'driftwood', 'kelp'])), 1);
     else {

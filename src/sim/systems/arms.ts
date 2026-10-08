@@ -15,6 +15,7 @@ export function armTiles(e: Ent) {
 }
 
 export function updateArms(g: Game, dt: number) {
+  const clock = g.hasPerk('clockmaker');
   const ents = g.ents;
   const handBonus = g.mods.armHand;
   for (let i = 0; i < ents.arms.length; i++) {
@@ -28,7 +29,7 @@ export function updateArms(g: Game, dt: number) {
         continue;
       }
     }
-    const step = dt * a.speed * 2 * mul;
+    const step = dt * a.speed * 2 * mul * (clock ? 1.15 : 1);
     switch (a.state) {
       case ArmState.Idle: {
         e.working = false;

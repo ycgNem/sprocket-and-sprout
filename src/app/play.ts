@@ -1,4 +1,5 @@
 // The in-game screen: input -> sim commands, camera, build tools, HUD + windows, events -> juice.
+import { pendingPerk } from '../sim/perks';
 import { canPlaceDecor, placeDecor } from '../sim/systems/house';
 import { FURN_BY_ID } from '../data/furniture';
 import { petAt, petHearts } from '../sim/systems/pet';
@@ -138,6 +139,9 @@ export class PlayScreen implements Screen {
     return { x: Math.floor(t.x), y: Math.floor(t.y), fx: t.x, fy: t.y };
   }
 
+  /** day the profession prompt was dismissed */
+  perkSnooze = -1;
+
   heldPlaceable(): string | null {
     const st = this.g.player.inv.slots[this.g.player.sel];
     if (!st || this.g.player.where !== 'world') return null;
@@ -263,6 +267,8 @@ export class PlayScreen implements Screen {
     }
     for (const pk of this.hud.pickups) pk.t += dt;
     this.hud.pickups = this.hud.pickups.filter((pk) => pk.t < 3);
+    // a new profession to choose (asks again tomorrow if you close it)
+    if (!this.win && !g.sleeping && this.perkSnooze !== g.dayIndex && !g.sys.fishing?.busy && g.tickN % 30 === 0 && pendingPerk(g)) this.openWindow('perk');
     // auto-build ghosts with your own inventory when close (tinker's satchel)
     this.autoBuildT += dt;
     if (this.autoBuildT > 0.25) {
