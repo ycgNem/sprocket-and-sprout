@@ -57,7 +57,9 @@ export function door(g: Game, b: BuildingInfo) {
   if (shop) {
     const st = shopOpen(g, shop.id);
     const keeper = npcSys(g).byId.get(shop.owner);
-    const keeperHome = keeper && !keeper.visible && keeper.target === shop.loc + '_in';
+    const inside = g.map.locs.get(shop.loc + '_in');
+    const kt = keeper ? g.map.locs.get(keeper.target) : undefined;
+    const keeperHome = !!keeper && !keeper.visible && !!inside && !!kt && kt[0] === inside[0] && kt[1] === inside[1];
     if (!st.open || !keeperHome) {
       const who = NPC_BY_ID.get(shop.owner)?.name.split(' ')[0] ?? 'The keeper';
       g.toast(`${shop.name}: ${st.open ? `${who} isn't in right now.` : st.why}`);
@@ -81,7 +83,8 @@ export function door(g: Game, b: BuildingInfo) {
     return;
   }
   // homes: say hi if someone is inside
-  const inside = npcSys(g).list.filter((n) => !n.visible && n.target === b.id + '_in');
+  const doorIn = g.map.locs.get(b.id + '_in');
+  const inside = npcSys(g).list.filter((n) => { const l = g.map.locs.get(n.target); return !n.visible && !!l && !!doorIn && l[0] === doorIn[0] && l[1] === doorIn[1]; });
   if (inside.length) {
     const n = inside[0];
     openDialog(g, n, `${NPC_BY_ID.get(n.id)!.name.split(' ')[0]} calls through the door: "Just a minute! ...Actually, I'll see you in town, {player}!"`);

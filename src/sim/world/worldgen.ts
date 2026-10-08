@@ -233,6 +233,8 @@ export function generateWorld(seed: number): TileMap {
   L('bridge_north', 98, 45); L('bridge_south', 98, 89); L('forest_path', 16, 61); L('forest_glade', 48, 112);
   L('forest_pond', 16, 66); L('quarry', 176, 40); L('hilltop', 167, 74); L('farm_gate', 92, 45); L('orchard_road', 115, 45);
   L('player_start', Math.floor(PLAYER_START[0]), Math.floor(PLAYER_START[1]));
+  // short aliases used by the villager schedules
+  for (const [a, b] of [['fisher_in', 'fisher_hut_in'], ['hermit_in', 'hermit_hut_in'], ['mayor_in', 'mayor_house_in']]) m.locs.set(a, m.locs.get(b)!);
 
   // community garden & notice board
   rect(116, 92, 124, 98, (x, y) => G(x, y, T.GARDEN));

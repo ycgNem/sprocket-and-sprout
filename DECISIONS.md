@@ -32,3 +32,23 @@ Running log of design and technical decisions made while building autonomously.
     gems, rare ores and combat.
 12. **Saves store deltas** — terrain regenerates from the world seed. Saves
     hold objects, soil, structures and actor state, which keeps localStorage small.
+13. **Project moved to `Documents/sprocket-and-sprout`** — the scratch folder is virtualized by the app
+    container, and Vite couldn't transform modules from there. The real folder is also persistent.
+14. **Playwright uses the system Chrome** (`channel: 'chrome'`): the downloaded Chromium build couldn't
+    be spawned on this machine (`spawn UNKNOWN`, likely Smart App Control).
+15. **Shops have no interiors**: villagers "go inside" (vanish at the door) and a shop opens when its
+    keeper is inside during opening hours. Talking happens outdoors. This keeps the town as one map.
+16. **Machines in auto mode only pick single-ingredient recipes.** Multi-ingredient recipes (cooking,
+    brass, bundles in an assembler) must be locked in from the machine window. This stops machines from
+    clogging with half a recipe.
+17. **Arms never grab more than the destination can take**, and filter arms match items regardless of quality.
+18. **Ore veins never run out.** Quarry rocks respawn daily for hand mining; drills give the factory a steady supply.
+19. **Products from animals land in the building's storage**, which arms can empty (automation-friendly).
+    No milk pails or shears.
+20. **Fishing minigame is a tension gauge** (hold to reel, release to ease, keep the needle in a moving zone),
+    distinct from other farming games' vertical bar.
+21. **Mine floors regenerate each day**, and you always wake up at home.
+22. **Megaprojects are placed structures fed by arms/bots/hand**, so they're a true throughput goal.
+23. **"Have" and "produce" quest objectives are polled**; event objectives (till, plant, ship...) use notify hooks.
+24. **Ghost structures are built automatically** from your own inventory when you're within ~9 tiles
+    (a "tinker's satchel"), and by bumblebots from crates later.
