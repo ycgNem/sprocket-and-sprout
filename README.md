@@ -47,6 +47,7 @@ Then open the URL Vite prints (usually http://localhost:5173).
 | Deconstruct an area | X, then drag |
 | Copy blueprint / paste | V, then drag / B |
 | Eat held item | H |
+| Quick stack bag items into nearby chests | K |
 | Drop one item | Z |
 | Zoom | + / - or Ctrl + wheel |
 | Pause / close | Esc |

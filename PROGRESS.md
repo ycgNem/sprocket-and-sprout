@@ -65,9 +65,11 @@
   price bonuses by category, crop growth, wood and forage, ore, geodes, damage, health, loot,
   catch zone, bite speed, traps, machine and arm speed, and power use. Chosen in a card window
   or later from the Skills tab.
+- Quick stack (K): bag items go into nearby chests (or the root cellar indoors) that already
+  hold the same item. The hotbar is never touched.
 - Fixed: a large XP gain now grants every level it crosses, not just one.
 - Fixed titled villagers showing as "Mayor"/"Dr."/"Old" in toasts, quests and the almanac.
-- Tests: 50 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Tests: 51 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 

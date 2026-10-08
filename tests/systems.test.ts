@@ -382,3 +382,25 @@ describe('professions', () => {
     expect(P.perksFor(g, 'combat').map((p) => p.id)).toEqual(['defender', 'warrior']);
   });
 });
+
+describe('quick stack', () => {
+  it('moves bag items into nearby chests that already hold them, never the hotbar', async () => {
+    const { quickStack } = await import('../src/sim/quickstack');
+    const g = new Game({ seed: 22 });
+    clear(g, 38, 26, 56, 32);
+    g.player.x = 50.5; g.player.y = 28.5;
+    const chest = place(g, 'chest_wood', 52, 28, 0);
+    chest.inv!.add(key('stone'), 1);
+    const far = place(g, 'chest_wood', 40, 31, 0);
+    far.inv!.add(key('wood'), 1);
+    g.player.inv.slots[14] = { k: key('stone'), n: 30 };
+    g.player.inv.slots[15] = { k: key('wood'), n: 30 };
+    g.player.inv.slots[2] = { k: key('stone'), n: 5 }; // hotbar
+    const r = quickStack(g);
+    expect(r.moved).toBe(30);
+    expect(chest.inv!.count(key('stone'))).toBe(31);
+    expect(g.player.inv.slots[14]).toBeNull();
+    expect(g.player.inv.slots[2]!.n).toBe(5);
+    expect(g.player.inv.slots[15]!.n).toBe(30); // that chest is too far away
+  });
+});

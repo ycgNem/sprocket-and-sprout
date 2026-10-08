@@ -1,4 +1,5 @@
 // The in-game screen: input -> sim commands, camera, build tools, HUD + windows, events -> juice.
+import { quickStack } from '../sim/quickstack';
 import { pendingPerk } from '../sim/perks';
 import { canPlaceDecor, placeDecor } from '../sim/systems/house';
 import { FURN_BY_ID } from '../data/furniture';
@@ -400,6 +401,13 @@ export class PlayScreen implements Screen {
       }
     }
     if (input.wasPressed('eat')) eatHeld(g);
+    if (input.wasPressed('stack')) {
+      const r = quickStack(g);
+      if (r.moved) {
+        this.toast(`Stacked ${r.moved} item${r.moved > 1 ? 's' : ''} into ${r.chests} ${g.player.where === 'house' ? 'cellar' : r.chests > 1 ? 'chests' : 'chest'}.`);
+        this.app.audio.sfx('insert');
+      } else this.toast(g.player.where === 'house' && !g.sys.house?.pantry ? 'No root cellar to stack into.' : 'Nothing to stack: nearby chests hold none of your bag items.');
+    }
     if (input.wasPressed('pipette')) this.pipette();
     if (input.wasPressed('deconstruct')) {
       this.mode = this.mode === 'decon' ? 'normal' : 'decon';
