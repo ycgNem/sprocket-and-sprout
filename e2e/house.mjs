@@ -41,5 +41,11 @@ await page.screenshot({ path: `${out}/almanac.png` });
 // exit through the door and sleep cycle
 const res = await ev(`(() => { const g = S.g; window.__app.screen.closeWindow?.(); g.sys.house.leave(g); const a = g.player.where; g.sys.house.enter(g); return [a, g.player.where]; })()`);
 console.log('leave then enter', res);
+// a food buff outdoors, with the hotbar tooltip of a buff food
+await ev(`(async () => { const I = await import('/src/sim/inventory.ts'); const A = await import('/src/sim/actions.ts'); const g = S.g; g.sys.house.leave(g); g.player.inv.slots[11] = { k: I.key('miners_pie'), n: 3 }; g.player.sel = 11; A.eatHeld(g); })()`);
+await page.waitForTimeout(900);
+const slot = await ev(`(() => { const h = window.__app.ui; return { w: h.w, h: h.h, s: window.__app.ui.scale ?? 2 }; })()`);
+console.log('ui', slot);
+await page.screenshot({ path: `${out}/buff.png` });
 console.log('errors', errors.slice(0, 10));
 await browser.close();

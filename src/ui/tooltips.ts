@@ -1,4 +1,5 @@
 // Rich tooltips for items and structures.
+import { BUFF_INFO, buffText } from '../data/buffs';
 import { C } from '../data/palette';
 import { STRUCT_BY_ID } from '../data/structures';
 import { CROP_BY_SEED } from '../data/crops';
@@ -27,6 +28,7 @@ export function itemTooltip(g: Game, k: number, n = 1, extra: TipLine[] = []): T
   const lines: TipLine[] = [{ text: itemName(k), color: Q_COL[q] }, { text: CAT_NAMES[d.cat] ?? d.cat, color: C.pebble }, { text: d.desc, color: C.butter }];
   if (q) lines.push({ text: `${QUALITY_NAMES[q]} quality`, color: Q_COL[q] });
   if (d.edible) lines.push({ text: `${ICON.bolt} +${Math.round(d.edible.energy * [1, 1.4, 1.8, 2.5][q])} energy   ${ICON.heart} +${Math.round((d.edible.health ?? 0) * [1, 1.4, 1.8, 2.5][q])}`, color: C.lime });
+  if (d.edible?.buff) lines.push({ text: buffText(d.edible.buff), color: BUFF_INFO[d.edible.buff.kind].color });
   if (d.plant?.crop) {
     const cr = CROP_BY_SEED.get(d.id);
     if (cr) lines.push({ text: `Sells for ${cr.price} when grown`, color: C.pebble });

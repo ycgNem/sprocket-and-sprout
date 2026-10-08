@@ -189,6 +189,7 @@ export function serialize(g: Game, look: NPCLook): any {
       y: p.where === 'mine' ? g.map.loc('mine_entrance')[1] + 0.9 : p.y,
       dir: p.dir,
       where: p.where === 'house' ? 'house' : undefined,
+      buff: p.buff ?? undefined,
       energy: p.energy, maxEnergy: p.maxEnergy, hp: p.hp, maxHp: p.maxHp, money: p.money,
       inv: p.inv.toJSON(), sel: p.sel, water: p.water, skills: p.skills, xp: p.xp, upgrading: p.upgrading, rows: p.rows,
     },
@@ -246,6 +247,7 @@ export function deserialize(raw: any): { game: Game; look: NPCLook } {
   });
   p.inv = Inventory.fromJSON(dp.inv, 36);
   p.where = dp.where === 'house' ? 'house' : 'world';
+  p.buff = dp.buff ?? null;
   g.flags = new Set(d.flags);
   g.research.done = new Set(d.research.done);
   g.research.current = d.research.current;

@@ -93,7 +93,7 @@ export function fertilize(g: Game, i: number, id: string): string | null {
 export function rollQuality(g: Game, s: Soil, rng: Rng): number {
   const lvl = g.player.skills.farming ?? 0;
   const fq = (s.fert && ITEM_BY_ID.get(s.fert)?.fertilizer?.quality) || 0;
-  const gold = 0.2 * (lvl / 10) + 0.2 * fq * ((lvl + 2) / 12) + 0.01;
+  const gold = 0.2 * (lvl / 10) + 0.2 * fq * ((lvl + 2) / 12) + 0.01 + g.buffLvl('farming') * 0.03 + g.buffLvl('luck') * 0.04;
   const star = fq >= 2 ? gold / 3 : 0;
   const r = rng.next();
   if (r < star) return 3;

@@ -2,7 +2,8 @@
 import { C, PALETTE } from '../data/palette';
 import { SEASON_NAMES, WEEKDAYS } from '../data/types';
 import { ITEMS } from '../data/items';
-import { itemName, kDef } from '../sim/inventory';
+import { itemName, kDef, key } from '../sim/inventory';
+import { BUFF_INFO } from '../data/buffs';
 import { T, Z } from '../sim/world/tilemap';
 import { curMap } from '../sim/systems/player';
 import { ICON, wrapText, textWidth } from './font';
@@ -77,6 +78,18 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
 
   // ---- minimap ----
   if (g.player.where !== 'house') drawMinimap(ui, play, ui.w - cw - 4, cy + ch + 4, cw, 70);
+  // ---- food buff ----
+  const buff = p.buff;
+  if (buff) {
+    const by = cy + ch + 4 + (p.where !== 'house' ? 74 : 0);
+    const info = BUFF_INFO[buff.kind];
+    ui.panel(cx, by, cw, 22, 'dark', false);
+    ui.itemIcon(key(buff.src), cx + 4, by + 3, 16);
+    ui.text(`${info.name} ${'I'.repeat(buff.lvl)}`, cx + 24, by + 4, info.color);
+    const left = Math.max(0, Math.ceil(buff.left));
+    ui.text(`${Math.floor(left / 60)}h ${String(left % 60).padStart(2, '0')}m left`, cx + 24, by + 13, buff.left < 30 ? C.rose : C.pebble);
+    if (ui.hover(cx, by, cw, 22)) ui.tip([{ text: `${info.name} ${'I'.repeat(buff.lvl)}`, color: info.color }, { text: info.per + (buff.lvl > 1 ? ` (x${buff.lvl})` : '') }, { text: 'From ' + itemName(key(buff.src)) + '. Sleeping ends it.', color: C.pebble }]);
+  }
 
   // ---- energy / health ----
   const maxE = p.maxEnergy + g.mods.energy;

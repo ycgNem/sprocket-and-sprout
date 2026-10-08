@@ -311,7 +311,7 @@ function rockDrops(g: Game, st: MineState, x: number, y: number, o: O, data: num
     if (g.rng.next() < 0.04) d('clay');
   } else if (o === O.ORE_ROCK) {
     const ores = ['copper_ore', 'tin_ore', 'iron_ore', 'gold_ore', 'coal', 'starmetal_ore'];
-    d(ores[data] ?? 'copper_ore', 1 + g.rng.int(0, 2) + (g.rng.next() < lvl * 0.05 ? 1 : 0));
+    d(ores[data] ?? 'copper_ore', 1 + g.rng.int(0, 2) + (g.rng.next() < lvl * 0.05 ? 1 : 0) + (g.rng.next() < g.buffLvl('mining') * 0.08 ? 1 : 0));
   } else if (o === O.GEM_ROCK) {
     const gems = ['amethyst', 'topaz', 'jade', 'ruby', 'sapphire', 'opal', 'starstone'];
     d(gems[data] ?? 'quartz');
@@ -412,7 +412,7 @@ function moveMon(m: TileMap, mo: Monster, dx: number, dy: number, fly: boolean) 
 function hurtPlayer(g: Game, dmg: number, fromX: number, fromY: number) {
   const p = g.player;
   if (p.invuln > 0) return;
-  const def = 1 - Math.min(0.5, (p.skills.combat ?? 0) * 0.03);
+  const def = (1 - Math.min(0.5, (p.skills.combat ?? 0) * 0.03)) * (1 - 0.12 * g.buffLvl('defense'));
   p.hp -= Math.round(dmg * def);
   p.invuln = 1;
   const dx = p.x - fromX, dy = p.y - fromY, d = Math.hypot(dx, dy) || 1;

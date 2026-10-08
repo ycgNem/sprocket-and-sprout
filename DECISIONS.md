@@ -70,4 +70,9 @@ Running log of design and technical decisions made while building autonomously.
 29. **Home cooking is instant but costs a renovation** (Kitchen, 2500 coins + materials). Oven machines
     are still the way to cook in bulk. The home kitchen is a convenience for players who don't
     automate food.
+30. **Food buffs: one at a time, in game minutes, cleared by sleep.** Seven kinds (speed, stamina,
+    fishing, mining, luck, defense, farming) at levels I-III, tied to 23 dishes and drinks. Effects
+    are small per level (8-12%) so buffs flavor a day's plan without replacing tool upgrades or
+    skills. Foods with a buff can be eaten at full energy. This replaces the old coffee speed flag,
+    which never expired.
 

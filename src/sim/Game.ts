@@ -1,6 +1,6 @@
 // GameState + ordered systems. Pure simulation: no DOM access in here.
 import { Rng } from '../engine/rng';
-import type { Season, Weather } from '../data/types';
+import type { Season, Weather, BuffKind } from '../data/types';
 import { TileMap } from './world/tilemap';
 import { generateWorld, PLAYER_START, WORLD_W, WORLD_H, SHIPBIN_POS } from './world/worldgen';
 import { Ents } from './ents';
@@ -77,6 +77,8 @@ export interface Player {
   upgrading: { tool: string; to: string; days: number } | null;
   /** inventory rows unlocked (12 per row) */
   rows: number;
+  /** active food buff (game minutes left) */
+  buff: { kind: BuffKind; lvl: number; left: number; src: string } | null;
 }
 
 export type GameEvent =
@@ -191,7 +193,7 @@ export class Game {
       energy: 220, maxEnergy: 220, hp: 100, maxHp: 100, money: 500,
       inv: new Inventory(36), sel: 0, busy: 0, anim: null, water: 40, invuln: 0, where: 'world', exhausted: false,
       skills: Object.fromEntries(SKILLS.map((s) => [s, 0])), xp: Object.fromEntries(SKILLS.map((s) => [s, 0])),
-      kx: 0, ky: 0, upgrading: null, rows: 3,
+      kx: 0, ky: 0, upgrading: null, rows: 3, buff: null,
     };
     if (opts.blank) {
       this.player.x = 1.5;
@@ -214,6 +216,12 @@ export class Game {
 
   /** lifetime counters (tilled, fish caught, ...) */
   counters: Record<string, number> = {};
+  /** level of the active food buff of this kind (0 = none) */
+  buffLvl(kind: BuffKind): number {
+    const b = this.player.buff;
+    return b && b.kind === kind ? b.lvl : 0;
+  }
+
   count(k: string, n = 1) {
     this.counters[k] = (this.counters[k] ?? 0) + n;
   }
@@ -338,6 +346,7 @@ export class Game {
     else if (lateness > 1440) p.energy = Math.round(maxE * (1 - ((lateness - 1440) / 120) * (this.flags.has('home_featherbed') ? 0.25 : 0.5)));
     else p.energy = maxE;
     p.exhausted = false;
+    p.buff = null;
     p.hp = p.maxHp;
     if (this.map.w > 100) {
       // wake up at home

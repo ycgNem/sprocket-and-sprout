@@ -216,3 +216,25 @@ describe('farmhouse interior', () => {
     expect(g2.flags.has('home_kitchen')).toBe(true);
   });
 });
+
+describe('food buffs', () => {
+  it('eating cooked food grants a timed buff that changes tool energy and ends on sleep', async () => {
+    const { eatHeld, toolCost } = await import('../src/sim/actions');
+    const g = new Game({ seed: 8 });
+    const base = toolCost(g, 'hoe', 0);
+    g.player.inv.slots[g.player.sel = 0] = { k: key('pancakes'), n: 2 };
+    // full energy is fine: buff foods can always be eaten
+    expect(eatHeld(g)).toBe(true);
+    expect(g.player.buff?.kind).toBe('stamina');
+    expect(g.buffLvl('stamina')).toBe(2);
+    expect(toolCost(g, 'hoe', 0)).toBeCloseTo(base * 0.8);
+    const left = g.player.buff!.left;
+    run(g, 10);
+    expect(g.player.buff!.left).toBeLessThan(left);
+    sleep(g);
+    expect(g.player.buff).toBeNull();
+    // plain food without a buff still respects "not hungry"
+    g.player.inv.slots[0] = { k: key('radish'), n: 1 };
+    expect(eatHeld(g)).toBe(false);
+  });
+});

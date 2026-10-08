@@ -1,4 +1,5 @@
 // Player actions: tool use on tiles, planting, eating, and interacting with things.
+import { BUFF_INFO } from '../data/buffs';
 import { CROP_BY_ID, CROP_BY_SEED } from '../data/crops';
 import { ITEM_BY_ID } from '../data/items';
 import { TREE_BY_ID } from '../data/trees';
@@ -18,7 +19,8 @@ const BASE_COST: Record<string, number> = { hoe: 2, can: 2, axe: 2, pick: 2, scy
 export function toolCost(g: Game, kind: string, tier: number): number {
   const skill = kind === 'hoe' || kind === 'can' ? 'farming' : kind === 'axe' ? 'foraging' : kind === 'pick' ? 'mining' : kind === 'rod' ? 'fishing' : 'combat';
   const lvl = g.player.skills[skill] ?? 0;
-  return Math.max(0, BASE_COST[kind] * (1 - 0.12 * tier) - lvl * 0.1);
+  const buff = (1 - 0.1 * g.buffLvl('stamina')) * (kind === 'hoe' || kind === 'can' ? 1 - 0.1 * g.buffLvl('farming') : kind === 'pick' ? 1 - 0.08 * g.buffLvl('mining') : 1);
+  return Math.max(0, (BASE_COST[kind] * (1 - 0.12 * tier) - lvl * 0.1) * buff);
 }
 
 function anim(g: Game, kind: string, tx: number, ty: number, dur = 0.32) {
@@ -418,7 +420,8 @@ export function eatHeld(g: Game): boolean {
   const q = st.k & 3;
   const mult = [1, 1.4, 1.8, 2.5][q];
   const maxE = p.maxEnergy + g.mods.energy;
-  if (p.energy >= maxE && p.hp >= p.maxHp) {
+  const fb = d.edible.buff;
+  if (p.energy >= maxE && p.hp >= p.maxHp && !fb) {
     g.toast("You're not hungry right now.");
     return false;
   }
@@ -426,7 +429,12 @@ export function eatHeld(g: Game): boolean {
   p.energy = Math.min(maxE, p.energy + d.edible.energy * mult);
   p.hp = Math.min(p.maxHp, p.hp + (d.edible.health ?? 0) * mult);
   if (p.energy > 0) p.exhausted = false;
-  if (d.id === 'coffee_drink') g.sys.speedBuff = 120;
+  if (fb) {
+    const had = p.buff;
+    p.buff = { kind: fb.kind, lvl: fb.lvl, left: fb.min, src: d.id };
+    const info = BUFF_INFO[fb.kind];
+    g.toast(`${info.name} ${'I'.repeat(fb.lvl)} for ${fb.min / 60}h: ${info.per}${fb.lvl > 1 ? ` (x${fb.lvl})` : ''}${had && had.src !== d.id ? ' (replaces your last buff)' : ''}`, d.id, info.color);
+  }
   g.emit({ t: 'sfx', id: 'eat' });
   g.emit({ t: 'float', text: `+${Math.round(d.edible.energy * mult)}`, x: p.x, y: p.y - 2, c: 16 });
   g.stats.use(st.k, 1);
@@ -489,8 +497,9 @@ export function interact(g: Game, tx: number, ty: number): boolean {
     m.setO(tx, ty, O.NONE);
     if (id) {
       const lvl = p.skills.foraging ?? 0;
-      const q = g.rng.next() < lvl * 0.05 ? 2 : g.rng.next() < lvl * 0.08 + 0.1 ? 1 : 0;
-      g.give(key(id, ITEM_BY_ID.get(id)?.quality ? q : 0), 1);
+      const luck = g.buffLvl('luck');
+      const q = g.rng.next() < lvl * 0.05 + luck * 0.04 ? 2 : g.rng.next() < lvl * 0.08 + 0.1 ? 1 : 0;
+      g.give(key(id, ITEM_BY_ID.get(id)?.quality ? q : 0), g.rng.next() < luck * 0.1 ? 2 : 1);
       g.addXp('foraging', 7);
       g.emit({ t: 'sfx', id: 'pickup' });
     }

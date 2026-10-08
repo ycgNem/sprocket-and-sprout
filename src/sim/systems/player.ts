@@ -1,6 +1,6 @@
 // Player movement + collision against the current map, structures and crops.
 import { CROP_BY_ID } from '../../data/crops';
-import { Game, registerSystem } from '../Game';
+import { Game, registerSystem, SEC_PER_MIN } from '../Game';
 import { T, TileMap } from '../world/tilemap';
 import { houseMap } from './house';
 
@@ -66,7 +66,7 @@ export function movePlayer(g: Game, dt: number) {
   const tx = Math.floor(p.x), ty = Math.floor(p.y);
   const gt = m.g(tx, ty);
   if (gt === T.PATH || gt === T.PLANKS) speed *= 1.12;
-  if (g.sys.speedBuff) speed *= 1.2;
+  speed *= 1 + g.buffLvl('speed') * 0.08;
   tryMove(g, mx * speed * dt, my * speed * dt);
   if (Math.abs(mx) > Math.abs(my) + 0.1) p.dir = mx > 0 ? 1 : 3;
   else p.dir = my > 0 ? 2 : 0;
@@ -101,4 +101,14 @@ export function facingTile(g: Game): [number, number] {
   return [Math.floor(p.x + fx * 0.75), Math.floor(p.y - 0.2 + fy * 0.75)];
 }
 
-registerSystem({ name: 'player', tick: movePlayer });
+function tickBuff(g: Game, dt: number) {
+  const b = g.player.buff;
+  if (!b || g.sleeping) return;
+  b.left -= dt / SEC_PER_MIN;
+  if (b.left <= 0) {
+    g.player.buff = null;
+    g.toast('Your food buff wore off.');
+  }
+}
+
+registerSystem({ name: 'player', tick(g, dt) { movePlayer(g, dt); tickBuff(g, dt); } });

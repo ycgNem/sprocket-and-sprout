@@ -6,6 +6,7 @@ import { TREES } from './trees';
 import { FISH } from './fish';
 import { STRUCTURES, STRUCT_PRICE } from './structures';
 import type { ItemDef, ItemCategory, IconSpec } from './types';
+import { FOOD_BUFFS } from './buffs';
 
 const list: ItemDef[] = [];
 function add(d: ItemDef) {
@@ -372,6 +373,7 @@ list.forEach((d, i) => {
   if (ITEM_BY_ID.has(d.id)) throw new Error('duplicate item id ' + d.id);
   ITEM_BY_ID.set(d.id, d);
   ITEM_INDEX.set(d.id, i);
+  if (d.edible && FOOD_BUFFS[d.id]) d.edible.buff = FOOD_BUFFS[d.id];
 });
 
 export function item(id: string): ItemDef {

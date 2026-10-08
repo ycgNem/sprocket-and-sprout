@@ -40,6 +40,8 @@
   The carpenter sells 4 renovations: Kitchen (instant cooking from your bag), Root Cellar (36-slot
   pantry the kitchen cooks from), Featherbed (late nights cost less), Grand Hearth (+40 energy).
   Indoor lighting, muffled rain and fireplace crackle, and quieter "home" music.
+- Food buffs: 7 kinds x 3 levels from 23 foods (speed, stamina, fishing, mining, luck, defense,
+  farming), shown as a HUD badge with time left and on item tooltips.
 - Tests: 43 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.

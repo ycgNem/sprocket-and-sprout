@@ -28,7 +28,7 @@ export interface ItemDef {
   /** max stack (default 999; tools 1) */
   stack?: number;
   icon: IconSpec;
-  edible?: { energy: number; health?: number };
+  edible?: { energy: number; health?: number; buff?: FoodBuff };
   /** structure placed by this item */
   places?: string;
   tool?: { kind: ToolKind; tier: number };
@@ -398,3 +398,6 @@ export interface ShopDef {
   buys?: ItemCategory[];
   greeting: string;
 }
+
+export type BuffKind = 'speed' | 'stamina' | 'fishing' | 'mining' | 'luck' | 'defense' | 'farming';
+export interface FoodBuff { kind: BuffKind; lvl: number; min: number }
