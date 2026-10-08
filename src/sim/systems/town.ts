@@ -1,4 +1,5 @@
 // Town doors: shops (open when the keeper is in), homes, the farmhouse bed, clocktower, mine.
+import { enterHouse } from './house';
 import { SHOPS } from '../../data/shops';
 import { NPC_BY_ID } from '../../data/npcs';
 import { WEEKDAYS } from '../../data/types';
@@ -26,22 +27,10 @@ export function shopOpen(g: Game, shopId: string): { open: boolean; why?: string
 
 export function door(g: Game, b: BuildingInfo) {
   switch (b.kind) {
-    case 'farmhouse': {
-      const late = g.time.min >= 18 * 60;
-      g.emit({
-        t: 'ui', open: 'confirm',
-        arg: {
-          text: late ? 'Go to bed and end the day?' : `It's only ${fmt(g.time.min)}. Go to bed early anyway?`,
-          yesLabel: 'Sleep', noLabel: 'Not yet',
-          yes: () => {
-            g.goToBed();
-            g.emit({ t: 'sfx', id: 'sleep' });
-          },
-        },
-      });
-      g.emit({ t: 'sfx', id: 'door' });
+    case 'farmhouse':
+      // step inside: the bed, hearth, almanac and kitchen are in there
+      enterHouse(g);
       return;
-    }
     case 'tower':
       g.emit({ t: 'ui', open: 'restoration' });
       g.emit({ t: 'sfx', id: 'door' });

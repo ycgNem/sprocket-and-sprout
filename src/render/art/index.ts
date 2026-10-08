@@ -5,6 +5,7 @@ import { registerCharSprites, registerLook } from './chars';
 import { registerIconSprites } from './icons';
 import { registerStructSprites, structIcon } from './structs';
 import { registerLivingSprites } from './living';
+import { registerHomeSprites } from './home';
 import { NPCS } from '../../data/npcs';
 import type { TileMap } from '../../sim/world/tilemap';
 import type { NPCLook } from '../../data/types';
@@ -19,6 +20,7 @@ export function registerAllArt() {
   registerIconSprites(structIcon);
   registerStructSprites();
   registerLivingSprites();
+  registerHomeSprites();
   for (const n of NPCS) registerLook(n.id, n.look);
 }
 

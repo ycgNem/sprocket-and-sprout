@@ -137,7 +137,7 @@ export class PlayScreen implements Screen {
 
   heldPlaceable(): string | null {
     const st = this.g.player.inv.slots[this.g.player.sel];
-    if (!st) return null;
+    if (!st || this.g.player.where !== 'world') return null;
     const d = kDef(st.k);
     return d.places ?? null;
   }
@@ -174,14 +174,22 @@ export class PlayScreen implements Screen {
       if (this.stepT > 1) {
         this.stepT = 0;
         const t = curMap(g).g(Math.floor(g.player.x), Math.floor(g.player.y));
-        app.audio.sfx(t === 7 ? 'step_wood' : t === 6 || t === 9 ? 'step_stone' : 'step', 0.6);
+        app.audio.sfx(t === 7 || t === 21 ? 'step_wood' : t === 6 || t === 9 ? 'step_stone' : 'step', 0.6);
         if (t === 2 || t === 3 || t === 6 || t === 13) r.particles.burst(g.player.x * 16, g.player.y * 16, 2, [C.tan, C.pebble], { speed: 10, up: 6, g: 20, life: 0.35, size: 1 });
       }
     }
 
     // ---- camera ----
     const p = g.player;
-    r.cam.follow(p.x, p.y - 0.6, dt, false);
+    let camX = p.x, camY = p.y - 0.6;
+    if (p.where === 'house') {
+      // the room is small: frame it, following the player only when zoomed in
+      const hm = curMap(g);
+      const vw = r.W / (16 * r.cam.zoom), vh = r.H / (16 * r.cam.zoom);
+      camX = hm.w <= vw - 1 ? hm.w / 2 : Math.max(vw / 2 - 0.5, Math.min(hm.w - vw / 2 + 0.5, camX));
+      camY = hm.h <= vh - 1 ? hm.h / 2 - 0.4 : Math.max(vh / 2 - 1.5, Math.min(hm.h - vh / 2 + 0.5, camY));
+    }
+    r.cam.follow(camX, camY, dt, Math.hypot(r.cam.x - camX, r.cam.y - camY) > 24);
     if (!modal && (input.wasPressed('zoomIn') || (input.ctrl && input.mouse.wheel < 0))) r.cam.targetZoom = Math.min(6, r.cam.targetZoom + 1);
     if (!modal && (input.wasPressed('zoomOut') || (input.ctrl && input.mouse.wheel > 0))) r.cam.targetZoom = Math.max(1, r.cam.targetZoom - 1);
     if (input.ctrl) input.mouse.wheel = 0;
@@ -240,7 +248,7 @@ export class PlayScreen implements Screen {
       for (const e of g.ents.arms) if (e.working && Math.abs(e.x - p.x) < 10 && Math.abs(e.y - p.y) < 8) near += 0.3;
     }
     const fest = g.sys.festivals?.active;
-    app.audio.setScene(g.player.where === 'mine' ? 'mine' : fest ? 'festival' : 'farm');
+    app.audio.setScene(g.player.where === 'mine' ? 'mine' : g.player.where === 'house' ? 'home' : fest ? 'festival' : 'farm');
     app.audio.update(dt, g, near);
     // hud timers
     for (const t of this.hud.toasts) t.t += dt;
@@ -265,6 +273,12 @@ export class PlayScreen implements Screen {
     if (this.win || ui.overUI || this.g.sleeping) return;
     const g = this.g;
     const t = this.mouseTile();
+    if (g.player.where === 'house') {
+      const tip = g.sys.house?.hover?.(g, t.x, t.y);
+      if (tip) ui.tip(tip);
+      return;
+    }
+    if (g.player.where !== 'world') return;
     const n = g.sys.npcs?.at?.(g, t.fx, t.fy + 0.3);
     if (n) {
       const d = NPC_BY_ID.get(n.id)!;
@@ -294,6 +308,7 @@ export class PlayScreen implements Screen {
   private autoBuildGhosts() {
     const g = this.g;
     const p = g.player;
+    if (p.where !== 'world') return;
     let built = 0;
     for (const e of g.ents.all()) {
       if (!e.ghost || e.parent || built >= 2) continue;
@@ -355,7 +370,7 @@ export class PlayScreen implements Screen {
         this.app.audio.sfx('rotate');
       } else {
         const t = this.mouseTile();
-        const e = g.ents.at(t.x, t.y);
+        const e = g.player.where === 'world' ? g.ents.at(t.x, t.y) : null;
         if (e) rotateStruct(g, e);
       }
     }
@@ -390,7 +405,7 @@ export class PlayScreen implements Screen {
   private pipette() {
     const g = this.g;
     const t = this.mouseTile();
-    const e = g.ents.rootAt(t.x, t.y);
+    const e = g.player.where === 'world' ? g.ents.rootAt(t.x, t.y) : null;
     if (!e) return;
     const k = key(e.def.item);
     const inv = g.player.inv;
@@ -430,6 +445,7 @@ export class PlayScreen implements Screen {
     const t = this.mouseTile();
     const p = g.player;
     const buildReach = 9 + g.mods.reach;
+    if (p.where !== 'world' && this.mode !== 'normal') this.mode = 'normal';
     // rectangle tools
     if (this.mode === 'decon' || this.mode === 'copy') {
       if (input.mouse.pressed[0]) this.rectStart = { x: t.x, y: t.y };
@@ -602,7 +618,7 @@ export class PlayScreen implements Screen {
         ctx.strokeRect(tx * TILE + 0.5, ty * TILE + 0.5, TILE - 1, TILE - 1);
       }
       // hover info for structures
-      const e = g.ents.rootAt(t.x, t.y);
+      const e = g.player.where === 'world' ? g.ents.rootAt(t.x, t.y) : null;
       if (e && !e.ghost && (e.def.kind === 'arm' || e.def.kind === 'drill')) this.drawArmHint(e);
       if (e && !e.ghost && (e.def.kind === 'pole')) this.drawPoleArea(e);
     });

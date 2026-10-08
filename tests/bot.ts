@@ -54,6 +54,7 @@ export class Bot {
 
   walkTo(x: number, y: number) {
     const p = this.g.player;
+    if (p.where === 'house') this.g.sys.house.leave(this.g);
     const d = Math.hypot(p.x - x, p.y - y);
     if (this.g.player.where !== 'world') return;
     this.wait(d / 4.8);
@@ -436,6 +437,8 @@ export class Bot {
     const g = this.g;
     this.notes = [];
     const day = g.dayIndex;
+    // you wake up inside the farmhouse
+    if (g.player.where === 'house') g.sys.house.leave(g);
     this.farmMorning();
     this.expandPlot(Math.min(80, 12 + day * 6));
     this.farmMorning();

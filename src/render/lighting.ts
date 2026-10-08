@@ -15,15 +15,17 @@ export class Lighting {
 
   draw(main: CanvasRenderingContext2D, g: Game, r: Renderer, underground: boolean) {
     const night = 1 - g.daylight;
+    const house = g.player.where === 'house';
     const rainDim = g.isRaining() && !underground ? 0.18 : g.weather === 'snow' ? 0.06 : 0;
-    let dark = underground ? 0.62 : Math.min(0.78, night * 0.78 + rainDim);
+    // indoors is a little dim by day and cosy-dark at night, lit by the hearth
+    let dark = house ? 0.22 + night * 0.48 + rainDim * 0.5 : underground ? 0.62 : Math.min(0.78, night * 0.78 + rainDim);
     if (this.flash > 0) {
       main.fillStyle = `rgba(255,247,228,${Math.min(0.6, this.flash)})`;
       main.fillRect(0, 0, r.W, r.H);
       this.flash -= 0.05;
     }
     // dusk tint
-    if (!underground && night > 0.05 && night < 0.95) {
+    if (!underground && !house && night > 0.05 && night < 0.95) {
       const [rr, gg, bb] = PALETTE_RGB[C.apricot];
       main.fillStyle = `rgba(${rr},${gg},${bb},${0.12 * Math.sin(night * Math.PI)})`;
       main.fillRect(0, 0, r.W, r.H);
@@ -39,7 +41,7 @@ export class Lighting {
     const lc = this.ctx!;
     lc.globalCompositeOperation = 'source-over';
     lc.clearRect(0, 0, w, h);
-    const [nr, ng, nb] = PALETTE_RGB[underground ? C.ink : C.deepsea];
+    const [nr, ng, nb] = PALETTE_RGB[underground && !house ? C.ink : house ? C.plum : C.deepsea];
     lc.fillStyle = `rgba(${Math.round(nr * 0.4)},${Math.round(ng * 0.4)},${Math.round(nb * 0.7)},${dark})`;
     lc.fillRect(0, 0, w, h);
     lc.globalCompositeOperation = 'destination-out';
@@ -88,6 +90,18 @@ export class Lighting {
     const tx0 = Math.max(0, Math.floor(v.x0 / 16) - 8), ty0 = Math.max(0, Math.floor(v.y0 / 16) - 8);
     const tx1 = Math.min(m.w - 1, Math.ceil(v.x1 / 16) + 8), ty1 = Math.min(m.h - 1, Math.ceil(v.y1 / 16) + 8);
     const p = g.player;
+    if (g.player.where === 'house') {
+      out.push({ x: p.x, y: p.y - 0.6, r: 1.6, i: 0.35 });
+      for (let y = 0; y < m.h; y++)
+        for (let x = 0; x < m.w; x++) {
+          const i = m.idx(x, y), o = m.obj[i];
+          if (o === O.FIREPLACE && m.objData[i] === 0) out.push({ x: x + 1, y: y + 0.6, r: 4.6, i: 0.95, c: C.amber, flicker: true });
+          else if (o === O.WINDOW && g.daylight > 0.2) out.push({ x: x + 0.5, y: y + 2.2, r: 3.2, i: g.daylight * 0.9, c: g.daylight > 0.7 ? C.butter : C.apricot });
+          else if (o === O.STOVE && g.flags.has('home_kitchen')) out.push({ x: x + 0.5, y: y + 0.4, r: 1.8, i: 0.6, c: C.apricot, flicker: true });
+          else if (o === O.DRESSER) out.push({ x: x + 0.3, y: y - 0.2, r: 1.6, i: 0.6, c: C.butter });
+        }
+      return out;
+    }
     out.push({ x: p.x, y: p.y - 0.6, r: underground ? 6 : 2.2, i: underground ? 1 : 0.5, c: underground ? C.amber : undefined, flicker: underground });
     for (let y = ty0; y <= ty1; y++)
       for (let x = tx0; x <= tx1; x++) {

@@ -16,11 +16,11 @@ export class Audio {
   delayFb!: GainNode;
   noiseBuf!: AudioBuffer;
   vol: Vol;
-  scene: 'title' | 'farm' | 'mine' | 'festival' | 'night' = 'title';
+  scene: 'title' | 'farm' | 'mine' | 'festival' | 'night' | 'home' = 'title';
   private nextNote = 0;
   private step = 0;
   private chord = 0;
-  private rain: { src: AudioBufferSourceNode; g: GainNode } | null = null;
+  private rain: { src: AudioBufferSourceNode; g: GainNode; f: BiquadFilterNode } | null = null;
   private wind: { src: AudioBufferSourceNode; g: GainNode; f: BiquadFilterNode } | null = null;
   private hum: { o: OscillatorNode; o2: OscillatorNode; g: GainNode } | null = null;
   private crickets = 0;
@@ -224,6 +224,7 @@ export class Audio {
     if (night) { tempo *= 0.75; density *= 0.45; root -= 12; wave = 'sine'; }
     if (this.scene === 'mine') { root = 45; scale = SCALES.minpent; tempo = 60; density = 0.3; wave = 'sine'; }
     if (this.scene === 'festival') { root = 62; scale = SCALES.mixo; tempo = 118; density = 0.8; wave = 'square'; }
+    if (this.scene === 'home') { tempo *= 0.8; density *= 0.6; wave = 'sine'; root += 12; }
     if (this.scene === 'title') { root = 57; scale = SCALES.majpent; tempo = 80; density = 0.5; }
     // chord progressions (scale degrees)
     const prog = season === 2 || this.scene === 'mine' ? [0, 5, 3, 4] : season === 3 ? [0, 3, 5, 4] : [0, 3, 4, 2];
@@ -341,9 +342,12 @@ export class Audio {
     const t = ctx.currentTime;
     const outdoor = g.player.where === 'world';
     // rain bed
+    const indoorRain = g.player.where === 'house' && g.isRaining();
     const rainy = outdoor && g.isRaining();
     if (!this.rain) this.rain = this.loopNoise('lowpass', 1800);
-    this.rain.g.gain.setTargetAtTime(rainy ? (g.weather === 'storm' ? 0.22 : 0.12) : 0, t, 0.8);
+    // rain on the roof sounds muffled from inside the farmhouse
+    this.rain.g.gain.setTargetAtTime(rainy ? (g.weather === 'storm' ? 0.22 : 0.12) : indoorRain ? 0.05 : 0, t, 0.8);
+    this.rain.f.frequency.setTargetAtTime(indoorRain ? 500 : 1800, t, 0.5);
     // wind
     if (!this.wind) this.wind = this.loopNoise('bandpass', 400);
     const windy = outdoor ? Math.max(0, g.wind - 0.8) * 0.08 + (g.weather === 'snow' ? 0.03 : 0) : 0;
@@ -389,6 +393,8 @@ export class Audio {
         }
       }
     }
+    // the fireplace crackles when you're home
+    if (g.player.where === 'house' && Math.random() < dt * 5) this.noise(0.012 + Math.random() * 0.02, 0.025 + Math.random() * 0.03, 'bandpass', 1800 + Math.random() * 2500, 3, 0, 0, this.ambBus);
     if (g.sys.thunder) {
       g.sys.thunder = false;
       this.sfx('thunder');

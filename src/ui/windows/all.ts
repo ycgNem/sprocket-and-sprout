@@ -5,3 +5,4 @@ import './factory';
 import './journal';
 import './activities';
 import './panels';
+import './home';

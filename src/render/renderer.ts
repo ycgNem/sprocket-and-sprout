@@ -287,6 +287,7 @@ export class Renderer {
           D.push({ y: y + 0.9, f: () => drawSprite(ctx, s, x * TILE, y * TILE) });
         }
       }
+    if (g.player.where === 'house') this.drawHouse(g, m, D);
     // buildings
     for (const b of m.buildings) {
       if ((b.x + b.w) * TILE < vx0 || b.x * TILE > vx1 || (b.y - 3) * TILE > vy1 || (b.y + b.h) * TILE < vy0) continue;
@@ -319,6 +320,68 @@ export class Renderer {
     if (m === g.map) this.weather.draw(ctx, g, this, dt);
     this.lighting.draw(ctx, g, this, m !== g.map);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  /** Farmhouse furniture, y-sorted with the player; the hearth fire and clock are animated. */
+  private drawHouse(g: Game, m: TileMap, D: Drawable[]) {
+    const ctx = this.ctx, season = g.time.season, t = this.time;
+    const night = g.daylight < 0.45 ? 1 : 0;
+    for (let y = 0; y < m.h; y++)
+      for (let x = 0; x < m.w; x++) {
+        const i = m.idx(x, y), o = m.obj[i] as O, v = m.objData[i];
+        const px = x * TILE, py = y * TILE;
+        let name = '', sy = y + 0.95, flip = false;
+        switch (o) {
+          case O.BED: if (v === 0) { name = `hf:bed:${season === 3 ? 1 : 0}:0`; sy = y + 1.95; } break;
+          case O.DRESSER: name = 'hf:dresser:0:0'; break;
+          case O.FIREPLACE: if (v === 0) name = 'hf:fireplace:0:0'; break;
+          case O.STOVE: name = `hf:stove:${g.flags.has('home_kitchen') ? 1 : 0}:0`; break;
+          case O.SHELF: name = `hf:shelf:${v}:0`; break;
+          case O.TABLE: name = `hf:table:0:${season}`; break;
+          case O.CHAIR: name = 'hf:chair:0:0'; flip = v === 1; sy = y + 0.5; break;
+          case O.ALMANAC: name = 'hf:almanac:0:0'; break;
+          case O.HOUSEPLANT: name = `hf:plant:${v}:0`; break;
+          case O.WINDOW: name = `hf:window:${night}:${season}`; sy = -5; break;
+          case O.CLOCK: name = 'hf:clock:0:0'; sy = -5; break;
+          case O.RUG: if (v === 0) { name = 'hf:rug:0:0'; sy = -10; } break;
+          case O.DOORMAT: name = 'hf:doormat:0:0'; sy = -10; break;
+        }
+        if (!name) continue;
+        const s = sprite(name);
+        D.push({ y: sy, f: () => {
+          drawSprite(ctx, s, flip ? px + 16 : px, py, 1, flip);
+          if (o === O.FIREPLACE) {
+            // flickering flames over the logs
+            const fx = px + 10, fy = py + 9;
+            for (let k = 0; k < 6; k++) {
+              const h = 4 + Math.sin(t * 9 + k * 1.9) * 1.6 + Math.sin(t * 23 + k) * 1.2 + (k === 2 || k === 3 ? 3 : 0);
+              const xx = fx + k * 2;
+              ctx.fillStyle = PALETTE[C.terracotta];
+              ctx.fillRect(xx, fy - h, 2, h);
+              ctx.fillStyle = PALETTE[C.amber];
+              ctx.fillRect(xx, fy - h * 0.7, 2, h * 0.7);
+              ctx.fillStyle = PALETTE[C.butter];
+              ctx.fillRect(xx + (k % 2), fy - h * 0.35, 1, h * 0.35);
+            }
+            if (Math.sin(t * 3.1) > 0.97) { ctx.fillStyle = PALETTE[C.butter]; ctx.fillRect(fx + 5 + Math.sin(t * 40) * 3, fy - 9 - ((t * 20) % 4), 1, 1); }
+          } else if (o === O.CLOCK) {
+            // live hands
+            const cx = px + 8, cy = py - 3;
+            const min = g.time.min % 60, hr = (g.time.min / 60) % 12;
+            const hand = (a: number, len: number, c: number) => {
+              ctx.fillStyle = PALETTE[c];
+              for (let r = 0; r <= len; r += 0.5) ctx.fillRect(Math.round(cx + Math.sin(a) * r - 0.5), Math.round(cy - Math.cos(a) * r - 0.5), 1, 1);
+            };
+            hand((hr / 12) * Math.PI * 2, 1.8, C.ink);
+            hand((min / 60) * Math.PI * 2, 2.6, C.walnut);
+            // pendulum
+            ctx.fillStyle = PALETTE[C.brass];
+            ctx.fillRect(Math.round(cx - 0.5 + Math.sin(t * 3) * 1.5), py + 3, 2, 2);
+          } else if (o === O.STOVE && g.flags.has('home_kitchen')) {
+            if (Math.sin(t * 2 + 1) > 0.3) { ctx.fillStyle = rgba(C.cream, 0.5); ctx.fillRect(px + 9 + Math.sin(t * 4) * 1.5, py - 6 - ((t * 6) % 5), 2, 1); }
+          }
+        } });
+      }
   }
 
   private drawSoil(g: Game, tx0: number, ty0: number, tx1: number, ty1: number, D: Drawable[]) {
@@ -732,7 +795,7 @@ export class Renderer {
       } });
     }
     // monsters
-    const mons: any[] = m !== g.map ? g.sys.mine?.monsters ?? [] : [];
+    const mons: any[] = g.player.where === 'mine' ? g.sys.mine?.monsters ?? [] : [];
     for (const mo of mons) {
       if (!onScreen(mo.x, mo.y)) continue;
       const f = Math.floor(this.time * 6 + mo.phase) % 4;
@@ -750,7 +813,7 @@ export class Renderer {
       } });
     }
     // item drops
-    const drops: any[] = g.sys.drops?.list?.filter((d: any) => (d.map ?? 'world') === (m === g.map ? 'world' : 'mine')) ?? [];
+    const drops: any[] = g.sys.drops?.list?.filter((d: any) => (d.map ?? 'world') === g.player.where) ?? [];
     for (const d of drops) {
       if (!onScreen(d.x, d.y)) continue;
       D.push({ y: d.y, f: () => {
@@ -775,7 +838,7 @@ export class Renderer {
       } });
     }
     // fireballs in the mine
-    if (m !== g.map) {
+    if (g.player.where === 'mine') {
       for (const b of g.sys.mine?.bolts ?? []) {
         if (!onScreen(b.x, b.y)) continue;
         D.push({ y: b.y + 0.5, f: () => {

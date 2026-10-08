@@ -66,7 +66,7 @@ export interface Player {
   anim: { kind: string; t: number; dur: number; tx: number; ty: number } | null;
   water: number;
   invuln: number;
-  where: 'world' | 'mine';
+  where: 'world' | 'mine' | 'house';
   exhausted: boolean;
   skills: Record<string, number>;
   xp: Record<string, number>;
@@ -335,7 +335,7 @@ export class Game {
     // energy recovery
     const maxE = p.maxEnergy + this.mods.energy;
     if (passedOut) p.energy = Math.round(maxE * 0.5);
-    else if (lateness > 1440) p.energy = Math.round(maxE * (1 - ((lateness - 1440) / 120) * 0.5));
+    else if (lateness > 1440) p.energy = Math.round(maxE * (1 - ((lateness - 1440) / 120) * (this.flags.has('home_featherbed') ? 0.25 : 0.5)));
     else p.energy = maxE;
     p.exhausted = false;
     p.hp = p.maxHp;

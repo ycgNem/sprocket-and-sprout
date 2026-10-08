@@ -2,14 +2,19 @@
 import { CROP_BY_ID } from '../../data/crops';
 import { Game, registerSystem } from '../Game';
 import { T, TileMap } from '../world/tilemap';
+import { houseMap } from './house';
 
 export function curMap(g: Game): TileMap {
-  return g.player.where === 'mine' && g.sys.mine?.map ? g.sys.mine.map : g.map;
+  const w = g.player.where;
+  if (w === 'mine' && g.sys.mine?.map) return g.sys.mine.map;
+  if (w === 'house') return houseMap(g);
+  return g.map;
 }
 
 export function solidAt(g: Game, tx: number, ty: number): boolean {
   const m = curMap(g);
   if (!m.walkable(tx, ty)) return true;
+  if (g.player.where === 'house') return false;
   if (m !== g.map) return !!g.sys.mine?.solid?.(g, tx, ty);
   const e = g.ents.at(tx, ty);
   if (e && !e.ghost && e.def.solid) return true;

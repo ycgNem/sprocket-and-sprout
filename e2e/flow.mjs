@@ -1,4 +1,4 @@
-// End-to-end flow with real input: new game -> till/plant/water -> sleep at the door ->
+// End-to-end flow with real input: new game -> till/plant/water -> go inside, sleep in the bed ->
 // morning summary -> autosave -> reload -> Continue from the title screen.
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -54,9 +54,17 @@ await page.evaluate(() => { const g = window.__game; g.player.x = 49.5; g.player
 await wait(300);
 const door = await page.evaluate(() => { const r = window.__app.renderer; const g = window.__game; r.cam.x = g.player.x; r.cam.y = g.player.y - 0.6; const s = r.tileToScreen(49.5, 21.5); return { x: s.x / window.__app.dpr, y: s.y / window.__app.dpr }; });
 await page.mouse.click(door.x, door.y, { button: 'right' });
+await wait(700);
+check(await page.evaluate(() => window.__game.player.where === 'house'), 'went inside through the farmhouse door');
+await shot('02-inside');
+// walk up beside the bed and right-click it
+await page.evaluate(() => { const g = window.__game; g.player.x = 3.5; g.player.y = 3.9; g.player.dir = 3; });
+await wait(900);
+const bed = await page.evaluate(() => { const r = window.__app.renderer; const s = r.tileToScreen(2.5, 3.5); return { x: s.x / window.__app.dpr, y: s.y / window.__app.dpr }; });
+await page.mouse.click(bed.x, bed.y, { button: 'right' });
 await wait(400);
 await shot('02-bed-prompt');
-check(await page.evaluate(() => window.__play.win?.id === 'confirm'), 'bed prompt opened from the farmhouse door');
+check(await page.evaluate(() => window.__play.win?.id === 'confirm'), 'bed prompt opened from the bed');
 await page.keyboard.press('Enter');
 await wait(500);
 check(await page.evaluate(() => window.__game.sleeping || window.__game.time.day === 2), 'went to sleep');
@@ -67,6 +75,7 @@ for (let i = 0; i < 60; i++) {
 }
 await shot('03-summary');
 check(await page.evaluate(() => window.__game.time.day === 2), 'woke up on day 2');
+check(await page.evaluate(() => window.__game.player.where === 'house'), 'woke up inside the farmhouse');
 await page.keyboard.press('Enter');
 await wait(600);
 check(await page.evaluate(() => Object.keys(localStorage).some((k) => k.startsWith('sns_save_'))), 'autosaved');

@@ -64,6 +64,7 @@ export function useHeld(g: Game, tx: number, ty: number, charge = 0): boolean {
   if (!st) return false;
   const d = kDef(st.k);
   if (d.tool) return useTool(g, d.tool.kind, d.tool.tier, tx, ty, charge);
+  if (p.where === 'house') return false;
   if (d.weapon) {
     anim(g, 'sword', tx, ty, 0.28 / d.weapon.speed);
     g.emit({ t: 'sfx', id: 'swing' });
@@ -211,6 +212,10 @@ export function useTool(g: Game, kind: string, tier: number, tx: number, ty: num
   if (kind === 'rod') {
     g.sys.fishing?.cast?.(g, tx, ty);
     return true;
+  }
+  if (p.where === 'house') {
+    g.toast('Not indoors!');
+    return false;
   }
   if (p.where === 'mine') {
     anim(g, kind, tx, ty);
@@ -434,6 +439,7 @@ export function interact(g: Game, tx: number, ty: number): boolean {
   if (g.sleeping) return false;
   const m = curMap(g);
   if (p.where === 'mine') return g.sys.mine?.interact?.(g, tx, ty) ?? false;
+  if (p.where === 'house') return g.sys.house?.interact?.(g, tx, ty) ?? false;
   // NPCs near the target
   const npc = g.sys.npcs?.at?.(g, tx + 0.5, ty + 0.5);
   if (npc) {

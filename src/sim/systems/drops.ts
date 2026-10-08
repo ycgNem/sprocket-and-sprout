@@ -11,7 +11,7 @@ export interface Drop {
   vy: number;
   vz: number;
   t: number;
-  map: 'world' | 'mine';
+  map: 'world' | 'mine' | 'house';
 }
 
 export function dropsState(g: Game): { list: Drop[]; spawn: typeof spawnDrop } {

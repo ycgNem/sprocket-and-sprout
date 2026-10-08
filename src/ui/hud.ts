@@ -76,7 +76,7 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   }
 
   // ---- minimap ----
-  drawMinimap(ui, play, ui.w - cw - 4, cy + ch + 4, cw, 70);
+  if (g.player.where !== 'house') drawMinimap(ui, play, ui.w - cw - 4, cy + ch + 4, cw, 70);
 
   // ---- energy / health ----
   const maxE = p.maxEnergy + g.mods.energy;

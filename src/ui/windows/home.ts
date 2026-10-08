@@ -1,0 +1,63 @@
+// Home windows: the farmhouse kitchen (instant cooking) and the root cellar.
+import { C } from '../../data/palette';
+import { ITEM_BY_ID } from '../../data/items';
+import { recipesForStation } from '../../data/recipes';
+import { key } from '../../sim/inventory';
+import { canCookHome, cookHome, homeCount, maxCookHome, pantry } from '../../sim/systems/house';
+import type { PlayScreen } from '../../app/play';
+import type { UI } from '../ui';
+import { centered, frame, invGrid } from './common';
+import { registerWindow, WinState } from './index';
+import { itemTooltip } from '../tooltips';
+import { specIcon } from './menu';
+
+const OVEN = recipesForStation('oven');
+
+function drawCooking(ui: UI, play: PlayScreen, st: WinState): boolean {
+  const g = play.g;
+  const pan = pantry(g);
+  const W = 440, H = 318;
+  const { x, y } = centered(ui, W, H);
+  if (!frame(ui, x, y, W, H, 'Farmhouse Kitchen')) return false;
+  const tab: string = st.data.tab ?? 'Cook';
+  const tabs = pan ? ['Cook', 'Cellar'] : ['Cook'];
+  tabs.forEach((t, i) => { if (ui.button('ktab' + t, x + 12 + i * 62, y + 12, 58, 14, t, { active: tab === t })) st.data.tab = t; });
+  if (tab === 'Cellar' && pan) {
+    ui.text('Root cellar (the kitchen cooks from here too). Shift-click to move.', x + 12, y + 32, C.walnut);
+    invGrid(ui, play, pan, x + 22, y + 44, 18, { target: g.player.inv });
+    ui.text('Your bag', x + 12, y + 104, C.walnut);
+    invGrid(ui, play, g.player.inv, x + 22, y + 116, 18, { target: pan });
+    return true;
+  }
+  ui.text(pan ? 'Uses ingredients from your bag and the root cellar.' : 'Uses ingredients from your bag. Shift-click Cook to make five.', x + 12, y + H - 14, C.walnut);
+  const onlyReady = !!st.data.ready;
+  if (ui.button('kready', x + W - 104, y + 12, 90, 14, onlyReady ? 'Show all' : 'Can cook now', { style: 'flat' })) st.data.ready = !onlyReady;
+  const list = OVEN.filter((r) => g.unlocked(r.unlock) && (!onlyReady || canCookHome(g, r)));
+  const colW = (W - 30) / 2;
+  list.forEach((r, n) => {
+    const col = n % 2, row = Math.floor(n / 2);
+    const rx = x + 12 + col * (colW + 6), ry = y + 34 + row * 24;
+    if (ry > y + H - 26) return;
+    const can = canCookHome(g, r);
+    ui.fill(rx, ry, colW, 22, can ? C.cream : C.tan, can ? 0.6 : 0.35);
+    const out = ITEM_BY_ID.get(r.out[0].item)!;
+    ui.itemIcon(key(out.id), rx + 3, ry + 3, 16);
+    if (ui.hover(rx, ry, 20, 22)) ui.tip(itemTooltip(g, key(out.id), r.out[0].n));
+    ui.text(out.name + (r.out[0].n > 1 ? ' x' + r.out[0].n : ''), rx + 22, ry + 2, can ? C.ink : C.walnut, { maxW: colW - 70 });
+    r.in.forEach((i, k) => {
+      const ix = rx + 22 + k * 34, iy = ry + 11;
+      const have = homeCount(g, i.item);
+      ui.itemIcon(key(i.item[0] === '#' ? specIcon(i.item) : i.item), ix, iy, 9);
+      ui.text(`${Math.min(have, 99)}/${i.n}`, ix + 10, iy + 2, have >= i.n ? C.moss : C.brick);
+      if (ui.hover(ix, iy, 32, 10)) ui.tip([{ text: i.item[0] === '#' ? 'Any ' + i.item.slice(1) : ITEM_BY_ID.get(i.item)!.name, color: C.amber }, { text: `You have ${have}`, color: C.pebble }]);
+    });
+    if (ui.button('cook' + r.id, rx + colW - 44, ry + 3, 40, 16, 'Cook', { style: 'green', disabled: !can })) {
+      const made = cookHome(g, r, ui.input.shift ? Math.min(5, maxCookHome(g, r)) : 1);
+      if (made) play.toast(`Cooked ${made > 1 ? made + 'x ' : ''}${out.name}!`);
+    }
+  });
+  if (!list.length) ui.para('Nothing you can cook right now. Bring home some ingredients!', x + 20, y + 50, W - 40, C.walnut);
+  return true;
+}
+
+registerWindow('cooking', { draw: drawCooking });

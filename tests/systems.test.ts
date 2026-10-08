@@ -150,3 +150,69 @@ describe('tutorial', () => {
     expect(q.active.some((a) => a.id === 't_water')).toBe(true);
   });
 });
+
+describe('farmhouse interior', () => {
+  it('enter, sleep in bed, wake inside, walk out', async () => {
+    const { enterHouse, WAKE_POS, HOUSE_DOOR } = await import('../src/sim/systems/house');
+    const { curMap } = await import('../src/sim/systems/player');
+    const { interact, useHeld } = await import('../src/sim/actions');
+    const g = new Game({ seed: 5 });
+    enterHouse(g);
+    expect(g.player.where).toBe('house');
+    expect(curMap(g)).not.toBe(g.map);
+    // the bed asks to sleep
+    g.events.length = 0;
+    expect(interact(g, 2, 3)).toBe(true);
+    const ev = g.events.find((e: any) => e.t === 'ui' && e.open === 'confirm') as any;
+    expect(ev).toBeTruthy();
+    ev.arg.yes();
+    g.time.min = DAY_END - 0.01;
+    g.tick();
+    expect(g.time.day).toBe(2);
+    expect(g.player.where).toBe('house');
+    expect(g.player.x).toBeCloseTo(WAKE_POS[0]);
+    // tools do nothing indoors and never touch the farm
+    const soil = g.soil.size;
+    g.player.inv.slots[g.player.sel = 0] = { k: key('hoe_1'), n: 1 };
+    g.player.busy = 0;
+    expect(useHeld(g, 6, 6)).toBe(false);
+    expect(g.soil.size).toBe(soil);
+    // walk out of the door
+    g.player.x = HOUSE_DOOR[0] + 0.5;
+    g.player.y = HOUSE_DOOR[1] - 0.1;
+    g.tick();
+    expect(g.player.where).toBe('world');
+    expect(curMap(g)).toBe(g.map);
+  });
+
+  it('kitchen cooks from bag and cellar; cellar survives a save', async () => {
+    const H = await import('../src/sim/systems/house');
+    const { serialize, deserialize } = await import('../src/sim/save');
+    const { RECIPE_BY_ID } = await import('../src/data/recipes');
+    const g = new Game({ seed: 6 });
+    g.player.money = 50000;
+    g.player.inv.add(key('plank'), 40);
+    g.player.inv.add(key('stone'), 200);
+    g.player.inv.add(key('copper_bar'), 5);
+    g.player.inv.add(key('clay'), 10);
+    g.player.inv.add(key('plank'), 60);
+    expect(H.buyHomeUpgrade(g, 'home_pantry')).toMatch(/Kitchen/);
+    expect(H.buyHomeUpgrade(g, 'home_kitchen')).toBeNull();
+    expect(H.buyHomeUpgrade(g, 'home_pantry')).toBeNull();
+    const pan = H.pantry(g)!;
+    pan.add(key('flour'), 3);
+    g.player.inv.add(key('flour'), 1);
+    const bread = RECIPE_BY_ID.get('cook:bread')!;
+    expect(H.maxCookHome(g, bread)).toBe(2);
+    expect(H.cookHome(g, bread, 2)).toBe(2);
+    expect(g.player.inv.countId('bread')).toBe(2);
+    expect(g.player.inv.countId('flour') + pan.countId('flour')).toBe(0);
+    pan.add(key('egg'), 7);
+    H.enterHouse(g);
+    const data = JSON.parse(JSON.stringify(serialize(g, { skin: 1, hair: 2, hairStyle: 'short', shirt: 3, pants: 4 })));
+    const { game: g2 } = deserialize(data);
+    expect(g2.player.where).toBe('house');
+    expect(H.pantry(g2)!.countId('egg')).toBe(7);
+    expect(g2.flags.has('home_kitchen')).toBe(true);
+  });
+});

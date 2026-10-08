@@ -128,6 +128,48 @@ export function paintTerrain(pb: PixBuf, t: T, season: number, v: number, ox = 0
           pb.set(ox + x, oy + y, seam ? C.bark : y % 4 === 0 ? C.oak : at(x, y) < 0.1 ? C.oak : C.walnut);
         }
       break;
+    case T.WOODFLOOR:
+      // warm honey boards with staggered seams and the odd knot
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          const yy = gy + y, xx = gx + x;
+          const board = Math.floor(yy / 5);
+          const seam = yy % 5 === 4 || (xx + board * 11) % 29 === 0;
+          const knot = hash2(xx >> 1, board, 5) < 0.012;
+          const tone = hash2(Math.floor((xx + board * 11) / 29), board, 9);
+          const base = tone < 0.4 ? C.tan : C.oak;
+          const grain = hash2(xx >> 2, yy, 17) < 0.12;
+          pb.set(ox + x, oy + y, seam ? C.walnut : knot ? C.bark : yy % 5 === 0 && base === C.oak ? C.tan : grain ? (base === C.tan ? C.oak : C.walnut) : base);
+        }
+      break;
+    case T.HOUSEWALL:
+      if (v === 0) {
+        // wall face: striped wallpaper above a wooden wainscot
+        for (let y = 0; y < S; y++)
+          for (let x = 0; x < S; x++) {
+            let c: number;
+            if (y >= 10) c = y === 10 ? C.tan : y === S - 1 ? C.bark : (gx + x) % 8 === 0 ? C.bark : C.walnut;
+            else c = (gx + x) % 6 < 2 ? C.blush : (gx + x) % 6 === 3 && y % 4 === 1 ? C.rose : C.cream;
+            pb.set(ox + x, oy + y, c);
+          }
+      } else if (v === 3) {
+        // upper wall: wallpaper under a crown moulding
+        for (let y = 0; y < S; y++)
+          for (let x = 0; x < S; x++) {
+            let c = (gx + x) % 6 < 2 ? C.blush : (gx + x) % 6 === 3 && y % 4 === 1 ? C.rose : C.cream;
+            if (y < 2) c = C.bark;
+            else if (y === 2) c = C.walnut;
+            else if (y === 3) c = C.oak;
+            else if (y === 4) c = C.tan;
+            pb.set(ox + x, oy + y, c);
+          }
+      } else {
+        // wall top seen from above: dark timber
+        for (let y = 0; y < S; y++)
+          for (let x = 0; x < S; x++) pb.set(ox + x, oy + y, at(x, y) < 0.1 ? C.walnut : C.bark);
+        if (v === 2) for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) if (at(x, y) < 0.5) pb.set(ox + x, oy + y, C.ink);
+      }
+      break;
     case T.RIVER:
     case T.LAKE:
     case T.POND:

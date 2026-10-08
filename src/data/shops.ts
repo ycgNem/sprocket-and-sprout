@@ -27,6 +27,23 @@ export const BUILDING_KITS: BuildingKit[] = [
   { id: 'well', price: 800, materials: [{ item: 'stone', n: 75 }], days: 0 },
 ];
 
+/** Farmhouse renovations from the carpenter. Each sets a flag once built. */
+export interface HomeUpgrade {
+  id: string;
+  name: string;
+  desc: string;
+  price: number;
+  materials: Stack[];
+  requires?: string;
+}
+
+export const HOME_UPGRADES: HomeUpgrade[] = [
+  { id: 'home_kitchen', name: 'Farmhouse Kitchen', desc: 'Refits the old stove. Cook any recipe at home, instantly, from what is in your bag.', price: 2500, materials: [{ item: 'plank', n: 40 }, { item: 'stone', n: 60 }, { item: 'copper_bar', n: 5 }] },
+  { id: 'home_featherbed', name: 'Featherbed', desc: 'Late nights cost half as much energy the next morning.', price: 1800, materials: [{ item: 'cloth', n: 4 }, { item: 'wool', n: 8 }] },
+  { id: 'home_pantry', name: 'Root Cellar', desc: 'A cool cellar under the floorboards: 36 slots of storage that the kitchen can cook from.', price: 3500, materials: [{ item: 'plank', n: 60 }, { item: 'stone', n: 120 }, { item: 'clay', n: 10 }], requires: 'home_kitchen' },
+  { id: 'home_hearth', name: 'Grand Hearth', desc: 'Warming up at the fireplace restores 40 energy instead of 10.', price: 4200, materials: [{ item: 'brick', n: 40 }, { item: 'iron_bar', n: 4 }] },
+];
+
 export const SHOPS: ShopDef[] = [
   {
     id: 'general', name: 'Thistlewick Mercantile', owner: 'marigold', loc: 'store', open: 540, close: 1020, closedDays: [2],

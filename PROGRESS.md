@@ -30,14 +30,25 @@
 - Phase 17: 4 festivals with minigames + token stall, tutorial/story quests, daily requests,
   restoration board (16 projects), 3 megaprojects, museum, collections, mail.
 - Phase 18: procedural SFX (~50), ambience (rain, wind, birds, crickets, machine hum), generative music.
-- Tests: 32 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine, save).
+- Phase 19 (polish + balance): scripted pacing bot (Vitest, 3 weeks) and in-browser bot (14 days),
+  perf bench (1320 belts / 260 machines / 5k items: 0.2ms tick, 6.4ms frame), README, debug panel,
+  achievements (33 feats), NPC portraits with moods, ambient life (butterflies, birds, fish, falling
+  trees), festival bunting, mailbox flag, live town clock, cave wall shading, onboarding tips.
+- Phase 20 (home): walk-in farmhouse interior (bed, hearth, almanac, kitchen stove, shelves, rug,
+  windows that follow day/night and season, ticking clock). You sleep in the bed and wake up inside.
+  The almanac gives tomorrow's forecast, this week's market demand, birthdays and festivals.
+  The carpenter sells 4 renovations: Kitchen (instant cooking from your bag), Root Cellar (36-slot
+  pantry the kitchen cooks from), Featherbed (late nights cost less), Grand Hearth (+40 energy).
+  Indoor lighting, muffled rain and fireplace crackle, and quieter "home" music.
+- Tests: 43 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+  save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
+  perf, qa, portraits, house. All report 0 console errors.
 
 ## Next
-- Scripted bot playthrough of the first 2 weeks (pacing), balance pass.
-- Perf measurement with the 1000-belt / 200-machine debug scene.
-- Visual polish: mine walls, festival decorations, mailbox flag, more animations.
-- README.
+- More interior variety (decor items placeable indoors), farmhouse expansion tiers.
+- More depth for mid-game automation goals and late-game megaprojects.
 
 ## Known issues
 - Bumblebots in flight during a manual mid-day save return to their hive on load.
 - Trees and big structures don't block NPC paths that were cached before placement (cache clears periodically).
+- The simple pacing bot stalls its income in week 2 (it hoards crops for bundles); real play earns more.

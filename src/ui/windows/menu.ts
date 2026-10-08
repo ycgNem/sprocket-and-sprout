@@ -178,7 +178,7 @@ function craftingTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: numbe
   return true;
 }
 
-function specIcon(spec: string): string {
+export function specIcon(spec: string): string {
   const t = spec.slice(1);
   const map: Record<string, string> = { crop: 'radish', fruit: 'strawberry', forage: 'wild_garlic', flower: 'tulip', preserve: 'jam_strawberry', animal: 'egg', gem: 'amethyst', wine: 'wine_grape', fish: 'silver_dart', greens: 'spinach', vegetable: 'potato', egg: 'egg', milk: 'milk', honey: 'honey', mushroom: 'field_mushroom' };
   return map[t] ?? 'fiber';

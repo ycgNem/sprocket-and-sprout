@@ -2,7 +2,8 @@
 import { C } from '../../data/palette';
 import { ITEM_BY_ID } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
-import { SHOP_BY_ID, BUILDING_KITS } from '../../data/shops';
+import { SHOP_BY_ID, BUILDING_KITS, HOME_UPGRADES } from '../../data/shops';
+import { buyHomeUpgrade, canBuyHomeUpgrade } from '../../sim/systems/house';
 import { ANIMALS } from '../../data/creatures';
 import { STRUCT_BY_ID } from '../../data/structures';
 import { key, kDef } from '../../sim/inventory';
@@ -156,7 +157,7 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
   const tabs: string[] = ['Buy'];
   if (shop.buys?.length) tabs.push('Sell');
   if (shop.id === 'smithy') tabs.push('Upgrades', 'Geodes');
-  if (shop.id === 'carpenter') tabs.push('Buildings');
+  if (shop.id === 'carpenter') tabs.push('Buildings', 'Home');
   if (shop.id === 'ranch') tabs.push('Animals');
   st.data.tab = st.data.tab ?? 'Buy';
   tabs.forEach((t, i) => { if (ui.button('stab' + t, x + 10 + i * 62, y + 10, 58, 14, t, { active: st.data.tab === t })) st.data.tab = t; });
@@ -231,6 +232,21 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
       if (ui.button('kit' + i, listX + listW - 46, ry + 1, 40, 15, 'Buy', { disabled: !ok, style: 'green' })) {
         const err = buyKit(g, k.id);
         if (err) play.toast(err);
+      }
+    });
+  } else if (st.data.tab === 'Home') {
+    ui.text('Farmhouse renovations. Juniper fits them the same day.', listX, listY, C.walnut);
+    HOME_UPGRADES.forEach((u, i) => {
+      const ry = listY + 14 + i * 30;
+      const built = g.flags.has(u.id);
+      const err = built ? null : canBuyHomeUpgrade(g, u.id);
+      ui.text(u.name + (built ? '  (built)' : ''), listX, ry, built ? C.moss : C.ink);
+      ui.text(`${ICON.coin}${u.price} + ` + u.materials.map((m) => `${m.n} ${ITEM_BY_ID.get(m.item)!.name}`).join(', '), listX, ry + 9, err ? C.brick : C.walnut);
+      ui.text(u.desc, listX, ry + 18, C.oak, { maxW: listW - 60 });
+      if (ui.hover(listX, ry, listW - 60, 28)) ui.tip([{ text: u.name, color: C.amber }, { text: u.desc }, ...(err ? [{ text: err, color: C.rose }] : [])]);
+      if (!built && ui.button('home' + i, listX + listW - 46, ry + 4, 40, 15, 'Build', { disabled: !!err, style: 'green' })) {
+        const e2 = buyHomeUpgrade(g, u.id);
+        if (e2) play.toast(e2);
       }
     });
   } else if (st.data.tab === 'Animals') {

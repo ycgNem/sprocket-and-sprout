@@ -62,3 +62,12 @@ Running log of design and technical decisions made while building autonomously.
     18%/day, and never drops below 30% of base. Big single-product factories are strongly pushed
     to diversify, while small farms barely notice it.
 27. **The game loop catches and reports exceptions** (console + toast) instead of freezing.
+28. **The farmhouse is a separate small map** (`player.where = 'house'`) rather than a see-through
+    roof. It reuses the tile/chunk renderer, but furniture is drawn live and y-sorted so tall pieces
+    overlap the wall. The front door enters, the bed sleeps, and you wake inside. Saving indoors keeps
+    you indoors. Tools, building and world hover are disabled indoors so they can't touch the farm
+    through matching coordinates.
+29. **Home cooking is instant but costs a renovation** (Kitchen, 2500 coins + materials). Oven machines
+    are still the way to cook in bulk. The home kitchen is a convenience for players who don't
+    automate food.
+
