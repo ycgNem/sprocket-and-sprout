@@ -61,6 +61,10 @@ Then open the URL Vite prints (usually http://localhost:5173).
   speed, water-keeping). Silver, gold and star quality tiers.
 - Fruit trees and wild trees with seasonal looks, tapping for syrup, resin, tar and sap.
 - A ruined greenhouse you can restore to grow all year.
+- A walk-in farmhouse: sleep in your bed (you wake up inside), warm up by the hearth, and read
+  the almanac for tomorrow's weather, this week's market demand and upcoming birthdays and
+  festivals. The carpenter sells renovations: a kitchen for instant home cooking (22 recipes),
+  a root cellar pantry, a featherbed and a grand hearth.
 - Coops and barns (3 tiers each) with chickens, ducks, rabbits, cows, goats, sheep, pigs and
   alpacas. They need hay (scythe tall grass into silos), love being petted, and lay better goods
   when happy.
