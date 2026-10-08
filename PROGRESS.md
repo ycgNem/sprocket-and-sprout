@@ -75,9 +75,12 @@
   lights up to 4 candles, and each tier unlocks a one-time reward (coins, the Founder's Lantern,
   a +5% shipping medal, the Gilded Clock).
 - Legendary fish give a mounted wall trophy the first time you catch them.
+- Logistics: arm stock limits (fill a chest only up to N of each item) and splitter modes
+  (alternate / prefer left / prefer right, or filter one item left and the rest right). All of
+  them are saved and copied with blueprints.
 - Fixed: a large XP gain now grants every level it crosses, not just one.
 - Fixed titled villagers showing as "Mayor"/"Dr."/"Old" in toasts, quests and the almanac.
-- Tests: 53 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Tests: 55 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 

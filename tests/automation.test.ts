@@ -224,3 +224,37 @@ describe('guild contracts', () => {
     expect(C.guildBonus(g)).toBeCloseTo(0.03);
   });
 });
+
+describe('logistics settings', () => {
+  it('arm stock limit tops a chest up to N and stops', () => {
+    const g = blank();
+    const src = place(g, 'chest_wood', 5, 5, 0);
+    src.inv!.add(key('stone'), 100);
+    const arm = place(g, 'arm_basic', 6, 5, 1);
+    arm.arm!.limit = 25;
+    const dst = place(g, 'chest_wood', 7, 5, 0);
+    run(g, 120);
+    expect(dst.inv!.count(key('stone'))).toBe(25);
+  });
+
+  it('a filtered splitter sends one item left and the rest right', () => {
+    const g = blank();
+    // belts heading north into a splitter at (5,5)-(6,5)
+    place(g, 'belt_1', 5, 7, 0);
+    place(g, 'belt_1', 5, 6, 0);
+    const sp = place(g, 'splitter_1', 5, 5, 0);
+    for (let y = 4; y >= 0; y--) { place(g, 'belt_1', 5, y, 0); place(g, 'belt_1', 6, y, 0); }
+    sp.belt!.sFilter = key('stone');
+    const feed = g.ents.at(5, 7)!;
+    for (let i = 0; i < 12; i++) {
+      laneInsert(feed.belt!, 0, i % 2 ? key('stone') : key('wood'), 0.1);
+      run(g, 0.6);
+    }
+    run(g, 10);
+    const count = (x: number, k: number) => { let n = 0; for (let y = 0; y <= 4; y++) { const b = g.ents.at(x, y)!.belt!; for (const L of b.lanes) n += L.k.filter((v) => v === k).length; } return n; };
+    expect(count(5, key('stone'))).toBeGreaterThan(0);
+    expect(count(6, key('stone'))).toBe(0);
+    expect(count(5, key('wood'))).toBe(0);
+    expect(count(6, key('wood'))).toBeGreaterThan(0);
+  });
+});

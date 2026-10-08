@@ -14,6 +14,10 @@ export interface BlueprintItem {
   rot: Dir;
   recipe?: string;
   filter?: number[];
+  limit?: number;
+  /** splitter filter key and output priority */
+  sf?: number;
+  sp?: number;
 }
 
 export interface Blueprint {
@@ -34,6 +38,9 @@ export function copyBlueprint(g: Game, x0: number, y0: number, x1: number, y1: n
       const it: BlueprintItem = { def: e.def.id, dx: e.x - x0, dy: e.y - y0, rot: e.rot };
       if (e.mach?.locked && e.mach.recipe) it.recipe = e.mach.recipe.id;
       if (e.arm?.filter.length) it.filter = [...e.arm.filter];
+      if (e.arm?.limit) it.limit = e.arm.limit;
+      if (e.belt && (e.belt.sFilter ?? -1) >= 0) it.sf = e.belt.sFilter;
+      if (e.belt?.sPrio) it.sp = e.belt.sPrio;
       items.push(it);
     }
   return { items, w: x1 - x0 + 1, h: y1 - y0 + 1 };
@@ -84,6 +91,7 @@ export function pasteBlueprint(g: Game, bp: Blueprint, ox: number, oy: number): 
     else ghosts++;
     e.st.bpRecipe = it.recipe;
     e.st.bpFilter = it.filter;
+    if (it.limit || it.sf !== undefined || it.sp) e.st.bpExtra = [it.limit ?? 0, it.sf ?? -1, it.sp ?? 0];
     applyBlueprintSettings(g, e);
   }
   return { placed, ghosts };
@@ -99,7 +107,13 @@ export function applyBlueprintSettings(g: Game, e: any) {
     }
   }
   if (e.st.bpFilter && e.arm) e.arm.filter = [...e.st.bpFilter];
+  if (e.st.bpExtra) {
+    const [lim, sf, sp] = e.st.bpExtra;
+    if (e.arm) e.arm.limit = lim;
+    if (e.belt) { e.belt.sFilter = sf; e.belt.sPrio = sp; }
+  }
   delete e.st.bpRecipe;
   delete e.st.bpFilter;
+  delete e.st.bpExtra;
   void g;
 }

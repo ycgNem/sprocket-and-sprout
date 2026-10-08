@@ -45,10 +45,12 @@ export function updateArms(g: Game, dt: number) {
           break;
         }
         const filt = a.filter;
-        const want = (k: ItemKey) => (filt.length === 0 || filt.includes(k) || filt.includes(k & ~3)) && portAccept(g, dst, k, e.rot) > 0;
+        // stock limit: only top a container up to `limit` of each item
+        const room = (k: ItemKey) => (a.limit > 0 && dst.inv && !dst.belt && !dst.mach ? a.limit - dst.inv.count(k) : Infinity);
+        const want = (k: ItemKey) => (filt.length === 0 || filt.includes(k) || filt.includes(k & ~3)) && room(k) > 0 && portAccept(g, dst, k, e.rot) > 0;
         const cap = a.hand + handBonus;
         // never grab more than the destination can hold right now
-        const got = portTake(g, src, want, (k) => (dst.belt ? 1 : Math.max(1, Math.min(cap, portAccept(g, dst, k, e.rot)))));
+        const got = portTake(g, src, want, (k) => (dst.belt ? 1 : Math.max(1, Math.min(cap, room(k), portAccept(g, dst, k, e.rot)))));
         if (got) {
           a.held = got;
           a.state = ArmState.ToDrop;

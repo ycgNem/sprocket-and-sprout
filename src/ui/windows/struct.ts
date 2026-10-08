@@ -195,6 +195,15 @@ function armPanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: num
       if (r.hover && k !== undefined) ui.tip([{ text: kDef(k).name }]);
     }
   }
+  // stock limit for chests and crates
+  const LIMITS = [0, 10, 25, 50, 100, 200, 500, 999];
+  const ly = e.def.filter ? y + 78 : y + 40;
+  ui.text('Stock limit:', x + 14, ly + 3, C.walnut);
+  const li = Math.max(0, LIMITS.indexOf(a.limit));
+  if (ui.button('alim-', x + 80, ly, 14, 12, '-', { style: 'flat', disabled: li === 0 })) a.limit = LIMITS[Math.max(0, li - 1)];
+  ui.text(a.limit ? String(a.limit) : 'none', x + 110, ly + 3, a.limit ? C.ink : C.oak, { align: 'center' });
+  if (ui.button('alim+', x + 128, ly, 14, 12, '+', { style: 'flat', disabled: li === LIMITS.length - 1 })) a.limit = LIMITS[Math.min(LIMITS.length - 1, li + 1)];
+  ui.text('Fill chests only up to this many.', x + 150, ly + 3, C.oak);
   if (a.held) {
     ui.text('Holding:', x + 200, y + 52, C.oak);
     ui.itemIcon(a.held.k, x + 240, y + 48, 16, a.held.n);

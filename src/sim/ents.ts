@@ -34,6 +34,10 @@ export interface BeltC {
   curve: number;
   /** splitter alternation per lane */
   toggle: [number, number];
+  /** splitter (root only): items of this key go left, all others right (-1 = off) */
+  sFilter?: number;
+  /** splitter (root only): 0 alternate, 1 prefer left, 2 prefer right */
+  sPrio?: number;
   /** set during topology: items need to keep moving (render anim) */
   moving: boolean;
 }
@@ -49,6 +53,8 @@ export interface ArmC {
   /** swing progress 0 (pick side) .. 1 (drop side) */
   t: number;
   filter: ItemKey[];
+  /** stop filling a container once it holds this many of the item (0 = no limit) */
+  limit: number;
   powered: boolean;
   /** retry cooldown when nothing to do */
   wait: number;
@@ -274,7 +280,7 @@ export function initComponents(e: Ent) {
     case 'arm':
       e.arm = {
         reach: d.reach ?? 1, speed: d.speed ?? 1, hand: d.hand ?? 1, held: null, state: ArmState.Idle, t: 0,
-        filter: [], powered: !!d.powerUse, wait: 0,
+        filter: [], limit: 0, powered: !!d.powerUse, wait: 0,
       };
       break;
     case 'machine':

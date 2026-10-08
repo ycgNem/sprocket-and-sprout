@@ -131,10 +131,14 @@ function transferOut(e: Ent, lane: number, k: number, overflow: number): boolean
   if (b.kind === BeltKind.Splitter) {
     // alternation is shared by both halves, per lane
     const root = e.parent ?? e;
-    const tog = root.belt!.toggle;
-    const outs = [root.belt!.next, root.child?.belt?.next ?? null];
+    const rb = root.belt!;
+    const tog = rb.toggle;
+    const outs = [rb.next, root.child?.belt?.next ?? null];
     const pref = tog[lane];
-    for (const attempt of [pref, 1 - pref]) {
+    // filter: the chosen item goes left only, everything else right only
+    const filt = rb.sFilter ?? -1;
+    const order = filt >= 0 ? ((k & ~3) === filt ? [0] : [1]) : rb.sPrio === 1 ? [0, 1] : rb.sPrio === 2 ? [1, 0] : [pref, 1 - pref];
+    for (const attempt of order) {
       const c = outs[attempt];
       if (!c) continue;
       if (laneInsert(c.belt!, lane, k, Math.min(overflow, 0.2))) {

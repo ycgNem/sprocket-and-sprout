@@ -216,6 +216,27 @@ STRUCT_PANELS.depot = (ui, play, e, x, y, w, st) => {
   return 32 + gs.list.length * 30 + 4;
 };
 
+STRUCT_PANELS.splitter = (ui, play, e, x, y, w) => {
+  const g = play.g;
+  const root = e.parent ?? e;
+  const b = root.belt!;
+  ui.text('Splits items evenly between its two outputs, lane by lane.', x + 14, y + 2, C.ink);
+  ui.text('Output:', x + 14, y + 18, C.walnut);
+  const modes: [number, string][] = [[0, 'Alternate'], [1, 'Prefer left'], [2, 'Prefer right']];
+  modes.forEach(([m, label], i) => { if (ui.button('sprio' + m, x + 60 + i * 74, y + 15, 70, 14, label, { active: (b.sPrio ?? 0) === m && (b.sFilter ?? -1) < 0, style: 'flat' })) { b.sPrio = m; b.sFilter = -1; } });
+  ui.text('Filter:', x + 14, y + 40, C.walnut);
+  const fk = b.sFilter ?? -1;
+  const r = ui.slot(x + 60, y + 34, fk >= 0 ? { k: fk, n: 1 } : null);
+  if (r.click) {
+    const held = ui.hand ?? g.player.inv.slots[g.player.sel];
+    if (held) b.sFilter = held.k & ~3;
+  }
+  if (r.rclick) b.sFilter = -1;
+  if (r.hover) ui.tip(fk >= 0 ? [{ text: kDef(fk).name, color: C.amber }, { text: 'Right-click to clear', color: C.pebble }] : [{ text: 'Click while holding an item to filter it' }]);
+  ui.para(fk >= 0 ? `${kDef(fk).name} goes left; everything else goes right.` : 'Set a filter to sort one item out of a mixed belt (left = the side to your left when facing along the belt).', x + 86, y + 36, w - 100, C.oak, 9);
+  return 64;
+};
+
 STRUCT_PANELS.decor = (ui, play, e, x, y, w) => {
   ui.text(e.def.desc, x + 14, y + 4, C.ink);
   if (e.def.id === 'sign') ui.text('Right-click the sign while holding an item to show it.', x + 14, y + 16, C.walnut);

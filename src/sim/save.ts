@@ -86,7 +86,9 @@ function saveEnt(e: Ent): any {
       o.up = e.belt.partner?.id ?? 0;
     }
   }
-  if (e.arm) o.a = [sj(e.arm.held), e.arm.state, e.arm.t, e.arm.filter.map((k) => kj(k))];
+  if (e.arm) o.a = [sj(e.arm.held), e.arm.state, e.arm.t, e.arm.filter.map((k) => kj(k)), e.arm.limit || 0];
+  if (e.belt && (e.belt.sFilter ?? -1) >= 0) o.sf = kj(e.belt.sFilter!);
+  if (e.belt?.sPrio) o.sp = e.belt.sPrio;
   if (e.mach) {
     const m = e.mach;
     o.m = [m.recipe?.id ?? null, m.locked ? 1 : 0, [...m.inBuf].map(([k, n]) => [kj(k), n]), m.outBuf.map(sj), m.crafting ? 1 : 0, m.progress, m.burn, sj(m.fuel), m.made];
@@ -124,6 +126,8 @@ function loadEnt(g: Game, o: any, idMap: Map<number, Ent>) {
   };
   lanes(o.b, e);
   if (e.child) lanes(o.bc, e.child);
+  if (e.belt && o.sf !== undefined) e.belt.sFilter = jk(o.sf) ?? -1;
+  if (e.belt && o.sp) e.belt.sPrio = o.sp;
   if (e.belt && o.uk !== undefined) {
     e.belt.kind = o.uk as BeltKind;
     e.st._up = o.up;
@@ -133,6 +137,7 @@ function loadEnt(g: Game, o: any, idMap: Map<number, Ent>) {
     e.arm.state = o.a[1] as ArmState;
     e.arm.t = o.a[2];
     e.arm.filter = (o.a[3] as KJ[]).map(jk).filter((k): k is number => k !== null);
+    e.arm.limit = (o.a[4] as number) ?? 0;
     if (!e.arm.held && (e.arm.state === ArmState.ToDrop || e.arm.state === ArmState.Dropping)) e.arm.state = ArmState.ToPick;
   }
   if (e.mach && o.m) {
