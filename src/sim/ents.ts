@@ -290,6 +290,10 @@ export function initComponents(e: Ent) {
     case 'generator':
       e.gen = { cap: d.powerGen ?? 0, out: 0, burn: 0, fuel: null };
       break;
+    case 'pond':
+      e.inv = new Inventory(d.slots ?? 6);
+      e.st.pop = 0;
+      break;
     case 'chest':
     case 'shipbin':
       e.inv = new Inventory(d.slots ?? 18);

@@ -237,6 +237,21 @@ STRUCT_PANELS.splitter = (ui, play, e, x, y, w) => {
   return 64;
 };
 
+STRUCT_PANELS.pond = (ui, play, e, x, y, w, st) => {
+  const g = play.g;
+  st.data.target = (k: number, n: number) => (n > 0 && PORT_HANDLERS.pond.insert!(g, e, k, 1)) || 0;
+  const fish = e.st.fish ? ITEM_BY_ID.get(e.st.fish) : null;
+  if (fish) {
+    ui.itemIcon(key(fish.id), x + 14, y + 2, 16);
+    ui.text(`${fish.name}: ${e.st.pop}/10 fish`, x + 36, y + 3, C.ink);
+    ui.bar(x + 36, y + 13, 150, 4, (e.st.pop ?? 0) / 10, C.aqua);
+    ui.text('Lays roe every night. A crowded pond sometimes breeds a fish.', x + 14, y + 24, C.walnut);
+  } else ui.para('Empty. Right-click the pond holding a fish (or shift-click one below) to stock it. Legendary fish refuse to live in ponds.', x + 14, y + 2, w - 28, C.walnut);
+  ui.text('Pond basket (click to take):', x + 14, y + 38, C.oak);
+  invGrid(ui, play, e.inv!, x + 14, y + 48, 6, { readonly: true });
+  return 76;
+};
+
 STRUCT_PANELS.decor = (ui, play, e, x, y, w) => {
   ui.text(e.def.desc, x + 14, y + 4, C.ink);
   if (e.def.id === 'sign') ui.text('Right-click the sign while holding an item to show it.', x + 14, y + 16, C.walnut);

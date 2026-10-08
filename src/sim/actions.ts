@@ -1,4 +1,5 @@
 // Player actions: tool use on tiles, planting, eating, and interacting with things.
+import { stockPond } from './systems/ponds';
 import { cartHere } from './systems/cart';
 import { knowsRecipe, learnRecipe } from './systems/cookbook';
 import { contractInsert } from './systems/contracts';
@@ -582,6 +583,14 @@ export function interactStruct(g: Game, e: Ent): boolean {
         return true;
       }
     }
+  }
+  if (d.kind === 'pond' && held && kDef(held.k).cat === 'fish') {
+    if (stockPond(g, e, held.k)) {
+      p.inv.remove(held.k, 1);
+      g.emit({ t: 'sfx', id: 'splash' });
+      g.toast(`You release a ${kDef(held.k).name} into the pond (${e.st.pop}/10).`);
+    } else g.toast(e.st.fish && e.st.fish !== kDef(held.k).id ? `This pond is for ${ITEM_BY_ID.get(e.st.fish)?.name}.` : kDef(held.k).tags?.includes('legendary') ? 'A legend belongs in the wild.' : 'The pond is full.');
+    return true;
   }
   if (d.kind === 'depot' && held) {
     const used = contractInsert(g, held.k, held.n);

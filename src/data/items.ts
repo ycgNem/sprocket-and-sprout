@@ -291,6 +291,7 @@ art('maple_syrup', 'Maple Syrup', 200, { t: 'jar', c: [C.terracotta, C.brick] },
 art('oak_resin', 'Oak Resin', 150, { t: 'jar', c: [C.amber, C.walnut] }, 'Sticky, aromatic resin.');
 art('pine_tar', 'Pine Tar', 100, { t: 'jar', c: [C.bark, C.ink] }, 'Thick black tar. Waterproofs anything.');
 art('birch_sap', 'Birch Water', 120, { t: 'bottle', c: [C.frost, C.pebble] }, 'Faintly sweet tree water.', ['drink'], 10);
+it('roe', 'Fish Roe', 'animal', 40, { t: 'berries', c: [C.apricot, C.terracotta] }, 'Tiny golden eggs from a fish pond. Five make a Roe Jar.', { tags: ['roe'] });
 art('caviar', 'Roe Jar', 500, { t: 'jar', c: [C.apricot, C.terracotta] }, 'Preserved fish roe.', [], 10);
 art('smoked_fish', 'Smoked Fish', 200, { t: 'fish_slim', c: [C.walnut, C.tan, C.bark] }, 'Smoky and long-keeping.', [], 30);
 

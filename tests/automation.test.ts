@@ -258,3 +258,26 @@ describe('logistics settings', () => {
     expect(count(6, key('wood'))).toBeGreaterThan(0);
   });
 });
+
+describe('fish ponds', () => {
+  it('arms stock a pond; it grows, lays roe, and a jar turns roe into a roe jar', async () => {
+    await import('../src/sim/systems/ponds');
+    const g = blank();
+    const chest = place(g, 'chest_wood', 5, 6, 0);
+    chest.inv!.add(key('bluegill'), 3);
+    chest.inv!.add(key('thistlefin'), 1);
+    place(g, 'arm_basic', 6, 6, 1);
+    const pond = place(g, 'fish_pond', 7, 5, 0);
+    run(g, 30);
+    expect(pond.st.fish).toBe('bluegill');
+    expect(pond.st.pop).toBe(3);
+    expect(chest.inv!.count(key('thistlefin'))).toBe(1); // legends stay out
+    for (let d = 0; d < 6; d++) for (const s of (await import('../src/sim/Game')).SYSTEMS) if (s.name === 'ponds') s.dayEnd!(g, {} as any);
+    expect(pond.st.pop).toBeGreaterThan(3);
+    expect(pond.inv!.count(key('roe'))).toBeGreaterThan(0);
+    const jar = place(g, 'jar', 12, 12, 0);
+    jar.mach!.inBuf.set(key('roe'), 5);
+    run(g, 100);
+    expect(jar.mach!.outBuf.find((s) => s.k === key('caviar'))?.n ?? 0).toBeGreaterThanOrEqual(1);
+  });
+});

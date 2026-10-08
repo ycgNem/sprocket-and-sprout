@@ -15,7 +15,7 @@ export const EXTRA_TOP: Record<string, number> = {
   pole_tower: 40, waterwheel: 10, windmill: 30, steam_engine: 18, sunlens: 8, spring_battery: 6, chest_wood: 2, chest_iron: 2,
   chest_brass: 3, crate_out: 2, crate_req: 2, crate_store: 2, hive: 18, shipping_crate: 3, coop_1: 18, coop_2: 20, coop_3: 22,
   barn_1: 22, barn_2: 24, barn_3: 26, silo: 28, well: 8, construction_site: 16, freight_depot: 20, sign: 6, flower_pot: 4, fence_wood: 2, fence_stone: 0,
-  gate: 2, tapper: 0, fish_trap: 0,
+  gate: 2, tapper: 0, fish_trap: 0, fish_pond: 2,
 };
 
 type Art = (pb: PixBuf, W: number, H: number, top: number, f: number, on: boolean, season: number) => void;
@@ -164,6 +164,22 @@ const ART: Record<string, Art> = {
     pb.rect(5, t + 10, 6, 5, C.oak);
     pb.rect(5, t + 10, 6, 1, C.tan);
     pb.rect(5, t + 12, 6, 1, C.stone);
+  },
+  fish_pond: (pb, W, H, t, f, on, s) => {
+    // stone rim around a round pond with lily pads
+    pb.ellipse(W / 2, t + 24, 23, 21, C.stone);
+    for (let a = 0; a < 24; a++) {
+      const x = W / 2 + Math.cos((a / 24) * Math.PI * 2) * 21, y = t + 24 + Math.sin((a / 24) * Math.PI * 2) * 19;
+      pb.disc(x, y, 2.4, a % 3 ? C.pebble : C.slate);
+    }
+    pb.ellipse(W / 2, t + 24, 18, 16, s === 3 ? C.frost : C.river);
+    pb.ellipse(W / 2, t + 25, 15, 13, s === 3 ? C.sky : C.deepsea);
+    if (s !== 3) {
+      pb.disc(W / 2 - 9, t + 18, 2.5, C.leaf); pb.set(W / 2 - 9, t + 18, C.moss);
+      pb.disc(W / 2 + 8, t + 30, 2, C.leaf); pb.set(W / 2 + 9, t + 29, C.rose);
+      pb.rect(W / 2 + 13, t + 12, 1, 6, C.moss); pb.rect(W / 2 + 15, t + 13, 1, 5, C.grass);
+    }
+    pb.rect(W / 2 - 6, t + 21, 3, 1, C.frost); pb.rect(W / 2 + 2, t + 27, 4, 1, C.sky);
   },
   fish_trap: (pb, W, H, t) => {
     pb.ellipse(8, t + 9, 6, 5, C.tan);

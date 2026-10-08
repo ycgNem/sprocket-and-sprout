@@ -41,6 +41,7 @@ hand('keg', 1, [['wood', 30], ['copper_bar', 2]], 'r_brewing');
 hand('bee_skep', 1, [['wood', 15], ['fiber', 30], ['sap', 2]], 'r_bees');
 hand('tapper', 1, [['wood', 15], ['copper_bar', 1]], 'r_tapping');
 hand('fish_trap', 1, [['wood', 25], ['rope', 2]], 'r_traps');
+hand('fish_pond', 1, [['stone', 120], ['clay', 20], ['kelp', 4]], 'r_traps', 4);
 hand('deluxe_bait', 5, [['bait', 5], ['moth_dust', 1]], 'r_traps');
 hand('charcoal_kiln', 1, [['wood', 20], ['stone', 10], ['clay', 2]], 'r_woodworking');
 hand('brick_kiln', 1, [['stone', 30], ['clay', 15], ['copper_bar', 1]], 'r_masonry');
@@ -169,6 +170,7 @@ rec('keg', [s('#honey', 1)], [s('mead', 1)], 120, undefined, 'keg:mead');
 for (const [id] of FRUIT_LIST) rec('jar', [s(id, 1)], [s(`jam_${id}`, 1)], 60, undefined, `jar:jam_${id}`);
 for (const [id] of VEG_LIST) rec('jar', [s(id, 1)], [s(`pickles_${id}`, 1)], 60, undefined, `jar:pickles_${id}`);
 rec('jar', [s('#fish', 3)], [s('caviar', 1)], 90, undefined, 'jar:caviar');
+rec('jar', [s('roe', 5)], [s('caviar', 1)], 90, undefined, 'jar:caviar_roe');
 
 // ---------------- Cheese press ----------------
 rec('press', [s('milk', 1)], [s('cheese', 1)], 40, undefined, 'press:cheese');

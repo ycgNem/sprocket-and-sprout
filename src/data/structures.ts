@@ -93,6 +93,8 @@ const defs: S[] = [
     desc: 'Place on a wild tree to collect its sap, syrup or resin.' },
   { id: 'fish_trap', name: 'Wicker Fish Trap', kind: 'fishtrap', size: [1, 1], requires: 'water', speed: 1, price: 75,
     desc: 'Set in water with bait. Catches shellfish overnight. Arms on the shore can empty it.' },
+  { id: 'fish_pond', name: 'Fish Pond', kind: 'pond', size: [3, 3], solid: true, slots: 6, price: 0,
+    desc: 'Stock it with a fish. The school grows each day and lays roe. Arms can stock and empty it.' },
   { id: 'lab', name: 'Study Desk', kind: 'lab', size: [2, 2], solid: true, speed: 1, price: 0,
     desc: 'Where research bundles become knowledge. Arms can feed it bundles.' },
 

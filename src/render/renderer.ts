@@ -571,6 +571,18 @@ export class Renderer {
           drawSprite(ctx, s, e.x * TILE, e.y * TILE);
           if (d.id === 'windmill') this.drawWindmillBlades(g, e);
           if (d.kind === 'drill') this.drawDrillArrow(e);
+          if (d.kind === 'pond' && e.st.pop) {
+            // the school swimming in circles
+            const n = Math.min(10, e.st.pop);
+            for (let k = 0; k < n; k++) {
+              const a = this.time * (0.4 + (k % 3) * 0.15) + k * 2.1;
+              const r = 6 + (k % 4) * 2.5;
+              const fx = e.x * TILE + 24 + Math.cos(a) * r, fy = e.y * TILE + 26 + Math.sin(a) * r * 0.75;
+              ctx.fillStyle = rgba(k % 3 === 0 ? C.butter : C.apricot, 0.8);
+              ctx.fillRect(Math.round(fx), Math.round(fy), 3, 1);
+              ctx.fillRect(Math.round(fx) + (Math.cos(a) > 0 ? -1 : 3), Math.round(fy), 1, 1);
+            }
+          }
           if (e.mach && e.mach.crafting) this.drawProgressPip(e, e.mach.progress);
           if (e.def.kind === 'decor' && e.def.id === 'sign' && e.st.k !== null && e.st.k !== undefined) {
             const is = sprite('i:' + itemIdCache(e.st.k));

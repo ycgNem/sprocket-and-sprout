@@ -83,13 +83,15 @@
 - Night events (about 1 night in 9 after the first week): a meteorite of starmetal rocks, a
   crop fairy that ripens a patch, a windstorm that scatters debris, or (in year 1) a coin
   pouch from a secret friend. Shown in a message after the morning summary.
+- Fish ponds (Trapcraft research): stock a species by hand or by arm. The school grows to 10,
+  lays roe nightly (5 roe make a Roe Jar in a preserves jar) and a crowded pond breeds fish.
 - Legendary fish give a mounted wall trophy the first time you catch them.
 - Logistics: arm stock limits (fill a chest only up to N of each item) and splitter modes
   (alternate / prefer left / prefer right, or filter one item left and the rest right). All of
   them are saved and copied with blueprints.
 - Fixed: a large XP gain now grants every level it crosses, not just one.
 - Fixed titled villagers showing as "Mayor"/"Dr."/"Old" in toasts, quests and the almanac.
-- Tests: 58 Vitest tests (+ a LONG=1 full-year run) (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Tests: 59 Vitest tests (+ a LONG=1 full-year run) (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 
