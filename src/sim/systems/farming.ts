@@ -31,6 +31,8 @@ export function inGreenhouse(g: Game, i: number) {
 export function canTill(g: Game, x: number, y: number): boolean {
   const m = g.map;
   if (g.player.where !== 'world' || !m.inb(x, y)) return false;
+  const pb = g.sys.pet?.stage === 'adopted' ? g.sys.pet.bowl : null;
+  if (pb && pb[0] === x && pb[1] === y) return false;
   const i = m.idx(x, y);
   const z = m.zone[i];
   if (z !== Z.FARM && z !== Z.GREENHOUSE) return false;

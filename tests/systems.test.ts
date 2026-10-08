@@ -238,3 +238,41 @@ describe('food buffs', () => {
     expect(eatHeld(g)).toBe(false);
   });
 });
+
+describe('farm pet', () => {
+  it('a stray arrives on day 3, can be adopted, petted, watered and saved', async () => {
+    const P = await import('../src/sim/systems/pet');
+    const { serialize, deserialize } = await import('../src/sim/save');
+    const { interact, useTool } = await import('../src/sim/actions');
+    const g = new Game({ seed: 12 });
+    expect(P.petSys(g).stage).toBe('none');
+    sleep(g); sleep(g);
+    const p = P.petSys(g);
+    expect(p.stage).toBe('stray');
+    P.adoptPet(g, 'Turnip');
+    expect(p.name).toBe('Turnip');
+    // pet it (it's outside in the yard on a sunny morning)
+    g.sys.house.leave(g);
+    g.weather = 'sun';
+    p.map = 'world';
+    const before = p.points;
+    expect(interact(g, Math.floor(p.x), Math.floor(p.y - 0.3))).toBe(true);
+    expect(p.points).toBeGreaterThan(before);
+    // fill the bowl with the watering can
+    expect(useTool(g, 'can', 0, p.bowl[0], p.bowl[1])).toBe(true);
+    expect(p.bowlFull).toBe(true);
+    const pts = p.points;
+    sleep(g);
+    expect(p.points).toBe(pts + 6);
+    expect(p.bowlFull).toBe(g.isRaining());
+    const data = JSON.parse(JSON.stringify(serialize(g, { skin: 1, hair: 2, hairStyle: 'short', shirt: 3, pants: 4 })));
+    const { game: g2 } = deserialize(data);
+    expect(P.petSys(g2).name).toBe('Turnip');
+    expect(P.petSys(g2).points).toBe(p.points);
+    // the pet wanders without errors for a while, both indoors and out
+    run(g2, 30);
+    g2.time.min = 21 * 60;
+    run(g2, 5);
+    expect(P.petSys(g2).map).toBe('house');
+  });
+});

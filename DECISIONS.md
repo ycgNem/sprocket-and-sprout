@@ -75,4 +75,8 @@ Running log of design and technical decisions made while building autonomously.
     are small per level (8-12%) so buffs flavor a day's plan without replacing tool upgrades or
     skills. Foods with a buff can be eaten at full energy. This replaces the old coffee speed flag,
     which never expired.
+31. **The pet is a stray that arrives on day 3** instead of a new-game choice. That keeps the new-game
+    form short and makes the pet a small story beat (a letter, then a right-click). Its species and
+    coat come from the world seed; you choose the name. Pets steer straight toward their target
+    and slide along walls rather than using A*, which is good enough for a yard and a room.
 

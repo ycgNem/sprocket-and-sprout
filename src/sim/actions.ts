@@ -1,4 +1,5 @@
 // Player actions: tool use on tiles, planting, eating, and interacting with things.
+import { fillBowl, petAt, petInteract } from './systems/pet';
 import { BUFF_INFO } from '../data/buffs';
 import { CROP_BY_ID, CROP_BY_SEED } from '../data/crops';
 import { ITEM_BY_ID } from '../data/items';
@@ -248,6 +249,7 @@ export function useTool(g: Game, kind: string, tier: number, tx: number, ty: num
       if (did) g.addXp('farming', 1);
       return true;
     case 'can': {
+      if (fillBowl(g, tx, ty)) return true;
       // refill at water
       if (m.isWater(tx, ty) || (g.ents.at(tx, ty)?.def.id === 'well')) {
         const cap = [40, 55, 70, 85, 100][tier];
@@ -447,6 +449,11 @@ export function interact(g: Game, tx: number, ty: number): boolean {
   if (g.sleeping) return false;
   const m = curMap(g);
   if (p.where === 'mine') return g.sys.mine?.interact?.(g, tx, ty) ?? false;
+  const pet = petAt(g, tx + 0.5, ty + 0.5);
+  if (pet) {
+    petInteract(g, pet);
+    return true;
+  }
   if (p.where === 'house') return g.sys.house?.interact?.(g, tx, ty) ?? false;
   // NPCs near the target
   const npc = g.sys.npcs?.at?.(g, tx + 0.5, ty + 0.5);

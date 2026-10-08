@@ -65,6 +65,9 @@ Then open the URL Vite prints (usually http://localhost:5173).
   the almanac for tomorrow's weather, this week's market demand and upcoming birthdays and
   festivals. The carpenter sells renovations: a kitchen for instant home cooking (22 recipes),
   a root cellar pantry, a featherbed and a grand hearth.
+- A farm pet: a stray cat or dog adopts you on day 3. Name it, pet it, fill its water bowl, and
+  it will follow you around, nap by the hearth and leave gifts at the door.
+- Cooked food grants timed buffs (speed, stamina, fishing, mining, luck, defense, farming).
 - Coops and barns (3 tiers each) with chickens, ducks, rabbits, cows, goats, sheep, pigs and
   alpacas. They need hay (scythe tall grass into silos), love being petted, and lay better goods
   when happy.

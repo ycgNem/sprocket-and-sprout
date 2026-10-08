@@ -794,6 +794,20 @@ export class Renderer {
         if (a.emote) this.drawEmote(a.x, a.y - 1.4, a.emote);
       } });
     }
+    // the farm pet and its water bowl
+    const pet = g.sys.pet;
+    if (pet && pet.stage !== 'none' && pet.map === g.player.where && onScreen(pet.x, pet.y)) {
+      const pose = pet.mode === 'sleep' ? 3 : pet.mode === 'sit' ? 2 : pet.moving ? Math.floor(pet.walkT * 2.2) % 2 : 0;
+      D.push({ y: pet.y, f: () => {
+        drawSprite(ctx, sprite('shadow:10'), pet.x * TILE, pet.y * TILE);
+        drawSprite(ctx, sprite(`pet:${pet.kind}:${pet.coat}:${pose}`), pet.x * TILE, pet.y * TILE, 1, pet.dir === 3);
+        if (pet.emote) this.drawEmote(pet.x, pet.y - 1.1, pet.emote);
+      } });
+    }
+    if (pet && pet.stage === 'adopted' && g.player.where === 'world' && onScreen(pet.bowl[0], pet.bowl[1])) {
+      const [bx, by] = pet.bowl;
+      D.push({ y: by + 0.3, f: () => drawSprite(ctx, sprite(`bowl:${pet.bowlFull ? 1 : 0}`), bx * TILE, by * TILE) });
+    }
     // monsters
     const mons: any[] = g.player.where === 'mine' ? g.sys.mine?.monsters ?? [] : [];
     for (const mo of mons) {

@@ -19,11 +19,11 @@ export function dropsState(g: Game): { list: Drop[]; spawn: typeof spawnDrop } {
   return g.sys.drops;
 }
 
-export function spawnDrop(g: Game, k: number, n: number, x: number, y: number, pop = true) {
+export function spawnDrop(g: Game, k: number, n: number, x: number, y: number, pop = true, map: Drop['map'] = g.player.where) {
   const s = dropsState(g);
   const a = g.rng.next() * Math.PI * 2;
   const sp = pop ? 1.2 + g.rng.next() * 1.5 : 0;
-  s.list.push({ k, n, x, y, z: pop ? 0.2 : 0, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6, vz: pop ? 3 + g.rng.next() * 2 : 0, t: 0, map: g.player.where });
+  s.list.push({ k, n, x, y, z: pop ? 0.2 : 0, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6, vz: pop ? 3 + g.rng.next() * 2 : 0, t: 0, map });
 }
 
 registerSystem({
@@ -76,6 +76,6 @@ registerSystem({
   },
   dayStart(g) {
     const s = dropsState(g);
-    s.list = s.list.filter((d) => d.map === 'world');
+    s.list = s.list.filter((d) => d.map === 'world' || d.map === 'house');
   },
 });

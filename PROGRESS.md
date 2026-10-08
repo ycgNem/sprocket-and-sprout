@@ -42,7 +42,11 @@
   Indoor lighting, muffled rain and fireplace crackle, and quieter "home" music.
 - Food buffs: 7 kinds x 3 levels from 23 foods (speed, stamina, fishing, mining, luck, defense,
   farming), shown as a HUD badge with time left and on item tooltips.
-- Tests: 43 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
+- Farm pet: on day 3 a stray cat or dog (4 coats each) turns up and Marigold writes about it.
+  Right-click to adopt and name it. It wanders the yard, follows you once it trusts you, heads
+  inside at night or in bad weather and sleeps on the rug. It has a water bowl for the watering
+  can, petting, 5 hearts, and morning gifts at 3+ hearts. Synthesized meow and bark.
+- Tests: 45 Vitest tests (belts, arms, machines, power, time, crops, economy, crafting, NPCs, mine,
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 

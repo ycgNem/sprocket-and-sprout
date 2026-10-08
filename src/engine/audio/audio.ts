@@ -201,6 +201,18 @@ export class Audio {
       case 'heart': [880, 1108, 1318].forEach((f, i) => this.tone(f, 'sine', { a: 0.01, d: 0.3 }, 0.06 * v, B, i * 0.08)); break;
       case 'sleep': [523, 392, 330, 262].forEach((f, i) => this.tone(f, 'sine', { a: 0.05, d: 0.6 }, 0.06 * v, B, i * 0.3)); break;
       case 'rooster': this.tone(700, 'sawtooth', { a: 0.02, d: 0.25, s: 0.6, r: 0.2 }, 0.03 * v, B, 0, 1.4); this.tone(900, 'sawtooth', { a: 0.02, d: 0.35 }, 0.03 * v, B, 0.3, 0.7); break;
+      case 'meow': {
+        const f = 560 + Math.random() * 120;
+        this.tone(f, 'triangle', { a: 0.03, d: 0.13, s: 0.5 }, 0.05 * v, B, 0, 1.45);
+        this.tone(f * 1.45, 'triangle', { a: 0.01, d: 0.22 }, 0.045 * v, B, 0.15, 0.62);
+        break;
+      }
+      case 'bark':
+        for (let i = 0; i < (Math.random() < 0.5 ? 1 : 2); i++) {
+          this.tone(320 + Math.random() * 60, 'square', { a: 0.005, d: 0.09 }, 0.04 * v, B, i * 0.18, 0.55);
+          this.noise(0.06, 0.05 * v, 'bandpass', 900, 2, i * 0.18, 0, B);
+        }
+        break;
       default: this.tone(600, 'sine', { a: 0.002, d: 0.05 }, 0.03 * v, B);
     }
   }

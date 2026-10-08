@@ -1,4 +1,5 @@
 // The in-game screen: input -> sim commands, camera, build tools, HUD + windows, events -> juice.
+import { petAt, petHearts } from '../sim/systems/pet';
 import { C, PALETTE, rgba } from '../data/palette';
 import { STRUCT_BY_ID } from '../data/structures';
 import { NPC_BY_ID } from '../data/npcs';
@@ -273,6 +274,19 @@ export class PlayScreen implements Screen {
     if (this.win || ui.overUI || this.g.sleeping) return;
     const g = this.g;
     const t = this.mouseTile();
+    const pt = petAt(g, t.fx, t.fy + 0.3);
+    if (pt) {
+      const h = petHearts(pt);
+      ui.tip(pt.stage === 'stray'
+        ? [{ text: `A stray ${pt.kind}`, color: C.amber }, { text: 'Right-click to say hello', color: C.pebble }]
+        : [{ text: pt.name, color: C.amber }, { text: `Your ${pt.kind}  ` + ICON.heart.repeat(h) + '.'.repeat(5 - h), color: C.rose }, { text: pt.petted ? 'Petted today' : 'Right-click to pet', color: C.pebble }, { text: pt.bowlFull ? 'Water bowl is full' : 'Water bowl is empty (use the watering can)', color: pt.bowlFull ? C.aqua : C.pebble }]);
+      return;
+    }
+    const bowl = g.sys.pet?.stage === 'adopted' && g.player.where === 'world' ? g.sys.pet.bowl : null;
+    if (bowl && bowl[0] === t.x && bowl[1] === t.y) {
+      ui.tip([{ text: `${g.sys.pet.name}'s water bowl`, color: C.amber }, { text: g.sys.pet.bowlFull ? 'Full of fresh water' : 'Empty. Use your watering can on it.', color: g.sys.pet.bowlFull ? C.aqua : C.pebble }]);
+      return;
+    }
     if (g.player.where === 'house') {
       const tip = g.sys.house?.hover?.(g, t.x, t.y);
       if (tip) ui.tip(tip);
@@ -326,9 +340,9 @@ export class PlayScreen implements Screen {
 
   private handleKeys() {
     const input = this.app.input, g = this.g, ui = this.app.ui;
-    if (input.wasPressed('debug')) this.debug = !this.debug;
     if (input.wasPressed('pause')) {
       input.consume('pause');
+      ui.focus = null;
       if (this.mode !== 'normal') {
         this.mode = 'normal';
         this.rectStart = null;
@@ -338,6 +352,9 @@ export class PlayScreen implements Screen {
       else this.openWindow('pause');
       return;
     }
+    // typing into a text field (e.g. naming your pet) must not trigger shortcuts
+    if (ui.focus) return;
+    if (input.wasPressed('debug')) this.debug = !this.debug;
     if (this.win && WINDOWS[this.win.id]?.modal !== false) {
       // window shortcuts toggle closed
       const map: Record<string, string> = { inventory: 'menu', craft: 'menu', research: 'research', stats: 'stats', journal: 'journal', map: 'map' };

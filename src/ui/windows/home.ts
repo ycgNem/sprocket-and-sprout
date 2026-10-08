@@ -10,6 +10,8 @@ import { centered, frame, invGrid } from './common';
 import { registerWindow, WinState } from './index';
 import { itemTooltip } from '../tooltips';
 import { specIcon } from './menu';
+import { adoptPet, declinePet, petSys, PET_COATS } from '../../sim/systems/pet';
+import { sprite } from '../../render/atlas';
 
 const OVEN = recipesForStation('oven');
 
@@ -60,4 +62,35 @@ function drawCooking(ui: UI, play: PlayScreen, st: WinState): boolean {
   return true;
 }
 
+function drawAdopt(ui: UI, play: PlayScreen, st: WinState): boolean {
+  const g = play.g;
+  const p = petSys(g);
+  const W = 300, H = 170;
+  const { x, y } = centered(ui, W, H);
+  if (!frame(ui, x, y, W, H, `A stray ${p.kind}`)) return false;
+  if (st.data.name === undefined) { st.data.name = p.name; ui.focus = 'petname'; }
+  // portrait: the pet sitting, scaled up
+  ui.fill(x + 14, y + 16, 76, 76, C.tan, 0.6);
+  const s = sprite(`pet:${p.kind}:${p.coat}:${Math.floor(ui.time * 1.5) % 6 === 0 ? 0 : 2}`);
+  ui.ctx.drawImage(s.img, s.x, s.y, s.w, s.h, x + 20, y + 22, 64, 64);
+  ui.para(`A ${PET_COATS[p.kind][p.coat].toLowerCase()} ${p.kind} sits by your door, looking at you hopefully. It seems to have decided this is its farm now.`, x + 100, y + 18, W - 112, C.ink);
+  ui.text('Name:', x + 100, y + 82, C.walnut);
+  st.data.name = ui.textField('petname', x + 132, y + 78, 120, st.data.name, 14);
+  if (ui.button('adopt', x + 100, y + 110, 90, 20, 'Adopt ' + (st.data.name || ''), { style: 'green', disabled: !st.data.name?.trim() }) || (ui.input.keyPressed('Enter') && st.data.name?.trim())) {
+    ui.focus = null;
+    st.data.done = true;
+    adoptPet(g, st.data.name);
+    return false;
+  }
+  if (ui.button('notnow', x + 200, y + 110, 70, 20, 'Not now', { style: 'flat' })) {
+    ui.focus = null;
+    st.data.done = true;
+    declinePet(g);
+    return false;
+  }
+  ui.text('Fill its water bowl and give it a scratch every day.', x + 14, y + H - 22, C.oak);
+  return true;
+}
+
 registerWindow('cooking', { draw: drawCooking });
+registerWindow('adopt', { draw: drawAdopt, onClose: (play, st) => { play.app.ui.focus = null; if (!st.data.done) declinePet(play.g); } });

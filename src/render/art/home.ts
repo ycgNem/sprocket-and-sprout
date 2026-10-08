@@ -257,7 +257,118 @@ function doormat(): Furn {
   return { w: 16, h: 16, ox: 0, oy: 0, pb };
 }
 
+// ---------- pets: pet:<kind>:<coat>:<pose> (0 stand, 1 walk, 2 sit, 3 sleep), facing right ----------
+const CAT_COATS = [[C.apricot, C.terracotta, C.cream], [C.pebble, C.stone, C.cream], [C.slate, C.plum, C.stone], [C.cream, C.terracotta, C.bark]];
+const DOG_COATS = [[C.butter, C.amber, C.cream], [C.oak, C.walnut, C.tan], [C.cream, C.bark, C.cream], [C.tan, C.bark, C.cream]];
+
+function drawCat(coat: number, pose: number): PixBuf {
+  const [base, mark, light] = CAT_COATS[coat] ?? CAT_COATS[0];
+  const pb = new PixBuf(16, 16);
+  const eye = coat === 2 ? C.lime : C.ink;
+  const ears = (hx: number, hy: number) => {
+    pb.set(hx - 2, hy - 3, base); pb.rect(hx - 2, hy - 2, 2, 1, base);
+    pb.set(hx + 1, hy - 3, base); pb.rect(hx, hy - 2, 2, 1, base);
+    pb.set(hx - 2, hy - 2, C.rose);
+  };
+  if (pose <= 1) {
+    const st = pose;
+    pb.ellipse(7, 10, 4.6, 2.6, base);
+    pb.disc(12, 7, 2.7, base);
+    ears(12, 6);
+    pb.line(3, 9, 1, 6, base); pb.line(1, 6, 2, 3 + st, base);
+    for (const [x, ph] of [[4, 0], [6, 1], [9, 0], [11, 1]] as const) pb.rect(x, 12, 1, 3 - ((ph + st) % 2), DARK[base] ?? base);
+    // markings
+    if (coat === 3) { pb.disc(6, 9, 1.6, mark); pb.disc(9, 10, 1.2, C.bark); pb.set(12, 5, mark); }
+    else for (let x = 5; x < 10; x += 2) pb.rect(x, 8, 1, 2, mark);
+    pb.rect(8, 11, 4, 1, light);
+    pb.set(13, 7, eye);
+    pb.set(15, 8, C.rose);
+  } else if (pose === 2) {
+    pb.ellipse(8, 11, 3.2, 3.6, base);
+    pb.disc(9, 6, 2.7, base);
+    ears(9, 5);
+    pb.rect(5, 14, 7, 1, base); pb.set(4, 13, base);
+    pb.rect(8, 12, 1, 3, light); pb.rect(10, 12, 1, 3, light);
+    if (coat === 3) { pb.disc(7, 10, 1.4, mark); pb.set(10, 4, mark); }
+    else { pb.rect(6, 9, 1, 2, mark); pb.rect(6, 12, 1, 1, mark); }
+    pb.set(10, 6, eye); pb.set(8, 6, eye);
+    pb.set(9, 7, C.rose);
+  } else {
+    pb.ellipse(8, 12, 5.5, 2.8, base);
+    pb.disc(11, 12, 2.4, base);
+    pb.set(10, 9, base); pb.set(12, 9, base);
+    pb.rect(3, 14, 8, 1, mark);
+    if (coat === 3) pb.disc(6, 11, 1.5, mark);
+    else for (let x = 4; x < 9; x += 2) pb.set(x, 10, mark);
+    pb.rect(11, 12, 2, 1, C.ink);
+  }
+  pb.outline(C.ink);
+  return pb;
+}
+
+function drawDog(coat: number, pose: number): PixBuf {
+  const [base, mark, light] = DOG_COATS[coat] ?? DOG_COATS[0];
+  const pb = new PixBuf(16, 16);
+  const ear = DARK[base] ?? mark;
+  if (pose <= 1) {
+    const st = pose;
+    pb.ellipse(7, 9, 5, 3, base);
+    if (coat === 3) pb.ellipse(6, 7.5, 4, 1.4, mark);
+    if (coat === 2) { pb.disc(5, 8, 1.5, mark); pb.disc(9, 10, 1.2, mark); }
+    pb.disc(12, 6, 2.9, base);
+    pb.rect(13, 6, 3, 2, light);
+    pb.set(15, 6, C.ink);
+    pb.set(12, 5, C.ink);
+    pb.rect(10, 4, 2, 4, ear);
+    // tail wags between frames
+    if (st) pb.line(2, 8, 0, 4, base); else pb.line(2, 8, 1, 3, base);
+    for (const [x, ph] of [[3, 0], [5, 1], [9, 0], [11, 1]] as const) pb.rect(x, 11, 2, 4 - ((ph + st) % 2), DARK[base] ?? base);
+    pb.rect(7, 11, 3, 1, light);
+  } else if (pose === 2) {
+    pb.ellipse(7, 11, 3.6, 3.6, base);
+    if (coat === 2) pb.disc(6, 10, 1.4, mark);
+    pb.disc(9, 5, 3, base);
+    pb.rect(10, 6, 3, 2, light);
+    pb.set(12, 6, C.ink);
+    pb.set(10, 4, C.ink);
+    pb.rect(6, 3, 2, 4, ear);
+    pb.rect(8, 12, 2, 3, light); pb.rect(4, 13, 3, 2, DARK[base] ?? base);
+    pb.line(3, 13, 1, 11, base);
+    pb.rect(8, 8, 3, 1, C.rose);
+  } else {
+    pb.ellipse(8, 12, 6, 2.8, base);
+    if (coat === 3) pb.ellipse(7, 11, 4, 1.2, mark);
+    if (coat === 2) pb.disc(6, 12, 1.6, mark);
+    pb.disc(12, 12, 2.6, base);
+    pb.rect(13, 12, 2, 2, light);
+    pb.rect(11, 10, 2, 3, ear);
+    pb.rect(11, 12, 2, 1, C.ink);
+    pb.line(2, 13, 0, 12, base);
+  }
+  pb.outline(C.ink);
+  return pb;
+}
+
+function drawBowl(full: number): PixBuf {
+  const pb = new PixBuf(16, 16);
+  pb.ellipse(8, 12, 5, 2.6, C.river);
+  pb.ellipse(8, 11.4, 3.8, 1.6, full ? C.sky : C.slate);
+  if (full) { pb.set(6, 11, C.frost); pb.set(7, 11, C.frost); }
+  pb.rect(4, 13, 8, 1, C.deepsea);
+  pb.outline(C.ink);
+  return pb;
+}
+
 export function registerHomeSprites() {
+  defSpriteFamily('pet:', (name) => {
+    const [, kind, cs, ps] = name.split(':');
+    const pb = kind === 'dog' ? drawDog(+cs, +ps) : drawCat(+cs, +ps);
+    return { w: 16, h: 16, ox: 8, oy: 15, draw: (ctx) => pb.drawTo(ctx) };
+  });
+  defSpriteFamily('bowl:', (name) => {
+    const pb = drawBowl(+name.split(':')[1]);
+    return { w: 16, h: 16, ox: 0, oy: 0, draw: (ctx) => pb.drawTo(ctx) };
+  });
   defSpriteFamily('hf:', (name) => {
     const [, kind, vs, ss] = name.split(':');
     const v = +vs || 0, season = +ss || 0;
