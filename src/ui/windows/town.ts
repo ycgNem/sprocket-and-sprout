@@ -154,7 +154,7 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
   const w = 380, h = 280;
   const { x, y } = centered(ui, w, h);
   if (!frame(ui, x, y, w, h, shop.name)) return false;
-  const owner = NPC_BY_ID.get(shop.owner)!;
+  const owner = NPC_BY_ID.get(shop.owner) ?? { name: 'Mags' };
   const tabs: string[] = ['Buy'];
   if (shop.buys?.length) tabs.push('Sell');
   if (shop.id === 'smithy') tabs.push('Upgrades', 'Geodes');
@@ -167,6 +167,7 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
   ui.text(shortName(owner.name), x + w - 38, y + 74, C.walnut, { align: 'center' });
   const listX = x + 10, listY = y + 30, listW = w - 86, listH = 150;
   if (st.data.tab === 'Buy') {
+    if (shop.id === 'cart' && !g.sys.cart?.stock?.length) ui.text('Sold out! Mags restocks every Monday.', listX, listY + 4, C.walnut);
     ui.para(shop.greeting, listX, y + h - 96, listW, C.walnut);
     const stock = shopStock(g, shop.id);
     const rowH = 18;

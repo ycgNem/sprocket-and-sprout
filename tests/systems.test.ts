@@ -489,3 +489,35 @@ describe('partners', () => {
     expect(g.events.some((e: any) => e.t === 'ui' && e.open === 'dialog')).toBe(true);
   });
 });
+
+describe('traveling cart', () => {
+  it('visits on Fridays and Sundays with a weekly stock, and recipe cards teach recipes', async () => {
+    const C2 = await import('../src/sim/systems/cart');
+    const E = await import('../src/sim/systems/economy');
+    const { useHeld } = await import('../src/sim/actions');
+    const CB = await import('../src/sim/systems/cookbook');
+    const g = new Game({ seed: 30 });
+    while (g.weekday !== 4) sleep(g);
+    g.sys.house.leave(g);
+    g.time.min = 10 * 60;
+    expect(C2.cartHere(g)).toBe(true);
+    const stock = E.shopStock(g, 'cart');
+    expect(stock.length).toBeGreaterThanOrEqual(7);
+    const card = stock.find((e) => e.item.startsWith('card_'))!;
+    expect(card).toBeTruthy();
+    g.player.money = 100000;
+    expect(E.buy(g, card, 1)).toBe(1);
+    const out = card.item.slice(5);
+    expect(CB.knowsRecipe(g, out)).toBe(false);
+    const slot = g.player.inv.slots.findIndex((s) => s && s.k === key(card.item));
+    g.player.sel = slot;
+    useHeld(g, 0, 0);
+    expect(CB.knowsRecipe(g, out)).toBe(true);
+    g.time.min = 20 * 60;
+    expect(C2.cartHere(g)).toBe(false);
+    sleep(g);
+    g.sys.house.leave(g);
+    g.time.min = 10 * 60;
+    expect(C2.cartHere(g)).toBe(false); // Saturday
+  });
+});

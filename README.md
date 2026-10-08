@@ -75,6 +75,7 @@ Then open the URL Vite prints (usually http://localhost:5173).
 - Professions: choose one of two perks at skill levels 5 and 10 (24 perks across 6 skills).
 - Cooked food grants timed buffs (speed, stamina, fishing, mining, luck, defense, farming).
 - Splitter filters and output priority, and arm stock limits, for tidy factories.
+- Mags' Traveling Cart visits on Fridays and Sundays with rare seeds, recipe cards and furniture.
 - Trading Guild contracts: weekly bulk orders delivered to a Freight Depot (arms can feed it),
   with reputation ranks that raise shipping prices.
 - Coops and barns (3 tiers each) with chickens, ducks, rabbits, cows, goats, sheep, pigs and

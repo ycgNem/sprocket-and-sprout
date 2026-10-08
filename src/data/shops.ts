@@ -47,6 +47,11 @@ export const HOME_UPGRADES: HomeUpgrade[] = [
 
 export const SHOPS: ShopDef[] = [
   {
+    id: 'cart', name: "Mags' Traveling Cart", owner: 'peddler', loc: 'square', open: 480, close: 1140,
+    greeting: 'Rare goods from far roads! Fridays and Sundays only.',
+    stock: [],
+  },
+  {
     id: 'general', name: 'Thistlewick Mercantile', owner: 'marigold', loc: 'store', open: 540, close: 1020, closedDays: [2],
     greeting: 'Seeds, staples and the latest gossip. What can I get you?',
     stock: [

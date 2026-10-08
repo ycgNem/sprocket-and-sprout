@@ -6,6 +6,7 @@ import './systems/economy';
 import './systems/npcs';
 import './systems/visits';
 import './systems/partner';
+import './systems/cart';
 import './systems/town';
 import './systems/research';
 import './systems/automation';

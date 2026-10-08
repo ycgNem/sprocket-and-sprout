@@ -102,6 +102,7 @@ const T: Record<string, Draw> = {
   quilt: (pb, a, b) => { for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) pb.rect(2 + x * 4, 3 + y * 4, 4, 4, (x + y) % 2 ? a : b); pb.rect(2, 15, 12, 1, C.cream); },
   bot: (pb, a, b) => { pb.ellipse(8, 9, 4, 3.5, a); for (let x = 5; x < 12; x += 2) pb.rect(x, 7, 1, 5, C.bark); pb.ellipse(5, 4, 3, 2, C.frost); pb.ellipse(11, 4, 3, 2, C.frost); pb.disc(12, 9, 1.5, b); pb.set(13, 9, C.ink); },
   bundle: (pb, a) => { pb.rect(3, 5, 10, 9, a); pb.rect(3, 5, 10, 1, LIGHT[a]); pb.rect(3, 13, 10, 1, DARK[a]); pb.rect(7, 5, 2, 9, C.cream); pb.rect(3, 8, 10, 2, C.cream); pb.disc(8, 4, 2, C.rose); pb.set(6, 3, C.rose); pb.set(10, 3, C.rose); },
+  scroll: (pb, a, b) => { pb.rect(3, 4, 10, 9, a); pb.rect(2, 3, 2, 11, LIGHT[a] ?? a); pb.rect(12, 3, 2, 11, LIGHT[a] ?? a); for (let y = 6; y < 12; y += 2) pb.rect(5, y, 6, 1, C.pebble); pb.rect(7, 12, 2, 3, b); },
   pouch: (pb, a, b) => { pb.ellipse(8, 10, 5, 4.5, a); pb.rect(6, 4, 4, 3, a); pb.rect(5, 6, 6, 1, b); pb.set(6, 9, LIGHT[a]); },
   flask: (pb, a, b) => { pb.rect(7, 2, 2, 4, C.frost); pb.ellipse(8, 10, 5, 4.5, C.frost); pb.ellipse(8, 11, 4, 3, a); pb.set(6, 9, C.cream); pb.rect(6, 1, 4, 1, b); },
   bait: (pb, a, b) => { pb.rect(4, 5, 8, 9, b); pb.rect(4, 5, 8, 1, LIGHT[b]); for (let i = 0; i < 4; i++) pb.line(5 + i * 2, 4, 6 + i * 2, 1, a); },

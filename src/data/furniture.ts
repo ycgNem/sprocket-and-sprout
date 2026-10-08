@@ -17,7 +17,7 @@ export interface FurnDef {
   flat?: boolean;
   solid: boolean;
   light?: { r: number; c: number };
-  shop?: 'carpenter' | 'general';
+  shop?: 'carpenter' | 'general' | 'cart';
 }
 
 export const FURNITURE: FurnDef[] = [
@@ -40,6 +40,10 @@ export const FURNITURE: FurnDef[] = [
   { id: 'f_trophy_tidemother', name: 'Mounted Tidemother', price: 0, desc: 'The Tidemother herself. Wren wept.', sprite: 'trophy:2', w: 1, h: 1, wall: true, solid: false },
   { id: 'f_lantern', name: "Founder's Lantern", price: 0, desc: "Lit by the Mayor on Founder's Day. It never seems to burn down.", sprite: 'lantern:0', w: 1, h: 1, solid: true, light: { r: 3.5, c: C.amber } },
   { id: 'f_gilded_clock', name: 'Gilded Clock', price: 0, desc: 'A towering clock for a farm with four candles.', sprite: 'gclock:0', w: 1, h: 1, solid: true },
+  { id: 'f_globe', name: 'Brass Globe', price: 1800, desc: 'Somewhere on it, very small, is Thistlewick.', sprite: 'globe:0', w: 1, h: 1, solid: true, shop: 'cart' },
+  { id: 'f_telescope', name: 'Telescope', price: 2400, desc: 'Points at the stars, or at the neighbors. Your choice.', sprite: 'telescope:0', w: 1, h: 1, solid: true, shop: 'cart' },
+  { id: 'f_musicbox', name: 'Music Box', price: 1200, desc: 'Plays a little tune when nobody is looking.', sprite: 'musicbox:0', w: 1, h: 1, solid: true, shop: 'cart' },
+  { id: 'f_tapestry', name: 'Faraway Tapestry', price: 1500, desc: 'Woven in a land with purple mountains.', sprite: 'tapestry:0', w: 1, h: 1, wall: true, solid: false, shop: 'cart' },
   { id: 'f_banner', name: 'Guild Banner', price: 0, desc: 'Awarded by the Trading Guild to its Purveyors.', sprite: 'banner:0', w: 1, h: 1, wall: true, solid: false },
 ];
 

@@ -1,4 +1,6 @@
 // Player actions: tool use on tiles, planting, eating, and interacting with things.
+import { cartHere } from './systems/cart';
+import { knowsRecipe, learnRecipe } from './systems/cookbook';
 import { contractInsert } from './systems/contracts';
 import { fillBowl, petAt, petInteract } from './systems/pet';
 import { BUFF_INFO } from '../data/buffs';
@@ -68,6 +70,15 @@ export function useHeld(g: Game, tx: number, ty: number, charge = 0): boolean {
   if (!st) return false;
   const d = kDef(st.k);
   if (d.tool) return useTool(g, d.tool.kind, d.tool.tier, tx, ty, charge);
+  if (d.tags?.includes('recipe_card')) {
+    const out = d.id.slice(5);
+    if (knowsRecipe(g, out)) g.toast('You already know this recipe.');
+    else {
+      learnRecipe(g, out, 'a recipe card');
+      p.inv.remove(st.k, 1);
+    }
+    return true;
+  }
   if (p.where === 'house') return false;
   if (d.weapon) {
     anim(g, 'sword', tx, ty, 0.28 / d.weapon.speed);
@@ -469,6 +480,13 @@ export function interact(g: Game, tx: number, ty: number): boolean {
     return true;
   }
   const i = m.idx(tx, ty);
+  // Mags' traveling cart
+  const cp = g.sys.cart?.pos as [number, number] | undefined;
+  if (cp && cartHere(g) && tx >= cp[0] - 1 && tx <= cp[0] + 3 && ty >= cp[1] - 1 && ty <= cp[1] + 2) {
+    g.emit({ t: 'ui', open: 'shop', arg: 'cart' });
+    g.emit({ t: 'sfx', id: 'open' });
+    return true;
+  }
   // buildings (doors)
   const b = m.buildingAtTile(tx, ty) ?? m.buildingAtTile(tx, ty - 1);
   if (b && (ty === b.y + b.h - 1 || ty === b.y + b.h) && Math.abs(tx - b.door[0]) <= 1) {

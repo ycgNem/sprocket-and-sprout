@@ -151,6 +151,7 @@ export function entryPrice(g: Game, e: ShopEntry): number {
 export function shopStock(g: Game, shopId: string): ShopEntry[] {
   const s = SHOP_BY_ID.get(shopId);
   if (!s) return [];
+  if (shopId === 'cart') return ((g.sys.cart?.stock ?? []) as ShopEntry[]).filter((e) => ITEM_BY_ID.has(e.item));
   return s.stock.filter((e) => (!e.seasons || e.seasons.includes(g.time.season)) && g.unlocked(e.unlock) && ITEM_BY_ID.has(e.item));
 }
 

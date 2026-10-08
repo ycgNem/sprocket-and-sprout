@@ -1,5 +1,6 @@
 // World renderer: camera, chunk-baked ground, culled + y-sorted dynamic sprites,
 // belts with their items, arms, wires, lighting and weather.
+import { cartHere } from '../sim/systems/cart';
 import { kId } from '../sim/inventory';
 import { C, PALETTE, rgba } from '../data/palette';
 import { CROP_BY_ID } from '../data/crops';
@@ -842,6 +843,16 @@ export class Renderer {
       D.push({ y: py, f: () => {
         drawSprite(ctx, sprite('shadow:12'), px * TILE, py * TILE);
         drawSprite(ctx, sprite(`ch:${id}:2:0`), px * TILE, py * TILE);
+      } });
+    }
+    // Mags' traveling cart by the square
+    const cpos = g.sys.cart?.pos as [number, number] | undefined;
+    if (cpos && g.player.where === 'world' && cartHere(g) && onScreen(cpos[0] + 1.5, cpos[1])) {
+      D.push({ y: cpos[1] + 1.4, f: () => drawSprite(ctx, sprite('cartw:0'), cpos[0] * TILE, cpos[1] * TILE) });
+      const mx = cpos[0] + 3.6, my = cpos[1] + 1.8;
+      D.push({ y: my, f: () => {
+        drawSprite(ctx, sprite('shadow:12'), mx * TILE, my * TILE);
+        drawSprite(ctx, sprite(`ch:peddler:2:0`), mx * TILE, my * TILE);
       } });
     }
     // the farm pet and its water bowl

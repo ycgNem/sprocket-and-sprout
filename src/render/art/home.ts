@@ -387,6 +387,78 @@ function gildedClock(): Furn {
   return { w: 16, h: 34, ox: 0, oy: 18, pb };
 }
 
+function globe(): Furn {
+  const pb = new PixBuf(16, 24);
+  pb.rect(7, 16, 2, 6, C.walnut); pb.rect(4, 21, 8, 2, C.walnut);
+  pb.disc(8, 9, 5.5, C.river);
+  pb.disc(6, 7, 2, C.leaf); pb.rect(9, 10, 3, 2, C.leaf); pb.set(10, 6, C.moss);
+  pb.line(2, 9, 14, 9, C.brass);
+  pb.rect(8, 2, 1, 2, C.brass); pb.rect(8, 15, 1, 2, C.brass);
+  pb.outline(C.ink);
+  return { w: 16, h: 24, ox: 0, oy: 8, pb };
+}
+
+function telescope(): Furn {
+  const pb = new PixBuf(16, 24);
+  pb.line(3, 22, 8, 12, C.walnut); pb.line(13, 22, 8, 12, C.walnut); pb.line(8, 22, 8, 12, C.bark);
+  pb.line(3, 12, 14, 3, C.brass); pb.line(3, 13, 14, 4, C.brass); pb.line(4, 13, 14, 5, C.copper);
+  pb.rect(13, 2, 2, 4, C.copper);
+  pb.outline(C.ink);
+  return { w: 16, h: 24, ox: 0, oy: 8, pb };
+}
+
+function musicbox(): Furn {
+  const pb = new PixBuf(16, 18);
+  pb.rect(7, 12, 2, 4, C.walnut); pb.rect(3, 15, 10, 2, C.walnut);
+  pb.rect(3, 6, 10, 6, C.wine);
+  pb.rect(3, 6, 10, 1, C.rose);
+  pb.rect(5, 8, 6, 2, C.brass);
+  pb.rect(2, 3, 12, 3, C.wine); pb.rect(2, 3, 12, 1, C.blush);
+  pb.rect(13, 8, 2, 1, C.brass);
+  pb.outline(C.ink);
+  return { w: 16, h: 18, ox: 0, oy: 2, pb };
+}
+
+function tapestry(): Furn {
+  const pb = new PixBuf(14, 16);
+  pb.rect(0, 0, 14, 1, C.walnut);
+  pb.rect(1, 1, 12, 14, C.violet);
+  pb.rect(2, 2, 10, 12, C.lavender);
+  pb.line(2, 11, 6, 5, C.violet); pb.line(6, 5, 9, 9, C.violet); pb.line(9, 9, 11, 6, C.violet);
+  pb.rect(2, 11, 10, 3, C.moss);
+  pb.disc(10, 4, 1.2, C.butter);
+  for (let x = 1; x < 13; x += 2) pb.set(x, 15, C.butter);
+  pb.outline(C.ink);
+  return { w: 14, h: 16, ox: -1, oy: 11, pb };
+}
+
+/** Mags' wagon: a painted cart with a striped canopy */
+export function cartArt(): PixBuf {
+  const pb = new PixBuf(48, 40);
+  // wheels
+  pb.disc(10, 33, 6, C.walnut); pb.disc(10, 33, 4, C.oak); pb.disc(10, 33, 1.5, C.bark);
+  pb.disc(38, 33, 6, C.walnut); pb.disc(38, 33, 4, C.oak); pb.disc(38, 33, 1.5, C.bark);
+  // body
+  pb.rect(3, 18, 42, 12, C.violet);
+  pb.rect(3, 18, 42, 2, C.lavender);
+  pb.rect(5, 22, 38, 6, C.wine);
+  for (let x = 8; x < 42; x += 8) pb.rect(x, 22, 2, 6, C.butter);
+  // canopy poles + striped canopy
+  pb.rect(4, 6, 2, 12, C.bark); pb.rect(42, 6, 2, 12, C.bark);
+  for (let x = 0; x < 48; x++) {
+    const h = 4 + Math.round(Math.sin((x / 47) * Math.PI) * 4);
+    for (let y = 6 - h + 4; y < 9; y++) pb.set(x, y, Math.floor(x / 6) % 2 ? C.cream : C.rose);
+  }
+  for (let x = 1; x < 48; x += 6) pb.rect(x, 9, 3, 2, C.rose);
+  // goods on display
+  pb.rect(10, 13, 6, 5, C.tan); pb.rect(10, 13, 6, 1, C.butter);
+  pb.disc(22, 15, 2.5, C.aqua); pb.disc(27, 15.5, 2, C.amber);
+  pb.rect(31, 12, 4, 6, C.river); pb.rect(31, 12, 4, 1, C.frost);
+  pb.rect(37, 14, 5, 4, C.brass);
+  pb.outline(C.ink);
+  return pb;
+}
+
 function banner(): Furn {
   const pb = new PixBuf(12, 16);
   pb.rect(0, 0, 12, 1, C.brass);
@@ -423,6 +495,10 @@ export function furnArt(name: string): Furn | null {
     case 'petbed': return petbed();
     case 'painting': return painting(v);
     case 'banner': return banner();
+    case 'globe': return globe();
+    case 'telescope': return telescope();
+    case 'musicbox': return musicbox();
+    case 'tapestry': return tapestry();
     case 'lantern': return lanternArt();
     case 'gclock': return gildedClock();
     case 'trophy': return trophy(v);
@@ -537,6 +613,10 @@ export function registerHomeSprites() {
     const [, kind, cs, ps] = name.split(':');
     const pb = kind === 'dog' ? drawDog(+cs, +ps) : drawCat(+cs, +ps);
     return { w: 16, h: 16, ox: 8, oy: 15, draw: (ctx) => pb.drawTo(ctx) };
+  });
+  defSpriteFamily('cartw:', () => {
+    const pb = cartArt();
+    return { w: 48, h: 40, ox: 0, oy: 24, draw: (ctx) => pb.drawTo(ctx) };
   });
   defSpriteFamily('bowl:', (name) => {
     const pb = drawBowl(+name.split(':')[1]);

@@ -8,6 +8,7 @@ import { STRUCTURES, STRUCT_PRICE } from './structures';
 import type { ItemDef, ItemCategory, IconSpec } from './types';
 import { FOOD_BUFFS } from './buffs';
 import { FURNITURE } from './furniture';
+import { RECIPE_TEACHERS } from './cookbook';
 
 const list: ItemDef[] = [];
 function add(d: ItemDef) {
@@ -369,6 +370,12 @@ for (const s of STRUCTURES) {
 // ---------------- Furniture ----------------
 for (const f of FURNITURE)
   it(f.id, f.name, 'furniture', Math.round(f.price * 0.25), { t: 'furn', s: f.sprite }, f.desc + (f.wall ? ' Hangs on a wall.' : ' Place it inside your farmhouse.'), { furniture: f.id, tags: ['furniture'], stack: 99 });
+
+// ---------------- Recipe cards (sold by the traveling cart) ----------------
+for (const out of Object.keys(RECIPE_TEACHERS)) {
+  const dish = list.find((d) => d.id === out);
+  if (dish) it('card_' + out, 'Recipe Card: ' + dish.name, 'misc', 0, { t: 'scroll', c: [C.cream, C.rose] }, `Use it to learn how to cook ${dish.name}.`, { tags: ['recipe_card'] });
+}
 
 // ---------------- Index ----------------
 export const ITEMS: ItemDef[] = list;
