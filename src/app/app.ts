@@ -11,7 +11,7 @@ import { loadSettings, saveSettings, Settings } from './settings';
 import { Audio } from '../engine/audio/audio';
 import { PlayScreen } from './play';
 import { listSaves, loadGame, deleteSave, importSaveJSON, SaveMeta } from '../sim/save';
-import { ICON } from '../ui/font';
+import { ICON, textWidth } from '../ui/font';
 import type { NPCLook } from '../data/types';
 import { settingsPanel } from '../ui/windows/settings';
 import { buildDemoFactory } from './demo';
@@ -196,16 +196,19 @@ class TitleScreen implements Screen {
 
   drawLogo(ui: UI, cx: number, y: number) {
     const bob = Math.round(Math.sin(this.t * 1.5) * 2);
+    const left = cx - 4 - textWidth('Sprocket') * 4, right = cx + 22 + textWidth('Sprout') * 4;
+    const gx = left - 16; // the spinning gear sits just left of the word, clear of the letters
+    // a soft stepped plate so the logo reads over whatever the demo camera drifts across
+    const px0 = gx - 18, px1 = right + 10, py0 = y - 8, py1 = y + 54;
+    for (let i = 0; i < 3; i++) ui.fill(px0 + i * 3, py0 + i * 3, px1 - px0 - i * 6, py1 - py0 - i * 6, C.ink, 0.18);
     ui.text('Sprocket', cx - 4, y + bob, C.amber, { scale: 4, shadow: C.bark, align: 'right' });
     ui.text('&', cx + 6, y + 14 + bob, C.cream, { scale: 2, shadow: C.bark });
     ui.text('Sprout', cx + 22, y + bob, C.leaf, { scale: 4, shadow: C.pine });
     ui.text('a cozy farm-factory in the valley of Thistlewick', cx, y + 42, C.cream, { align: 'center', shadow: C.ink });
-    // little gear + sprout ornaments
-    const gx = cx - 120, gy = y + 4;
-    const a = this.t;
+    const gy = y + 4 + bob;
     for (let i = 0; i < 8; i++) {
-      const t = a + (i / 8) * Math.PI * 2;
-      ui.fill(Math.round(gx + Math.cos(t) * 9), Math.round(gy + 12 + Math.sin(t) * 9), 3, 3, C.brass);
+      const t = this.t + (i / 8) * Math.PI * 2;
+      ui.fill(Math.round(gx + Math.cos(t) * 9) - 1, Math.round(gy + 12 + Math.sin(t) * 9) - 1, 3, 3, C.brass);
     }
   }
 
