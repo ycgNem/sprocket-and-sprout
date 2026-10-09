@@ -8,6 +8,7 @@ import type { Game } from './Game';
 import { kDef } from './inventory';
 import { cartHere } from './systems/cart';
 import { canTill } from './systems/farming';
+import { wouldGift } from './systems/npcs';
 import { petAt } from './systems/pet';
 import { shopOpen } from './systems/town';
 import { SHOPS } from '../data/shops';
@@ -55,8 +56,9 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
     const held = p.inv.slots[p.sel];
     const hd = held ? kDef(held.k) : null;
     const name = first(NPC_BY_ID.get(npc.id)?.name ?? '');
-    const gift = hd && !hd.tool && !hd.weapon && !hd.places && !npc.giftedToday;
-    return { verb: gift ? `Give to ${name}` : npc.talked ? `Chat with ${name}` : `Talk to ${name}`, x: npc.x, y: npc.y - 2 };
+    // the same rules F follows (talkTo): the locket, then a gift, else a chat
+    const verb = hd?.id === 'heart_charm' && npc.met ? 'Offer the locket' : hd && wouldGift(g, npc, hd) ? `Give to ${name}` : npc.talked ? `Chat with ${name}` : `Talk to ${name}`;
+    return { verb, x: npc.x, y: npc.y - 2 };
   }
   const animal = g.sys.animals?.at?.(g, tx + 0.5, ty + 0.5);
   if (animal) return animal.petted ? null : { verb: 'Pet', x: animal.x, y: animal.y - 1.2 };

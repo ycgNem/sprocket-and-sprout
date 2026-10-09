@@ -988,17 +988,15 @@ export class PlayScreen implements Screen {
     if (this.modalOpen || g.player.where !== 'world' || g.sleeping) return;
     const bin = g.ents.get(g.shipBinId);
     if (!bin) return;
-    const r = this.app.renderer;
     if (!this.onScreenUI(this.toUI(bin.x + 0.5, bin.y + 0.5), ui, 0)) return;
-    void r;
     const waiting = !!bin.inv && !bin.inv.isEmpty();
     const q = g.sys.quests?.active as { id: string }[] | undefined;
     if (!waiting && !q?.some((a) => a.id === 't_post')) return;
     const next = POST_TIMES.find((t) => t > g.time.min);
     const left = next === undefined ? -1 : next - g.time.min;
     const label = left < 0 ? 'Post tonight' : left < 1 ? 'Post any second!' : `Post in ${left >= 60 ? Math.floor(left / 60) + 'h ' : ''}${Math.floor(left % 60)}m`;
-    // beside the crate (its values pop up above it, the key bubble sits over it)
-    // beside the crate, on the side away from the player so it never covers them
+    // beside the crate, on the side away from the player (its values pop up above it, the key
+    // bubble sits over it)
     const left2 = g.player.x > bin.x + bin.w / 2;
     const w = textWidth(label) + 18, h = 13;
     const at = this.toUI(left2 ? bin.x : bin.x + bin.w, bin.y + 0.45);

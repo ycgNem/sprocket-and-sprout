@@ -99,6 +99,7 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
       if (ui.clicked) {
         ui.eat();
         if (st.data.sel === r.id && avail) setResearch(g, r.id);
+        else ui.sfx('click');
         st.data.sel = r.id;
       }
     }

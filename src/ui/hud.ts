@@ -137,7 +137,12 @@ function drawMinimap(ui: UI, play: PlayScreen, x: number, y: number, w: number, 
     cache.mmOy = snapY;
     for (let py = 0; py < ih; py++)
       for (let px = 0; px < iw; px++) {
-        const tx = snapX + px * scale, ty = snapY + py * scale;
+        let tx = snapX + px * scale, ty = snapY + py * scale;
+        // past the overworld's edge, the edge terrain carries on (no black void beside the town)
+        if (m === g.map) {
+          tx = Math.max(0, Math.min(m.w - 1, tx));
+          ty = Math.max(0, Math.min(m.h - 1, ty));
+        }
         let col = C.ink;
         if (m.inb(tx, ty)) col = tileColor(g, m, tx, ty);
         const hex = PALETTE[col];
