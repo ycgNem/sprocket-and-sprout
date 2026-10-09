@@ -5,10 +5,10 @@ with no engine. The pixel art is PixelLab-generated and packed into small PNG sh
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
 **Status (October 9, 2026, evening):** 1.0 shipped; the 1.1 visual overhaul (`ROADMAP.md`) has Phases
-0-2 done and live on the website. **Phase 3 session 1 is done and committed locally (not pushed yet:
-pushing deploys)**: the juice layer, key bubbles, a resequenced first session from the indie-critic's
-playthrough, the post courier, the title wordmark with the sprocket O. See ROADMAP.md, Phase 3,
-"Session 1 … done" for the list and what's still open. Phase 4 (review, release 1.1) remains.
+0-2 done and live on the website. **Phase 3 session 1 is done and pushed (live)**: the juice layer,
+key bubbles, a first session resequenced over three indie-critic playthroughs, the post courier,
+the title wordmark with the sprocket O. See ROADMAP.md, Phase 3, "Session 1 … done" for the list
+and what's still open. Phase 4 (review, version 1.1.0, desktop builds, GitHub release) remains.
 - **Live:** https://ycgnem.github.io/sprocket-and-sprout/ (redeploys on every push to `main`);
   Windows installers on https://github.com/ycgNem/sprocket-and-sprout/releases/tag/v1.0.0.
 - **Phase 0 of the overhaul is done** (Oct 9): the player-look bug, belt items on the pixel grid,
@@ -92,7 +92,7 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 99 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, pacing bot)
+npm test                                   # 102 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, pacing bot)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
 npm run build                              # production build, about 1.1 MB JS (380 KB gzipped) + ~500 KB of PNG sheets
 node e2e/smoke.mjs http://localhost:5173/  # real UI smoke, 0 console errors expected
@@ -203,9 +203,9 @@ e2e/          Playwright scripts (e2e/out is gitignored scratch); screens.mjs = 
 ## What's next
 
 `ROADMAP.md` is the plan for the 1.0 → 1.1 visual overhaul. Phases 0-2 are done; Phase 3 session 1
-is done (local commits, not pushed). Next session:
+is done and live. Next session:
 
-> Read ROADMAP.md and HANDOFF.md. Push the Phase 3 commits if the owner agreed. Then Phase 3
+> Read ROADMAP.md and HANDOFF.md. Phase 3
 > session 2: the open items in ROADMAP.md Phase 3 (the critic's replay findings, shoreline foam
 > via terrain art, a compact HUD for 540–679 px tall windows). Use the art-director agent for art.
 > Run npm run screens through qa-screens, then the indie-critic agent. Commit; push with the OK.

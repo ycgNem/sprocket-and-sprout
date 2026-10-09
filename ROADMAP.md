@@ -286,6 +286,14 @@ How the work is split:
       (`src/art/logo.*`, drawn by rule).
 - [x] Designed jsfxr sounds for pickup, harvest, click, place, coin ticks, machine bells
       (`scripts/sfx-design.mjs`), golden hour + dawn light, wind gusts, belt hum, status lamps.
+- [x] After the critic's replay (round 3): "Hands Free" (a keeper's bean chest below the jar +
+      a second arm: chest -> arm -> jar -> arm -> crate on day one), the desk quest completes on
+      starting a topic (no soft-lock) and the panel shows bundles you have, "Double the Line"
+      ships 6 preserves, talk objectives count villagers already met, the guide picks a villager
+      you can reach now ("opens 9am"), ribbons in the top band and merged, quiet bronze
+      achievements on days 1–2, truthful night tally (dry crops, watered days, quiet day).
+- [x] Final checks: 101 tests, `npm run screens` 48 shots / 0 issues, flow + smoke 0 errors,
+      production build loads. Pushed (live) on 2026-10-09.
 - [ ] Still open: shoreline foam (needs terrain art: the visible bank is offset half a tile
       from tile edges, so code-drawn foam reads as grid lines), a compact HUD at 2x for
       540–679 px tall windows (the UI drops to 1x there), the critic's later asks (Ottoline
