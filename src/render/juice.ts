@@ -316,8 +316,9 @@ export class Juice {
         if (c.t >= C_PERCH) { c.phase = 2; c.t = 0; }
       } else {
         const k = c.t / C_LEAVE;
-        c.x = c.tx + 90 * k * k + 20 * k;
-        c.y = c.ty - 80 * k * k - 10 * k;
+        // off to the side and only gently up, so it stays clear of the ribbon band
+        c.x = c.tx + 170 * k * k + 30 * k;
+        c.y = c.ty - 28 * k * k - 6 * k;
         if (k >= 1) this.couriers.splice(i, 1);
       }
     }

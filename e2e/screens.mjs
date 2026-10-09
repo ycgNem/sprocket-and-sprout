@@ -94,13 +94,13 @@ const SC = {
   'prompt-harvest': async () => ev(`(() => { for (const t of ${JSON.stringify(ALL_TIPS)}) S.g.flags.add(t); S.play.hud.toasts = []; const g = S.g; g.player.x = 43.5; g.player.y = 25.9; g.player.dir = 2; })()`),
   // zoomed in, a quest ribbon and a running harvest streak at the same time
   'streak-ribbon': async () => {
-    await ev(`(() => { const r = S.play.app.renderer; r.cam.zoom = r.cam.targetZoom = 4; S.g.emit({ t: 'quest', title: 'Things That Move Themselves', money: 300, items: [] }); })()`);
+    await ev(`(() => { const r = S.play.app.renderer; window.__z = r.cam.targetZoom; r.cam.zoom = r.cam.targetZoom = 4; S.g.emit({ t: 'quest', title: 'Things That Move Themselves', money: 300, items: [] }); })()`);
     await wait(300);
     await ev(`(() => { S.play.app.renderer.juice.streak = { n: 7, t: 0, punch: 9 }; })()`);
   },
   // the longest research line, next to the quest tracker
   'ribbon-discovery': async () => {
-    await ev(`(() => { const r = S.play.app.renderer; r.cam.zoom = r.cam.targetZoom = 2; r.juice.banners = []; S.g.emit({ t: 'research', id: 'r_assembly2' }); })()`);
+    await ev(`(() => { const r = S.play.app.renderer; r.cam.zoom = r.cam.targetZoom = window.__z ?? 2; r.juice.banners = []; S.g.emit({ t: 'research', id: 'r_assembly2' }); })()`);
     await wait(300);
   },
   'toast-over-window': async () => ev(`(() => { const J = S.play.app.renderer.juice; J.banners = []; J.streak.t = 9; S.play.toast('Tip: Right-click a machine to load it: it takes what you hold, or a matching ingredient from your bag.'); S.play.openWindow('menu', 'crafting'); })()`),
@@ -116,7 +116,8 @@ const SC = {
   power: async () => ev(`(() => { const g = S.g; (${clearArea})(44, 26, 60, 36); g.research.done.add('r_milling'); window.__build.place(g, 'windmill', 46, 28, 0); window.__build.place(g, 'pole_wood', 49, 29, 0); const mill = window.__build.place(g, 'mill', 50, 29, 0); mill.mach.inBuf.set(S.key('wheat'), 2); g.player.x = 48; g.player.y = 33; for (let i = 0; i < 300; i++) g.tick(); S.play.openWindow('struct', g.ents.at(49, 29).id); })()`),
   coop: async () => ev(`(() => { const g = S.g; (${clearArea})(60, 26, 72, 40); const e = window.__build.place(g, 'coop_1', 62, 28, 0); g.player.money = 99999; g.sys.animals.buy(g, 'chicken'); g.sys.animals.buy(g, 'chicken'); e.st.hay = 12; e.inv.add(S.key('egg', 1), 3); g.time.min = 11 * 60; for (let i = 0; i < 120; i++) g.tick(); g.player.x = 64; g.player.y = 33; S.play.openWindow('struct', e.id); })()`),
   build: async () => {
-    await ev(`(() => { const g = S.g; S.play.closeWindow(); (${clearArea})(48, 26, 60, 32); g.research.done.add('r_belts'); g.player.inv.slots[11] = { k: S.key('belt_1'), n: 50 }; g.player.sel = 11; g.player.x = 52; g.player.y = 30; })()`);
+    await ev(`(() => { const g = S.g; S.play.closeWindow(); (${clearArea})(48, 26, 60, 32); g.research.done.add('r_belts'); g.player.inv.slots[11] = { k: S.key('belt_1'), n: 50 }; g.player.sel = 11; g.player.x = 52; g.player.y = 30; const r = window.__app.renderer; r.cam.x = g.player.x; r.cam.y = g.player.y - 0.6; })()`);
+    await wait(100);
     const p = await ev(() => { const r = window.__app.renderer; return { s: r.tileToScreen(50.5, 28.5), e: r.tileToScreen(57.5, 28.5), d: window.__app.dpr }; });
     await page.mouse.move(p.s.x / p.d, p.s.y / p.d);
     await page.mouse.down();

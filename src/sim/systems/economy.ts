@@ -1,5 +1,6 @@
 // Economy: dynamic market prices (supply saturation, weekly demand, daily drift),
 // overnight shipping, shop buying/selling, tool upgrades and building kits.
+import { C } from '../../data/palette';
 import { foundersBonus } from './founders';
 import type { ItemDef } from '../../data/types';
 import { guildBonus } from './contracts';
@@ -295,7 +296,7 @@ function postCollect(g: Game, label: string) {
   const bin = g.ents.get(g.shipBinId);
   if (bin) {
     g.emit({ t: 'fx', kind: 'coins', x: bin.x + 0.5, y: bin.y + 0.3 });
-    g.emit({ t: 'float', text: `+${res.total}`, x: bin.x + 0.5, y: bin.y - 0.6, c: 6 });
+    g.emit({ t: 'float', text: `+${res.total}`, x: bin.x + 0.5, y: bin.y - 0.6, c: C.amber });
   }
   g.emit({ t: 'sfx', id: 'chime' });
   g.emit({ t: 'sfx', id: 'coin' });

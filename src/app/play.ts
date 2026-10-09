@@ -909,9 +909,11 @@ export class PlayScreen implements Screen {
       ctx.lineWidth = 2;
       ctx.strokeRect(x * TILE + 1, y * TILE + 1, w * TILE - 2, h * TILE - 2);
       ctx.lineWidth = 1;
-      // the bouncing guide arrow (juice sheet; drawFx falls back to a code-drawn one)
+      // the bouncing guide arrow (juice sheet; drawFx falls back to a code-drawn one); hidden
+      // while you stand right at it, so it never draws over your legs
+      const ax = x + w / 2, near = Math.abs(g.player.x - ax) < 1.2 && g.player.y > y - 0.6 && g.player.y < y + 1.4;
       const bob = Math.round(Math.sin(this.playtime * 5) * 2);
-      drawFx(ctx, 'fx:arrow', Math.floor(this.playtime * 8), (x + w / 2) * TILE, y * TILE - 3 + bob);
+      if (!near) drawFx(ctx, 'fx:arrow', Math.floor(this.playtime * 8), ax * TILE, y * TILE - 3 + bob);
     };
     if (has('t_welcome')) {
       const B = OPENING.beans;
@@ -927,10 +929,15 @@ export class PlayScreen implements Screen {
     if (plotTodo) mark(P.x, P.y, P.w, P.h);
     // a villager or place the quest wants you to reach, when it's on screen
     const tg = questTarget(g);
-    if (tg && Math.abs(tg.x - this.app.renderer.cam.x) < 14 && Math.abs(tg.y - this.app.renderer.cam.y) < 8) {
+    if (tg && this.onScreenUI(this.toUI(tg.x, tg.y), this.app.ui)) {
       const bob = Math.round(Math.sin(this.playtime * 5) * 2);
       drawFx(ctx, 'fx:arrow', Math.floor(this.playtime * 8), tg.x * TILE, tg.y * TILE - 4 + bob);
     }
+  }
+
+  /** is a UI point inside the visible screen (with a margin)? */
+  private onScreenUI(p: Pt, ui: { w: number; h: number }, m = 10) {
+    return p.x > m && p.x < ui.w - m && p.y > m && p.y < ui.h - m;
   }
 
   /** the off-screen compass: a pointer at the screen edge toward the quest's villager or place */
@@ -939,24 +946,30 @@ export class PlayScreen implements Screen {
     if (this.modalOpen) return;
     const tg = questTarget(g);
     if (!tg) return;
-    const r = this.app.renderer;
-    if (Math.abs(tg.x - r.cam.x) < 14 && Math.abs(tg.y - r.cam.y) < 8) return;
     const at = this.toUI(tg.x, tg.y);
+    // on screen, the bobbing arrow over the target does the pointing
+    if (this.onScreenUI(at, ui)) return;
     const cx = ui.w / 2, cy = ui.h / 2;
     const dx = at.x - cx, dy = at.y - cy;
-    const k = Math.min((ui.w / 2 - 70) / Math.max(1, Math.abs(dx)), (ui.h / 2 - 60) / Math.max(1, Math.abs(dy)));
-    const w = textWidth(tg.label) + 22;
+    const w = textWidth(tg.label) + 22, h = 14;
+    const k = Math.min((ui.w / 2 - w / 2 - 6) / Math.max(1, Math.abs(dx)), (ui.h / 2 - 12) / Math.max(1, Math.abs(dy)));
     let x = Math.round(cx + dx * k), y = Math.round(cy + dy * k);
-    // keep clear of the quest tracker (top left), the chronometer column (right) and the hotbar
-    if (y < 120) x = Math.max(172 + w / 2, Math.min(ui.w - 132 - w / 2, x));
-    else if (x > ui.w - 132 - w / 2 && y < 210) x = ui.w - 132 - w / 2;
-    y = Math.min(y, ui.h - 70);
+    // steer around what the HUD drew this frame (tracker, toasts, pickups, right column, hotbar)
+    const occ = this.hud.occupied ?? [];
+    for (let pass = 0; pass < 4; pass++) {
+      const hit = occ.find((o) => x + w / 2 + 2 > o.x && x - w / 2 - 2 < o.x + o.w && y + h / 2 + 2 > o.y && y - h / 2 - 2 < o.y + o.h);
+      if (!hit) break;
+      if (hit.y + hit.h / 2 < ui.h / 2) y = hit.y + hit.h + h / 2 + 3;
+      else y = hit.y - h / 2 - 3;
+    }
+    y = Math.max(h / 2 + 2, Math.min(ui.h - 76, y));
+    const x0 = Math.round(x - w / 2), y0 = Math.round(y - h / 2);
     const dir = (Math.round((Math.atan2(dx, -dy) / (Math.PI * 2)) * 8) + 8) % 8;
     const bob = Math.round(Math.sin(this.playtime * 5) * 1.5);
-    ui.fill(x - w / 2, y - 7, w, 14, C.ink, 0.85);
-    ui.fill(x - w / 2 + 1, y - 6, w - 2, 1, C.slate);
-    drawFx(ui.ctx, 'fx:compass', dir, x - w / 2 + 8 + (dir === 1 || dir === 2 || dir === 3 ? bob : dir >= 5 ? -bob : 0), y + (dir === 3 || dir === 4 || dir === 5 ? bob : dir === 7 || dir === 0 || dir === 1 ? -bob : 0));
-    ui.text(tg.label, x - w / 2 + 16, y - 3, C.cream);
+    ui.fill(x0, y0, w, h, C.ink, 0.85);
+    ui.fill(x0 + 1, y0 + 1, w - 2, 1, C.slate);
+    drawFx(ui.ctx, 'fx:compass', dir, x0 + 8 + (dir === 1 || dir === 2 || dir === 3 ? bob : dir >= 5 ? -bob : 0), y0 + 7 + (dir === 3 || dir === 4 || dir === 5 ? bob : dir === 7 || dir === 0 || dir === 1 ? -bob : 0));
+    ui.text(tg.label, x0 + 16, y0 + 4, C.cream);
   }
 
   /** a countdown over the shipping crate to the next post collection (noon, 6pm) */
@@ -966,19 +979,22 @@ export class PlayScreen implements Screen {
     const bin = g.ents.get(g.shipBinId);
     if (!bin) return;
     const r = this.app.renderer;
-    if (Math.abs(bin.x - r.cam.x) > 14 || Math.abs(bin.y - r.cam.y) > 8) return;
+    if (!this.onScreenUI(this.toUI(bin.x + 0.5, bin.y + 0.5), ui, 0)) return;
+    void r;
     const waiting = !!bin.inv && !bin.inv.isEmpty();
     const q = g.sys.quests?.active as { id: string }[] | undefined;
     if (!waiting && !q?.some((a) => a.id === 't_post')) return;
     const next = POST_TIMES.find((t) => t > g.time.min);
     const left = next === undefined ? -1 : next - g.time.min;
-    const label = left < 0 ? 'Post tonight' : `Post in ${left >= 60 ? Math.floor(left / 60) + 'h ' : ''}${Math.floor(left % 60)}m`;
+    const label = left < 0 ? 'Post tonight' : left < 1 ? 'Post any second!' : `Post in ${left >= 60 ? Math.floor(left / 60) + 'h ' : ''}${Math.floor(left % 60)}m`;
     // beside the crate (its values pop up above it, the key bubble sits over it)
-    const at = this.toUI(bin.x + bin.w, bin.y + 0.45);
+    // beside the crate, on the side away from the player so it never covers them
+    const left2 = g.player.x > bin.x + bin.w / 2;
     const w = textWidth(label) + 18, h = 13;
-    const x = Math.round(at.x + 5), y = Math.round(at.y - h / 2);
-    ui.fill(x - 2, y + 4, 2, 5, C.ink);
-    ui.fill(x - 1, y + 5, 1, 3, C.walnut);
+    const at = this.toUI(left2 ? bin.x : bin.x + bin.w, bin.y + 0.45);
+    const x = Math.round(left2 ? at.x - 5 - w : at.x + 5), y = Math.round(at.y - h / 2);
+    ui.fill(left2 ? x + w : x - 2, y + 4, 2, 5, C.ink);
+    ui.fill(left2 ? x + w : x - 1, y + 5, 1, 3, C.walnut);
     ui.fill(x, y, w, h, C.ink);
     ui.fill(x + 1, y + 1, w - 2, h - 2, C.walnut);
     ui.fill(x + 1, y + 1, w - 2, 1, C.oak);
@@ -1137,7 +1153,10 @@ export class PlayScreen implements Screen {
         case 'crated':
           // automation = coins: what the arm just shipped will fetch
           if (onScreen(e.x, e.y) && g.player.where === 'world') {
-            J.pop('+' + unitPrice(g, e.k) * e.n, e.x * TILE, e.y * TILE - 2, C.butter, 2);
+            // facing the crate, the key bubble sits over it: pop beside it instead
+            const [fx, fy] = facingTile(g);
+            const side = e.ent !== undefined && g.ents.rootAt(fx, fy)?.id === e.ent ? 20 : 0;
+            J.pop('+' + unitPrice(g, e.k) * e.n, e.x * TILE + side, e.y * TILE - 2 + (side ? 10 : 0), C.amber, 2);
             J.fx('fx:glint', e.x * TILE + 4, e.y * TILE - 2, { fps: 12 });
             if (e.ent !== undefined) J.hop(e.ent);
           }
@@ -1145,8 +1164,10 @@ export class PlayScreen implements Screen {
         case 'post': {
           // the brass courier lands on the crate and takes the parcel; the coins burst as it does
           const bin = g.ents.get(g.shipBinId);
-          if (bin && g.player.where === 'world') {
-            J.courier((bin.x + 0.5) * TILE, bin.y * TILE + 3);
+          // (only when the crate is in view: nobody waits for a bird they can't see)
+          if (bin && g.player.where === 'world' && this.onScreenUI(this.toUI(bin.x + 0.5, bin.y + 0.5), this.app.ui, 0)) {
+            // on the crate's front corner, half over the grass, so the bird's shape reads
+            J.courier((bin.x + bin.w) * TILE - 2, bin.y * TILE + 5);
             this.coinWait = Juice.COURIER_GRAB;
           }
           // the ribbon drops in once the courier has the parcel, so it doesn't hide the landing

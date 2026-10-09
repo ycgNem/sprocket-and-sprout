@@ -232,8 +232,8 @@ function lightsFor(st: MineState) {
   const m = st.map!;
   st.lights = [];
   for (let i = 0; i < m.obj.length; i++) {
-    if (m.obj[i] === O.CRYSTAL) st.lights.push({ x: (i % m.w) + 0.5, y: Math.floor(i / m.w) + 0.4, r: 2.5, i: 0.8, c: 31 });
-    if (m.ground[i] === T.LAVA && i % 3 === 0) st.lights.push({ x: (i % m.w) + 0.5, y: Math.floor(i / m.w) + 0.5, r: 2, i: 0.7, c: 6, flicker: true });
+    if (m.obj[i] === O.CRYSTAL) st.lights.push({ x: (i % m.w) + 0.5, y: Math.floor(i / m.w) + 0.4, r: 2.5, i: 0.8, c: C.lavender });
+    if (m.ground[i] === T.LAVA && i % 3 === 0) st.lights.push({ x: (i % m.w) + 0.5, y: Math.floor(i / m.w) + 0.5, r: 2, i: 0.7, c: C.amber, flicker: true });
   }
 }
 
@@ -503,7 +503,7 @@ function hurtPlayer(g: Game, dmg: number, fromX: number, fromY: number) {
   p.ky = (dy / d) * 7;
   g.emit({ t: 'sfx', id: 'hurt' });
   g.emit({ t: 'shake', amt: 0.35 });
-  g.emit({ t: 'float', text: `-${Math.round(dmg * def)}`, x: p.x, y: p.y - 1.8, c: 28 });
+  g.emit({ t: 'float', text: `-${Math.round(dmg * def)}`, x: p.x, y: p.y - 1.8, c: C.rose });
   if (p.hp <= 0) faint(g);
 }
 
@@ -630,7 +630,7 @@ function tickMonsters(g: Game, dt: number) {
   }
   // light follows bolts
   st.lights = st.lights.filter((l) => !(l as any).bolt);
-  for (const b of st.bolts) st.lights.push({ x: b.x, y: b.y, r: 1.5, i: 0.8, c: 6, bolt: true } as any);
+  for (const b of st.bolts) st.lights.push({ x: b.x, y: b.y, r: 1.5, i: 0.8, c: C.amber, bolt: true } as any);
   // auto-step on ladders
   const o = m.o(Math.floor(p.x), Math.floor(p.y - 0.2));
   if (o === O.LADDER && (g.sys.ladderCool ?? 0) <= 0) {

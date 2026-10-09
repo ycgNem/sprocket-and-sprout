@@ -15,6 +15,8 @@ import { drawPulse } from './pulse';
 export interface HudState {
   pickups: { k: number; n: number; t: number }[];
   toasts: { text: string; t: number; icon?: string; color?: number }[];
+  /** screen areas the HUD drew this frame (tracker, toasts, pickups, right column, hotbar), for overlays to avoid */
+  occupied?: { x: number; y: number; w: number; h: number }[];
 }
 
 /** Seconds a toast stays up (it fades out over the last 0.7 s). Tips get longer to read. */
@@ -25,6 +27,7 @@ export function toastLife(text: string): number {
 export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   const g = play.g;
   const p = g.player;
+  const occ: { x: number; y: number; w: number; h: number }[] = (play.hud.occupied = []);
   // ---- chronometer (top right) ----
   const cw = 120;
   const cx = ui.w - cw - 4, cy = 4;
@@ -48,8 +51,10 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
     if (ui.hover(cx, by, cw, 22)) ui.tip([{ text: `${info.name} ${'I'.repeat(buff.lvl)}`, color: info.color }, { text: info.per + (buff.lvl > 1 ? ` (x${buff.lvl})` : '') }, { text: 'From ' + itemName(key(buff.src)) + '. Sleeping ends it.', color: C.pebble }]);
   }
 
+  occ.push({ x: cx - 2, y: 0, w: cw + 6, h: cy + ch + 4 + (p.where !== 'house' ? 74 : 0) + (buff ? 26 : 0) });
   // ---- hotbar + gauges ----
   drawHotbar(ui, play, dt);
+  occ.push({ x: 0, y: ui.h - 52, w: ui.w, h: 52 });
 
   // ---- build toolbar (while placing or in an area mode) ----
   drawBuildBar(ui, play);
@@ -61,6 +66,7 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
     const x = 4 - (1 - slide) * 40, y = ui.h - 60 - i * 20;
     ui.ctx.globalAlpha = Math.max(0, a);
     ui.panel(x, y, 120, 18, 'paper', false);
+    occ.push({ x, y, w: 120, h: 18 });
     ui.itemIcon(pk.k, x + 2, y + 1, 16);
     ui.text(`${ITEMS[pk.k >> 2].name} x${pk.n}`, x + 22, y + 6, C.ink);
     ui.ctx.globalAlpha = 1;
@@ -80,6 +86,7 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
     const w = Math.max(...lines.map((l) => textWidth(l))) + 14;
     const h = lines.length * 10 + 5;
     ui.panel(ui.w / 2 - w / 2, toastY, w, h, 'dark', false);
+    occ.push({ x: ui.w / 2 - w / 2, y: toastY, w, h });
     lines.forEach((l, li) => ui.text(l, ui.w / 2, toastY + 4 + li * 10, t.color ?? C.cream, { align: 'center' }));
     ui.ctx.globalAlpha = 1;
     toastY += h + 2;
@@ -100,6 +107,7 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
     lines.forEach((l, i) => ui.text(l.t, 9, ty + 15 + i * 10, l.done ? C.leaf : C.cream));
     ty += h + 3;
   }
+  if (ty > 4) occ.push({ x: 0, y: 0, w: 168, h: ty });
   // mine floor
   if (p.where === 'mine') {
     ui.panel(4, ty, 70, 16, 'dark', false);

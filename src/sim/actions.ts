@@ -1,4 +1,5 @@
 // Player actions: tool use on tiles, planting, eating, and interacting with things.
+import { C } from '../data/palette';
 import { stockPond } from './systems/ponds';
 import { cartHere } from './systems/cart';
 import { knowsRecipe, learnRecipe } from './systems/cookbook';
@@ -147,7 +148,7 @@ function clearPlant(g: Game, x: number, y: number) {
       const room = 240 * g.ents.others.filter((e) => e.def.id === 'silo').length - (g.sys.hay ?? 0);
       if (room > 0) {
         g.sys.hay = (g.sys.hay ?? 0) + 1;
-        g.emit({ t: 'float', text: '+1 hay', x: x + 0.5, y, c: 6 });
+        g.emit({ t: 'float', text: '+1 hay', x: x + 0.5, y, c: C.tan });
       }
     } else if (g.rng.next() < 0.3) drop(g, 'fiber', 1, x, y);
   }
@@ -471,7 +472,7 @@ export function eatHeld(g: Game): boolean {
   g.count('eaten_day');
   if (g.time.min >= 1440) g.sys.achUnlock?.(g, 'midnightsnack');
   if ((g.counters.eaten_day ?? 0) >= 15) g.sys.achUnlock?.(g, 'glutton');
-  g.emit({ t: 'float', text: `+${Math.round(d.edible.energy * mult)}`, x: p.x, y: p.y - 2, c: 16 });
+  g.emit({ t: 'float', text: `+${Math.round(d.edible.energy * mult)}`, x: p.x, y: p.y - 2, c: C.lime });
   g.stats.use(st.k, 1);
   return true;
 }
@@ -611,7 +612,7 @@ export function interactStruct(g: Game, e: Ent): boolean {
         g.sys.quests?.notify?.(g, 'load', 1, d.id);
         g.emit({ t: 'hop', ent: e.id });
         g.emit({ t: 'sfx', id: 'insert' });
-        g.emit({ t: 'float', text: `+${n}`, x: e.x + e.w / 2, y: e.y, c: 7 });
+        g.emit({ t: 'float', text: `+${n}`, x: e.x + e.w / 2, y: e.y, c: C.cream });
         return true;
       }
     }
@@ -635,7 +636,7 @@ export function interactStruct(g: Game, e: Ent): boolean {
       g.sys.quests?.notify?.(g, 'load', 1, d.id);
       g.emit({ t: 'hop', ent: e.id });
       g.emit({ t: 'sfx', id: 'insert' });
-      g.emit({ t: 'float', text: `+${loaded}`, x: e.x + e.w / 2, y: e.y, c: 7 });
+      g.emit({ t: 'float', text: `+${loaded}`, x: e.x + e.w / 2, y: e.y, c: C.cream });
       g.toast(`Loaded ${loaded} ${ITEM_BY_ID.get(what)?.name ?? what} from your bag.`);
       return true;
     }
@@ -655,7 +656,7 @@ export function interactStruct(g: Game, e: Ent): boolean {
     if (loaded) {
       g.emit({ t: 'hop', ent: e.id });
       g.emit({ t: 'sfx', id: 'insert' });
-      g.emit({ t: 'float', text: `+${loaded}`, x: e.x + e.w / 2, y: e.y, c: 7 });
+      g.emit({ t: 'float', text: `+${loaded}`, x: e.x + e.w / 2, y: e.y, c: C.cream });
     }
     if (loaded && !g.research.current) {
       g.emit({ t: 'ui', open: 'research' });
@@ -676,7 +677,7 @@ export function interactStruct(g: Game, e: Ent): boolean {
     if (used) {
       p.inv.remove(held.k, used);
       g.emit({ t: 'sfx', id: 'ship' });
-      g.emit({ t: 'float', text: `Delivered ${used}`, x: e.x + 1.5, y: e.y, c: 6 });
+      g.emit({ t: 'float', text: `Delivered ${used}`, x: e.x + 1.5, y: e.y, c: C.butter });
       return true;
     }
   }

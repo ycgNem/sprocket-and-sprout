@@ -863,11 +863,12 @@ export class Renderer {
               ctx.fillRect(Math.round(fx) + (Math.cos(a) > 0 ? -1 : 3), Math.round(fy), 1, 1);
             }
           }
-          if (e.mach && e.mach.crafting) this.drawProgressPip(e, e.mach.progress);
+          // up close, a working machine shows a brass ring (inside its own footprint, so it never
+          // covers the arm or belt next to it) that fills as the batch cooks; from afar, the pip
+          const close = e.mach?.crafting && Math.hypot(e.x + e.w / 2 - g.player.x, e.y + e.h / 2 - g.player.y) < 4.5;
+          if (close) drawFx(ctx, 'fx:ring', Math.min(8, Math.floor(e.mach!.progress * 9)), e.x * TILE + e.w * 8, (e.y + e.h) * TILE - 7 + this.juice.hopOf(e.id));
+          else if (e.mach && e.mach.crafting) this.drawProgressPip(e, e.mach.progress);
           if (e.mach) this.drawStatusLamp(e);
-          // up close, a working machine shows a brass ring that fills as the batch cooks
-          if (e.mach?.crafting && Math.hypot(e.x + e.w / 2 - g.player.x, e.y + e.h / 2 - g.player.y) < 4.5)
-            drawFx(ctx, 'fx:ring', Math.min(8, Math.floor(e.mach.progress * 9)), e.x * TILE + e.w * 8, e.y * TILE - (EXTRA_TOP[d.id] ?? 0) - 7 + this.juice.hopOf(e.id));
           if (e.def.kind === 'decor' && e.def.id === 'sign' && e.st.k !== null && e.st.k !== undefined) {
             drawItemIcon(ctx, itemIdCache(e.st.k), e.x * TILE + 3, e.y * TILE - 3, 10);
           }
