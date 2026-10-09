@@ -1,0 +1,117 @@
+{
+  "name": "player",
+  "file": "player.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 29,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "raise",
+    "strike",
+    "stand",
+    "hoeRaise",
+    "hoeStrike"
+  ],
+  "keys": {
+    "skin": [
+      "#cd683d",
+      "#e6904e",
+      "#fca790"
+    ],
+    "hair": [
+      "#45293f",
+      "#4c3e24",
+      "#9e4539"
+    ],
+    "shirt": [
+      "#374e4a",
+      "#676633",
+      "#a2a947"
+    ],
+    "pants": [
+      "#484a77",
+      "#4d65b4",
+      "#4d9be6"
+    ],
+    "tool": [
+      "#7a3045",
+      "#f79617",
+      "#f9c22b"
+    ],
+    "metal": [
+      "#7f708a",
+      "#9babb2",
+      "#c7dcd0"
+    ]
+  },
+  "label": "C32 v3",
+  "kind": "character",
+  "ids": [
+    "player",
+    "preview_*"
+  ],
+  "styles": [
+    "short",
+    "spiky"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand",
+    "7": "hoeRaise",
+    "8": "hoeStrike"
+  },
+  "source": "PixelLab create_character v3, size 32, low top-down (character c3eac680-f7ae-453d-9a61-b22fdff859d1); walk: walking-4-frames; tool swing: custom v3 animation (raise frame 2, strike frame 4)",
+  "toolKinds": [
+    "hoe",
+    "pick"
+  ],
+  "colors": [
+    "#2e222f",
+    "#313638",
+    "#323353",
+    "#374e4a",
+    "#45293f",
+    "#484a77",
+    "#4c3e24",
+    "#4d65b4",
+    "#4d9be6",
+    "#625565",
+    "#676633",
+    "#694f62",
+    "#7a3045",
+    "#7f708a",
+    "#9babb2",
+    "#9e4539",
+    "#a2a947",
+    "#ab947a",
+    "#c7dcd0",
+    "#cd683d",
+    "#e6904e",
+    "#f79617",
+    "#f9c22b",
+    "#fbb954",
+    "#fca790",
+    "#ffffff"
+  ]
+}

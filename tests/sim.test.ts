@@ -13,6 +13,7 @@ import { npcSys, giftTaste } from '../src/sim/systems/npcs';
 import { NPC_BY_ID } from '../src/data/npcs';
 import { craft, HAND_RECIPES } from '../src/sim/crafting';
 import { O, T } from '../src/sim/world/tilemap';
+import { C } from '../src/data/palette';
 
 function sleep(g: Game) {
   g.goToBed();
@@ -240,5 +241,11 @@ describe('save/load', () => {
     expect(d.v).toBe(SAVE_VERSION);
     expect(d.player.rows).toBe(3);
     expect(() => migrate({ v: 999 })).toThrow();
+  });
+
+  it('moves v2 look colors from the 32-color palette to Resurrect 64', () => {
+    // 1.0 indices: apricot skin, walnut hair, moss shirt, river pants, rose accent
+    const d = migrate({ v: 2, player: { name: 'x', farmName: 'y' }, look: { skin: 5, hair: 10, hairStyle: 'short', shirt: 14, pants: 19, accent: 28 } });
+    expect(d.look).toEqual({ skin: C.apricot, hair: C.walnut, hairStyle: 'short', shirt: C.moss, pants: C.river, accent: C.rose });
   });
 });

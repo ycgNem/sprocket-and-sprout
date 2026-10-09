@@ -17,7 +17,7 @@ await page.waitForTimeout(1200);
 await page.evaluate(() => {
   const app = window.__app;
   const g = new window.__Game({ seed: 12345, name: 'Robin', farmName: 'Willow' });
-  app.startGame(g, { skin: 5, hair: 9, hairStyle: 'ponytail', shirt: 15, pants: 19, accent: 28 });
+  app.startGame(g, { skin: 22, hair: 49, hairStyle: 'ponytail', shirt: 30, pants: 46, accent: 56 });
 });
 await page.waitForTimeout(800);
 const PLACES = {

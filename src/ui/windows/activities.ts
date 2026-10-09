@@ -8,7 +8,7 @@ import { key } from '../../sim/inventory';
 import { fishing } from '../../sim/systems/fishing';
 import { finishActivity } from '../../sim/systems/festivals';
 import { mine } from '../../sim/systems/mine';
-import { sprite, drawItemIcon } from '../../render/atlas';
+import { sprite, drawSprite, drawItemIcon } from '../../render/atlas';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { centered, frame } from './common';
@@ -286,7 +286,7 @@ function drawMinigame(ui: UI, play: PlayScreen, st: WinState, kind: string): boo
     }
     if (G.slip) { G.slip -= dt; if (G.slip <= 0) G.slip = 0; }
     const s = sprite('ch:player:2:0');
-    ui.ctx.drawImage(s.img, s.x, s.y, s.w, s.h, Math.round(ax + G.px * aw - 8), Math.round(ay + G.py * ah - 20), 16, 24);
+    drawSprite(ui.ctx, s, ax + G.px * aw, ay + G.py * ah + 3);
     ui.text(`WASD to skate. Grab lights, avoid cracks! ${Math.ceil(T - G.t)}s`, x + 8, y + 7, C.ink);
     ui.text(`${G.score}`, x + W - 10, y + 7, C.ink, { align: 'right' });
     if (G.t >= T) endGame(play, st, G.score);

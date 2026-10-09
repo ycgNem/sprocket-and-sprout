@@ -1,0 +1,66 @@
+{
+  "name": "candidate-p32",
+  "file": "candidate-p32.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 26,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "label": "P32 pro",
+  "kind": "character",
+  "ids": [
+    "cand_p32"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character pro, size 32 (b337f473-4972-4711-aec6-7a69fd8f200c); walk: walking-4-frames. Candidate for the player look (Phase 1 comparison), natural colors, no palette swap.",
+  "colors": [
+    "#2e222f",
+    "#313638",
+    "#323353",
+    "#3e3546",
+    "#45293f",
+    "#484a77",
+    "#4c3e24",
+    "#4d65b4",
+    "#676633",
+    "#694f62",
+    "#6e2727",
+    "#8fd3ff",
+    "#966c6c",
+    "#9e4539",
+    "#a2a947",
+    "#b2ba90",
+    "#cd683d",
+    "#e6904e",
+    "#fbb954",
+    "#fca790",
+    "#fdcbb0",
+    "#ffffff"
+  ]
+}

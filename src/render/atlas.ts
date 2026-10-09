@@ -1,4 +1,5 @@
-// Sprite atlas: sprites are generated lazily by code and packed into shared pages.
+// Sprite atlas: sprites are generated lazily (by code, or cut from imported PNG sheets) and packed
+// into shared pages.
 import { makeCanvas, ctx2d, Ctx } from './art/pixel';
 
 export interface Sprite {
@@ -73,14 +74,146 @@ function missingSprite(): Sprite {
   return missing;
 }
 
+// ---- PNG sprite sheets ----
+// Imported art (src/art/*.png, made with scripts/art-import.mjs) registers frames under the same
+// names as the procedural sprites it replaces. A sheet wins over a generator once it has loaded;
+// `name:old` and setArtMode('old') still reach the procedural version during the overhaul.
+
+/** One frame cut out of a sheet. Coordinates are sheet pixels; ox/oy is the anchor as in Sprite. */
+export interface ImageFrame {
+  url: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  ox?: number;
+  oy?: number;
+  /** store the frame mirrored (for a sheet's left-facing row, which the renderer flips back) */
+  flipX?: boolean;
+  /** exact-color swaps applied to the frame, '#rrggbb' -> '#rrggbb' (palette swaps for looks) */
+  recolor?: Record<string, string>;
+}
+/** waiting: names drawn with the fallback while the sheet loaded; dropped from the cache on load */
+interface Sheet { canvas?: HTMLCanvasElement; failed?: boolean; ready: Promise<void>; waiting: Set<string> }
+const sheets = new Map<string, Sheet>();
+const imageSprites = new Map<string, ImageFrame>();
+const imageFamilies: [string, (name: string) => ImageFrame | null][] = [];
+let artMode: 'new' | 'old' = 'new';
+
+function loadSheet(url: string): Sheet {
+  let sh = sheets.get(url);
+  if (sh) return sh;
+  const img = new Image();
+  const entry: Sheet = {
+    waiting: new Set(),
+    ready: new Promise<void>((res) => {
+      img.onload = () => {
+        const c = makeCanvas(img.width, img.height);
+        ctx2d(c).drawImage(img, 0, 0);
+        entry.canvas = c;
+        for (const n of entry.waiting) cache.delete(n);
+        entry.waiting.clear();
+        res();
+      };
+      img.onerror = () => {
+        console.error('sprite sheet failed to load', url);
+        entry.failed = true;
+        res();
+      };
+    }),
+  };
+  img.src = url;
+  sheets.set(url, entry);
+  return entry;
+}
+
+/** Register one sprite cut from a PNG sheet (loaded in the background; see artReady). */
+export function defImageSprite(name: string, frame: ImageFrame) {
+  loadSheet(frame.url);
+  imageSprites.set(name, frame);
+}
+
+/** Register PNG frames for every sprite whose name starts with prefix; fn returns null to fall back. */
+export function defImageFamily(prefix: string, urls: string[], fn: (name: string) => ImageFrame | null) {
+  for (const u of urls) loadSheet(u);
+  imageFamilies.push([prefix, fn]);
+}
+
+/** Resolves when every registered sheet has loaded (or failed and fallen back to the procedural art). */
+export function artReady(): Promise<void> {
+  return Promise.all([...sheets.values()].map((s) => s.ready)).then(() => {});
+}
+
+/** 'old' draws the procedural art everywhere (side-by-side comparisons). */
+export function setArtMode(m: 'new' | 'old') {
+  if (m === artMode) return;
+  artMode = m;
+  cache.clear();
+}
+export function getArtMode() {
+  return artMode;
+}
+
+function imageFrame(name: string): ImageFrame | null {
+  const f = imageSprites.get(name);
+  if (f) return f;
+  for (const [p, fn] of imageFamilies) if (name.startsWith(p)) {
+    const r = fn(name);
+    if (r) return r;
+  }
+  return null;
+}
+
+function hexRGB(h: string): number {
+  return parseInt(h.slice(1), 16);
+}
+
+/** A generator that copies a sheet frame (mirrored and recolored if asked). */
+function frameGen(f: ImageFrame, src: HTMLCanvasElement): Gen {
+  const ox = f.ox ?? 0;
+  return {
+    w: f.w, h: f.h, oy: f.oy ?? 0,
+    // a mirrored frame keeps its anchor on the same pixel column
+    ox: f.flipX ? f.w - ox : ox,
+    draw: (ctx) => {
+      ctx.save();
+      if (f.flipX) { ctx.translate(f.w, 0); ctx.scale(-1, 1); }
+      ctx.drawImage(src, f.x, f.y, f.w, f.h, 0, 0, f.w, f.h);
+      ctx.restore();
+      if (!f.recolor) return;
+      const map = new Map<number, number>();
+      for (const [a, b] of Object.entries(f.recolor)) map.set(hexRGB(a), hexRGB(b));
+      const id = ctx.getImageData(0, 0, f.w, f.h);
+      const d = id.data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (!d[i + 3]) continue;
+        const to = map.get((d[i] << 16) | (d[i + 1] << 8) | d[i + 2]);
+        if (to !== undefined) { d[i] = to >> 16; d[i + 1] = (to >> 8) & 255; d[i + 2] = to & 255; }
+      }
+      ctx.putImageData(id, 0, 0);
+    },
+  };
+}
+
 export function sprite(name: string): Sprite {
   let s = cache.get(name);
   if (s) return s;
-  let g = generators.get(name) as Gen | undefined;
+  const old = name.endsWith(':old');
+  const base = old ? name.slice(0, -4) : name;
+  let g: Gen | undefined;
+  if (!old && artMode === 'new') {
+    const f = imageFrame(base);
+    if (f) {
+      const sh = loadSheet(f.url);
+      if (sh.canvas) g = frameGen(f, sh.canvas);
+      else if (!sh.failed) sh.waiting.add(name);
+    }
+  }
+  if (!g) g = generators.get(base) as Gen | undefined;
   if (!g) {
     for (const [p, fn] of prefixGens) {
-      if (name.startsWith(p)) {
-        const r = fn(name);
+      if (base.startsWith(p)) {
+        const r = fn(base);
         if (r) { g = r; break; }
       }
     }

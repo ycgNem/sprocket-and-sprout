@@ -1,8 +1,9 @@
 // Application shell: screens (title, new game, load, settings, play), main loop wiring.
-import { C } from '../data/palette';
+import { C, skin3 } from '../data/palette';
 import { GameLoop } from '../engine/loop';
 import { Input } from '../engine/input';
 import { Renderer } from '../render/renderer';
+import { artReady, setArtMode } from '../render/atlas';
 import { registerAllArt, registerMapBuildings, setPlayerLook } from '../render/art';
 import { UI } from '../ui/ui';
 import { Game } from '../sim/Game';
@@ -52,6 +53,10 @@ export class App {
     this.audio = new Audio(this.settings);
     this.ui.sfx = (id) => this.audio.sfx(id);
     registerAllArt();
+    // ?art=old shows the procedural 1.0 art (side-by-side comparisons during the overhaul)
+    if (new URLSearchParams(location.search).get('art') === 'old') setArtMode('old');
+    // imported sheets load in the background; repaint cached terrain once they are in
+    artReady().then(() => this.renderer.invalidateAll());
     const resize = () => {
       this.dpr = Math.min(2, window.devicePixelRatio || 1);
       this.renderer.resize(Math.floor(window.innerWidth * this.dpr), Math.floor(window.innerHeight * this.dpr));
@@ -334,7 +339,7 @@ class NewGameForm {
       const label2 = k === 'style' ? STYLES[this.idx.style] : '';
       if (label2) ui.text(label2, x + 148, ry + 4, C.walnut, { align: 'center' });
       else {
-        const col = (k === 'skin' ? SKINS : k === 'hair' ? HAIRS : k === 'shirt' ? SHIRTS : PANTS)[this.idx[k]];
+        const col = k === 'skin' ? skin3(SKINS[this.idx.skin])[1] : (k === 'hair' ? HAIRS : k === 'shirt' ? SHIRTS : PANTS)[this.idx[k]];
         ui.fill(x + 136, ry + 2, 24, 10, C.ink);
         ui.fill(x + 137, ry + 3, 22, 8, col);
       }
@@ -348,15 +353,9 @@ class NewGameForm {
     const px = x + 292, py = y + 110;
     ui.panel(px - 30, py - 50, 60, 76, 'inset', false);
     try {
-      const { sprite } = require_atlas();
-      const s = sprite(`ch:${pid}:${dir === 3 ? 1 : dir}:${frame}`);
-      ui.ctx.save();
-      if (dir === 3) {
-        ui.ctx.translate(px, 0);
-        ui.ctx.scale(-1, 1);
-        ui.ctx.drawImage(s.img, s.x, s.y, s.w, s.h, -16, py - 40, 32, 48);
-      } else ui.ctx.drawImage(s.img, s.x, s.y, s.w, s.h, px - 16, py - 40, 32, 48);
-      ui.ctx.restore();
+      const { sprite, drawSprite } = require_atlas();
+      // x2, feet near the bottom of the panel (works for any frame size: imported sheets are taller)
+      drawSprite(ui.ctx, sprite(`ch:${pid}:${dir}:${frame}`), px, py + 18, 2, dir === 3);
     } catch {
       /* look not registered yet */
     }

@@ -103,23 +103,49 @@ evaluation and rush result screens, the cooking/adopt/elevator windows, dialogue
 
 ### Phase 1 — Style bible and art pipeline spike (1 session)
 
-- [ ] Write `STYLE.md`: tile size, character proportions (height in px, head ratio),
-      the Resurrect 64 palette written into `src/data/palette.ts` (old `C` names
-      aliased to their nearest color), outline rule (dark outline? selective?),
-      shadow rule, light direction, what "warm brass, never gray" means in hex.
-- [ ] Add PNG sprite loading to the atlas: `defImageSprite(name, url, frames…)` next to
-      `defSprite`, with the same `Sprite` shape so the renderer is unchanged. Sheets live in
-      `public/art/` (or `src/art/` imported by Vite) and are bundled into `dist/`.
-- [ ] Add the import step: a script that takes a PixelLab PNG, quantizes it to the chosen
-      palette, checks the pixel grid and writes it into the sheet (`scripts/art-import.mjs`).
-- [ ] Prove it with ONE asset from PixelLab: the player, 4-direction walk, driven by the
-      existing look system as far as that still makes sense (hair/shirt tints can be
-      palette swaps on the sheet).
-- [ ] Show old and new side by side in the game; screenshot both.
-- [ ] Create the `art-director` agent (stub exists) and give it `STYLE.md`.
+**Done 2026-10-09, waiting for the owner's pick** (see "Owner's call" below).
 
-Done when: the owner looks at two screenshots and picks one, and `npm run build` still
-produces a working `dist/`.
+- [x] `STYLE.md`: 16 px tiles; adult characters 28–31 px tall in 40×40 frames, head ≈ 0.4 of
+      the height; Resurrect 64 in `src/data/palette.ts` (the old `C` names are aliases picked by
+      CIEDE2000 and adjusted by hand: no shared colors, every DARK/LIGHT step still darker/lighter;
+      saves migrate to v3); `#2e222f` outline, selective on big objects; light from the upper
+      left; renderer-drawn shadows; material ramps and "warm brass, never gray" in hex.
+- [x] PNG sprites in the atlas: `defImageSprite` / `defImageFamily` in `src/render/atlas.ts`
+      (same `Sprite` shape; mirrored frames and palette recolors at load). Sheets are
+      `src/art/*.png` + `.json`, picked up by `src/render/art/sheets.ts` and hashed into `dist/`.
+      The procedural art stays reachable: `name:old`, `?art=old`, debug panel **Art** button.
+- [x] `scripts/art-import.mjs`: undoes upscaling, checks the grid, thresholds alpha, snaps to the
+      palette (CIEDE2000, lightness at half weight so hues survive), maps each look part's source
+      colors onto its key ramp (`parts`), aligns frames on the feet, writes sheet + manifest +
+      previews (`--check … --preview` vets candidates). `scripts/pixellab.mjs` calls the PixelLab
+      MCP tools from a script; `scripts/lib/png.mjs` is a dependency-free PNG codec.
+- [x] The player from PixelLab (v3, size 32): 4 directions × 4-frame walk, a standing pose
+      (new frame 6) and a hoe swing that replaces the rotated tool icon for hoe and pickaxe.
+      Skin, hair, shirt and pants recolor through the look system; hair styles `short` and
+      `spiky` use the sheet, the other 8 keep the procedural sprite until their variants exist.
+- [x] Side by side in the game: debug panel **Compare** draws the 1.0 player and the candidate
+      sheets next to the player, same frame. `node e2e/artcompare.mjs` writes
+      `e2e/out/art-compare/lineup.png` (4 directions, walk, hoe swing), `new.png`, `old.png`.
+- [x] `art-director` agent rewritten around `STYLE.md`, PixelLab and the import pipeline.
+- [x] `npm run build` works (the sheet is a 7 KB PNG), 86 tests pass, `npm run screens`: 43
+      shots, 0 issues.
+- [ ] Not done: the critic agent pass.
+
+**Owner's call:** pick the player look from `e2e/out/art-compare/lineup.png`: **C32** (v3, in the
+game now), **P32** (pro mode, softer) or **B28** (standard, slimmer), or keep 1.0. Then delete the
+two losing `art/player/candidate-*.json` recipes and their `src/art/candidate-*` sheets.
+
+Learned (details in `STYLE.md` and the art-director agent): PixelLab's `size` is the character's
+height; it ignores palettes, so the import does the color work; template walks re-render the
+character in slightly different colors, so each part's source colors must be listed per
+animation.
+
+**Phase 2 head start, terrain:** three chained 16 px Wang tilesets (grass↔tilled soil,
+grass↔path, grass↔water; `art/terrain/`, PixelLab ids in the `.meta.json` files) and a PixelLab
+map "Sprocket farm preview" (`06217953-c0fe-4b08-a8bd-8861c352fdfc`) painted with them. The
+transitions are good; the grass is a neon lime that snaps to a pale green, it is one repeated
+tile, and the water is flat. Next session: prompt for muted Resurrect greens, generate variants
+(`create_tiles_pro`), add a `tileset` sheet kind and teach the chunk painter Wang corners.
 
 ### Phase 2 — Full art replacement by screen time (5–8 sessions)
 
@@ -164,10 +190,10 @@ Each session ends with `npm run screens`, the critic agent, a commit and a push.
 | Thing | Use | Status |
 |---|---|---|
 | `indie-critic` agent | Fun, pacing, readability review at the end of each phase | exists |
-| `qa-screens` agent | Runs `npm run screens`, reports overlaps and visual regressions | stub, Phase 0 |
-| `art-director` agent | Owns `STYLE.md`; generates with PixelLab; quantizes, imports, rejects off-style assets | stub, Phase 1 |
+| `qa-screens` agent | Runs `npm run screens`, reports overlaps and visual regressions | done, Phase 0 |
+| `art-director` agent | Owns `STYLE.md`; generates with PixelLab; quantizes, imports, rejects off-style assets | done, Phase 1 |
 | `references/` folder | Owner's taste notes, palettes, mood boards, screenshots of admired games; agents consult it loosely | exists: Resurrect 64 (chosen), TanoPal 48, 4 game screenshots |
-| PixelLab (MCP) | Characters with 4/8-direction animation, tilesets, item icons | connected |
+| PixelLab (MCP) | Characters + animations, Wang tilesets, maps, map objects, building kits, UI assets, fonts, portraits; Tier 1 = 2,000 generations a month | registered at user scope (loads in every session); `scripts/pixellab.mjs` with `PIXELLAB_API_TOKEN` as a fallback |
 | ComfyUI (skill) | Concept art and mood boards, not final sprites | available |
 | jsfxr | Retro SFX; bank in `src/engine/audio/sfxr.ts` | installed, 3 sounds seeded |
 | Aseprite (~$20) | Hand touch-ups when a generated sprite is 90% right | buy when first needed |

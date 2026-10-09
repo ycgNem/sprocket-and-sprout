@@ -1,6 +1,7 @@
 // Save / load with versioned migrations. Item keys are stored as [id, quality]
 // so saves survive content additions. Maps are run-length encoded.
 import { ITEM_INDEX } from '../data/items';
+import { LEGACY32 } from '../data/palette';
 import { RECIPE_BY_ID } from '../data/recipes';
 import { STRUCT_BY_ID } from '../data/structures';
 import type { NPCLook, Season, Weather } from '../data/types';
@@ -9,7 +10,7 @@ import { ArmState, BeltKind, Dir, Ent } from './ents';
 import { Inventory, ItemKey, key, kId, kQ, Stack } from './inventory';
 import { TileMap } from './world/tilemap';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 const PREFIX = 'sns_save_';
 const MAX_SLOTS = 6;
 
@@ -224,6 +225,12 @@ export const MIGRATIONS: Record<number, (d: any) => any> = {
     d.sys = d.sys ?? {};
     d.player.rows = d.player.rows ?? 3;
     d.v = 2;
+    return d;
+  },
+  2: (d) => {
+    // v2 -> v3: the palette went from 32 colors to Resurrect 64; look colors are palette indices
+    if (d.look) for (const k of ['skin', 'hair', 'shirt', 'pants', 'accent']) if (typeof d.look[k] === 'number') d.look[k] = LEGACY32[d.look[k]] ?? d.look[k];
+    d.v = 3;
     return d;
   },
 };

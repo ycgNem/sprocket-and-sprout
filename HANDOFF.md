@@ -9,8 +9,10 @@ with no engine and no asset files yet. Art and music are procedural; some SFX co
 - **Phase 0 of the overhaul is done** (Oct 9): the player-look bug, belt items on the pixel grid,
   the title overlap, an integer-grid rule for every scaled sprite, and `npm run screens` (a
   43-screen sweep with an automatic UI overlap audit, now at 0 issues).
-- **Next: Phase 1**, the art pipeline spike (style bible, Resurrect 64 palette, PNG sprites in the
-  atlas, first PixelLab character). The owner wants features and visible change now, not polish.
+- **Phase 1 is done** (Oct 9): `STYLE.md`, Resurrect 64, PNG sheets in the atlas (`src/art/`,
+  `src/render/art/sheets.ts`), `scripts/art-import.mjs`, a PixelLab player with walk + hoe swing.
+  Waiting for the owner to pick a look in `e2e/out/art-compare/lineup.png` (`node e2e/artcompare.mjs`).
+  Next: Phase 2 (ROADMAP.md).
 
 1.0 itself was feature-complete for the original brief. On top of that:
 - a large depth pass;

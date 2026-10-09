@@ -11,7 +11,7 @@ await page.goto(base);
 await page.waitForTimeout(1200);
 await page.evaluate(() => {
   const g = new window.__Game({ seed: 77, name: 'Perf', farmName: 'Perf' });
-  window.__app.startGame(g, { skin: 5, hair: 9, hairStyle: 'short', shirt: 15, pants: 19 });
+  window.__app.startGame(g, { skin: 22, hair: 49, hairStyle: 'short', shirt: 30, pants: 46 });
 });
 await page.waitForTimeout(500);
 const res = await page.evaluate(async () => {

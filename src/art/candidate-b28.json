@@ -1,0 +1,60 @@
+{
+  "name": "candidate-b28",
+  "file": "candidate-b28.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 29,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "label": "B28 std",
+  "kind": "character",
+  "ids": [
+    "cand_b28"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character standard, cartoon proportions, size 28 (1a1dc358-1538-4176-9e2e-bc15ff8cf57c); walk: walking-4-frames. Candidate for the player look (Phase 1 comparison), natural colors, no palette swap.",
+  "colors": [
+    "#2e222f",
+    "#313638",
+    "#323353",
+    "#3e3546",
+    "#484a77",
+    "#4c3e24",
+    "#4d65b4",
+    "#676633",
+    "#6e2727",
+    "#966c6c",
+    "#9e4539",
+    "#c7dcd0",
+    "#cd683d",
+    "#f9c22b",
+    "#fca790",
+    "#fdcbb0"
+  ]
+}

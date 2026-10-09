@@ -1,5 +1,5 @@
 // Code-drawn characters (player + NPCs). 16x24 px, 4 directions, walk + action frames.
-import { C, DARK, LIGHT } from '../../data/palette';
+import { C, DARK, LIGHT, skin3 } from '../../data/palette';
 import type { NPCLook } from '../../data/types';
 import { defSpriteFamily } from '../atlas';
 import { PixBuf } from './pixbuf';
@@ -15,14 +15,16 @@ export function getLook(id: string) {
 export const CHAR_W = 16, CHAR_H = 24;
 
 /**
- * frame: 0 stand, 1 step A, 2 stand, 3 step B, 4 action raise, 5 action strike
+ * frame: 0 stand, 1 step A, 2 stand, 3 step B, 4 action raise, 5 action strike, 6 standing still
+ * (drawn like 0 here; imported sheets have a separate idle pose)
  * dir: 0 up, 1 right, 2 down, 3 left (left is drawn mirrored by the renderer)
  */
 function drawChar(look: NPCLook, dir: number, frame: number): PixBuf {
   const pb = new PixBuf(CHAR_W, CHAR_H);
   const child = look.height === 'short';
   const tall = look.height === 'tall';
-  const skin = look.skin, hair = look.hair, shirt = look.shirt, pants = look.pants;
+  const [skinD, skin] = skin3(look.skin);
+  const hair = look.hair, shirt = look.shirt, pants = look.pants;
   const step = frame === 1 ? 1 : frame === 3 ? -1 : 0;
   const bob = frame === 1 || frame === 3 ? 1 : 0;
   const yo = (child ? 3 : tall ? -1 : 0) + bob; // vertical offset of upper body
@@ -94,17 +96,17 @@ function drawChar(look: NPCLook, dir: number, frame: number): PixBuf {
   // ---- head ----
   const hTop = 2 + yo, hx = 4;
   pb.rect(hx, hTop, 8, 8, skin);
-  pb.rect(hx, hTop + 7, 8, 1, DARK[skin]);
+  pb.rect(hx, hTop + 7, 8, 1, skinD);
   if (dir === 2) {
     // face
     pb.rect(6, hTop + 4, 1, 2, C.ink);
     pb.rect(9, hTop + 4, 1, 2, C.ink);
-    if (skin !== C.bark && skin !== C.walnut) {
+    if (look.skin !== C.bark && look.skin !== C.walnut) {
       pb.set(5, hTop + 6, C.blush);
       pb.set(10, hTop + 6, C.blush);
     }
-    pb.set(7, hTop + 6, DARK[skin]);
-    pb.set(8, hTop + 6, DARK[skin]);
+    pb.set(7, hTop + 6, skinD);
+    pb.set(8, hTop + 6, skinD);
     if (look.glasses) {
       pb.rect(5, hTop + 3, 3, 1, C.ink); pb.rect(8, hTop + 3, 3, 1, C.ink);
       pb.set(5, hTop + 4, C.ink); pb.set(10, hTop + 4, C.ink);
@@ -112,13 +114,13 @@ function drawChar(look: NPCLook, dir: number, frame: number): PixBuf {
   } else if (side) {
     pb.rect(10, hTop + 4, 1, 2, C.ink);
     pb.set(12, hTop + 5, skin);
-    if (skin !== C.bark && skin !== C.walnut) pb.set(10, hTop + 6, C.blush);
+    if (look.skin !== C.bark && look.skin !== C.walnut) pb.set(10, hTop + 6, C.blush);
     if (look.glasses) { pb.rect(9, hTop + 3, 3, 1, C.ink); pb.set(9, hTop + 4, C.ink); }
   }
   // beard
   if (look.beard && dir !== 0) {
     if (side) pb.rect(8, hTop + 6, 4, 3, hair);
-    else { pb.rect(5, hTop + 6, 6, 3, hair); pb.set(7, hTop + 6, DARK[skin]); pb.set(8, hTop + 6, DARK[skin]); }
+    else { pb.rect(5, hTop + 6, 6, 3, hair); pb.set(7, hTop + 6, skinD); pb.set(8, hTop + 6, skinD); }
   }
   // ---- hair ----
   const H = hair, Hd = DARK[hair];
@@ -197,7 +199,7 @@ function drawChar(look: NPCLook, dir: number, frame: number): PixBuf {
 /** 32x32 dialogue portraits with moods: 0 neutral, 1 happy, 2 sad, 3 surprised */
 function drawPortrait(look: NPCLook, mood: number, elder: boolean): PixBuf {
   const pb = new PixBuf(32, 32);
-  const S = look.skin, Sd = DARK[look.skin], Sl = LIGHT[look.skin] === C.cream && look.skin === C.cream ? C.cream : LIGHT[look.skin];
+  const [Sd, S, Sl] = skin3(look.skin);
   const H = look.hair, Hd = DARK[look.hair], Hl = LIGHT[look.hair] === C.cream && look.hair !== C.cream ? H : LIGHT[look.hair];
   const child = look.height === 'short';
   const hx = child ? 9 : 8, hw = child ? 14 : 16, hy = child ? 9 : 6, hh = child ? 16 : 18;
@@ -249,7 +251,7 @@ function drawPortrait(look: NPCLook, mood: number, elder: boolean): PixBuf {
   // nose + cheeks
   pb.set(16, ey + 3, Sd);
   pb.set(16, ey + 4, Sd);
-  if (S !== C.bark && S !== C.walnut) { pb.rect(exL - 1, ey + 4, 2, 1, C.blush); pb.rect(exR + 2, ey + 4, 2, 1, C.blush); }
+  if (look.skin !== C.bark && look.skin !== C.walnut) { pb.rect(exL - 1, ey + 4, 2, 1, C.blush); pb.rect(exR + 2, ey + 4, 2, 1, C.blush); }
   // mouth
   const my = ey + 6;
   if (mood === 1) { pb.rect(14, my, 4, 1, C.ink); pb.set(13, my - 1, C.ink); pb.set(18, my - 1, C.ink); pb.rect(14, my + 1, 4, 1, C.rose); }

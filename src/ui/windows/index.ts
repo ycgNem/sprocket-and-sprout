@@ -17,6 +17,7 @@ import { ICON, wrapText } from '../font';
 import { keyLabel } from '../../engine/input';
 import { applyResearchMods } from '../../sim/save';
 import { runPerfScene } from '../../app/perf';
+import { getArtMode, setArtMode } from '../../render/atlas';
 
 export interface WinState {
   id: string;
@@ -225,6 +226,8 @@ function drawDebug(ui: UI, play: PlayScreen, st: WinState): boolean {
   row(['home', 'Renovate', () => { for (const f of ['home_kitchen', 'home_featherbed', 'home_pantry', 'home_hearth']) g.flags.add(f); g.toast('Farmhouse fully renovated.'); }], ['furn', 'Furniture', () => { for (const f of FURNITURE) g.give(key(f.id), 1, false); g.toast('One of every furniture piece added.'); }]);
   row(['year', 'Founders day', () => { g.flags.add('eval_pending'); }], ['locket', 'Locket', () => g.give(key('heart_charm'), 1)]);
   row(['mine', 'Mine +5 fl', () => g.sys.mine?.debugDescend?.(g, 5)], ['hearts', 'Friends +2h', () => { for (const n of g.sys.npcs?.list ?? []) n.points = Math.min(2500, (n.points ?? 0) + 500); }]);
+  // art overhaul: imported sheets vs the procedural 1.0 art
+  row(['art', `Art: ${getArtMode()}`, () => { setArtMode(getArtMode() === 'new' ? 'old' : 'new'); app.renderer.invalidateAll(); }], ['cmp', `Compare ${app.renderer.compareArt ? 'on' : 'off'}`, () => (app.renderer.compareArt = !app.renderer.compareArt)]);
   btns.forEach(([id, label, fn], i) => {
     const bx = x + 6 + (i % 3) * 80, by = yy + Math.floor(i / 3) * 17;
     if (ui.button('dbg_' + id, bx, by, 76, 15, label, { style: 'flat' })) fn();

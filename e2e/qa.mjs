@@ -15,7 +15,7 @@ await page.waitForTimeout(1200);
 await page.evaluate(async () => {
   const g = new window.__Game({ seed: 31, name: 'QA', farmName: 'QA' });
   for (const t of ['welcome', 'hoe', 'seeds', 'can', 'place', 'lab', 'belts', 'machine', 'power', 'blueprint', 'energy', 'night']) g.flags.add('tip_' + t);
-  window.__app.startGame(g, { skin: 5, hair: 9, hairStyle: 'short', shirt: 15, pants: 19 });
+  window.__app.startGame(g, { skin: 22, hair: 49, hairStyle: 'short', shirt: 30, pants: 46 });
   const B = await import('/src/sim/build.ts');
   const I = await import('/src/sim/inventory.ts');
   const { O, Z } = await import('/src/sim/world/tilemap.ts');

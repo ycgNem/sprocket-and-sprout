@@ -84,7 +84,7 @@ const SC = {
   'newgame-where': async () => ev(() => { window.__app.screen.newGame.step = 'where'; }),
   // ---- first morning, as a new player sees it ----
   welcome: async () => {
-    await ev(() => window.__app.startGame(new window.__Game({ seed: 999, name: 'Robin', farmName: 'Willowbrook' }), { skin: 5, hair: 9, hairStyle: 'braids', shirt: 15, pants: 19, accent: 28 }));
+    await ev(() => window.__app.startGame(new window.__Game({ seed: 999, name: 'Robin', farmName: 'Willowbrook' }), { skin: 22, hair: 49, hairStyle: 'braids', shirt: 30, pants: 46, accent: 56 }));
     await wait(1500);
     await ev(S);
   },

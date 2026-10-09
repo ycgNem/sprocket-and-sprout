@@ -15,7 +15,7 @@ const ev = (s) => page.evaluate(s);
 await ev(`(async () => {
   const g = new window.__Game({ seed: 9, name: 'Wren', farmName: 'Hollow' });
   for (const t of ['welcome', 'hoe', 'seeds', 'can', 'place', 'lab', 'belts', 'machine', 'power', 'blueprint', 'energy', 'night']) g.flags.add('tip_' + t);
-  window.__app.startGame(g, { skin: 2, hair: 9, hairStyle: 'long', shirt: 28, pants: 19 });
+  window.__app.startGame(g, { skin: 54, hair: 49, hairStyle: 'long', shirt: 56, pants: 46 });
   window.S = { g };
   const B = await import('/src/sim/build.ts');
   const I = await import('/src/sim/inventory.ts');

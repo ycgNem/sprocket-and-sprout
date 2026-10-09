@@ -7,6 +7,7 @@ import { registerIconSprites } from './icons';
 import { registerStructSprites, structIcon } from './structs';
 import { registerLivingSprites } from './living';
 import { registerHomeSprites } from './home';
+import { registerSheetSprites } from './sheets';
 import { NPCS } from '../../data/npcs';
 import { C } from '../../data/palette';
 import type { TileMap } from '../../sim/world/tilemap';
@@ -23,6 +24,7 @@ export function registerAllArt() {
   registerStructSprites();
   registerLivingSprites();
   registerHomeSprites();
+  registerSheetSprites();
   for (const n of NPCS) registerLook(n.id, n.look);
   // Mags the peddler, who drives the traveling cart
   registerLook('peddler', { skin: C.tan, hair: C.lavender, hairStyle: 'hat', shirt: C.violet, pants: C.bark, accent: C.butter, height: 'short', glasses: true });

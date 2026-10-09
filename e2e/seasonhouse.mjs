@@ -10,7 +10,7 @@ for (const season of [2, 3]) {
   await page.evaluate((season) => {
     const g = new window.__Game({ seed: 3, name: 'Wren', farmName: 'Hollow' });
     for (const t of ['welcome', 'hoe', 'seeds', 'can', 'place', 'energy']) g.flags.add('tip_' + t);
-    window.__app.startGame(g, { skin: 2, hair: 9, hairStyle: 'long', shirt: 28, pants: 19 });
+    window.__app.startGame(g, { skin: 54, hair: 49, hairStyle: 'long', shirt: 56, pants: 46 });
     g.time.season = season; g.time.min = 12 * 60;
     g.player.y += 2;
     window.__app.renderer.cam.targetZoom = 4;

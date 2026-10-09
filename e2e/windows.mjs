@@ -16,7 +16,7 @@ await page.waitForTimeout(1200);
 await page.evaluate(() => {
   const g = new window.__Game({ seed: 999, name: 'Robin', farmName: 'Willow' });
   for (const id of ['tip_welcome', 'tip_hoe', 'tip_seeds', 'tip_can', 'tip_place', 'tip_lab', 'tip_belts', 'tip_machine', 'tip_power', 'tip_mine', 'tip_fish', 'tip_blueprint', 'tip_energy']) g.flags.add(id);
-  window.__app.startGame(g, { skin: 5, hair: 9, hairStyle: 'braids', shirt: 15, pants: 19, accent: 28 });
+  window.__app.startGame(g, { skin: 22, hair: 49, hairStyle: 'braids', shirt: 30, pants: 46, accent: 56 });
 });
 await page.waitForTimeout(600);
 const ev = (f, a) => page.evaluate(f, a);

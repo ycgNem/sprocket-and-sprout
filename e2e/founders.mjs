@@ -14,7 +14,7 @@ await page.evaluate(() => {
   const g = new window.__Game({ seed: 3, name: 'Wren', farmName: 'Hollow' });
   for (const t of ['welcome', 'hoe', 'seeds', 'can', 'place', 'lab', 'belts', 'machine', 'power', 'blueprint', 'energy', 'night']) g.flags.add('tip_' + t);
   for (const q of g.sys.quests?.active ?? []) q.seen = true;
-  window.__app.startGame(g, { skin: 2, hair: 9, hairStyle: 'long', shirt: 28, pants: 19 });
+  window.__app.startGame(g, { skin: 54, hair: 49, hairStyle: 'long', shirt: 56, pants: 46 });
   window.S = { g };
   g.time.year = 2; g.earned = 120000; g.player.skills.farming = 8; g.player.skills.mining = 7; g.player.skills.fishing = 6; g.player.skills.foraging = 6; g.player.skills.combat = 4; g.player.perks = ['tiller','rancher','miner','angler','lumberjack','artisan','brute','blacksmith','steady']; g.flags.add('eval_pending');
 });

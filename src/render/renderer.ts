@@ -16,7 +16,9 @@ import { powerState } from '../sim/systems/power';
 import { curMap } from '../sim/systems/player';
 import { O, T, TileMap, Z } from '../sim/world/tilemap';
 import { GREENHOUSE, SHIPBIN_POS } from '../sim/world/worldgen';
-import { drawSprite, drawItemIcon, sprite, Sprite } from './atlas';
+import { drawSprite, drawItemIcon, invalidateSpritePrefix, sprite, Sprite } from './atlas';
+import { charArtHeight, compareIds, sheetToolKinds } from './art/sheets';
+import { getLook, registerLook } from './art/chars';
 import { makeCanvas, ctx2d } from './art/pixel';
 import { PRIO, FRINGE_SOURCES, TILE, paintTerrain } from './art/terrain';
 import { PixBuf } from './art/pixbuf';
@@ -68,6 +70,8 @@ export class Renderer {
   H = 0;
   time = 0;
   drawables: Drawable[] = [];
+  /** art overhaul: draw the procedural (1.0) player beside the player, same frame (debug panel) */
+  compareArt = false;
   /** world-pixel view rect */
   view = { x0: 0, y0: 0, x1: 0, y1: 0 };
   /** per-frame overlays added by the UI (ghosts, highlights) */
@@ -805,7 +809,11 @@ export class Renderer {
     const onScreen = (x: number, y: number) => x * TILE > v.x0 - 32 && x * TILE < v.x1 + 32 && y * TILE > v.y0 - 32 && y * TILE < v.y1 + 48;
     // player
     const p = g.player;
-    const pf = p.anim ? (p.anim.t < p.anim.dur * 0.45 ? 4 : 5) : p.moving ? Math.floor(p.walkT * 1.6) % 4 : 0;
+    // frames: 0-3 walk, 4-5 tool use, 6 standing (procedural sprites draw 6 like 0), 7-8 a tool
+    // swing an imported sheet draws with the tool in hand (no rotated icon then)
+    const sheetTool = !!p.anim && sheetToolKinds('player').includes(p.anim.kind);
+    const early = !!p.anim && p.anim.t < p.anim.dur * 0.45;
+    const pf = p.anim ? (sheetTool ? (early ? 7 : 8) : early ? 4 : 5) : p.moving ? Math.floor(p.walkT * 1.6) % 4 : 6;
     D.push({ y: p.y, f: () => {
       const sh = sprite('shadow:12');
       drawSprite(ctx, sh, p.x * TILE, p.y * TILE);
@@ -813,15 +821,34 @@ export class Renderer {
       const s = sprite(`ch:player:${p.dir}:${pf}`);
       drawSprite(ctx, s, p.x * TILE, p.y * TILE, 1, p.dir === 3);
       // held tool / item during animations
-      if (p.anim) this.drawToolSwing(g);
+      if (p.anim) {
+        if (!sheetTool) this.drawToolSwing(g);
+      }
       else {
         const held = p.inv.slots[p.sel];
         const hd = held ? ITEMS[held.k >> 2] : null;
         if (held && hd && !hd.tool && !hd.weapon && !hd.places && hd.cat !== 'seed' && hd.cat !== 'fertilizer' && !g.player.moving) {
-          drawItemIcon(ctx, itemIdCache(held.k), Math.round(p.x * TILE - 5), Math.round(p.y * TILE - 34), 10);
+          drawItemIcon(ctx, itemIdCache(held.k), Math.round(p.x * TILE - 5), Math.round(p.y * TILE - charArtHeight('player') - 12), 10);
         }
       }
     } });
+    if (this.compareArt) {
+      const tx = p.x - 1.5;
+      D.push({ y: p.y, f: () => {
+        drawSprite(ctx, sprite('shadow:12'), tx * TILE, p.y * TILE);
+        drawSprite(ctx, sprite(`ch:player:${p.dir}:${pf > 6 ? pf - 3 : pf}:old`), tx * TILE, p.y * TILE, 1, p.dir === 3);
+      } });
+      // candidate sheets (art-director imports) in a row to the right, same look and frame
+      const look = getLook('player');
+      compareIds().forEach((id, i) => {
+        if (look && getLook(id) !== look) { registerLook(id, look); invalidateSpritePrefix(`ch:${id}:`); }
+        const cx = p.x + 1.5 * (i + 1);
+        D.push({ y: p.y, f: () => {
+          drawSprite(ctx, sprite('shadow:12'), cx * TILE, p.y * TILE);
+          drawSprite(ctx, sprite(`ch:${id}:${p.dir}:${pf}`), cx * TILE, p.y * TILE, 1, p.dir === 3);
+        } });
+      });
+    }
     // npcs
     const npcs: any[] = m === g.map ? g.sys.npcs?.list ?? [] : [];
     for (const n of npcs) {
@@ -988,7 +1015,7 @@ export class Renderer {
     const swing = k === 'water' ? 0.2 : k === 'rod' ? -0.6 + t * 0.3 : -1.1 + t * 2.0;
     const ang = dirAng + swing * (p.dir === 3 ? -1 : 1);
     const r = 9;
-    const x = p.x * TILE + Math.cos(ang) * r, y = p.y * TILE - 12 + Math.sin(ang) * r;
+    const x = p.x * TILE + Math.cos(ang) * r, y = p.y * TILE - (charArtHeight('player') + 2) / 2 + Math.sin(ang) * r;
     ctx.save();
     ctx.translate(Math.round(x), Math.round(y));
     ctx.rotate(ang + Math.PI / 4);
