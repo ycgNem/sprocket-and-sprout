@@ -385,7 +385,9 @@ export class PlayScreen implements Screen {
    */
   private drawPrompt(ui: any, dt: number) {
     const g = this.g;
-    if (this.win || g.sleeping || this.mode !== 'normal' || this.heldPlaceable() || g.sys.fishing?.busy || !this.app.settings.keyPrompts) {
+    // a running harvest streak owns the space over your head; the bubble comes back when it fades
+    const streak = this.app.renderer.juice.streak;
+    if (this.win || g.sleeping || this.mode !== 'normal' || this.heldPlaceable() || g.sys.fishing?.busy || !this.app.settings.keyPrompts || (streak.n >= 3 && streak.t < 1.8)) {
       this.promptKey = '';
       return;
     }
@@ -396,7 +398,8 @@ export class PlayScreen implements Screen {
       const [tx, ty] = this.lastTarget;
       const verb = toolVerb(g, tx, ty);
       if (verb) {
-        pr = { verb, x: tx + 0.5, y: ty - 0.1 };
+        // tool hints hang below the tile, clear of the player's head
+        pr = { verb, x: tx + 0.5, y: ty + 1.05 };
         key = 'Click';
       }
     }
@@ -413,16 +416,23 @@ export class PlayScreen implements Screen {
     const at = this.toUI(pr.x, pr.y);
     const kw = textWidth(key) + 6, vw = textWidth(pr.verb);
     const w = kw + vw + 10, h = 15;
-    const rise = this.promptT < 0.12 ? 2 : 0;
-    const x = Math.round(at.x - w / 2), y = Math.round(at.y - h - 6 + rise);
+    const below = key === 'Click';
+    const rise = this.promptT < 0.12 ? (below ? -2 : 2) : 0;
+    const x = Math.round(at.x - w / 2), y = Math.round(below ? at.y + 3 + rise : at.y - h - 6 + rise);
     ui.ctx.globalAlpha = Math.min(1, this.promptT / 0.12);
     // bubble with a tail pointing at the thing
     ui.fill(x, y, w, h, C.ink);
     ui.fill(x + 1, y + 1, w - 2, h - 2, C.plum);
     ui.fill(x + 1, y + 1, w - 2, 1, C.slate);
-    ui.fill(Math.round(at.x) - 2, y + h, 5, 1, C.ink);
-    ui.fill(Math.round(at.x) - 1, y + h + 1, 3, 1, C.ink);
-    ui.fill(Math.round(at.x) - 1, y + h, 3, 1, C.plum);
+    if (below) {
+      ui.fill(Math.round(at.x) - 2, y - 1, 5, 1, C.ink);
+      ui.fill(Math.round(at.x) - 1, y - 2, 3, 1, C.ink);
+      ui.fill(Math.round(at.x) - 1, y - 1, 3, 1, C.plum);
+    } else {
+      ui.fill(Math.round(at.x) - 2, y + h, 5, 1, C.ink);
+      ui.fill(Math.round(at.x) - 1, y + h + 1, 3, 1, C.ink);
+      ui.fill(Math.round(at.x) - 1, y + h, 3, 1, C.plum);
+    }
     // the key cap
     ui.fill(x + 3, y + 3, kw, 9, C.ink);
     ui.fill(x + 3, y + 2, kw, 9, C.cream);

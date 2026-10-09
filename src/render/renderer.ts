@@ -26,6 +26,7 @@ import { PixBuf } from './art/pixbuf';
 import { EXTRA_TOP } from './art/structs';
 import { Particles } from './particles';
 import { Juice } from './juice';
+import { PULSE_COL, machineState } from '../ui/pulse';
 import { Lighting } from './lighting';
 import { Weather } from './weather';
 import { Ambient } from './ambient';
@@ -863,6 +864,7 @@ export class Renderer {
             }
           }
           if (e.mach && e.mach.crafting) this.drawProgressPip(e, e.mach.progress);
+          if (e.mach) this.drawStatusLamp(e);
           if (e.def.kind === 'decor' && e.def.id === 'sign' && e.st.k !== null && e.st.k !== undefined) {
             drawItemIcon(ctx, itemIdCache(e.st.k), e.x * TILE + 3, e.y * TILE - 3, 10);
           }
@@ -957,6 +959,23 @@ export class Renderer {
     ctx.fillRect(x + 3, y + 1, 1, 3);
     ctx.fillRect(x + 2, y + 3, 3, 1);
     ctx.fillRect(x + 3, y + 5, 1, 1);
+  }
+
+  /** a little lamp on every machine: green working, amber waiting for input, red blocked (blinking) */
+  private drawStatusLamp(e: Ent) {
+    const st = machineState(e);
+    if (!st) return;
+    const ctx = this.ctx;
+    const x = (e.x + e.w) * TILE - 5, y = e.y * TILE + 2 + this.juice.hopOf(e.id);
+    ctx.fillStyle = PALETTE[C.ink];
+    ctx.fillRect(x - 1, y - 1, 4, 4);
+    const off = st !== 'ok' && Math.floor(this.time * 2.5) % 2 === 1;
+    ctx.fillStyle = PALETTE[off ? C.bark : PULSE_COL[st]];
+    ctx.fillRect(x, y, 2, 2);
+    if (!off) {
+      ctx.fillStyle = PALETTE[C.cream];
+      ctx.fillRect(x, y, 1, 1);
+    }
   }
 
   private drawProgressPip(e: Ent, p: number) {

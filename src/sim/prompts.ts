@@ -74,7 +74,7 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
     const held = p.inv.slots[p.sel];
     if (d.kind === 'shipbin') return held && kDef(held.k).price > 0 && !kDef(held.k).tool ? at('Ship ' + kDef(held.k).name) : at('Open crate');
     if (d.kind === 'depot') return at(held ? 'Deliver' : 'Open');
-    if (e.mach && d.kind !== 'beehouse') return at(e.mach.crafting ? 'Check' : 'Load');
+    if (e.mach && d.kind !== 'beehouse') return at(e.mach.crafting ? 'Open' : 'Load');
     if ((d.kind === 'tapper' || d.kind === 'fishtrap' || d.kind === 'harvester' || d.kind === 'drill') && e.inv && !e.inv.isEmpty()) return at('Collect');
     if (d.kind === 'belt' || d.kind === 'underground' || d.kind === 'splitter' || d.kind === 'path' || d.kind === 'fence') return null;
     return at('Open');
