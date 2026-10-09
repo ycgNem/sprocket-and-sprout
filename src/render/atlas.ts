@@ -121,3 +121,8 @@ export function drawSprite(ctx: CanvasRenderingContext2D, s: Sprite, x: number, 
 export function invalidateSprite(name: string) {
   cache.delete(name);
 }
+
+/** Drop every cached sprite whose name starts with prefix, so it regenerates on next use. */
+export function invalidateSpritePrefix(prefix: string) {
+  for (const name of cache.keys()) if (name.startsWith(prefix)) cache.delete(name);
+}

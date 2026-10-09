@@ -337,7 +337,6 @@ class NewGameForm {
       }
     });
     this.look = { skin: SKINS[this.idx.skin], hair: HAIRS[this.idx.hair], hairStyle: STYLES[this.idx.style], shirt: SHIRTS[this.idx.shirt], pants: PANTS[this.idx.pants], accent: C.rose };
-    setPlayerLook(this.look);
     // preview (re-register clears cache by using a unique id)
     const pid = 'preview_' + [this.idx.skin, this.idx.hair, this.idx.style, this.idx.shirt, this.idx.pants].join('_');
     registerLook(pid, this.look);

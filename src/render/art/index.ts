@@ -1,7 +1,8 @@
 // Registers every procedural sprite family.
 import { registerTerrainSprites } from './terrain';
 import { registerObjectSprites, registerBuildingDesc } from './objects';
-import { registerCharSprites, registerLook } from './chars';
+import { registerCharSprites, registerLook, getLook } from './chars';
+import { invalidateSpritePrefix } from '../atlas';
 import { registerIconSprites } from './icons';
 import { registerStructSprites, structIcon } from './structs';
 import { registerLivingSprites } from './living';
@@ -32,5 +33,10 @@ export function registerMapBuildings(m: TileMap) {
 }
 
 export function setPlayerLook(look: NPCLook) {
+  const old = getLook('player');
+  if (old && JSON.stringify(old) === JSON.stringify(look)) return;
   registerLook('player', look);
+  // sprites are cached by name, so frames drawn with the previous look would stick
+  invalidateSpritePrefix('ch:player:');
+  invalidateSpritePrefix('portrait:player:');
 }

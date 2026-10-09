@@ -223,7 +223,7 @@ describe('save/load', () => {
     npcSys(g).byId.get('rowan')!.points = 777;
     const data = JSON.parse(JSON.stringify(serialize(g, { skin: 1, hair: 2, hairStyle: 'short', shirt: 3, pants: 4 })));
     const { game: g2, look } = deserialize(data);
-    expect(look.hairStyle).toBe('short');
+    expect(look).toEqual({ skin: 1, hair: 2, hairStyle: 'short', shirt: 3, pants: 4 });
     expect(g2.player.money).toBe(4321);
     expect(g2.player.inv.count(key('strawberry', 2))).toBe(7);
     expect(g2.research.done.has('r_belts')).toBe(true);
