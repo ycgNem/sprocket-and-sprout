@@ -20,7 +20,7 @@ import { saveGame, freeSlot, exportSaveJSON } from '../sim/save';
 import { drawSprite, sprite } from '../render/atlas';
 import { TILE } from '../render/art/terrain';
 import { structSize } from '../render/art/structs';
-import { drawHud, HudState } from '../ui/hud';
+import { drawHud, HudState, toastLife } from '../ui/hud';
 import { WINDOWS, WinState } from '../ui/windows';
 import '../ui/windows/all';
 import { Blueprint, copyBlueprint, pasteBlueprint, rotateBlueprint, blueprintCost } from '../sim/blueprint';
@@ -120,6 +120,11 @@ export class PlayScreen implements Screen {
     const g = this.g;
     g.paused = this.paused && !g.sleeping;
     g.tick();
+  }
+
+  /** a window that takes over the screen is open (non-modal ones, like the fade, don't count) */
+  get modalOpen(): boolean {
+    return !!this.win && (WINDOWS[this.win.id]?.modal ?? true);
   }
 
   openWindow(id: string, arg?: any) {
@@ -226,7 +231,7 @@ export class PlayScreen implements Screen {
     } else this.sleepFade = Math.max(0, this.sleepFade - dt * 1.5);
 
     // ---- movement intent ----
-    const modal = !!this.win && (WINDOWS[this.win.id]?.modal ?? true);
+    const modal = this.modalOpen;
     let mx = 0, my = 0;
     if (!modal && !g.sleeping) {
       if (input.isDown('left')) mx -= 1;
@@ -282,7 +287,8 @@ export class PlayScreen implements Screen {
 
     // ---- UI ----
     ui.begin(r.ctx, input, app.uiScale, dt);
-    drawHud(ui, this, dt);
+    // a modal window owns the screen: the HUD would only peek out around its edges
+    if (!this.modalOpen) drawHud(ui, this, dt);
     this.worldHover(ui);
     if (this.win) {
       this.win.t += dt;
@@ -306,7 +312,8 @@ export class PlayScreen implements Screen {
       ui.text(`${((h + 11) % 12) + 1}:${mm.toString().padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`, ui.w / 2, ui.h / 2 + 12, C.pebble, { align: 'center' });
       if (g.sleeping) ui.text('The farm hums through the night...', ui.w / 2, ui.h / 2 + 26, C.pebble, { align: 'center' });
     }
-    this.achQ = drawAchBanner(ui, this.achQ, dt);
+    // like toasts, the banner waits for the window to close rather than covering its title
+    if (!this.modalOpen) this.achQ = drawAchBanner(ui, this.achQ, dt);
     if (this.debug) WINDOWS.debug?.draw(ui, this, { id: 'debug', t: 0, data: {} });
     ui.end();
 
@@ -325,8 +332,9 @@ export class PlayScreen implements Screen {
     app.audio.setScene(g.player.where === 'mine' ? 'mine' : g.player.where === 'house' ? 'home' : fest ? 'festival' : 'farm');
     app.audio.update(dt, g, near);
     // hud timers
-    for (const t of this.hud.toasts) t.t += dt;
-    this.hud.toasts = this.hud.toasts.filter((t) => t.t < (t.text.startsWith('Tip:') ? 9 : 4.5));
+    // toasts wait while a window covers the screen, then play out once it closes
+    if (!this.modalOpen) for (const t of this.hud.toasts) t.t += dt;
+    this.hud.toasts = this.hud.toasts.filter((t) => t.t < toastLife(t.text));
     this.tipT += dt;
     if (this.tipT > 0.5) {
       this.tipT = 0;

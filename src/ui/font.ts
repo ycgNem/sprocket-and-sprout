@@ -137,6 +137,14 @@ export function textWidth(s: string): number {
   return Math.max(0, w - 1);
 }
 
+/** Cut text to fit a pixel width, ending in '..' when it had to be shortened. */
+export function ellipsize(s: string, maxW: number): string {
+  if (textWidth(s) <= maxW) return s;
+  let t = s;
+  while (t.length > 1 && textWidth(t.trimEnd() + '..') > maxW) t = t.slice(0, -1);
+  return t.trimEnd() + '..';
+}
+
 /** Word-wrap text to a pixel width. Respects explicit '\n'. */
 export function wrapText(s: string, maxW: number): string[] {
   const out: string[] = [];

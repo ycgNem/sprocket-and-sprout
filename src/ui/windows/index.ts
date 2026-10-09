@@ -14,6 +14,7 @@ import { drawStruct } from './struct';
 import { centered, frame } from './common';
 import { settingsPanel } from './settings';
 import { ICON, wrapText } from '../font';
+import { keyLabel } from '../../engine/input';
 import { applyResearchMods } from '../../sim/save';
 import { runPerfScene } from '../../app/perf';
 
@@ -87,9 +88,13 @@ function drawHelp(ui: UI, play: PlayScreen, st: WinState): boolean {
     return true;
   }
   const b = play.app.settings.binds;
-  const k = (a: keyof typeof b) => b[a].map((c) => c.replace('Key', '').replace('Digit', '')).join('/');
+  const k = (a: keyof typeof b) => b[a].map(keyLabel).join('/');
+  // movement reads as "WASD or arrows" rather than every binding of every direction
+  const dirs = ['up', 'left', 'down', 'right'] as const;
+  const alt = dirs.map((d) => b[d][1]).filter(Boolean);
+  const move = dirs.map((d) => keyLabel(b[d][0] ?? '')).join('') + (alt.length === 4 ? (alt.every((c) => c.startsWith('Arrow')) ? ' or arrows' : ' or ' + alt.map(keyLabel).join('')) : '');
   const lines: [string, string][] = [
-    ['Move', `${k('up')}${k('left')}${k('down')}${k('right')} (hold ${k('run')} to walk slowly)`],
+    ['Move', `${move} (hold ${k('run')} to walk slowly)`],
     ['Use tool / place', 'Left click (hold to repeat; hold hoe/can to charge)'],
     ['Interact / harvest / talk', `Right click or ${k('interact')}`],
     ['Hotbar', '1-0 or mouse wheel'],
@@ -98,11 +103,11 @@ function drawHelp(ui: UI, play: PlayScreen, st: WinState): boolean {
     ['Production stats', k('stats')],
     ['Journal / map', `${k('journal')} / ${k('map')}`],
     ['Rotate', `${k('rotate')} (also rotates placed structures under the mouse)`],
-    ['Pick structure', `${k('pipette')} (copies the structure under the mouse into your hand)`],
+    ['Pick structure', `${k('pipette')} (copies the structure under the mouse)`],
     ['Deconstruct area', `${k('deconstruct')} then drag a box`],
     ['Copy / paste blueprint', `${k('copy')} drag a box, then ${k('paste')} to paste`],
     ['Eat held item', k('eat')],
-    ['Zoom', `${k('zoomIn')} / ${k('zoomOut')} or Ctrl + wheel`],
+    ['Zoom', `${k('zoomIn')} in, ${k('zoomOut')} out, or Ctrl + wheel`],
     ['Debug panel', k('debug')],
   ];
   lines.forEach(([a, c], i) => {

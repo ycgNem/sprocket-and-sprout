@@ -13,7 +13,7 @@ import { finishHeartEvent, hearts, npcSys } from '../../sim/systems/npcs';
 import { sprite, drawFit } from '../../render/atlas';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
-import { wrapText, ICON } from '../font';
+import { wrapText, ICON, ellipsize } from '../font';
 import { centered, frame, invGrid, SLOT } from './common';
 import { registerWindow, WinState } from './index';
 import { itemTooltip } from '../tooltips';
@@ -230,8 +230,10 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
       const ok = canAffordKit(g, k.id);
       ui.itemIcon(key(k.id), listX, ry, 16);
       ui.text(def.name + (k.upgradeOf ? ' (upgrade)' : ''), listX + 20, ry + 1, C.ink);
-      ui.text(`${ICON.coin}${k.price} + ` + k.materials.map((m) => `${m.n} ${ITEM_BY_ID.get(m.item)!.name}`).join(', '), listX + 20, ry + 10, ok ? C.walnut : C.brick);
-      if (ui.hover(listX, ry, listW - 60, 18)) ui.tip([{ text: def.name, color: C.amber }, { text: def.desc }]);
+      // the cost stops short of the Buy button; the tooltip has it in full
+      const cost = `${ICON.coin}${k.price} + ` + k.materials.map((m) => `${m.n} ${ITEM_BY_ID.get(m.item)!.name}`).join(', ');
+      ui.text(ellipsize(cost, listW - 46 - 20 - 4), listX + 20, ry + 10, ok ? C.walnut : C.brick);
+      if (ui.hover(listX, ry, listW - 60, 18)) ui.tip([{ text: def.name, color: C.amber }, { text: def.desc }, { text: cost, color: ok ? C.butter : C.rose }]);
       if (ui.button('kit' + i, listX + listW - 46, ry + 1, 40, 15, 'Buy', { disabled: !ok, style: 'green' })) {
         const err = buyKit(g, k.id);
         if (err) play.toast(err);

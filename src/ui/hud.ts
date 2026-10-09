@@ -17,6 +17,11 @@ export interface HudState {
   toasts: { text: string; t: number; icon?: string; color?: number }[];
 }
 
+/** Seconds a toast stays up (it fades out over the last 0.7 s). Tips get longer to read. */
+export function toastLife(text: string): number {
+  return text.startsWith('Tip:') ? 7 : 4.5;
+}
+
 export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   const g = play.g;
   const p = g.player;
@@ -64,9 +69,10 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   // ---- toasts (top center) ----
   // toasts make room under an achievement banner
   let toastY = 28 + (play.achQ.length ? 44 : 0);
-  // at most three on screen, newest kept
-  for (const t of play.hud.toasts.slice(-3)) {
-    const life = t.text.startsWith('Tip:') ? 6 : 4.5;
+  // at most three on screen, newest kept; held (not drawn, not aging) while a window is open,
+  // since windows cover the top of the screen
+  for (const t of play.modalOpen ? [] : play.hud.toasts.slice(-3)) {
+    const life = toastLife(t.text);
     const a = t.t < life - 0.7 ? 1 : 1 - (t.t - (life - 0.7)) / 0.7;
     ui.ctx.globalAlpha = Math.max(0, Math.min(1, a, t.t * 6));
     const lines = wrapText(t.text, Math.min(320, ui.w - 240));

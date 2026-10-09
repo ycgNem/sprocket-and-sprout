@@ -105,8 +105,9 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   }
   ui.unclip();
   // info panel
-  const px = x + w - 158, py = y + 14, pw = 150;
-  ui.panel(px, py, pw, h - 22, 'paper', false);
+  // starts below the frame's close button (y+5..y+17)
+  const px = x + w - 158, py = y + 20, pw = 150;
+  ui.panel(px, py, pw, h - 28, 'paper', false);
   const sel = RESEARCH_BY_ID.get(st.data.sel ?? g.research.current ?? '') ?? null;
   const labs = g.ents.others.filter((e) => e.def.kind === 'lab');
   ui.text(`Desks: ${labs.length}  (working ${labs.filter((l) => l.working).length})`, px + 6, py + 6, C.walnut);

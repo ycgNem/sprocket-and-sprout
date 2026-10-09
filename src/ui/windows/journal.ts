@@ -18,7 +18,7 @@ import { registerWindow, WinState } from './index';
 import { sprite, drawFit } from '../../render/atlas';
 import { daysLeftInWeek, guildRank, specLabel } from '../../sim/systems/contracts';
 import { GUILD_RANKS } from '../../data/contracts';
-import { ICON } from '../font';
+import { ICON, textWidth, ellipsize } from '../font';
 import { itemTooltip } from '../tooltips';
 import { portrait, heartsRow } from './town';
 
@@ -111,8 +111,9 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
       if (ry < by - rowH || ry > by + bh) return;
       portrait(ui, n.id, bx + 4, ry, 18);
       ui.text(n.met ? d.name : '???', bx + 34, ry + 3, C.ink);
-      if (g.flags.has('partner:' + n.id)) ui.text(ICON.heart + ' partner', bx + 34 + d.name.length * 6 + 6, ry + 3, C.rose);
-      ui.text(n.met ? d.job : 'You haven\'t met yet', bx + 34, ry + 13, C.oak);
+      if (g.flags.has('partner:' + n.id)) ui.text(ICON.heart + ' partner', bx + 34 + textWidth(d.name) + 6, ry + 3, C.rose);
+      // the job shares a row with the birthday column at +230
+      ui.text(ellipsize(n.met ? d.job : 'You haven\'t met yet', 230 - 34 - 6), bx + 34, ry + 13, C.oak);
       heartsRow(ui, hearts(n), bx + 230, ry + 3);
       ui.text(`Birthday: ${SEASON_NAMES[d.birthday.season]} ${d.birthday.day}`, bx + 230, ry + 13, C.walnut);
       if (n.talked) ui.text('talked', bx + bw - 8, ry + 3, C.moss, { align: 'right' });

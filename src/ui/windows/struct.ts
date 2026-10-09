@@ -121,7 +121,7 @@ function machinePanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w:
     }
   }
   if (e.def.fuel) {
-    ui.text('Fuel', x + 268, iy - 2, C.oak);
+    ui.text('Fuel', x + 268, iy - 4, C.oak);
     const r = ui.slot(x + 268, iy + 6, m.fuel);
     if (r.hover) ui.tip([{ text: 'Fuel: wood, coal, sawdust, driftwood...' }, { text: `Burn left: ${Math.ceil(m.burn)}s`, color: C.pebble }]);
     if (r.click && ui.hand && kDef(ui.hand.k).fuel) {
