@@ -597,8 +597,9 @@ export class Renderer {
       }
     // belt items, drawn on top of belts but below sorted sprites
     for (const [k, px, py] of beltItems) {
-      const s = sprite('i:' + itemIdCache(k));
-      ctx.drawImage(s.img, s.x, s.y, 16, 16, Math.round(px * TILE - 5), Math.round(py * TILE - 6), 10, 10);
+      // 10x10 belt icon (8x8 fill + outline) drawn 1:1 on whole pixels, centered on its lane
+      const s = sprite('ib:' + itemIdCache(k));
+      ctx.drawImage(s.img, s.x, s.y, 10, 10, Math.round(px * TILE) - 5, Math.round(py * TILE) - 5, 10, 10);
     }
   }
 

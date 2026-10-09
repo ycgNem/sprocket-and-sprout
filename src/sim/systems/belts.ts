@@ -257,21 +257,25 @@ export function beltItemCount(e: Ent): number {
 }
 
 /** World position (tile units) of an item on a belt lane. */
+// Lane centers across a belt, in tiles. The belt surface is pixels 2..13 of 16, so its
+// two 6-pixel lanes are centered on pixels 5 and 11.
+const LANE_L = 5 / 16, LANE_R = 11 / 16;
+
 export function itemPos(e: Ent, lane: number, p: number, out: { x: number; y: number }) {
   const b = e.belt!;
   const t = Math.min(1, p / b.len);
   let lx: number, ly: number;
   if (b.curve === 0 || b.len !== 1) {
-    const off = lane === 0 ? 0.28 : 0.72;
+    const off = lane === 0 ? LANE_L : LANE_R;
     lx = off;
     ly = 1 - (b.kind === BeltKind.UnderIn ? Math.min(p, 0.5) : t);
   } else if (b.curve === 1) {
-    const r = lane === 0 ? 0.28 : 0.72;
+    const r = lane === 0 ? LANE_L : LANE_R;
     const th = (1 - t) * Math.PI * 0.5;
     lx = r * Math.cos(th);
     ly = r * Math.sin(th);
   } else {
-    const r = lane === 0 ? 0.72 : 0.28;
+    const r = lane === 0 ? LANE_R : LANE_L;
     const th = Math.PI * 0.5 + t * Math.PI * 0.5;
     lx = 1 + r * Math.cos(th);
     ly = r * Math.sin(th);
