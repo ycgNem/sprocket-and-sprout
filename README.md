@@ -6,8 +6,10 @@ works, and within minutes your first Clockwork Arm is carrying jars to the shipp
 With Professor Cogwhistle's research you add belts, mills, water wheels and little brass
 bumblebots, until the farm runs itself like a music box.
 
-All art, music and sound are generated procedurally in code: there are no image or audio
-files. Everything is original.
+The pixel art (terrain, crops, trees, buildings, machines, characters, creatures, icons) was
+generated with PixelLab for this game, snapped to the Resurrect 64 palette and packed into small
+sprite sheets (`src/art/`, sources and recipes in `art/`). Music and sound are generated
+procedurally in code. Everything is original.
 
 ## Run it
 
@@ -169,12 +171,15 @@ or a Brass Locket.
 - Museum donations, a collection log, mail, skills (6) and tool upgrades.
 
 **Tech**
-- TypeScript + Vite + Canvas 2D, with no engine and no assets. A fixed 60 Hz simulation is
-  decoupled from rendering.
+- TypeScript + Vite + Canvas 2D, with no engine. A fixed 60 Hz simulation is decoupled from
+  rendering. Art ships as about 500 KB of PNG sprite sheets.
 - A pure simulation layer (`src/sim`) made of component stores and systems, unit-tested in Node.
 - Data-driven content in `src/data` (items, crops, trees, recipes, structures, research, NPCs,
   fish, animals, monsters, shops, quests, projects, festivals).
-- Chunk-baked terrain with world-continuous procedural shading, culling and y-sorting.
+- Chunk-baked terrain drawn on a dual grid of Wang tiles (smooth grass, dirt, path, sand, water
+  and tilled-soil transitions, seasonal recolors, scattered decals), culling and y-sorting.
+- An art pipeline (`scripts/*-import.mjs`) that turns PixelLab output into palette-exact sheets;
+  every sprite is looked up by name, so the old procedural art stays as a fallback (`?art=old`).
 - Procedural Web Audio: about 50 synthesized SFX, ambient beds, and a generative music loop
   whose scale, tempo and instruments follow the season and the hour.
 - Autosave every morning, 6 manual slots, versioned save migrations, and JSON export/import.

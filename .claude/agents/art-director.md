@@ -34,6 +34,11 @@ and character readability.
   (`list_jobs`, `wait_for_jobs`). Standard character 1, v3 character 2 at size 32, pro 10,
   template animation 1 per direction, custom v3 animation about 1 per direction, tileset 1–4,
   `reduce_colors`/`correct_pixelart` 0.1. Say what you spent.
+- `art/README.md`: the Phase 2 handbook (batches of 64 sprites for 10 generations, the importers,
+  the helper scripts `pl-fetch.mjs`, `contact.mjs`, `e2e/sprites.mjs`, and how parallel art
+  agents share the account and the repo).
+- `scripts/sprites-import.mjs` (any sprite by name or pattern) and `scripts/terrain-import.mjs`
+  (the dual-grid ground); formats in their headers.
 - `scripts/art-import.mjs`: `--check a.png … --preview out.png` to vet candidates
   (original vs palette-snapped, side by side), and `node scripts/art-import.mjs art/<name>/<recipe>.json`
   to import. Recipe format: the header of the script.
@@ -74,8 +79,9 @@ and character readability.
 (`upper_base_tile_id`) so grass, tilled soil, path and water all blend. Preview a layout with
 `create_map` + `edit_map` (`rect` areas, `path` strokes) + `view_map` before touching the game;
 the per-tile corner metadata (`/mcp/tilesets/{id}/metadata`) is what the game's autotiler will
-need. Terrain import (a `tileset` sheet kind in `sheets.ts` and the renderer's chunk painter) is
-Phase 2.1 work: plan it with the caller before writing code.
+need. Download a finished set with `node scripts/pl-fetch.mjs tileset <id> art/terrain/sets/<a>-<b>`,
+list it in `art/terrain/terrain.json` and run `node scripts/terrain-import.mjs` (STYLE.md, "Terrain:
+the dual grid"); its `terrain.demo.png` draws a made-up map with the game's rule in all seasons.
 
 ## Rules
 

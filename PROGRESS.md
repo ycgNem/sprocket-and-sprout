@@ -143,8 +143,29 @@
     key names, long texts are shortened to fit.
 - Tests: 85 Vitest tests (new: `tests/audit.test.ts`). Smoke and the sweep report 0 console errors.
 
+## Overhaul Phases 1-2: the art is replaced (October 9, 2026)
+- Phase 1: `STYLE.md`, Resurrect 64, PNG sheets in the atlas, `scripts/art-import.mjs`, a PixelLab
+  player with walk and hoe swing.
+- Phase 2, in one session with 11 parallel `art-director` agents and ~1,100 PixelLab generations:
+  every sprite the game draws now comes from imported art (6,415 names, `node e2e/coverage.mjs`).
+  - Pipeline: `kind: "sprites"` and `kind: "terrain"` sheets (`scripts/sprites-import.mjs`,
+    `scripts/terrain-import.mjs`), `src/render/art/match.ts` (tested), `art/README.md` handbook,
+    helper scripts (`pl-fetch`, `contact`, `e2e/sprites.mjs`, `e2e/coverage.mjs`).
+  - Terrain on a dual grid of Wang tiles with seasons, decals and animated water; tilled soil is
+    part of the ground. Crops (37, all stages, ripe twinkle), trees, map objects, 20 buildings with
+    night windows and snow, animated belts and machines with bumblebots, 14 villagers with
+    portraits, the player with every tool swing in hand and 10 hair styles, animals, pets,
+    monsters, furniture, 533 item icons, a nine-slice UI skin, small FX.
+  - Renderer: shadows under trees, structures and solid ground objects; the camera snaps to world
+    pixels (no more player shimmer); chimney smoke from each machine's real chimney; 16-step
+    belt treads; map and minimap in the new colors; darker text where the new peach panels made it
+    hard to read; deeper storm light.
+  - The procedural art stays as the fallback (`?art=old`, `name:old`).
+- Tests: 94 Vitest tests (new: `tests/art.test.ts`). `npm run screens`: 43 shots, 0 issues.
+
 ## Next
-- Overhaul Phase 1 (art pipeline spike), then Phases 2-4 in `ROADMAP.md`.
+- Overhaul Phase 3 (juice) and Phase 4 (review, release 1.1) in `ROADMAP.md`; the indie-critic's
+  Phase 2 review items that are still open are listed there.
 - Older ideas: more interior variety (decor items placeable indoors), farmhouse expansion tiers;
   more depth for mid-game automation goals and late-game megaprojects.
 

@@ -28,9 +28,9 @@ readability.
 | Adult character | **28–31 tall**, 14–17 wide | Sole of the boot to top of the hair, measured by `art-import` (`height`). Head ≈ 0.4 of the height (11–13 px): chibi-leaning, so faces read at 1×. |
 | Child / short | 22–25 tall | Same head size, shorter body. |
 | Tall adult | 31–33 tall | |
-| Character frame | 40 × 40 | Anchor (20, 38): bottom-center of the feet. Room for hats, arms and tool swings. |
-| Item icon | 16 × 16 | Art inside 14 × 14 (1 px margin) so the outline never touches the edge. Belt version 10 × 10 (`ib:`). |
-| Crop stage | 16 × 16, tall crops 16 × 32 | Anchor bottom-center of the tile. |
+| Character frame | 40 × 40 (player 44 × 40) | Anchor (20, 38), player (22, 38): bottom-center of the feet. Room for hats, arms and tool swings (the fishing cast needs the extra width). |
+| Item icon | 16 × 16 | Art inside 14 × 14 (1 px margin) where the silhouette allows; tall or wide items (bottles, saplings, long fish) may use 15–16 px on one axis, never both. Belt version 10 × 10 (`ib:`), derived automatically. Generate at PixelLab `size: 16`. |
+| Crop stage | frame 20 × 26, origin (2, 10) | Plant base on tile row 13; mature plants 16–20 px wide (neighbors may touch, which reads lush). Giant crops 48 × 48. |
 | Tree | 32–48 wide, 48–64 tall | Trunk base on the tile's bottom-center. |
 | Portrait | 32 × 32 (48 × 48 later) | Dialogue window. |
 | Buildings, machines | whole tiles wide | Footprint matches the structure's tile size; height free. |
@@ -80,6 +80,10 @@ procedural art is gone. New art never uses `C`; it uses the material ramps below
 | Water | `#323353` `#484a77` `#4d65b4` `#4d9be6` `#8fd3ff` `#ffffff` | `#ffffff` only for glints and foam. |
 | Light / glow | `#fbb954` `#f9c22b` `#fbff86` `#fdcbb0` | Lamps, windows at dusk, ripe-crop sparkle. |
 | Skin (7 tones) | see `SKIN3` in `src/data/palette.ts` | `#fdcbb0` peach down to `#45293f`. |
+| Cream / white fur | `#966c6c` `#ab947a` `#fdcbb0` `#ffffff` | Sheep, chickens, white coats, speech bubbles. The automatic snap turns PixelLab's cream into sage `#b2ba90`: map it onto this ramp explicitly. |
+| Ground as shipped (terrain sheet) | dirt `#e6904e` (specks `#cd683d` `#9e4539`, lip `#7a3045` `#45293f`); dry soil `#9e4539` / `#cd683d`; wet soil `#45293f` / `#7a3045`; sand `#fbb954` (wet `#ab947a`); water `#4d9be6`; deep `#484a77` | The grass ramp colors (`#165a4c #239063 #1ebc73 #91db69 #676633 #a2a947 #cddf6c #f9c22b`) are reserved for grass in terrain: the season recolors map exactly those. |
+
+Cool grays may also color animal coats (a silver cat), not only iron, glass and snow.
 
 **"Warm brass, never gray" in hex:** a machine is brass (`#f79617`/`#f9c22b`) and wood
 (`#9e4539`/`#cd683d`) with copper accents; its darkest shade is `#45293f` or `#7a3045`, never
@@ -157,7 +161,29 @@ chosen look's ramps (`RAMP3` / `SKIN3` in `src/data/palette.ts`). Rules for a ch
    Ask for warm colors in the description; PixelLab has no palette parameter on most tools.
    Generations are budgeted (Tier 1: 2,000 a month, `get_balance`).
 
-2. **Import** with `node scripts/art-import.mjs art/<name>/recipe.json`. It undoes integer
+   **Batches:** `create_1_direction_object` with `size` ≤ 42 returns 64 sprites for 10
+   generations, one `item_descriptions` entry per slot, in order, in one consistent style. It is
+   the workhorse for crops, objects, icons, critters and UI frames (`art/README.md`).
+
+   **What generation can't do well, and what we do instead:** sprites under ~10 px (critters,
+   emote bubbles, pennants) come back at 14-16 px and can't be shrunk, so the batch is the design
+   reference and the final is hand-pixeled as a character grid in a script (`art/fx/hand.mjs`).
+   Nine-slice UI frames must tile and mirror exactly, so they are drawn by rule
+   (`art/ui/tools/build.mjs`). Walk/idle frames that PixelLab animations made jittery are derived
+   from one generated pose (`art/creatures/prep.mjs`). Generated sources are graded onto chosen
+   ramps per material (`art/terrain/tools/grade.mjs`, `art/nature/build.mjs`) when a plain
+   nearest-color snap muddies them.
+
+2. **Import.** Three importers, one per sheet kind, all snapping to the palette:
+   - `node scripts/sprites-import.mjs art/<group>/sprites.json`: any sprite by name (`kind:
+     "sprites"`): entries `match` a name or a pattern (`*` = one segment, final `**` = the rest),
+     with `frame`, `origin` (the procedural sprite's ox/oy), `at` (art bottom-center), `like` +
+     `recolor` for cheap variants (seasons, tiers). Packed and deduplicated.
+   - `node scripts/terrain-import.mjs art/terrain/terrain.json`: Wang sets, base variants,
+     per-tile classes, decals and season recolors (`kind: "terrain"`), for the dual-grid ground.
+   - `node scripts/art-import.mjs art/<name>/recipe.json` for characters (below).
+
+   The character importer `art-import.mjs` undoes integer
    upscaling, checks the grid, thresholds alpha, snaps colors to the palette (CIEDE2000 with
    lightness at half weight so hues survive; near-blacks keep full weight), applies the recipe's
    `remap` (merge each part's colors onto its key ramp), aligns all frames on the anchor and
@@ -166,10 +192,32 @@ chosen look's ramps (`RAMP3` / `SKIN3` in `src/data/palette.ts`). Rules for a ch
    the frame. `--check a.png …` analyzes candidates without writing (`--preview out.png` shows
    original vs snapped).
 
-3. **Register**: nothing to do for character sheets (`src/render/art/sheets.ts` loads every
-   manifest in `src/art/`). The sheet takes over the procedural sprite of the same name; the old
-   one stays reachable as `name:old`, with `?art=old` in the URL, or the debug panel's
-   **Art** / **Compare** buttons (backtick key).
+3. **Register**: nothing to do (`src/render/art/sheets.ts` loads every manifest in `src/art/` by
+   its `kind`). A sheet takes over the procedural sprite of the same name; the old one stays
+   reachable as `name:old`, with `?art=old` in the URL, or the debug panel's **Art** / **Compare**
+   buttons (backtick key). Hooks that only exist for imported art (the renderer falls back to its
+   own drawing without them): `emote:*`, `amb:*` critters, `bot:*` bumblebots, `fx:*`, `ui:*`
+   nine-slice skin frames (`src/ui/skin.ts`), `tb:/tw:/tt:/td:` terrain tiles.
+
+### Terrain: the dual grid
+
+The ground is drawn from `src/art/terrain.json` on a dual grid: one 16 px tile per map-grid
+vertex, centered on it, chosen from the classes of the four tiles that meet there (Wang corner
+mask NW 8, NE 4, SW 2, SE 1 = upper class). Wang classes: `grass dirt path sand water deep soil
+wet`; tilled soil is part of the ground (`soil`, watered `wet`) and chunks rebake when it changes.
+A pair without a set gives way to a hard edge, so every pair that meets on the map needs a set.
+Per-tile classes (`planks cliff cliff_top cliff_base rock ore0-7 minefloor0-2 minewall0-2 lava
+woodfloor wall wall_upper wall_top`) are drawn over the grid. Decals (`grass`, `grass@3` …) are
+scattered on tiles whose 8 neighbors share the class. Seasons are recolor maps that touch only the
+grass colors. The pure rules are in `src/render/art/match.ts` (tested in `tests/art.test.ts`).
+
+### Animation is not optional
+
+Anything that moves in the game ships with real frames: belts (4, the surface travels),
+machines while working (2-4), generators, bumblebots, walk cycles, tool swings (`<kind>0` raise,
+`<kind>1` strike per tool in the player sheet), creatures, critters. Consecutive frames keep the
+same ground line and silhouette center so nothing jitters. Renderer effects that stay code:
+shadows, particles, smoke, water shimmer, progress pips, wires.
 
 4. **Prove it**: screenshot old and new side by side, run `npm run screens`, then the critic.
 

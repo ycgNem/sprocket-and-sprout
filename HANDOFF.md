@@ -11,8 +11,12 @@ with no engine and no asset files yet. Art and music are procedural; some SFX co
   43-screen sweep with an automatic UI overlap audit, now at 0 issues).
 - **Phase 1 is done** (Oct 9): `STYLE.md`, Resurrect 64, PNG sheets in the atlas (`src/art/`,
   `src/render/art/sheets.ts`), `scripts/art-import.mjs`, a PixelLab player with walk + hoe swing.
-  Waiting for the owner to pick a look in `e2e/out/art-compare/lineup.png` (`node e2e/artcompare.mjs`).
-  Next: Phase 2 (ROADMAP.md).
+- **Phase 2 is done** (Oct 9, one session): every sprite the game draws is imported art (6,415 names,
+  `node e2e/coverage.mjs` = 100%). 11 parallel `art-director` agents, ~1,100 PixelLab generations
+  (about 850 left this month, reset Nov 9; the owner added $2 of credits, unused). See ROADMAP.md
+  Phase 2 for what was made and the indie-critic's open items. The C32 player look is the one built
+  out (tool swings, 10 hair styles); the `candidate-*` sheets only feed the debug Compare lineup.
+  Next: the open critic items, then Phase 3 (juice).
 
 1.0 itself was feature-complete for the original brief. On top of that:
 - a large depth pass;
@@ -166,18 +170,33 @@ e2e/          Playwright scripts (e2e/out is gitignored scratch); screens.mjs = 
   - The `O` enum is saved by value, so only append to it.
   - Flags are saved automatically.
 
+## The art pipeline (Phase 2)
+
+- Every sprite is looked up by name in the atlas; imported sheets (`src/art/*.json` + `.png`) win
+  over the procedural generators in `src/render/art/`, which remain as the `?art=old` fallback.
+- Sheet kinds (loaded by `src/render/art/sheets.ts`): `character` (art-import.mjs), `sprites` (any
+  name or `*`/`**` pattern; sprites-import.mjs), `terrain` (dual-grid Wang ground; terrain-import.mjs).
+- Each art group lives in `art/<group>/` with its raw PixelLab downloads, its build scripts and its
+  recipe; `art/README.md` says how to regenerate and import. `node e2e/coverage.mjs` lists anything
+  still procedural; `node e2e/sprites.mjs <names>` draws imported vs procedural side by side.
+- Renderer hooks that only exist for imported art: `emote:*`, `amb:*`, `bot:*`, `fx:*` (letter,
+  pennants, fireball, twinkle, nopower, pip), `gh:glass:*`, `armh:*`, `hf:fire|pendulum|gpend|steam|fish`,
+  `ui:*` (nine-slice skin, `src/ui/skin.ts`), factory `meta.smoke` chimney points.
+- Gotchas: Vite serves hot-updated modules as `?t=` URLs, so page scripts import the app's own
+  instance (see `mod()` in `e2e/sprites.mjs`). Agents' imports trigger full reloads in open pages.
+
 ## What's next
 
-`ROADMAP.md` is the plan for the 1.0 → 1.1 visual overhaul. Phase 0 is done; start Phase 1 with:
+`ROADMAP.md` is the plan for the 1.0 → 1.1 visual overhaul. Phases 0-2 are done. Next session:
 
-> Read ROADMAP.md and HANDOFF.md. Phase 1 spike: write STYLE.md (palette: Resurrect 64; scope:
-> full replacement), put the palette into src/data/palette.ts with the old C names aliased,
-> add PNG sprite loading to the atlas, then use the art-director agent and PixelLab to make one
-> replacement player character with a 4-direction walk. Put old and new side by side in the game
-> and screenshot both. Commit, run npm run screens, push.
+> Read ROADMAP.md and HANDOFF.md. Fix the open indie-critic items from the Phase 2 review
+> (ROADMAP.md, Phase 2), then start Phase 3 (juice). Use the art-director agent for art changes.
+> Run npm run screens, then the indie-critic agent. Commit and push.
 
-Owner decisions so far: full art replacement; Resurrect 64 palette (never under 48 colors);
-features and visible change over polish.
+Owner decisions so far: full art replacement through PixelLab (generation budget is fine to spend;
+compromise with code-drawn art only where it looks as good); anything that moves gets real
+animation frames; map and farm first; Resurrect 64 palette (never under 48 colors); features and
+visible change over polish.
 
 ## Environment notes (for whoever works on this next)
 

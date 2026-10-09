@@ -149,6 +149,68 @@ tile, and the water is flat. Next session: prompt for muted Resurrect greens, ge
 
 ### Phase 2 — Full art replacement by screen time (5–8 sessions)
 
+**Done 2026-10-09 in one session** (owner asked for it in one go), with 11 `art-director` agents
+working in parallel by group and about 1,100 PixelLab generations. `node e2e/coverage.mjs`: every
+sprite family the game asks for (6,415 names) has imported art; `npm run screens`: 43 shots,
+0 issues, 0 console errors.
+
+- [x] Pipeline: `kind: "sprites"` sheets (any sprite by name or `*`/`**` pattern, `recolor` for
+      seasons/tiers) via `scripts/sprites-import.mjs`; `kind: "terrain"` via
+      `scripts/terrain-import.mjs`; helpers `pl-fetch.mjs`, `contact.mjs`, `e2e/sprites.mjs`,
+      `e2e/coverage.mjs`; handbook `art/README.md`. Pure lookup rules in `src/render/art/match.ts`
+      (tested). Sheets load before anything bakes; hooks that exist only for imported art wait for
+      their sheet.
+- [x] Terrain: dual-grid Wang ground, 14 chained sets (grass, dirt, path, sand, water, deep, dry and
+      watered tilled soil), 15 grass variants, 24 per-tile classes (cliffs, planks, mine floors and
+      walls, ores, lava, house floor and walls), 69 decals, fall/winter recolors; tilled soil is part
+      of the ground (chunks rebake when it changes); open water animates.
+- [x] Crops: all 37, every stage, 2-3 ripe takes with a glow, withered, 4 giants, fertilizer.
+- [x] Characters: player with every tool swing in hand (the rotated icon is gone for the default
+      hair style), 10 hair styles, 13 villagers + Mags, 56 portraits.
+- [x] Factory: animated belts/undergrounds/splitters, arm bases and claws, every machine with
+      working frames, generators, bumblebots (`bot:*`), chimney smoke from each machine's chimney.
+- [x] Trees (14 species × stages × seasons × fruit), all map objects, lamps, notice board.
+- [x] Buildings (20 town/farm buildings with night windows, winter snow, seasonal touches),
+      coops/barns/silo/well/depot, megaprojects, greenhouse glass, the merchant cart.
+- [x] Creatures (8 animals + babies, 4-frame walks; cat and dog in 4 coats; 8 monsters with hidden
+      states), farmhouse furniture with fire/pendulum/steam/fish frames, item icons (533 + stars),
+      UI skin (nine-slice panels/buttons/slots, `src/ui/skin.ts`), small FX (emotes, butterflies,
+      birds, jumping fish, mail, bunting, fireballs).
+- [x] Renderer shadows under trees, structures and solid ground objects.
+- [ ] Not done: tool swings for the non-default hair styles (ponytail done; the rest were being
+      generated at the end of the session), a look-driven player portrait (`portrait:player:*` is still procedural), HUD parts
+      (gear hotbar, chronometer) and the title logo are still drawn in code, item 7 below (delete the
+      procedural generators: they remain the `?art=old` fallback for now).
+
+**Indie-critic review of Phase 2 (2026-10-09):** no Criticals; "in stills, a Stardew-level
+upgrade". Fixed in the same session: ore/bar/cloth identity at 16 and 10 px, belt icons outlined
+in material shades, 16-step belt treads, a color accent per small machine, taller windmill, no-power
+badge and progress bar sprites, ripe twinkle (no more 1 px twitch, baked sparkles removed, leafy
+crops get a lit rim), camera snapped to world pixels (player shimmer), derelict greenhouse shows
+only its frame, text contrast on the peach panels, 16 px icons in the night tally, darker dry soil,
+decals that looked like clickable rocks/twigs removed, storm light, map/minimap colors, the sweep's
+farm shots no longer covered by the profession prompt. Still open:
+- [ ] NPC walk frames redraw the face each frame: rebuild NPC walks from the stand pose with the
+      head rows locked (as `art/creatures/prep.mjs` does); Bram and Wren are 34 px (cap 33).
+- [ ] Strike frames: the hoe/pick head turns into a yellow crescent; keep the head visible and add
+      a one-frame `#fdcbb0` arc.
+- [ ] Water reads flat with canal-like banks, sand on riverbanks makes square blocks: a shallow band
+      and animated foam at grass↔water, or layered transitions by class priority in the dual grid.
+- [ ] Winter: dirt, sand and dry soil stay summer orange (needs season-keyed bases and sets).
+- [ ] Leftover 1.0 parts next to the new art: world map window, minimap void at the map edge,
+      chronometer sky dither, title logo, belt build ghost; "flat" buttons read as text fields.
+- [ ] A status lamp per machine (working / starved / blocked) fed by the factory pulse.
+- [ ] Mine floor swirl repeats; mine walls read as bricks.
+- [ ] Bundle: +100 KB gzipped of eagerly bundled manifests; the candidate player sheets still ship.
+- [ ] Phase 3 list from the critic: harvest pluck + arc to the player, travelling wind gusts on tall
+      grass and canopies, machine completion squash + puff + output pop, belt bounce and hum,
+      tool impact stars and real-color soil chunks, a counting night tally, coins flying to the
+      odometer, shoreline foam, dust and rustle.
+
+Some art was drawn by rule in scripts instead of generated, where generation can't hold the
+constraint: belts (exact lanes, seamless loops), UI nine-slices (must tile), sprites under ~10 px,
+poles/fences/paths. See STYLE.md, "What generation can't do well".
+
 In this order, because this is how much of the screen each occupies:
 
 1. Terrain: grass with tufts, flowers and 4–6 variants per tile; dirt-to-grass edge
