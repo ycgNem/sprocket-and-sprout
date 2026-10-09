@@ -2,7 +2,8 @@
 // before the field get their meadow cleared on load.
 import { describe, expect, it } from 'vitest';
 import '../src/sim';
-import { Game } from '../src/sim/Game';
+import { Game, DAY_END } from '../src/sim/Game';
+import { OPENING } from '../src/sim/systems/modes';
 import { rle, serialize, deserialize, unrle } from '../src/sim/save';
 import { npcSys } from '../src/sim/systems/npcs';
 import { NPC_BY_ID } from '../src/data/npcs';
@@ -26,6 +27,20 @@ describe('Roxy Vane', () => {
     expect(REQUEST_POOL.some((q) => q.npc === 'roxy')).toBe(true);
     // off-season seeds: every listed season is one the crop can't be bought in elsewhere
     for (const e of shop.stock.filter((e) => e.item.endsWith('_seed'))) expect(e.seasons?.length).toBeGreaterThan(0);
+  });
+
+  it('drops her card on day 4; the keeper tops up the bean chest on days 2-4', () => {
+    const g = new Game({ seed: 8 });
+    const chest = g.ents.at(OPENING.chest[0], OPENING.chest[1])!;
+    const beans = () => chest.inv!.countId('cogbean');
+    const start = beans();
+    const mail = () => (g.sys.goals?.mail ?? []) as { id: string }[];
+    for (let d = 1; d <= 4; d++) {
+      g.time.min = DAY_END - 0.001;
+      g.tick();
+      expect(mail().some((m) => m.id === 'roxy_intro'), `day ${d + 1}`).toBe(d >= 3);
+    }
+    expect(beans()).toBe(start + 36);
   });
 
   it('can walk from the town square to the gangplank and her field', () => {

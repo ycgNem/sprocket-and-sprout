@@ -40,9 +40,12 @@ export function market(g: Game): Market {
   return m as Market;
 }
 
-/** Units sold that halve the price (cheap goods saturate slower). */
-function satScale(price: number) {
-  return Math.max(25, Math.round(5000 / Math.max(1, price)));
+/**
+ * Units sold that halve the price (cheap goods saturate slower). Artisan goods take twice as
+ * many: one jar line (about 14 pickles a day) used to halve its own price within a week.
+ */
+function satScale(d: ItemDef) {
+  return Math.max(25, Math.round(5000 / Math.max(1, d.price))) * (d.cat === 'artisan' ? 2 : 1);
 }
 
 export function priceMult(g: Game, idx: number): number {
@@ -50,7 +53,7 @@ export function priceMult(g: Game, idx: number): number {
   const d = ITEMS[idx];
   if (!d) return 1;
   const s = m.sat[idx] ?? 0;
-  const sat = 1 / (1 + s / satScale(d.price));
+  const sat = 1 / (1 + s / satScale(d));
   const drift = m.drift[d.cat] ?? 1;
   const hot = m.hot.includes(d.id) ? 1.4 : 1;
   return Math.max(0.4, sat * drift * hot);

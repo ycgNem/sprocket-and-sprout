@@ -1,6 +1,6 @@
 // Settings panel: audio, UI scale, gameplay toggles and key rebinding.
 import { C } from '../../data/palette';
-import { ACTIONS, ACTION_LABELS, DEFAULT_BINDS, keyLabel } from '../../engine/input';
+import { ACTIONS, ACTION_LABELS, DEFAULT_BINDS, SHOWN_ACTIONS, keyLabel } from '../../engine/input';
 import type { UI } from '../ui';
 import type { App } from '../../app/app';
 
@@ -85,10 +85,10 @@ export function settingsPanel(ui: UI, app: App, onClose: () => void): boolean {
     if (t7 !== s.keyPrompts) { s.keyPrompts = t7; changed = true; }
   } else {
     const listY = y + 52, listH = h - 84;
-    const contentH = ACTIONS.length * 14;
+    const contentH = SHOWN_ACTIONS.length * 14;
     const off = ui.scrollOffset('keys', x + 10, listY, w - 20, listH, contentH);
     ui.clip(x + 10, listY, w - 20, listH);
-    ACTIONS.forEach((a, i) => {
+    SHOWN_ACTIONS.forEach((a, i) => {
       const yy = listY + i * 14 - off;
       if (yy < listY - 14 || yy > listY + listH) return;
       ui.text(ACTION_LABELS[a], x + 16, yy + 3, C.ink);

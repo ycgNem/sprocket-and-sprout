@@ -34,6 +34,8 @@ export class UI {
   /** key -> scroll offset */
   scroll = new Map<string, number>();
   focus: string | null = null;
+  /** seconds since the last frame (for things that animate per second, not per frame) */
+  dt = 1 / 60;
   hoverId: string | null = null;
   sfx: (id: string) => void = () => {};
   /** debug: record what each frame draws for the overlap audit (src/ui/audit.ts, npm run screens) */
@@ -57,6 +59,7 @@ export class UI {
     this.mx = Math.floor(input.mouse.x * (ctx.canvas.width / ctx.canvas.clientWidth || 1) / scale);
     this.my = Math.floor(input.mouse.y * (ctx.canvas.height / ctx.canvas.clientHeight || 1) / scale);
     this.time += dt;
+    this.dt = dt;
     this.tooltip = null;
     this.prevBlocks = this.blocks;
     this.blocks = [];

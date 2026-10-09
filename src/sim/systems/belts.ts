@@ -126,7 +126,13 @@ export function laneCanInsert(b: BeltC, lane: number, pos: number): boolean {
   return true;
 }
 
-function transferOut(e: Ent, lane: number, k: number, overflow: number): boolean {
+/**
+ * Hands an item from a belt's end to the structure in front of it (crate, chest, machine...);
+ * true when it was taken. Set by the game, which knows how each structure accepts goods.
+ */
+export type BeltSink = (dst: Ent, k: number, dir: Dir) => boolean;
+
+function transferOut(ents: Ents, e: Ent, lane: number, k: number, overflow: number, sink?: BeltSink): boolean {
   const b = e.belt!;
   if (b.kind === BeltKind.Splitter) {
     // alternation is shared by both halves, per lane
@@ -149,7 +155,12 @@ function transferOut(e: Ent, lane: number, k: number, overflow: number): boolean
     return false;
   }
   const t = b.next;
-  if (!t) return false;
+  if (!t) {
+    // the line ends at a structure: deliver into it, no arm needed (blocks only when it's full)
+    if (!sink || b.kind === BeltKind.UnderIn) return false;
+    const dst = ents.rootAt(e.x + DX[e.rot], e.y + DY[e.rot]);
+    return !!dst && !dst.belt && !dst.ghost && sink(dst, k, e.rot);
+  }
   const tb = t.belt!;
   switch (b.nextMode) {
     case 1:
@@ -163,7 +174,7 @@ function transferOut(e: Ent, lane: number, k: number, overflow: number): boolean
 }
 
 /** Advance all belts by dt seconds. Returns number of item moves (for perf stats). */
-export function updateBelts(ents: Ents, dt: number) {
+export function updateBelts(ents: Ents, dt: number, sink?: BeltSink) {
   if (ents.beltsDirty) rebuildBelts(ents);
   const order = ents.beltOrder;
   for (let oi = 0; oi < order.length; oi++) {
@@ -174,12 +185,12 @@ export function updateBelts(ents: Ents, dt: number) {
     for (let li = 0; li < 2; li++) {
       const L = b.lanes[li];
       if (L.k.length === 0) continue;
-      advanceLane(e, b, L, li, adv);
+      advanceLane(ents, e, b, L, li, adv, sink);
     }
   }
 }
 
-function advanceLane(e: Ent, b: BeltC, L: Lane, li: number, adv: number) {
+function advanceLane(ents: Ents, e: Ent, b: BeltC, L: Lane, li: number, adv: number, sink?: BeltSink) {
   const len = b.len;
   // keep spacing across the tile boundary with the next lane's last item
   let cap = len;
@@ -190,7 +201,7 @@ function advanceLane(e: Ent, b: BeltC, L: Lane, li: number, adv: number) {
   }
   const old = L.p[0];
   const np = old + adv;
-  if (np >= len && transferOut(e, li, L.k[0], np - len)) {
+  if (np >= len && transferOut(ents, e, li, L.k[0], np - len, sink)) {
     L.k.shift();
     L.p.shift();
     if (L.k.length === 0) return;

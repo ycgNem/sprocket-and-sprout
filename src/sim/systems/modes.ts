@@ -98,7 +98,7 @@ function tinkerStart(g: Game) {
   g.ents.add('chest_wood', OPENING.chest[0], OPENING.chest[1], 0).inv?.add(key('cogbean'), 12);
   // these tutorial steps are covered by the opening
   const q = questSys(g);
-  for (const id of ['t_research', 't_belts', 't_factory']) if (!q.done.includes(id)) q.done.push(id);
+  for (const id of ['t_research', 't_belts', 't_factory', 't_professor']) if (!q.done.includes(id)) q.done.push(id);
   g.flags.add('tutorial_done');
 }
 
@@ -175,6 +175,15 @@ registerSystem({
   init(g) {
     modeState(g);
     startKit(g);
+  },
+  dayStart(g) {
+    // days 2-4: the keeper's cellar sends up a dozen cogbeans, so the starter line runs until the
+    // first radishes ripen (the bean patch alone regrows about 4 a day)
+    if (!g.flags.has('tinker_start') || g.dayIndex < 1 || g.dayIndex > 3) return;
+    const chest = g.ents.at(OPENING.chest[0], OPENING.chest[1]);
+    if (chest?.def.kind === 'chest' && chest.inv && chest.inv.space(key('cogbean')) >= 12) chest.inv.add(key('cogbean'), 12);
+    else g.give(key('cogbean'), 12);
+    g.toast("The keeper's cellar sent up another dozen cogbeans.", 'i:cogbean');
   },
   dayEnd(g) {
     if (g.mode !== 'rush') return;

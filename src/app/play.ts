@@ -39,7 +39,7 @@ import { POST_TIMES } from '../sim/systems/economy';
 import { unitPrice } from '../sim/systems/economy';
 import { unlocksOf } from '../sim/systems/research';
 import { RESEARCH } from '../data/research';
-import { keyLabel } from '../engine/input';
+import { DEBUG_KEYS, keyLabel } from '../engine/input';
 import { textWidth } from '../ui/font';
 
 export interface Toast { text: string; t: number; icon?: string; color?: number }
@@ -460,8 +460,8 @@ export class PlayScreen implements Screen {
     if (pt) {
       const h = petHearts(pt);
       ui.tip(pt.stage === 'stray'
-        ? [{ text: `A stray ${pt.kind}`, color: C.amber }, { text: 'Right-click to say hello', color: C.pebble }]
-        : [{ text: pt.name, color: C.amber }, { text: `Your ${pt.kind}  ` + ICON.heart.repeat(h) + '.'.repeat(5 - h), color: C.rose }, { text: pt.petted ? 'Petted today' : 'Right-click to pet', color: C.pebble }, { text: pt.bowlFull ? 'Water bowl is full' : 'Water bowl is empty (use the watering can)', color: pt.bowlFull ? C.aqua : C.pebble }]);
+        ? [{ text: `A stray ${pt.kind}`, color: C.amber }, { text: 'F or right-click to say hello', color: C.pebble }]
+        : [{ text: pt.name, color: C.amber }, { text: `Your ${pt.kind}  ` + ICON.heart.repeat(h) + '.'.repeat(5 - h), color: C.rose }, { text: pt.petted ? 'Petted today' : 'F or right-click to pet', color: C.pebble }, { text: pt.bowlFull ? 'Water bowl is full' : 'Water bowl is empty (use the watering can)', color: pt.bowlFull ? C.aqua : C.pebble }]);
       return;
     }
     const bowl = g.sys.pet?.stage === 'adopted' && g.player.where === 'world' ? g.sys.pet.bowl : null;
@@ -479,12 +479,12 @@ export class PlayScreen implements Screen {
     if (n) {
       const d = NPC_BY_ID.get(n.id)!;
       const h = Math.min(10, Math.floor(n.points / 250));
-      ui.tip([{ text: d.name, color: C.amber }, { text: d.job, color: C.pebble }, { text: ICON.heart.repeat(Math.max(0, h)) + (h < 10 ? ' ' + Math.round(((n.points % 250) / 250) * 100) + '% to next heart' : ''), color: C.rose }, { text: n.talked ? 'You talked today' : 'Right-click to chat (or give your held item)', color: C.pebble }]);
+      ui.tip([{ text: d.name, color: C.amber }, { text: d.job, color: C.pebble }, { text: ICON.heart.repeat(Math.max(0, h)) + (h < 10 ? ' ' + Math.round(((n.points % 250) / 250) * 100) + '% to next heart' : ''), color: C.rose }, { text: n.talked ? 'You talked today' : 'F or right-click to chat (or give your held item)', color: C.pebble }]);
       return;
     }
     const a = g.sys.animals?.at?.(g, t.fx, t.fy + 0.3);
     if (a) {
-      ui.tip([{ text: a.name, color: C.amber }, { text: a.petted ? 'Petted today' : 'Right-click to pet', color: C.pebble }]);
+      ui.tip([{ text: a.name, color: C.amber }, { text: a.petted ? 'Petted today' : 'F or right-click to pet', color: C.pebble }]);
       return;
     }
     if (g.player.where !== 'world') return;
@@ -496,7 +496,7 @@ export class PlayScreen implements Screen {
       if (e.def.powerUse && !e.net) lines.push({ text: 'Not connected to power', color: C.rose });
       if (e.gen) lines.push({ text: 'Output ' + Math.round(e.gen.out) + ' / ' + Math.round(e.gen.cap) + ' sparks', color: C.aqua });
       if (e.def.kind === 'belt' || e.def.kind === 'underground' || e.def.kind === 'splitter') return;
-      lines.push({ text: 'Right-click to open, R to rotate, pickaxe to remove', color: C.pebble });
+      lines.push({ text: 'F or right-click to open, R to rotate, pickaxe to remove', color: C.pebble });
       ui.tip(lines.slice(0, 5));
     }
   }
@@ -549,7 +549,7 @@ export class PlayScreen implements Screen {
     }
     // typing into a text field (e.g. naming your pet) must not trigger shortcuts
     if (ui.focus) return;
-    if (input.wasPressed('debug')) this.debug = !this.debug;
+    if (DEBUG_KEYS && input.wasPressed('debug')) this.debug = !this.debug;
     if (this.win && WINDOWS[this.win.id]?.modal !== false) {
       // window shortcuts toggle closed
       const map: Record<string, string> = { inventory: 'menu', craft: 'menu', research: 'research', stats: 'stats', journal: 'journal', map: 'map', achievements: 'achievements' };
@@ -925,8 +925,10 @@ export class PlayScreen implements Screen {
       if (!near) drawFx(ctx, 'fx:arrow', Math.floor(this.playtime * 8), ax * TILE, y * TILE - 3 + bob);
     };
     if (has('t_welcome')) {
+      // beans until the 8 are picked (some plants give two, so ripe ones may remain), then the jar
       const B = OPENING.beans;
-      if ([...g.soil.values()].some((s) => s.crop?.id === 'cogbean' && s.crop.ready)) mark(B.x, B.y, B.w, B.h);
+      const picked = (q as { id: string; prog?: number[] }[]).find((a) => a.id === 't_welcome')?.prog?.[0] ?? 0;
+      if (picked < 8 && [...g.soil.values()].some((s) => s.crop?.id === 'cogbean' && s.crop.ready)) mark(B.x, B.y, B.w, B.h);
       else mark(OPENING.jar[0], OPENING.jar[1]);
     }
     if (has('t_arm') && !g.ents.at(OPENING.armTile[0], OPENING.armTile[1])) mark(OPENING.armTile[0], OPENING.armTile[1]);
@@ -997,10 +999,19 @@ export class PlayScreen implements Screen {
     const label = left < 0 ? 'Post tonight' : left < 1 ? 'Post any second!' : `Post in ${left >= 60 ? Math.floor(left / 60) + 'h ' : ''}${Math.floor(left % 60)}m`;
     // beside the crate, on the side away from the player (its values pop up above it, the key
     // bubble sits over it)
-    const left2 = g.player.x > bin.x + bin.w / 2;
     const w = textWidth(label) + 18, h = 13;
-    const at = this.toUI(left2 ? bin.x : bin.x + bin.w, bin.y + 0.45);
-    const x = Math.round(left2 ? at.x - 5 - w : at.x + 5), y = Math.round(at.y - h / 2);
+    const place = (onLeft: boolean) => {
+      const at = this.toUI(onLeft ? bin.x : bin.x + bin.w, bin.y + 0.45);
+      return { x: Math.round(onLeft ? at.x - 5 - w : at.x + 5), y: Math.round(at.y - h / 2) };
+    };
+    // never over the HUD (clock, factory pulse, tracker, hotbar): try the other side, else skip
+    const occ = this.hud.occupied ?? [];
+    const clear = (p: { x: number; y: number }) => p.x >= 2 && p.x + w <= ui.w - 2 && !occ.some((o) => p.x + w + 2 > o.x && p.x - 2 < o.x + o.w && p.y + h > o.y && p.y < o.y + o.h);
+    let left2 = g.player.x > bin.x + bin.w / 2;
+    if (!clear(place(left2))) left2 = !left2;
+    const pos = place(left2);
+    if (!clear(pos)) return;
+    const { x, y } = pos;
     ui.fill(left2 ? x + w : x - 2, y + 4, 2, 5, C.ink);
     ui.fill(left2 ? x + w : x - 1, y + 5, 1, 3, C.walnut);
     ui.fill(x, y, w, h, C.ink);

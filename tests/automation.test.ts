@@ -52,6 +52,29 @@ describe('belts', () => {
     expect(last.p[0] - last.p[1]).toBeCloseTo(0.25, 5);
   });
 
+  it('a belt that ends at a chest or crate delivers into it, and backs up when it is full', () => {
+    const g = blank();
+    for (let x = 0; x < 3; x++) place(g, 'belt_1', x, 5, 1);
+    const chest = place(g, 'chest_wood', 3, 5, 0)!;
+    const first = g.ents.at(0, 5)!;
+    for (let i = 0; i < 6; i++) {
+      laneInsert(first.belt!, i % 2, key('wood'), 0);
+      run(g, 0.4);
+    }
+    run(g, 4);
+    expect(chest.inv!.countId('wood')).toBe(6);
+    expect(beltItemCount(first) + beltItemCount(g.ents.at(1, 5)!) + beltItemCount(g.ents.at(2, 5)!)).toBe(0);
+    // a full chest blocks the line instead of eating goods
+    for (let x = 0; x < 3; x++) place(g, 'belt_1', x, 9, 1);
+    const full = place(g, 'chest_wood', 3, 9, 0)!;
+    while (full.inv!.space(key('stone')) > 0) full.inv!.add(key('stone'), full.inv!.space(key('stone')));
+    expect(full.inv!.space(key('wood'))).toBe(0);
+    laneInsert(g.ents.at(0, 9)!.belt!, 0, key('wood'), 0);
+    run(g, 4);
+    expect(full.inv!.countId('wood')).toBe(0);
+    expect(beltItemCount(g.ents.at(2, 9)!)).toBe(1);
+  });
+
   it('curves preserve lanes and side-loading merges into the near lane', () => {
     const g = blank();
     // east-going line, then turn south at x=4

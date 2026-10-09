@@ -57,7 +57,7 @@ function heartsRow(ui: UI, h: number, x: number, y: number) {
 function drawDialog(ui: UI, play: PlayScreen, st: WinState): boolean {
   const a = st.arg as { npc: string; name: string; pages: string[]; shop?: string; hearts: number; mood?: number };
   st.data.page = st.data.page ?? 0;
-  st.data.chars = (st.data.chars ?? 0) + 1.6;
+  st.data.chars = (st.data.chars ?? 0) + 96 * Math.min(0.05, ui.dt);
   const text = a.pages[st.data.page] ?? '';
   const w = Math.min(440, ui.w - 20), h = 86;
   const x = Math.floor((ui.w - w) / 2), y = ui.h - h - 46;
@@ -101,7 +101,7 @@ function drawDialog(ui: UI, play: PlayScreen, st: WinState): boolean {
 function drawEvent(ui: UI, play: PlayScreen, st: WinState): boolean {
   const a = st.arg as { npc: string; title: string; lines: { who: string; text: string; npcId: string | null }[]; choice: { prompt: string; options: { text: string; reply: string; friendship: number }[] } | null };
   st.data.i = st.data.i ?? 0;
-  st.data.chars = (st.data.chars ?? 0) + 1.5;
+  st.data.chars = (st.data.chars ?? 0) + 90 * Math.min(0.05, ui.dt);
   // letterbox
   ui.fill(0, 0, ui.w, 22, C.ink);
   ui.fill(0, ui.h - 22, ui.w, 22, C.ink);

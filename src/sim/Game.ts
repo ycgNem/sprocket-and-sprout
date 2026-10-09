@@ -4,7 +4,8 @@ import type { GameMode, FarmKind } from '../data/modes';
 import type { Season, Weather, BuffKind } from '../data/types';
 import { TileMap } from './world/tilemap';
 import { generateWorld, PLAYER_START, WORLD_W, WORLD_H, SHIPBIN_POS } from './world/worldgen';
-import { Ents } from './ents';
+import { Ents, type Dir, type Ent } from './ents';
+import { portInsert } from './ports';
 import { Inventory, key } from './inventory';
 import { updateBelts } from './systems/belts';
 import { updateArms } from './systems/arms';
@@ -348,13 +349,20 @@ export class Game {
     this.advanceClock(dt);
     if (sdt > 0) {
       if (this.ents.powerDirty || this.tickN % 2 === 0) updatePower(this, sdt * (this.ents.powerDirty ? 1 : 2));
-      updateBelts(this.ents, sdt);
+      updateBelts(this.ents, sdt, this.beltSink);
       updateArms(this, sdt);
       updateMachines(this, sdt);
     }
     for (const s of SYSTEMS) if (s.tick && (s.realtime || sdt > 0)) s.tick(this, s.realtime ? dt : sdt);
     this.stats.tick(this, sdt);
   }
+
+  /** a belt that ends at a structure feeds it; goods reaching the shipping crate show their value */
+  private beltSink = (dst: Ent, k: number, dir: Dir): boolean => {
+    const n = portInsert(this, dst, k, 1, dir);
+    if (n > 0 && dst.def.kind === 'shipbin') this.emit({ t: 'crated', k, n, x: dst.x + 0.5, y: dst.y - 0.1, ent: dst.id });
+    return n > 0;
+  };
 
   /** set by the presentation layer while building: the clock slows to a quarter */
   slowClock = false;

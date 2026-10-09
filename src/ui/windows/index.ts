@@ -13,8 +13,8 @@ import { drawMenu } from './menu';
 import { drawStruct } from './struct';
 import { centered, frame } from './common';
 import { settingsPanel } from './settings';
-import { ICON, textWidth, wrapText } from '../font';
-import { keyLabel } from '../../engine/input';
+import { ICON, ellipsize, textWidth, wrapText } from '../font';
+import { DEBUG_KEYS, keyLabel } from '../../engine/input';
 import { applyResearchMods } from '../../sim/save';
 import { runPerfScene } from '../../app/perf';
 import { getArtMode, setArtMode } from '../../render/atlas';
@@ -23,6 +23,7 @@ import { drawFx, ladderPitch } from '../../render/juice';
 import { QUEST_BY_ID } from '../../data/goals';
 import { CROP_BY_ID } from '../../data/crops';
 import { cropTotal } from '../../sim/systems/farming';
+import { priceMult, unitPrice } from '../../sim/systems/economy';
 
 export interface WinState {
   id: string;
@@ -114,7 +115,7 @@ function drawHelp(ui: UI, play: PlayScreen, st: WinState): boolean {
     ['Copy / paste blueprint', `${k('copy')} drag a box, then ${k('paste')} to paste`],
     ['Eat held item', k('eat')],
     ['Zoom', `${k('zoomIn')} in, ${k('zoomOut')} out, or Ctrl + wheel`],
-    ['Debug panel', k('debug')],
+    ...(DEBUG_KEYS ? [['Debug panel', k('debug')] as [string, string]] : []),
   ];
   lines.forEach(([a, c], i) => {
     ui.text(a, x + 14, y + 18 + i * 13, C.ink);
@@ -136,7 +137,7 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
   const sold: { k: number; n: number; price: number; coins?: number }[] = s.sold ?? [];
   const rows = sold.slice(0, 10);
   const D = st.data as { shown?: number; ticks?: number; done?: boolean; tease?: string[]; stamped?: boolean };
-  if (!D.tease) D.tease = morningTease(play);
+  if (!D.tease) D.tease = morningTease(play, sold);
   // full 16 px icons in the night tally (the day's reward deserves more than belt-size icons)
   const ROW = 17;
   const w = 300, h = Math.min(316, 116 + Math.min(10, sold.length) * ROW + D.tease.length * 11 + ((s.quests ?? []).length ? 14 : 0));
@@ -210,7 +211,7 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
     }
   }
   // what's waiting this morning: a reason to get up
-  D.tease.forEach((line, i) => ui.text(line, x + w / 2, y + h - 40 - (D.tease!.length - i) * 11 + 6, C.pine, { align: 'center' }));
+  D.tease.forEach((line, i) => ui.text(ellipsize(line, w - 16), x + w / 2, y + h - 40 - (D.tease!.length - i) * 11 + 6, C.pine, { align: 'center' }));
   if (ui.button('sumok', x + w / 2 - 40, y + h - 26, 80, 18, D.done ? 'Good morning!' : 'Skip', { style: 'green' })) {
     if (D.done) return false;
     st.t = tRows + COUNT + 0.01;
@@ -220,9 +221,16 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
 }
 
 /** one or two lines about what's ready this morning */
-function morningTease(play: PlayScreen): string[] {
+function morningTease(play: PlayScreen, sold: { k: number; n: number }[] = []): string[] {
   const g = play.g;
   const out: string[] = [];
+  // the market is saturating what you ship most: say so while there's time to switch
+  for (const r of [...sold].sort((a, b) => b.n - a.n).slice(0, 3)) {
+    const d = ITEMS[r.k >> 2];
+    if (!d || r.n < 8 || priceMult(g, r.k >> 2) > 0.6) continue;
+    out.push(`${d.name} is flooding the market: ${unitPrice(g, r.k)}, was ${d.price}.`);
+    break;
+  }
   let ripe = 0;
   for (const s of g.soil.values()) if (s.crop?.ready && !s.crop.dead) ripe++;
   let goods = 0;
@@ -232,7 +240,7 @@ function morningTease(play: PlayScreen): string[] {
   // crops only grow on watered days: say so before promising a date
   let dry = 0;
   if (!g.isRaining()) for (const s of g.soil.values()) if (s.crop && !s.crop.ready && !s.crop.dead && !s.water) dry++;
-  if (dry && out.length < 2) out.push(`${dry} crop${dry > 1 ? 's are' : ' is'} dry: water ${dry > 1 ? 'them' : 'it'} to keep ${dry > 1 ? 'them' : 'it'} growing.`);
+  if (dry && out.length < 2) out.push(`${dry} crop${dry > 1 ? 's need' : ' needs'} water today to keep growing.`);
   // the soonest crop still growing: a date to look forward to (counting watered days)
   if (out.length < 2) {
     let best: { name: string; days: number } | null = null;

@@ -143,6 +143,8 @@ export class App {
   }
 
   startGame(g: Game, look: NPCLook, slot?: number) {
+    // the farm lives in localStorage: once you play, ask the browser not to clear it under storage pressure
+    navigator.storage?.persist?.().catch(() => {});
     setPlayerLook(look);
     registerMapBuildings(g.map);
     this.renderer.invalidateAll();
@@ -321,9 +323,16 @@ const STYLES: NPCLook['hairStyle'][] = ['short', 'long', 'bun', 'curly', 'ponyta
 const SHIRTS = [C.moss, C.river, C.rose, C.amber, C.violet, C.sky, C.terracotta, C.cream, C.slate, C.leaf, C.brick, C.blush];
 const PANTS = [C.river, C.walnut, C.slate, C.bark, C.moss, C.deepsea, C.wine, C.tan];
 
+/** farm names offered before you type your own */
+const FARM_NAMES = ['Willowbrook', 'Copperleaf', 'Thistledown', 'Gearwood', 'Mossbell', 'Hollyhock', 'Brasswick', 'Cogsbury', 'Sweetwater', 'Ambervale'];
+
 class NewGameForm {
   name = '';
-  farm = '';
+  farm = FARM_NAMES[Math.floor(Math.random() * FARM_NAMES.length)];
+  /** the name field takes the keyboard as soon as the form opens */
+  private focused = false;
+  /** the suggested farm name gives way to the first letter you type */
+  private farmTyped = false;
   fav = 'Tea';
   look: NPCLook = { skin: C.apricot, hair: C.walnut, hairStyle: 'short', shirt: C.moss, pants: C.river, accent: C.rose };
   idx = { skin: 2, hair: 1, style: 0, shirt: 0, pants: 0 };
@@ -343,10 +352,20 @@ class NewGameForm {
     ui.panel(x, y, w, h);
     ui.text('A new life in Thistlewick', x + w / 2, y + 10, C.walnut, { align: 'center', scale: 2 });
     let yy = y + 36;
+    if (!this.focused) {
+      this.focused = true;
+      ui.focus = 'name';
+    }
+    // Tab moves between the two fields
+    if (ui.input.keyPressed('Tab') && (ui.focus === 'name' || ui.focus === 'farm')) ui.focus = ui.focus === 'name' ? 'farm' : 'name';
     ui.text('Your name', x + 16, yy + 4, C.ink);
     this.name = ui.textField('name', x + 100, yy, 120, this.name, 14);
     yy += 22;
     ui.text('Farm name', x + 16, yy + 4, C.ink);
+    if (ui.focus === 'farm' && !this.farmTyped && ui.input.text.length) {
+      this.farmTyped = true;
+      if (!ui.input.text.includes('\b')) this.farm = '';
+    }
     this.farm = ui.textField('farm', x + 100, yy, 120, this.farm, 14);
     ui.text("Farm", x + 224, yy + 4, C.walnut);
     yy += 30;
@@ -382,6 +401,8 @@ class NewGameForm {
     }
     const ok = this.name.trim().length > 0 && this.farm.trim().length > 0;
     if (ui.button('next', x + w - 110, y + h - 28, 96, 20, 'Next >', { style: 'green', disabled: !ok, tip: ok ? 'Choose a game mode and farm map' : 'Enter your name and farm name' })) this.step = 'where';
+    // Enter goes on once both names are in
+    else if (ok && ui.input.keyPressed('Enter')) this.step = 'where';
     if (ui.button('back', x + 14, y + h - 28, 60, 20, 'Back')) return 'back';
     return null;
   }

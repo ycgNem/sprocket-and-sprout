@@ -513,7 +513,7 @@ export class Renderer {
           // fade trees in front of the player
           D.push({ y: y + 0.95, f: () => {
             const p = g.player;
-            const near = tr.stage >= 3 && p.y < y + 0.9 && p.y > y - 3.2 && Math.abs(p.x - (x + 0.5)) < 1.3;
+            const near = tr.stage >= 3 && p.y < y + 0.9 && p.y > y - 2.2 && Math.abs(p.x - (x + 0.5)) < 1.3;
             if (tr.stage >= 1) drawSprite(ctx, sprite(`shadow:${TREE_SHADOW[tr.stage] ?? 28}`), x * TILE + 8, y * TILE + 14);
             if (near) ctx.globalAlpha = 0.55;
             drawSprite(ctx, s, sxx, y * TILE + 15);

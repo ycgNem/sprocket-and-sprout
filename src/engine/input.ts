@@ -9,6 +9,11 @@ export const ACTIONS = [
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
+/** The cheat panel (backquote) exists only in dev builds or with ?debug in the address. */
+export const DEBUG_KEYS = !!import.meta.env?.DEV || (typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug'));
+/** The actions a player sees in the controls lists. */
+export const SHOWN_ACTIONS = ACTIONS.filter((a) => a !== 'debug' || DEBUG_KEYS);
+
 export const ACTION_LABELS: Record<Action, string> = {
   up: 'Move up', down: 'Move down', left: 'Move left', right: 'Move right', run: 'Walk slowly',
   interact: 'Interact / talk', inventory: 'Inventory', craft: 'Crafting', research: 'Research',
