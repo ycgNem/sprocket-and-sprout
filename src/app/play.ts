@@ -32,7 +32,7 @@ import { OPENING } from '../sim/systems/modes';
 import { T } from '../sim/world/tilemap';
 import { PULSE_COL, machineState, pulseEnts } from '../ui/pulse';
 import { checkTips } from './tips';
-import { drawFx, ladderPitch, type Pt } from '../render/juice';
+import { drawFx, Juice, ladderPitch, type Pt } from '../render/juice';
 import { promptAt, questTarget, toolVerb } from '../sim/prompts';
 import { POST_TIMES } from '../sim/systems/economy';
 import { unitPrice } from '../sim/systems/economy';
@@ -80,6 +80,8 @@ export class PlayScreen implements Screen {
   private lastMoney = 0;
   /** where this frame's coin shower starts (UI px), if an event said so */
   private coinSrc: Pt | null = null;
+  /** seconds the next coin shower waits (the courier grabbing the parcel) */
+  private coinWait = 0;
 
   constructor(app: App, g: Game, look: NPCLook, slot?: number) {
     this.app = app;
@@ -1140,9 +1142,17 @@ export class PlayScreen implements Screen {
             if (e.ent !== undefined) J.hop(e.ent);
           }
           break;
-        case 'post':
-          J.bannerNext({ title: `The ${e.label} post!`, sub: `${ICON.coin}${e.total.toLocaleString()} for your crate`, color: C.copper, items: [] });
+        case 'post': {
+          // the brass courier lands on the crate and takes the parcel; the coins burst as it does
+          const bin = g.ents.get(g.shipBinId);
+          if (bin && g.player.where === 'world') {
+            J.courier((bin.x + 0.5) * TILE, bin.y * TILE + 3);
+            this.coinWait = Juice.COURIER_GRAB;
+          }
+          // the ribbon drops in once the courier has the parcel, so it doesn't hide the landing
+          J.bannerNext({ title: `The ${e.label} post!`, sub: `${ICON.coin}${e.total.toLocaleString()} for your crate`, color: C.copper, items: [], wait: this.coinWait ? Juice.COURIER_GRAB + 0.3 : 0 });
           break;
+        }
         case 'hop':
           if (e.tile !== undefined) J.hopTile(e.tile);
           if (e.ent !== undefined) J.hop(e.ent);
@@ -1200,6 +1210,7 @@ export class PlayScreen implements Screen {
               this.coinSrc = this.toUI(e.x, e.y);
               break;
             case 'hit': P.burst(x, y - 8, n, [C.cream, C.rose], { speed: 70, up: 20, life: 0.3 }); J.fx('fx:star', x, y - 8, { fps: 18 }); break;
+            case 'scroll': J.fx('fx:scroll', x, y, { fps: 9, life: 1.4 }); break;
             case 'magic': P.burst(x, y - 8, n, [C.lavender, C.aqua, C.cream], { speed: 40, up: 30, g: -20, life: 1 }); break;
             case 'treefall': if (e.s) r.ambient.treeFall(e.s, e.x, e.y, e.dir ?? 1); break;
             default: P.burst(x, y, n, [C.cream], {});
@@ -1243,8 +1254,9 @@ export class PlayScreen implements Screen {
     const money = Math.floor(g.player.money);
     const dm = money - this.lastMoney;
     this.lastMoney = money;
-    if (dm > 0 && !this.modalOpen && !g.sleeping && this.sleepFade === 0) J.coins(this.coinSrc ?? this.toUI(g.player.x, g.player.y - 1.2), dm);
+    if (dm > 0 && !this.modalOpen && !g.sleeping && this.sleepFade === 0) J.coins(this.coinSrc ?? this.toUI(g.player.x, g.player.y - 1.2), dm, this.coinWait);
     this.coinSrc = null;
+    this.coinWait = 0;
   }
 }
 

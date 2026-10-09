@@ -688,7 +688,8 @@ export function interactStruct(g: Game, e: Ent): boolean {
       p.inv.remove(held.k, n);
       if (n) {
         g.emit({ t: 'sfx', id: 'ship' });
-        g.emit({ t: 'float', text: `Shipped ${n}`, x: e.x + 0.5, y: e.y, c: 6 });
+        // the play screen pops what they'll fetch, like goods an arm drops in
+        g.emit({ t: 'crated', k: held.k, n, x: e.x + 0.5, y: e.y - 0.1, ent: e.id });
       }
       return true;
     }

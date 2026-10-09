@@ -135,6 +135,9 @@ interface Icon { id: string; x: number; y: number; vy: number; t: number; life: 
 interface Bit { x: number; y: number; vx: number; vy: number; t: number; life: number; c: number; w: number; h: number; ph: number }
 interface Ring { x: number; y: number; t: number; max: number; r0: number; r1: number; c: number }
 interface Pop { text: string; x: number; y: number; t: number; c: number; scale: number }
+/** the post courier: flies in (0), perches on the crate and grabs the parcel (1), flies off (2) */
+interface Courier { x0: number; y0: number; tx: number; ty: number; x: number; y: number; t: number; phase: 0 | 1 | 2; flip: boolean }
+const C_ARRIVE = 0.7, C_PERCH = 0.45, C_LEAVE = 1.6;
 export interface Pt { x: number; y: number }
 export interface Flight {
   kind: 'item' | 'coin';
@@ -146,7 +149,7 @@ export interface Flight {
   to: () => Pt;
   land?: () => void;
 }
-export interface Banner { title: string; sub: string; color: number; icon?: string; t: number; items: { id: string; n: number }[] }
+export interface Banner { title: string; sub: string; color: number; icon?: string; t: number; items: { id: string; n: number }[]; /** seconds before it drops in */ wait?: number }
 
 /** a little arc of integer offsets: up, hang, land with a one-pixel dip */
 const HOP = [0, -2, -3, -4, -4, -3, -2, -1, 0, 1, 1, 0];
@@ -158,6 +161,7 @@ export class Juice {
   bits: Bit[] = [];
   rings: Ring[] = [];
   pops: Pop[] = [];
+  couriers: Courier[] = [];
   private hops = new Map<number, number>();
   private tileHops = new Map<number, number>();
   // ---- UI space ----
@@ -202,6 +206,14 @@ export class Juice {
     }
   }
 
+  /** the brass mail-bird lands on the crate at (tx, ty) (world px, its feet), grabs the parcel and leaves */
+  courier(tx: number, ty: number) {
+    this.couriers.push({ x0: tx - 70, y0: ty - 64, tx, ty, x: tx - 70, y: ty - 64, t: 0, phase: 0, flip: false });
+  }
+
+  /** seconds until a courier spawned now grabs the parcel (coins burst then) */
+  static readonly COURIER_GRAB = C_ARRIVE + C_PERCH * 0.5;
+
   /** a big number that pops up and hangs for a moment (world px; whole-pixel text scale) */
   pop(text: string, x: number, y: number, c = C.butter, scale = 2) {
     if (this.pops.length > 30) this.pops.shift();
@@ -235,7 +247,7 @@ export class Juice {
   }
 
   /** a shower of coins from a UI point into the odometer, carrying `amount` between them */
-  coins(from: Pt, amount: number) {
+  coins(from: Pt, amount: number, wait = 0) {
     if (amount <= 0) return;
     const n = Math.max(3, Math.min(14, 2 + Math.floor(Math.log2(amount + 1))));
     let left = amount;
@@ -246,7 +258,7 @@ export class Juice {
       const a = Math.random() * Math.PI * 2, r = 10 + Math.random() * 26;
       this.flights.push({
         kind: 'coin', x0: from.x, y0: from.y, cx: from.x + Math.cos(a) * r, cy: from.y + Math.sin(a) * r * 0.6 - 30,
-        t: 0, dur: 0.55 + Math.random() * 0.15, delay: i * 0.055, to: () => this.anchors.money,
+        t: 0, dur: 0.55 + Math.random() * 0.15, delay: wait + i * 0.055, to: () => this.anchors.money,
         land: () => {
           this.moneyHeld = Math.max(0, this.moneyHeld - share);
           this.moneyBump = 0;
@@ -291,6 +303,24 @@ export class Juice {
       }
     for (let i = this.rings.length - 1; i >= 0; i--) if ((this.rings[i].t += dt) >= this.rings[i].max) this.rings.splice(i, 1);
     for (let i = this.pops.length - 1; i >= 0; i--) if ((this.pops[i].t += dt) >= 1.3) this.pops.splice(i, 1);
+    for (let i = this.couriers.length - 1; i >= 0; i--) {
+      const c = this.couriers[i];
+      c.t += dt;
+      if (c.phase === 0) {
+        const k = Math.min(1, c.t / C_ARRIVE), e = 1 - (1 - k) * (1 - k);
+        c.x = c.x0 + (c.tx - c.x0) * e;
+        c.y = c.y0 + (c.ty - c.y0) * e;
+        c.flip = false;
+        if (k >= 1) { c.phase = 1; c.t = 0; }
+      } else if (c.phase === 1) {
+        if (c.t >= C_PERCH) { c.phase = 2; c.t = 0; }
+      } else {
+        const k = c.t / C_LEAVE;
+        c.x = c.tx + 90 * k * k + 20 * k;
+        c.y = c.ty - 80 * k * k - 10 * k;
+        if (k >= 1) this.couriers.splice(i, 1);
+      }
+    }
     for (const m of [this.hops, this.tileHops])
       for (const [k, t] of m) {
         if (t + dt > HOP.length / 40) m.delete(k);
@@ -341,6 +371,21 @@ export class Juice {
       drawItemIcon(ctx, c.id, Math.round(c.x - 5), Math.round(c.y - 5), 10);
       ctx.globalAlpha = 1;
     }
+    for (const c of this.couriers) {
+      const fr = Math.floor(this.time * 12) % 6;
+      const name = c.phase === 1 ? `courier:perch:${c.t > C_PERCH * 0.35 && c.t < C_PERCH * 0.8 ? 1 : 0}` : c.phase === 0 ? `courier:fly:${fr}` : `courier:carry:${fr}`;
+      const x = Math.round(c.x), y = Math.round(c.y);
+      if (c.phase !== 2 || c.t < 0.4) drawSprite(ctx, sprite('shadow:8'), Math.round(c.tx), Math.round(c.ty) + 1);
+      if (hasImage(name)) drawSprite(ctx, sprite(name), x, y, 1, c.flip);
+      else {
+        // stand-in: a brass body with flapping copper wings
+        ctx.fillStyle = PALETTE[C.ink]; ctx.fillRect(x - 4, y - 8, 9, 7);
+        ctx.fillStyle = PALETTE[C.brass]; ctx.fillRect(x - 3, y - 7, 7, 5);
+        ctx.fillStyle = PALETTE[C.amber]; ctx.fillRect(x + 2, y - 6, 1, 1);
+        if (c.phase !== 1) { ctx.fillStyle = PALETTE[C.copper]; ctx.fillRect(x - 6, y - 9 - (fr % 2) * 2, 4, 2); ctx.fillRect(x + 3, y - 9 - (fr % 2) * 2, 4, 2); }
+        if (c.phase === 2) { ctx.fillStyle = PALETTE[C.oak]; ctx.fillRect(x - 2, y - 1, 5, 4); }
+      }
+    }
     for (const p of this.pops) {
       const k = Math.min(1, p.t / 0.3);
       const lift = Math.round(12 * (1 - (1 - k) * (1 - k)));
@@ -365,7 +410,7 @@ export class Juice {
   /** where the current ribbon sits (UI px), so other overlays can keep clear of it */
   bannerRect(uiW: number, uiH: number): { x: number; y: number; w: number; h: number } | null {
     const b = this.banners[0];
-    if (!b) return null;
+    if (!b || (b.wait ?? 0) > 0) return null;
     const w = this.bannerW(b, uiW);
     return { x: Math.round(uiW / 2 - w / 2) - 10, y: Math.round(Math.max(72, uiH * 0.24)), w: w + 20, h: 44 };
   }
@@ -420,6 +465,10 @@ export class Juice {
 
   /** the ribbon drops in below the toast and achievement lane, above the player */
   private drawBanner(ui: UI, b: Banner, dt: number) {
+    if ((b.wait ?? 0) > 0) {
+      b.wait! -= dt;
+      return;
+    }
     const ctx = ui.ctx;
     const HOLD = 3.2;
     const w = this.bannerW(b, ui.w), h = 44;

@@ -54,8 +54,9 @@ function start(g: Game, def: QuestDef) {
   q.active.push({ id: def.id, prog: def.objectives.map(() => 0), day: g.dayIndex });
   if (g.dayIndex > 0 || def.id !== 't_welcome') {
     g.toast(`New quest: ${def.title}`, undefined, 6);
-    // a soft sting for a new quest; the big fanfare is for finishing one
+    // a soft sting and a scroll unfurling over your head for a new quest; the fanfare is for finishing one
     g.emit({ t: 'sfx', id: 'chime', v: 0.7 });
+    g.emit({ t: 'fx', kind: 'scroll', x: g.player.x, y: g.player.y - 2.1 });
   }
   g.sys.mail?.send?.(g, 'quest:' + def.id, { title: def.title, text: def.desc, from: def.giver });
   // some objectives may already be satisfied

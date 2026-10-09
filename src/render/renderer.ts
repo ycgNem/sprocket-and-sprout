@@ -25,7 +25,7 @@ import { PRIO, FRINGE_SOURCES, TILE, paintTerrain } from './art/terrain';
 import { PixBuf } from './art/pixbuf';
 import { EXTRA_TOP } from './art/structs';
 import { Particles } from './particles';
-import { Juice } from './juice';
+import { drawFx, Juice } from './juice';
 import { PULSE_COL, machineState } from '../ui/pulse';
 import { Lighting } from './lighting';
 import { Weather } from './weather';
@@ -865,6 +865,9 @@ export class Renderer {
           }
           if (e.mach && e.mach.crafting) this.drawProgressPip(e, e.mach.progress);
           if (e.mach) this.drawStatusLamp(e);
+          // up close, a working machine shows a brass ring that fills as the batch cooks
+          if (e.mach?.crafting && Math.hypot(e.x + e.w / 2 - g.player.x, e.y + e.h / 2 - g.player.y) < 4.5)
+            drawFx(ctx, 'fx:ring', Math.min(8, Math.floor(e.mach.progress * 9)), e.x * TILE + e.w * 8, e.y * TILE - (EXTRA_TOP[d.id] ?? 0) - 7 + this.juice.hopOf(e.id));
           if (e.def.kind === 'decor' && e.def.id === 'sign' && e.st.k !== null && e.st.k !== undefined) {
             drawItemIcon(ctx, itemIdCache(e.st.k), e.x * TILE + 3, e.y * TILE - 3, 10);
           }
