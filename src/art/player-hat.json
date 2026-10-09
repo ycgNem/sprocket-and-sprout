@@ -3,14 +3,14 @@
   "file": "player-hat.png",
   "palette": "Resurrect 64",
   "frame": [
-    40,
+    44,
     40
   ],
   "anchor": [
-    20,
+    22,
     38
   ],
-  "artHeight": 31,
+  "artHeight": 30,
   "rows": [
     "up",
     "right",
@@ -22,7 +22,21 @@
     "walk1",
     "walk2",
     "walk3",
-    "stand"
+    "stand",
+    "hoeRaise",
+    "hoeStrike",
+    "axeRaise",
+    "axeStrike",
+    "pickRaise",
+    "pickStrike",
+    "canRaise",
+    "canPour",
+    "scytheRaise",
+    "scytheStrike",
+    "rodRaise",
+    "rodCast",
+    "swordRaise",
+    "swordStrike"
   ],
   "keys": {
     "skin": [
@@ -53,6 +67,20 @@
       "#a24b6f",
       "#cf657f",
       "#ed8099"
+    ],
+    "tool": [
+      "#7a3045",
+      "#f79617",
+      "#f9c22b"
+    ],
+    "metal": [
+      "#7f708a",
+      "#9babb2",
+      "#c7dcd0"
+    ],
+    "wood": [
+      "#6e2727",
+      "#966c6c"
     ]
   },
   "label": "C32 hat",
@@ -71,11 +99,193 @@
     "3": "walk3",
     "4": "stand",
     "5": "stand",
-    "6": "stand"
+    "6": "stand",
+    "7": "hoeRaise",
+    "8": "hoeStrike",
+    "hoe0": "hoeRaise",
+    "hoe1": "hoeStrike",
+    "axe0": "axeRaise",
+    "axe1": "axeStrike",
+    "pick0": "pickRaise",
+    "pick1": "pickStrike",
+    "can0": "canRaise",
+    "can1": "canPour",
+    "scythe0": "scytheRaise",
+    "scythe1": "scytheStrike",
+    "rod0": "rodRaise",
+    "rod1": "rodCast",
+    "sword0": "swordRaise",
+    "sword1": "swordStrike"
   },
-  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> beac9f13-0873-44b5-a1d6-bf057e7930c1; walk: v3 custom walk (south, east, north, west), walking-4-frames unused. Walk and stand only: tool swings use the renderer's own swing for this style",
+  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> beac9f13-0873-44b5-a1d6-bf057e7930c1; walk: v3 custom walk (south, east, north, west), walking-4-frames unused.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/hat/<kind>/)",
+  "toolKinds": [
+    "hoe",
+    "axe",
+    "pick",
+    "can",
+    "scythe",
+    "rod",
+    "sword"
+  ],
+  "picks": {
+    "hoe": {
+      "south": [
+        2,
+        4
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        2,
+        4
+      ],
+      "west": [
+        2,
+        3
+      ]
+    },
+    "axe": {
+      "south": [
+        2,
+        4
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        3,
+        4
+      ],
+      "west": [
+        2,
+        4
+      ]
+    },
+    "pick": {
+      "south": [
+        2,
+        4
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        2,
+        4
+      ],
+      "west": [
+        2,
+        4
+      ]
+    },
+    "can": {
+      "south": [
+        2,
+        4,
+        "south-retake"
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        2,
+        4
+      ],
+      "west": [
+        2,
+        4
+      ]
+    },
+    "scythe": {
+      "south": [
+        2,
+        4
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        2,
+        4
+      ],
+      "west": [
+        2,
+        4
+      ]
+    },
+    "rod": {
+      "south": [
+        2,
+        4
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        1,
+        3
+      ],
+      "west": [
+        2,
+        4,
+        "west-mirror"
+      ]
+    },
+    "sword": {
+      "south": [
+        2,
+        4
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        2,
+        4
+      ],
+      "west": [
+        2,
+        3
+      ]
+    }
+  },
+  "cleanTool": {
+    "hat/can/south-retake/2.png": [
+      [
+        6,
+        20,
+        13,
+        30
+      ]
+    ],
+    "hat/can/south-retake/4.png": [
+      [
+        7,
+        19,
+        11,
+        30
+      ],
+      [
+        12,
+        27,
+        16,
+        27
+      ]
+    ]
+  },
   "colors": [
+    "#1ebc73",
+    "#239063",
     "#2e222f",
+    "#30e1b9",
     "#323353",
     "#374e4a",
     "#3e3546",
@@ -84,15 +294,27 @@
     "#4c3e24",
     "#4d65b4",
     "#4d9be6",
-    "#625565",
     "#676633",
     "#694f62",
+    "#6e2727",
+    "#7a3045",
+    "#7f708a",
+    "#8ff8e2",
+    "#92a984",
+    "#966c6c",
     "#9babb2",
     "#a24b6f",
     "#a2a947",
+    "#ab947a",
+    "#b2ba90",
+    "#c7dcd0",
     "#cd683d",
     "#cf657f",
+    "#d5e04b",
     "#e6904e",
+    "#f79617",
+    "#f9c22b",
+    "#fbb954",
     "#fca790",
     "#ffffff"
   ]

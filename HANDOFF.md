@@ -13,7 +13,8 @@ with no engine and no asset files yet. Art and music are procedural; some SFX co
   `src/render/art/sheets.ts`), `scripts/art-import.mjs`, a PixelLab player with walk + hoe swing.
 - **Phase 2 is done** (Oct 9, one session): every sprite the game draws is imported art (6,415 names,
   `node e2e/coverage.mjs` = 100%). 11 parallel `art-director` agents, ~1,100 PixelLab generations
-  (about 850 left this month, reset Nov 9; the owner added $2 of credits, unused). See ROADMAP.md
+  plus ~230 for the hair-style tool swings (about 660 left this month, reset Nov 9; the owner added
+  $2 of credits, unused). See ROADMAP.md
   Phase 2 for what was made and the indie-critic's open items. The C32 player look is the one built
   out (tool swings, 10 hair styles); the `candidate-*` sheets only feed the debug Compare lineup.
   Next: the open critic items, then Phase 3 (juice).

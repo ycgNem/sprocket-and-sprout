@@ -1,11 +1,11 @@
 {
   "name": "player-braids",
   "frame": [
-    40,
+    44,
     40
   ],
   "anchor": [
-    20,
+    22,
     38
   ],
   "rows": [
@@ -19,7 +19,21 @@
     "walk1",
     "walk2",
     "walk3",
-    "stand"
+    "stand",
+    "hoeRaise",
+    "hoeStrike",
+    "axeRaise",
+    "axeStrike",
+    "pickRaise",
+    "pickStrike",
+    "canRaise",
+    "canPour",
+    "scytheRaise",
+    "scytheStrike",
+    "rodRaise",
+    "rodCast",
+    "swordRaise",
+    "swordStrike"
   ],
   "input": {
     "up": [
@@ -27,28 +41,84 @@
       "clean/braids/walk-v3/north/2.png",
       "clean/braids/walk-v3/north/3.png",
       "clean/braids/walk-v3/north/4.png",
-      "clean/braids/rotations/north.png"
+      "clean/braids/rotations/north.png",
+      "clean/braids/hoe/north/2.png",
+      "clean/braids/hoe/north/4.png",
+      "clean/braids/axe/north/2.png",
+      "clean/braids/axe/north/4.png",
+      "clean/braids/pick/north/2.png",
+      "clean/braids/pick/north/4.png",
+      "clean/braids/can/north/2.png",
+      "clean/braids/can/north/4.png",
+      "clean/braids/scythe/north/2.png",
+      "clean/braids/scythe/north/4.png",
+      "clean/braids/rod/north/2.png",
+      "clean/braids/rod/north/3.png",
+      "clean/braids/sword/north/2.png",
+      "clean/braids/sword/north/4.png"
     ],
     "right": [
       "clean/braids/walk-v3/east/1.png",
       "clean/braids/walk-v3/east/2.png",
       "clean/braids/walk-v3/east/3.png",
       "clean/braids/walk-v3/east/4.png",
-      "clean/braids/rotations/east.png"
+      "clean/braids/rotations/east.png",
+      "clean/braids/hoe/east/2.png",
+      "clean/braids/hoe/east/3.png",
+      "clean/braids/axe/east/2.png",
+      "clean/braids/axe/east/4.png",
+      "clean/braids/pick/east/2.png",
+      "clean/braids/pick/east/4.png",
+      "clean/braids/can/east/2.png",
+      "clean/braids/can/east/4.png",
+      "clean/braids/scythe/east/1.png",
+      "clean/braids/scythe/east/3.png",
+      "clean/braids/rod/east-mirror/1.png",
+      "clean/braids/rod/east-mirror/4.png",
+      "clean/braids/sword/east/2.png",
+      "clean/braids/sword/east/4.png"
     ],
     "down": [
       "clean/braids/walk-v3/south/1.png",
       "clean/braids/walk-v3/south/2.png",
       "clean/braids/walk-v3/south/3.png",
       "clean/braids/walk-v3/south/4.png",
-      "clean/braids/rotations/south.png"
+      "clean/braids/rotations/south.png",
+      "clean/braids/hoe/south/2.png",
+      "clean/braids/hoe/south/4.png",
+      "clean/braids/axe/south/2.png",
+      "clean/braids/axe/south/4.png",
+      "clean/braids/pick/south/2.png",
+      "clean/braids/pick/south/4.png",
+      "clean/braids/can/south-retake/1.png",
+      "clean/braids/can/south-retake/4.png",
+      "clean/braids/scythe/south/2.png",
+      "clean/braids/scythe/south/4.png",
+      "clean/braids/rod/south/2.png",
+      "clean/braids/rod/south/4.png",
+      "clean/braids/sword/south/2.png",
+      "clean/braids/sword/south/4.png"
     ],
     "left": [
       "clean/braids/walk-v3/west/1.png",
       "clean/braids/walk-v3/west/2.png",
       "clean/braids/walk-v3/west/3.png",
       "clean/braids/walk-v3/west/4.png",
-      "clean/braids/rotations/west.png"
+      "clean/braids/rotations/west.png",
+      "clean/braids/hoe/west-mirror/2.png",
+      "clean/braids/hoe/west-mirror/3.png",
+      "clean/braids/axe/west/2.png",
+      "clean/braids/axe/west/4.png",
+      "clean/braids/pick/west/2.png",
+      "clean/braids/pick/west/4.png",
+      "clean/braids/can/west/2.png",
+      "clean/braids/can/west/4.png",
+      "clean/braids/scythe/west/2.png",
+      "clean/braids/scythe/west/4.png",
+      "clean/braids/rod/west/1.png",
+      "clean/braids/rod/west/4.png",
+      "clean/braids/sword/west/2.png",
+      "clean/braids/sword/west/4.png"
     ]
   },
   "align": "feet-per-frame",
@@ -192,6 +262,81 @@
         "#3e3546",
         "#694f62"
       ]
+    },
+    "tool": {
+      "from": [
+        "#d7882b",
+        "#ca720d",
+        "#cb7d27",
+        "#e59426",
+        "#f5c282",
+        "#fcf1c5",
+        "#fceab6",
+        "#fcfbdc",
+        "#e4b377",
+        "#eeffd8",
+        "#d86b0f",
+        "#e6fce6",
+        "#fdffdf",
+        "#ebf0e0",
+        "#fbebcd",
+        "#f8e2bf",
+        "#f8d8a5",
+        "#f2f9ea",
+        "#c66818",
+        "#d6821e",
+        "#d27616",
+        "#da890b",
+        "#f2f8e2",
+        "#e88b10",
+        "#f29515",
+        "#ffe4c5",
+        "#d9ba85"
+      ],
+      "keys": [
+        "#7a3045",
+        "#f79617",
+        "#f9c22b"
+      ]
+    },
+    "metal": {
+      "from": [
+        "#9ebfce",
+        "#acc9d4",
+        "#d6ece9",
+        "#c4dfe2",
+        "#778790",
+        "#6a7985",
+        "#81969f",
+        "#ace3e6",
+        "#82878d",
+        "#737a85",
+        "#787d7d",
+        "#5b747a",
+        "#eaf2ec",
+        "#edeef0",
+        "#c1ccd3",
+        "#d2e7ec",
+        "#e5f8fb",
+        "#c0d6e2",
+        "#a0b9c8",
+        "#95aebd"
+      ],
+      "keys": [
+        "#7f708a",
+        "#9babb2",
+        "#c7dcd0"
+      ]
+    },
+    "wood": {
+      "from": [
+        "#701060",
+        "#c040a0"
+      ],
+      "keys": [
+        "#6e2727",
+        "#966c6c"
+      ]
     }
   },
   "remap": {
@@ -214,8 +359,183 @@
       "3": "walk3",
       "4": "stand",
       "5": "stand",
-      "6": "stand"
+      "6": "stand",
+      "7": "hoeRaise",
+      "8": "hoeStrike",
+      "hoe0": "hoeRaise",
+      "hoe1": "hoeStrike",
+      "axe0": "axeRaise",
+      "axe1": "axeStrike",
+      "pick0": "pickRaise",
+      "pick1": "pickStrike",
+      "can0": "canRaise",
+      "can1": "canPour",
+      "scythe0": "scytheRaise",
+      "scythe1": "scytheStrike",
+      "rod0": "rodRaise",
+      "rod1": "rodCast",
+      "sword0": "swordRaise",
+      "sword1": "swordStrike"
     },
-    "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 170369fd-5775-4f5c-ad53-759e5608a0d5; walk: v3 custom walk (south, east, north, west), walking-4-frames unused. Walk and stand only: tool swings use the renderer's own swing for this style"
+    "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 170369fd-5775-4f5c-ad53-759e5608a0d5; walk: v3 custom walk (south, east, north, west), walking-4-frames unused.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/braids/<kind>/)",
+    "toolKinds": [
+      "hoe",
+      "axe",
+      "pick",
+      "can",
+      "scythe",
+      "rod",
+      "sword"
+    ],
+    "picks": {
+      "hoe": {
+        "south": [
+          2,
+          4
+        ],
+        "east": [
+          2,
+          3
+        ],
+        "north": [
+          2,
+          4
+        ],
+        "west": [
+          2,
+          3,
+          "west-mirror"
+        ]
+      },
+      "axe": {
+        "south": [
+          2,
+          4
+        ],
+        "east": [
+          2,
+          4
+        ],
+        "north": [
+          2,
+          4
+        ],
+        "west": [
+          2,
+          4
+        ]
+      },
+      "pick": {
+        "south": [
+          2,
+          4
+        ],
+        "east": [
+          2,
+          4
+        ],
+        "north": [
+          2,
+          4
+        ],
+        "west": [
+          2,
+          4
+        ]
+      },
+      "can": {
+        "south": [
+          1,
+          4,
+          "south-retake"
+        ],
+        "east": [
+          2,
+          4
+        ],
+        "north": [
+          2,
+          4
+        ],
+        "west": [
+          2,
+          4
+        ]
+      },
+      "scythe": {
+        "south": [
+          2,
+          4
+        ],
+        "east": [
+          1,
+          3
+        ],
+        "north": [
+          2,
+          4
+        ],
+        "west": [
+          2,
+          4
+        ]
+      },
+      "rod": {
+        "south": [
+          2,
+          4
+        ],
+        "east": [
+          1,
+          4,
+          "east-mirror"
+        ],
+        "north": [
+          2,
+          3
+        ],
+        "west": [
+          1,
+          4
+        ]
+      },
+      "sword": {
+        "south": [
+          2,
+          4
+        ],
+        "east": [
+          2,
+          4
+        ],
+        "north": [
+          2,
+          4
+        ],
+        "west": [
+          2,
+          4
+        ]
+      }
+    },
+    "cleanGrow": 3,
+    "cleanTool": {
+      "braids/can/south-retake/1.png": [
+        [
+          10,
+          26,
+          17,
+          31
+        ]
+      ],
+      "braids/can/south-retake/4.png": [
+        [
+          6,
+          17,
+          14,
+          27
+        ]
+      ]
+    }
   }
 }

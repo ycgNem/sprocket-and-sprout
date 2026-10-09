@@ -177,8 +177,9 @@ sprite family the game asks for (6,415 names) has imported art; `npm run screens
       UI skin (nine-slice panels/buttons/slots, `src/ui/skin.ts`), small FX (emotes, butterflies,
       birds, jumping fish, mail, bunting, fireballs).
 - [x] Renderer shadows under trees, structures and solid ground objects.
-- [ ] Not done: tool swings for the non-default hair styles (ponytail done; the rest were being
-      generated at the end of the session), a look-driven player portrait (`portrait:player:*` is still procedural), HUD parts
+- [x] Every hair style (10) swings every tool (7) with the tool in hand: the rotated-icon swing is
+      gone for all imported looks.
+- [ ] Not done: a look-driven player portrait (`portrait:player:*` is still procedural), HUD parts
       (gear hotbar, chronometer) and the title logo are still drawn in code, item 7 below (delete the
       procedural generators: they remain the `?art=old` fallback for now).
 
@@ -200,6 +201,8 @@ farm shots no longer covered by the profession prompt. Still open:
 - [ ] Leftover 1.0 parts next to the new art: world map window, minimap void at the map edge,
       chronometer sky dither, title logo, belt build ghost; "flat" buttons read as text fields.
 - [ ] A status lamp per machine (working / starved / blocked) fed by the factory pulse.
+- [ ] The fishing rod's light-brown highlight shares skin key colors on the player sheets, so a few
+      rod pixels take the player's skin tone (a position rule in `art/player/clean.mjs` would fix it).
 - [ ] Mine floor swirl repeats; mine walls read as bricks.
 - [ ] Bundle: +100 KB gzipped of eagerly bundled manifests; the candidate player sheets still ship.
 - [ ] Phase 3 list from the critic: harvest pluck + arc to the player, travelling wind gusts on tall

@@ -10,6 +10,11 @@
 //         animation's reference frame 0, found again in each frame by template matching (the head
 //         moves a few px in a swing); hair-colored pixels outside it (dilated by the recipe's
 //         meta.cleanGrow px, default 1; more for hair that swings, like a ponytail) become wood
+//   tool  meta.cleanTool { "<raw path>": [[x0, y0, x1, y1], …] }: inside these hand-marked boxes
+//         (inclusive, raw-frame px) every non-outline pixel becomes the tool color nearest in lightness;
+//         for a held object PixelLab painted in skin / shirt / hair colors (a watering can). A fifth
+//         entry names another part ([x0, y0, x1, y1, "metal"]): then only pixels the look would recolor
+//         (skin, hair, shirt, pants, accent or unclaimed) move to that part, e.g. a steel blade in pants blue
 // A recipe lists its inputs as clean/<raw path>; this script writes them from <raw path>.
 //
 // Usage: node art/player/clean.mjs art/player/recipe.json [more recipes…]
@@ -20,6 +25,7 @@ import { decodePNG, encodePNG } from '../../scripts/lib/png.mjs';
 import { lab, de2000, rgbOf } from '../../scripts/lib/pixel.mjs';
 
 const FEET_ROWS = 4, FEET_HALF = 7, SHIFT = 4;
+const LOOK_PARTS = new Set(['skin', 'hair', 'shirt', 'pants', 'accent', null]); // parts the look recolors (null: unclaimed)
 const hex = (d, i) => '#' + [0, 1, 2].map((k) => d[i + k].toString(16).padStart(2, '0')).join('');
 const luma = ([r, g, b]) => 0.299 * r + 0.587 * g + 0.114 * b;
 
@@ -38,11 +44,14 @@ for (const recipeFile of process.argv.slice(2)) {
   const isHair = (h) => partOf(h) === 'hair';
   const GROW = R.meta?.cleanGrow ?? 1;
   const raws = [...new Set(Object.values(R.input).flat().filter((p) => p && p.startsWith('clean/')))].map((p) => p.slice(6));
-  let feet = 0, handles = 0;
+  let feet = 0, handles = 0, tooled = 0;
+  const partFrom = (p) => (R.parts[p]?.from ?? []).map((c) => ({ rgb: rgbOf(c.toLowerCase()), L: luma(rgbOf(c.toLowerCase())) }));
+  const toolFrom = partFrom('tool');
   const refBlob = new Map(); // animation dir -> hair blob of frame 0
   for (const raw of raws) {
     const img = decodePNG(fs.readFileSync(path.join(dir, raw)));
     const W = img.w, H = img.h;
+    const orig = Uint8Array.from(img.data);
     const px = (x, y) => hex(img.data, (y * W + x) * 4);
     const on = (x, y) => img.data[(y * W + x) * 4 + 3] >= 128;
     // ---- wood (tool-swing frames) ----
@@ -94,6 +103,22 @@ for (const recipeFile of process.argv.slice(2)) {
           handles++;
         }
     }
+    // ---- hand-marked tool areas (meta.cleanTool) ----
+    for (const [x0, y0, x1, y1, part] of R.meta?.cleanTool?.[raw] ?? []) {
+      const into = part ? partFrom(part) : toolFrom;
+      for (let y = y0; y <= y1; y++)
+        for (let x = x0; x <= x1; x++) {
+          if (!on(x, y)) continue;
+          const o = (y * W + x) * 4;
+          const L = luma([...orig.subarray(o, o + 3)]);
+          if (L < 50) continue; // outline stays
+          if (part && !LOOK_PARTS.has(partOf(hex(orig, o)))) continue; // a named part only takes look-colored pixels
+          let best = into[0];
+          for (const t of into) if (Math.abs(t.L - L) < Math.abs(best.L - L)) best = t;
+          img.data.set(best.rgb, o);
+          tooled++;
+        }
+    }
     // ---- feet (every frame) ----
     let yb = -1;
     for (let y = H - 1; y >= 0 && yb < 0; y--) for (let x = 0; x < W; x++) if (on(x, y)) { yb = y; break; }
@@ -115,5 +140,5 @@ for (const recipeFile of process.argv.slice(2)) {
     fs.mkdirSync(path.dirname(out), { recursive: true });
     fs.writeFileSync(out, encodePNG(W, H, img.data));
   }
-  console.log(`${path.basename(recipeFile)}: ${raws.length} frames, ${feet} boot px and ${handles} handle px tagged -> ${path.relative(process.cwd(), path.join(dir, 'clean'))}`);
+  console.log(`${path.basename(recipeFile)}: ${raws.length} frames, ${feet} boot px, ${handles} handle px and ${tooled} hand-marked tool px tagged -> ${path.relative(process.cwd(), path.join(dir, 'clean'))}`);
 }

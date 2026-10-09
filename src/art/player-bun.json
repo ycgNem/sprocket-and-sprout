@@ -3,14 +3,14 @@
   "file": "player-bun.png",
   "palette": "Resurrect 64",
   "frame": [
-    40,
+    44,
     40
   ],
   "anchor": [
-    20,
+    22,
     38
   ],
-  "artHeight": 29,
+  "artHeight": 30,
   "rows": [
     "up",
     "right",
@@ -22,7 +22,21 @@
     "walk1",
     "walk2",
     "walk3",
-    "stand"
+    "stand",
+    "hoeRaise",
+    "hoeStrike",
+    "axeRaise",
+    "axeStrike",
+    "pickRaise",
+    "pickStrike",
+    "canRaise",
+    "canPour",
+    "scytheRaise",
+    "scytheStrike",
+    "rodRaise",
+    "rodCast",
+    "swordRaise",
+    "swordStrike"
   ],
   "keys": {
     "skin": [
@@ -48,6 +62,20 @@
     "boots": [
       "#3e3546",
       "#694f62"
+    ],
+    "tool": [
+      "#7a3045",
+      "#f79617",
+      "#f9c22b"
+    ],
+    "metal": [
+      "#7f708a",
+      "#9babb2",
+      "#c7dcd0"
+    ],
+    "wood": [
+      "#6e2727",
+      "#966c6c"
     ]
   },
   "label": "C32 bun",
@@ -66,10 +94,167 @@
     "3": "walk3",
     "4": "stand",
     "5": "stand",
-    "6": "stand"
+    "6": "stand",
+    "7": "hoeRaise",
+    "8": "hoeStrike",
+    "hoe0": "hoeRaise",
+    "hoe1": "hoeStrike",
+    "axe0": "axeRaise",
+    "axe1": "axeStrike",
+    "pick0": "pickRaise",
+    "pick1": "pickStrike",
+    "can0": "canRaise",
+    "can1": "canPour",
+    "scythe0": "scytheRaise",
+    "scythe1": "scytheStrike",
+    "rod0": "rodRaise",
+    "rod1": "rodCast",
+    "sword0": "swordRaise",
+    "sword1": "swordStrike"
   },
-  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> ff574554-9297-48dc-a9d5-40a62ab20cea; walk: walking-4-frames. Walk and stand only: tool swings use the renderer's own swing for this style",
+  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> ff574554-9297-48dc-a9d5-40a62ab20cea; walk: walking-4-frames.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/bun/<kind>/)",
+  "toolKinds": [
+    "hoe",
+    "axe",
+    "pick",
+    "can",
+    "scythe",
+    "rod",
+    "sword"
+  ],
+  "picks": {
+    "hoe": {
+      "south": [
+        2,
+        3
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        2,
+        4,
+        "north-retake"
+      ],
+      "west": [
+        2,
+        4
+      ]
+    },
+    "axe": {
+      "south": [
+        2,
+        3
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        3,
+        4
+      ],
+      "west": [
+        2,
+        4
+      ]
+    },
+    "pick": {
+      "south": [
+        1,
+        4
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        2,
+        4
+      ],
+      "west": [
+        1,
+        4
+      ]
+    },
+    "can": {
+      "south": [
+        3,
+        4
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        2,
+        4
+      ],
+      "west": [
+        2,
+        4
+      ]
+    },
+    "scythe": {
+      "south": [
+        2,
+        4
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        2,
+        4
+      ],
+      "west": [
+        2,
+        4
+      ]
+    },
+    "rod": {
+      "south": [
+        2,
+        4
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        2,
+        4
+      ],
+      "west": [
+        4,
+        1
+      ]
+    },
+    "sword": {
+      "south": [
+        2,
+        4
+      ],
+      "east": [
+        2,
+        4
+      ],
+      "north": [
+        2,
+        4
+      ],
+      "west": [
+        2,
+        4
+      ]
+    }
+  },
+  "cleanGrow": 2,
   "colors": [
+    "#0b8a8f",
+    "#0eaf9b",
     "#2e222f",
     "#374e4a",
     "#3e3546",
@@ -81,12 +266,25 @@
     "#625565",
     "#676633",
     "#694f62",
+    "#6e2727",
+    "#7a3045",
+    "#7f708a",
+    "#8fd3ff",
+    "#8ff8e2",
+    "#92a984",
+    "#966c6c",
     "#9babb2",
     "#9e4539",
     "#a2a947",
     "#ab947a",
+    "#b2ba90",
+    "#c7dcd0",
     "#cd683d",
     "#e6904e",
+    "#f79617",
+    "#f9c22b",
+    "#fbb954",
+    "#fbff86",
     "#fca790",
     "#ffffff"
   ]
