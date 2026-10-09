@@ -1,0 +1,37 @@
+{
+ "logo:word": {
+  "size": [
+   282,
+   40
+  ],
+  "origin": [
+   0,
+   0
+  ],
+  "oSlotCentre": [
+   64,
+   19
+  ]
+ },
+ "logo:gear:0..7": {
+  "size": [
+   29,
+   32
+  ],
+  "origin": [
+   14,
+   14
+  ],
+  "note": "draw with its origin on logo:word oSlotCentre"
+ },
+ "ui:sprocket:0..7": {
+  "size": [
+   16,
+   16
+  ],
+  "origin": [
+   8,
+   8
+  ]
+ }
+}

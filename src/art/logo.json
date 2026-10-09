@@ -1,0 +1,31 @@
+{
+ "name": "logo",
+ "kind": "sprites",
+ "file": "logo.png",
+ "palette": "Resurrect 64",
+ "meta": {
+  "oSlotCentre": [
+   64,
+   19
+  ]
+ },
+ "sprites": [
+  {"match":"ui:sprocket:0","r":[240,41,16,16],"o":[8,8]},
+  {"match":"ui:sprocket:1","r":[257,41,16,16],"o":[8,8]},
+  {"match":"ui:sprocket:2","r":[0,74,16,16],"o":[8,8]},
+  {"match":"ui:sprocket:3","r":[17,74,16,16],"o":[8,8]},
+  {"match":"ui:sprocket:4","r":[34,74,16,16],"o":[8,8]},
+  {"match":"ui:sprocket:5","r":[51,74,16,16],"o":[8,8]},
+  {"match":"ui:sprocket:6","r":[68,74,16,16],"o":[8,8]},
+  {"match":"ui:sprocket:7","r":[85,74,16,16],"o":[8,8]},
+  {"match":"logo:gear:0","r":[0,41,29,32],"o":[14,14]},
+  {"match":"logo:gear:1","r":[30,41,29,32],"o":[14,14]},
+  {"match":"logo:gear:2","r":[60,41,29,32],"o":[14,14]},
+  {"match":"logo:gear:3","r":[90,41,29,32],"o":[14,14]},
+  {"match":"logo:gear:4","r":[120,41,29,32],"o":[14,14]},
+  {"match":"logo:gear:5","r":[150,41,29,32],"o":[14,14]},
+  {"match":"logo:gear:6","r":[180,41,29,32],"o":[14,14]},
+  {"match":"logo:gear:7","r":[210,41,29,32],"o":[14,14]},
+  {"match":"logo:word","r":[0,0,282,40],"o":[0,0]}
+ ]
+}

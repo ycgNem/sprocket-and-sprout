@@ -107,7 +107,8 @@ for (const s of out) {
   if (!u) { u = { img: s.img }; uniq.push(u); }
   s.u = u;
 }
-const width = Math.max(128, Math.min(1024, 2 ** Math.ceil(Math.log2(Math.sqrt(uniq.reduce((a, u) => a + (u.img.w + 1) * (u.img.h + 1), 0)) * 1.3))));
+// at least as wide as the widest frame (a wide frame such as the title wordmark used to be clipped)
+const width = Math.max(128, ...uniq.map((u) => u.img.w), Math.min(1024, 2 ** Math.ceil(Math.log2(Math.sqrt(uniq.reduce((a, u) => a + (u.img.w + 1) * (u.img.h + 1), 0)) * 1.3))));
 const { pos, height } = pack(uniq.map((u) => u.img), width);
 const sheet = blank(width, Math.max(1, height));
 uniq.forEach((u, i) => { u.x = pos[i].x; u.y = pos[i].y; blit(sheet, u.img, u.x, u.y); });

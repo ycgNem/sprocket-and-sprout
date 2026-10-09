@@ -3,7 +3,7 @@ import { C, skin3 } from '../data/palette';
 import { GameLoop } from '../engine/loop';
 import { Input } from '../engine/input';
 import { Renderer } from '../render/renderer';
-import { artReady, resetSprites, setArtMode } from '../render/atlas';
+import { artReady, hasImage, resetSprites, setArtMode, sprite } from '../render/atlas';
 import { resetSkin } from '../ui/skin';
 import { registerAllArt, registerMapBuildings, setPlayerLook } from '../render/art';
 import { UI } from '../ui/ui';
@@ -206,6 +206,19 @@ class TitleScreen implements Screen {
 
   drawLogo(ui: UI, cx: number, y: number) {
     const bob = Math.round(Math.sin(this.t * 1.5) * 2);
+    // the drawn wordmark (logo sheet): its O is the spinning sprocket, 8 frames per tooth
+    if (hasImage('logo:word')) {
+      const w = sprite('logo:word');
+      const x0 = Math.round(cx - w.w / 2), y0 = y - 6 + bob;
+      // a soft stepped plate keeps "& Sprout" readable over the demo farm
+      for (let i = 0; i < 3; i++) ui.fill(x0 - 14 + i * 3, y - 12 + i * 3, w.w + 28 - i * 6, 68 - i * 6, C.ink, 0.16);
+      ui.ctx.drawImage(w.img, w.x, w.y, w.w, w.h, x0, y0, w.w, w.h);
+      // the O slot centre is meta.oSlotCentre in src/art/logo.json
+      const gear = sprite('logo:gear:' + (Math.floor(this.t * 9) & 7));
+      ui.ctx.drawImage(gear.img, gear.x, gear.y, gear.w, gear.h, x0 + 64 - gear.ox, y0 + 19 - gear.oy, gear.w, gear.h);
+      ui.text('a cozy farm-factory in the valley of Thistlewick', cx, y + 42, C.cream, { align: 'center', shadow: C.ink });
+      return;
+    }
     const left = cx - 4 - textWidth('Sprocket') * 4, right = cx + 22 + textWidth('Sprout') * 4;
     const gx = left - 16; // the spinning gear sits just left of the word, clear of the letters
     // a soft stepped plate so the logo reads over whatever the demo camera drifts across

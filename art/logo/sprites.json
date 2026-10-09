@@ -1,0 +1,34 @@
+{
+ "_": "Logo sheet: the brass sprocket emblem (ui:sprocket:0..7 for the hotbar end caps, logo:gear:0..7 for the title) and the title wordmark logo:word with an empty O slot (meta.oSlotCentre: draw logo:gear with its origin there). Written by art/logo/build.mjs, which draws every source by rule; frames are copied as is (place none, scale 1).",
+ "name": "logo",
+ "kind": "sprites",
+ "scale": 1,
+ "defaults": {
+  "place": "none"
+ },
+ "meta": {
+  "oSlotCentre": [
+   64,
+   19
+  ]
+ },
+ "sprites": [
+  {"match":"ui:sprocket:0","file":"src/ui_sprocket_0.png","frame":[16,16],"origin":[8,8]},
+  {"match":"ui:sprocket:1","file":"src/ui_sprocket_1.png","frame":[16,16],"origin":[8,8]},
+  {"match":"ui:sprocket:2","file":"src/ui_sprocket_2.png","frame":[16,16],"origin":[8,8]},
+  {"match":"ui:sprocket:3","file":"src/ui_sprocket_3.png","frame":[16,16],"origin":[8,8]},
+  {"match":"ui:sprocket:4","file":"src/ui_sprocket_4.png","frame":[16,16],"origin":[8,8]},
+  {"match":"ui:sprocket:5","file":"src/ui_sprocket_5.png","frame":[16,16],"origin":[8,8]},
+  {"match":"ui:sprocket:6","file":"src/ui_sprocket_6.png","frame":[16,16],"origin":[8,8]},
+  {"match":"ui:sprocket:7","file":"src/ui_sprocket_7.png","frame":[16,16],"origin":[8,8]},
+  {"match":"logo:gear:0","file":"src/logo_gear_0.png","frame":[29,32],"origin":[14,14]},
+  {"match":"logo:gear:1","file":"src/logo_gear_1.png","frame":[29,32],"origin":[14,14]},
+  {"match":"logo:gear:2","file":"src/logo_gear_2.png","frame":[29,32],"origin":[14,14]},
+  {"match":"logo:gear:3","file":"src/logo_gear_3.png","frame":[29,32],"origin":[14,14]},
+  {"match":"logo:gear:4","file":"src/logo_gear_4.png","frame":[29,32],"origin":[14,14]},
+  {"match":"logo:gear:5","file":"src/logo_gear_5.png","frame":[29,32],"origin":[14,14]},
+  {"match":"logo:gear:6","file":"src/logo_gear_6.png","frame":[29,32],"origin":[14,14]},
+  {"match":"logo:gear:7","file":"src/logo_gear_7.png","frame":[29,32],"origin":[14,14]},
+  {"match":"logo:word","file":"src/logo_word.png","frame":[282,40],"origin":[0,0]}
+ ]
+}

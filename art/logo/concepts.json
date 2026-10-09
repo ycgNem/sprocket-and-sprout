@@ -1,0 +1,16 @@
+{
+ "_": "PixelLab concept batch for the sprocket emblem: design and material reference only (the shipped frames and the wordmark are drawn by rule in gear.mjs / word.mjs). Raw downloads: raw/concepts/<slot>.png. Review sheets: e2e/out/logo/concepts*.png (node scripts/contact.mjs art/logo/raw/concepts --out e2e/out/logo/concepts.png --cols 16).",
+ "tool": "create_1_direction_object",
+ "object_id": "bd68f6ca-9057-46ef-939c-726bff6d6922",
+ "size": 32,
+ "generations": 10,
+ "description": "brass clockwork sprocket cog emblem for a warm cozy steampunk farming game logo, seen straight on face-first, perfectly round, chunky square teeth, polished warm brass and amber metal with copper shading, butter-yellow highlights on the upper left, crisp 1 px dark plum outline, light from the upper left, 3 to 4 shade pixel shading, no anti-aliasing, centered with transparent space around it, no shadow",
+ "slots": "0-35 and 46-63: brass 8-tooth cogs with different hubs (holes, spokes, grooves, domed bolts, copper inner discs, ring-shaped O cogs); 36-41: two-leaf seedling sprouts; 42-45: rivet, ampersands, plaque",
+ "used": {
+  "19": "the model for the look: broad flat brass, thin dark groove, recessed copper disc, gold bolt with a glint",
+  "0, 9, 47": "a ring of holes in the hub (the large gear's disc)",
+  "13, 14, 28, 61": "rim bevel and concentric rings, light only in the upper left",
+  "36, 38": "the two-leaf sprout on the t of Sprout (re-pixeled at the wordmark's scale)",
+  "43": "checked as an ampersand reference; the shipped & is pixeled by hand in glyphs.mjs"
+ }
+}
