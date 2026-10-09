@@ -1,0 +1,25 @@
+{
+  "_": "PixelLab design batch for the Phase 3 juice sprites (fx:coin/star/puff/glint/heart/streak/arrow/gust/pile/chest). One create_1_direction_object call, size 16, 64 slots, 10 generations, object 92dfdc6f-1046-4fbe-bf3e-b8d43f607016 (left in review, nothing promoted). The batch came back at 14-16 px for sprites drawn at 8-14 px and snapped muddy (taupe smoke, noisy chests), so it is the design reference only: art/juice/build.mjs hand-pixels every frame at 1x. Raw downloads: raw/b16/<slot>.png; review sheet: node scripts/contact.mjs art/juice/raw/b16 --out e2e/out/juice/b16.png --scale 6.",
+  "style": "tiny pixel art reward effect sprite for a warm cozy top-down farming game, Stardew Valley style, crisp 1 px dark plum outline, light from the upper left, warm saturated colors (gold, amber, butter yellow, rose, cream), flat 2 to 3 shade shading, no anti-aliasing, centered with empty transparent space around it, no shadow",
+  "batches": {
+    "b16": {
+      "size": 16,
+      "slots": [
+        ["0-3", "gold coin face-on with a cog stamp, brass rim, glint", "fx:coin:0 (face, ring stamp)"],
+        ["4", "coin turned three quarters", "fx:coin:1, fx:coin:5"],
+        ["5", "coin edge-on", "fx:coin:3"],
+        ["50-53", "big cog coin, angled coins", "fx:coin:2, fx:coin:4"],
+        ["6-9", "4/6-point impact star, hit spark, spark breaking into shards", "fx:star:0..3"],
+        ["10-13, 54-55", "cream smoke puff of round lumps, thinning ring, wisps", "fx:puff:0..4"],
+        ["14-15", "sharp 4-point sparkle", "fx:glint:0..3"],
+        ["16-19, 56", "plump rose heart, squashed heart", "fx:heart:0..1"],
+        ["20-23, 62", "cozy flame badge, sprout flame, leaning flames", "fx:streak:0..2"],
+        ["24-27, 63", "chunky down arrow, squashed and stretched", "fx:arrow:0..3"],
+        ["28-29", "wind gust swoosh lines", "fx:gust:0..3"],
+        ["30-37, 58-59", "three coins, coin stacks, medium and big heaps with a sparkle", "fx:pile:0..3"],
+        ["38-49, 60-61", "small treasure chest closed, lid popping with light, open with gold glow", "fx:chest:0..2"],
+        ["57", "brass cog token", "(stamp idea for the coin face)"]
+      ]
+    }
+  }
+}
