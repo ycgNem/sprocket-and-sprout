@@ -343,6 +343,10 @@ The original juice list:
       edge carries the terrain on; research topics click.
 - [x] Checks: typecheck, 107 tests, `npm run screens` 51 shots / 0 issues (and 1366x620 clean),
       flow + smoke + a Roxy real-input pass with 0 console errors, production build.
+- [x] After the release (website only; the next desktop build carries it): the opening's marked
+      tiles are off-limits to daily weeds and storm debris. On some seeds a weed landed on the
+      first arm's tile and blocked "A Helping Hand"; found when the pacing bot's seed 99 collapsed
+      (`scripts/pace.ts`: Story 10.7k / Rush 13.0k average over 8 seeds after the fix).
 - [ ] Still open from the critic: arms read as "?" at rest (needs an arm redraw), day-2 toast
       clipped by the tracker, shift-click in the backpack, look-alike tool icons, crafting grid
       labels, the farmhouse doorway, research window colours, the 960x600 embed size. The critic

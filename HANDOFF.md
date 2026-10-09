@@ -10,19 +10,22 @@ code review and a full indie-critic review with their fixes (ROADMAP.md, Phase 4
 the owner's request: **Roxy Vane**, a sky-courier villager with her airship on Skyhook Field
 (DECISIONS #47). Open items are at the end of ROADMAP.md Phase 4.
 - **Live:** https://ycgnem.github.io/sprocket-and-sprout/ (redeploys on every push to `main`);
-  Windows installers on https://github.com/ycgNem/sprocket-and-sprout/releases/tag/v1.1.0 (1.0.0 is still there too).
-- **Phase 0 of the overhaul is done** (Oct 9): the player-look bug, belt items on the pixel grid,
-  the title overlap, an integer-grid rule for every scaled sprite, and `npm run screens` (a
-  43-screen sweep with an automatic UI overlap audit, now at 0 issues).
-- **Phase 1 is done** (Oct 9): `STYLE.md`, Resurrect 64, PNG sheets in the atlas (`src/art/`,
-  `src/render/art/sheets.ts`), `scripts/art-import.mjs`, a PixelLab player with walk + hoe swing.
-- **Phase 2 is done** (Oct 9, one session): every sprite the game draws is imported art (6,415 names,
-  `node e2e/coverage.mjs` = 100%). 11 parallel `art-director` agents, ~1,100 PixelLab generations
-  plus ~230 for the hair-style tool swings (about 660 left this month, reset Nov 9; the owner added
-  $2 of credits, unused). See ROADMAP.md
-  Phase 2 for what was made and the indie-critic's open items. The C32 player look is the one built
-  out (tool swings, 10 hair styles); the `candidate-*` sheets only feed the debug Compare lineup.
-  Next: the open critic items, then Phase 3 (juice).
+  Windows installers on https://github.com/ycgNem/sprocket-and-sprout/releases/tag/v1.1.0 (1.0.0 is
+  still there too). Git tag `v1.1.0` = commit `933bd86`.
+- **After the release** (same night, pushed to the website, not in the v1.1.0 installers): a fix
+  for a rare tutorial blocker. On some seeds (90, 99, …) the daily weed roll put a weed on the
+  opening's first arm tile, so "A Helping Hand" answered "Clear the ground first". The opening's
+  marked tiles are now off-limits to weeds and storm debris (`src/sim/opening.ts`). Ship it in the
+  next desktop build (1.1.1).
+- **The overhaul, phase by phase** (all in ROADMAP.md):
+  - Phase 0: pixel-grid rule, overlap-free UI, `npm run screens`.
+  - Phase 1: `STYLE.md`, Resurrect 64, PNG sheets in the atlas, the import pipeline.
+  - Phase 2: every sprite is imported PixelLab art (6,415 names, `node e2e/coverage.mjs` = 100%).
+    The C32 player look is the one built out; the `candidate-*` sheets only feed the debug Compare lineup.
+  - Phase 3: the juice layer, key bubbles, the reworked first session, the post courier, the wordmark.
+  - Phase 4: code review + full critic review and their fixes, Roxy Vane, 1.1.0 released.
+- **PixelLab budget:** 520 generations left this cycle (Tier 1, 2,000 a month, resets Nov 9);
+  the owner's $2 of credits are unused.
 
 1.0 itself was feature-complete for the original brief. On top of that:
 - a large depth pass;
@@ -39,16 +42,22 @@ All tests and e2e suites are green.
 - **Docs:**
   - `README.md`: features and controls.
   - `PLAN.md`: architecture.
-  - `DECISIONS.md`: 46 design decisions with reasons; #35-46 cover the identity pass.
+  - `DECISIONS.md`: 48 design decisions with reasons; #35-46 cover the identity pass, #47 Roxy
+    (why she breaks the villager template), #48 the 2x UI on laptop windows.
   - `PROGRESS.md`: phase-by-phase status.
   - `SHARING.md`: putting the game online or packaging it.
-  - `ROADMAP.md`: **the current plan** (visual overhaul toward 1.1): owner decisions, phases,
-    hard art rules and the prompt that starts each phase.
+  - `ROADMAP.md`: the 1.0 → 1.1 overhaul (done): owner decisions, phases, hard art rules, and
+    **the open items at the end of Phase 4**, which are the starting list for the next version.
+  - `STYLE.md`: the art rules (now with Roxy's exception and baked building shadows).
   - `references/`: the owner's taste: `notes.md`, palettes (Resurrect 64 is the chosen one), and
     screenshots of admired games (`games/`, gitignored because they are other studios' work).
 - **Project agents** (`.claude/agents/`):
   - `indie-critic`: design review. Reads the code, plays the build with Playwright, returns a
-    ranked, evidence-tagged critique. Read-only. Both review rounds are in DECISIONS #35-46.
+    ranked, evidence-tagged critique. Read-only. Both review rounds are in DECISIONS #35-46. A full
+    review takes about 50 minutes; give it a stable build outside the repo when you're editing code
+    meanwhile (`npx vite build --outDir ../sns-review --emptyOutDir` +
+    `npx vite preview --outDir ../sns-review --port 4173`; see the Vite note under Environment).
+    Its report arrives as the agent's final message (it writes screenshots, not a report file).
   - `art-director`: owns `STYLE.md`, generates art with PixelLab, grades it onto the palette and
     imports it as sheets (`art/README.md`). Several can run in parallel, one per art group. Never commits.
   - `qa-screens`: runs `npm run screens` and reports overlaps, off-grid sprites and regressions.
@@ -92,37 +101,50 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 107 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot)
+npm test                                   # 108 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
-npm run build                              # production build, about 1.1 MB JS (380 KB gzipped) + ~500 KB of PNG sheets
+npx vite-node scripts/pace.ts story rush   # economy: the bot's 28-day earnings on 8 seeds (a few minutes)
+npm run build                              # production build, about 1.2 MB JS (386 KB gzipped) + ~520 KB of PNG sheets
 node e2e/smoke.mjs http://localhost:5173/  # real UI smoke, 0 console errors expected
 npm run screens                            # 51-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 for another size
 node e2e/coverage.mjs                      # every sprite name vs imported art (6415/6415 = 100% expected)
 node e2e/sprites.mjs <name> ...            # imported vs procedural sprites side by side
 BASE=http://localhost:5173/ node e2e/flow.mjs  # real input: two-step new game, farm, house, bed, reload
+BASE=http://localhost:5173/ node e2e/roxy.mjs  # real input: Roxy's door intro -> shop, chat, gift, 2-heart event
 BASE=... node e2e/windows.mjs | qa.mjs | bot.mjs 7 | house.mjs | pet.mjs | guild.mjs | ...
 ```
 
-Last results: everything passes with 0 console errors.
+Last results (October 9, night): everything above passes with 0 console errors; the sweep is 51
+shots / 0 issues at 1280x720 and clean at 1366x620.
 
-Pacing bot over 28 days, 3 seeds:
-- Story: about 10-12k coins.
-- Clockwork Rush: about 12.7k coins.
-- The day-1 automated sale earns about 1,400.
+Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds:
+- Story: average 10.7k coins (9.5k to 11.9k). Before this session's changes: 10.9k.
+- Clockwork Rush: average 13.0k (10.4k to 14.2k), so the medals (20k / 40k / 65k) still sit at
+  about 1.5x / 3x / 5x the bot.
+- Day 1 earns about 1.8k.
+- Adding or removing a villager changes how many random rolls happen per tick, so per-seed results
+  shift (weather, drops). Judge balance on the 8-seed average, never on one seed. A seed that
+  collapses is a bug: that is how the opening-tile weed was found (seed 99 fell to 4.5k).
 
 ## Code map
 
 ```
-src/engine/   loop (fixed 60 Hz sim, separate render), input (rebindable actions, keyLabel), rng,
+src/engine/   loop (fixed 60 Hz sim, separate render), input (rebindable actions, keyLabel;
+              DEBUG_KEYS / SHOWN_ACTIONS keep the debug panel to dev builds and ?debug), rng,
               audio/audio.ts (procedural SFX + music), audio/sfxr.ts (jsfxr bank: base58 sounds
               from sfxr.me; ids in SFXR_BANK override the synthesized version)
 src/data/     typed content: items, crops, trees, fish, creatures, structures, recipes, research,
-              npcs, shops, goals (quests/projects/festivals), buffs, contracts, cookbook, furniture,
-              perks, palette (32 colours), modes (game modes, farm maps, Rush medals)
+              npcs (14 villagers; Roxy is last), shops (10 + Mags' cart; airfreight = Roxy's),
+              goals (quests/projects/festivals/REQUEST_POOL), buffs, contracts, cookbook, furniture,
+              perks, palette (Resurrect 64; the old 32 `C` names are aliases), modes (game modes,
+              farm maps, Rush medals)
 src/sim/      pure simulation, no DOM. prompts.ts (what F / a left click would do on a tile, for the key
-              bubbles; questTarget for the guide arrow and compass). Game.ts (state, tick, endDay, simRate/clockRate),
-              ents.ts, ports.ts, build.ts, blueprint.ts, save.ts (SAVE_VERSION 2 + MIGRATIONS;
-              saves also store mode + farmKind), world/ (tilemap, worldgen, farms.ts = map variants, A*)
+              bubbles; questTarget for the guide arrow and compass). Game.ts (state, tick, endDay,
+              simRate/clockRate, beltSink = belt ends feed structures), opening.ts (the clockwork
+              opening's tile layout + openingTile), ents.ts, ports.ts, build.ts, blueprint.ts,
+              save.ts (SAVE_VERSION 3 + MIGRATIONS; saves store mode + farmKind, ground and
+              objects, not buildings), world/ (tilemap, worldgen incl. AIRSHIP + skyfield(),
+              farms.ts = map variants, A*)
 src/sim/systems/  one file per system, registered with registerSystem({tick, dayStart, dayEnd,
               init, save, load, afterLoad, realtime}). Import order lives in src/sim/index.ts.
               New: modes.ts (start kits, the clockwork opening, Rush scoring), achievements.ts
@@ -143,9 +165,11 @@ src/ui/       immediate-mode canvas UI kit (ui.ts; records draws for the audit w
 src/app/      App/title/new game (two steps: character, then mode + map with a live preview),
               PlayScreen (input, build mode, guide markers, events -> UI), tips, profile.ts
               (cross-save achievement/Rush profile in localStorage), perf
-tests/        Vitest suites + tests/bot.ts (scripted player; it now plays the opening too)
+tests/        Vitest suites + tests/bot.ts (scripted player; it now plays the opening too);
+              roxy.test.ts (her data, paths, old-save load, day-4 card, bean top-ups)
 e2e/          Playwright scripts (e2e/out is gitignored scratch); screens.mjs = the sweep (add new
-              screens to its SC table)
+              screens to its SC table; VIEW=WxH for other window sizes); roxy.mjs
+scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sfx-design, pace.ts
 ```
 
 ## Patterns to follow
@@ -197,16 +221,25 @@ e2e/          Playwright scripts (e2e/out is gitignored scratch); screens.mjs = 
 - Renderer hooks that only exist for imported art: `emote:*`, `amb:*`, `bot:*`, `fx:*` (letter,
   pennants, fireball, twinkle, nopower, pip), `gh:glass:*`, `armh:*`, `hf:fire|pendulum|gpend|steam|fish`,
   `ui:*` (nine-slice skin, `src/ui/skin.ts`), factory `meta.smoke` chimney points.
+- Added in 1.1's last session (sources in `art/npcs/roxy`, `art/portraits-roxy`, `art/airship`,
+  each with its rebuild command in the folder and in `art/README.md`):
+  - `npc-roxy`: a 48x48 character sheet, anchor (24, 46), 38 px tall. Walk 0-3, stand 4-6,
+    idle `i0`-`i7` (all rows), greeting `g0`-`g3` (down row; the other rows hold the stand).
+  - `portraits-roxy`: `portrait:roxy:<mood>:*` at 64x64 (0 smirk, 1 laugh/blink, 2 sad, 3 flustered).
+  - `airship`: `bld:airship:<season>:<night>:<frame>`, 148x148, o = (4, 68), 4 frames (envelope
+    bob, propeller, pennant), winter snow, night portholes; the ground shadow is baked in a key
+    colour and recoloured per season (buildings get no renderer shadow).
 - Gotchas: Vite serves hot-updated modules as `?t=` URLs, so page scripts import the app's own
   instance (see `mod()` in `e2e/sprites.mjs`). Agents' imports trigger full reloads in open pages.
 
 ## What's next
 
-1.1.0 is out. Next session (1.1.1 or 1.2):
+1.1.0 is out. Next session (1.1.1, then 1.2):
 
 > Read ROADMAP.md and HANDOFF.md. Work the open items at the end of ROADMAP.md Phase 4, arm
 > redraw first (the art-director agent: arms read as "?" at rest). Then the deferred critic list
-> below. Run npm run screens, then the indie-critic agent. Commit; push with the OK.
+> below. Run npm test, npm run screens and scripts/pace.ts, then the indie-critic agent. Commit;
+> push with the OK. For 1.1.1: bump package.json, Build desktop app.bat, gh release create v1.1.1.
 
 Patterns from 1.1's last session:
 - A belt that ends at a structure delivers into it through `portInsert` (`Game.beltSink`); full
@@ -218,6 +251,12 @@ Patterns from 1.1's last session:
 - Heart events set `heart_<npc>_<hearts>` flags, so shop stock can unlock from them.
 - Saves store ground and objects but not buildings: anything new on the overworld needs an
   `afterLoad` clean-up for old saves (see `skyfield()` in worldgen.ts).
+- Anything that scatters objects on the farm (daily weeds, windstorms) must skip `openingTile()`
+  (`src/sim/opening.ts`), or a tutorial step can be blocked; `tests/modes.test.ts` checks 150 seeds.
+- A new villager needs: an `NPCS` entry (schedules may only use locations that exist, a test
+  checks), a character sheet + portraits (or the procedural look as a fallback), and, if they
+  have a shop, a building whose `locId` matches the shop's `loc` and a schedule that puts them at
+  `<loc>_in` during opening hours. The festival circle, journal, partner and mail pick them up.
 
 Phase 3 patterns:
 - Sim code emits reward events (`harvest`, `made`, `quest`, `post`, `crated`, `hop`); `PlayScreen.processEvents`
@@ -243,8 +282,15 @@ visible change over polish.
   helper. The in-app browser pane often runs hidden, which pauses `requestAnimationFrame`; use headless
   Playwright screenshots to check visuals.
 - **Shell gotcha:** in this environment, bash heredocs fed to `python -`/`cat` lose backslashes
-  (`\'` becomes `'`), and long heredocs with quotes can fail to parse. Use the Edit tool, or
-  write the script to a file first.
+  (`\'` becomes `'`, and a `'\b'` in a patch script landed as a raw backspace byte), and long
+  heredocs with quotes can fail to parse. Use the Edit tool for anything with a backslash, or
+  write the script to a file first. Check with `od -c` when in doubt.
+- **Never put a copy of the project inside the repo** (git worktrees, unzipped builds with an
+  `index.html` under `e2e/out/`…): Vite's dependency scanner picks it up and the dev server starts
+  answering `504 (Outdated Optimize Dep)`, so the game never boots. Put worktrees outside the
+  project. If it happens anyway, `touch vite.config.ts` restarts the owner's dev server in place.
+- **TypeScript one-offs against the sim:** `npx vite-node some-script.ts` (vite-node ships with
+  vitest), e.g. to dump a map region or run the bot (`scripts/pace.ts`).
 - **Line endings:** git checks files out with CRLF here (autocrlf) and commits LF (`.gitattributes`).
   Scripted edits must match CRLF or normalize first; the Edit tool handles it. "CRLF will be
   replaced by LF" warnings on commit are harmless.
@@ -252,8 +298,10 @@ visible change over polish.
   After hot updates, Vite serves edited modules as `?t=` URLs, so `import('/src/...')` from page
   scripts can get a second module instance; find the URL the app loaded via
   `performance.getEntriesByType('resource')`, or reload first.
-- **Handy scratch helpers** (in gitignored `e2e/out/`): `titleshot.mjs` (title screen with a frozen
-  camera), `compare.mjs` (before/after side by side, pixel-perfect), `crop.mjs` (crop + enlarge).
+- **Handy scratch helpers** (in gitignored `e2e/out/`, so only on this PC): `titleshot.mjs` (title
+  screen with a frozen camera), `compare.mjs` (before/after side by side, pixel-perfect), `crop.mjs`
+  (crop + enlarge), `montage.mjs out.png <cols> <scale> a.png b.png …` (several shots in one image),
+  `mapdump.ts x0 x1 y0 y1` (an ASCII map of a world region; run with vite-node).
 
 ## Known issues / loose ends
 
@@ -268,6 +316,17 @@ visible change over polish.
   tool heads, riverbanks, winter dirt, the world-map window, logo, chronometer sky, player portrait).
 - The jsfxr sounds (coin/sell/ship, levelup, hurt) are generated placeholders; nobody has listened yet.
 - `npm run screens` doesn't cover every festival, dialogue, cooking/adopt/elevator or the result screens.
+- The v1.1.0 Windows installers predate the opening-tile fix (see the status at the top); the
+  website has it. Next desktop build: bump to 1.1.1, `Build desktop app.bat`, a new GitHub release.
+- From the 1.1 code review, not fixed: the "+N" popped over the crate when goods land uses the
+  price before market saturation, so it can overstate what the post pays (`play.ts`, `crated`);
+  `tileColor`, `SEASON_COL` and two banner colours use raw palette indices instead of `C` names.
+- From the 1.1 critic review, not fixed: the list at the end of ROADMAP.md Phase 4 (arms read as
+  "?" at rest, the day-2 toast behind the tracker, shift-click in the backpack, look-alike tool
+  icons, the farmhouse doorway, research window colours, the 960x600 embed size, the jar costing
+  402 at the Workshop vs 400 at the Mercantile).
+- Roxy's 64 px portrait sits next to 32 px-at-2x portraits in the same dialogue frame. The critic
+  flagged the mixed pixel density; the owner asked for her to be more detailed, so it stays.
 
 ## Deferred from the indie-critic reviews (biggest first)
 
