@@ -71,7 +71,8 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   let toastY = 28 + (play.achQ.length ? 44 : 0);
   // at most three on screen, newest kept; held (not drawn, not aging) while a window is open,
   // since windows cover the top of the screen
-  for (const t of play.modalOpen ? [] : play.hud.toasts.slice(-3)) {
+  // a quest ribbon owns the middle of the screen for a moment: toasts wait for it
+  for (const t of play.modalOpen || play.app.renderer.juice.banners.length ? [] : play.hud.toasts.slice(-3)) {
     const life = toastLife(t.text);
     const a = t.t < life - 0.7 ? 1 : 1 - (t.t - (life - 0.7)) / 0.7;
     ui.ctx.globalAlpha = Math.max(0, Math.min(1, a, t.t * 6));

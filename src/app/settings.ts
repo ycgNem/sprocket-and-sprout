@@ -15,6 +15,8 @@ export interface Settings {
   autosave: boolean;
   /** draw the brass pixel-art mouse cursor (false = system cursor) */
   pixelCursor: boolean;
+  /** key bubbles next to things you can use ("F Enter") */
+  keyPrompts: boolean;
 }
 
 const KEY = 'sns_settings_v1';
@@ -22,7 +24,7 @@ const KEY = 'sns_settings_v1';
 export function defaultSettings(): Settings {
   return {
     master: 0.8, music: 0.55, sfx: 0.8, uiScale: 0, binds: structuredClone(DEFAULT_BINDS),
-    overnight: 'full', pauseInMenus: true, showGrid: false, screenShake: true, autosave: true, pixelCursor: true,
+    overnight: 'full', pauseInMenus: true, showGrid: false, screenShake: true, autosave: true, pixelCursor: true, keyPrompts: true,
   };
 }
 

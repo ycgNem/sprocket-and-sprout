@@ -330,6 +330,7 @@ registerSystem({
     g.sys.postDay = { sold: [], total: 0 };
     g.sys.postLast = -1;
     g.count('shipped', summary.sold.reduce((a, s) => a + s.n, 0));
+    summary.best = g.counters.best_day ?? 0;
     if (summary.total > (g.counters.best_day ?? 0)) g.counters.best_day = summary.total;
     g.player.money += res.total;
     g.earned += res.total;

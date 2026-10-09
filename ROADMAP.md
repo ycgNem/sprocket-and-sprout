@@ -231,7 +231,38 @@ In this order, because this is how much of the screen each occupies:
 
 Each session ends with `npm run screens`, the critic agent, a commit and a push.
 
-### Phase 3 — Juice pass (1–2 sessions)
+### Phase 3 — Juice pass + the first session (1–2 sessions)
+
+**Plan (2026-10-09).** The owner widened Phase 3: besides the juice list below, the tutorial
+and the early game get a full pass, because the first 15 minutes decide whether a player comes
+back. Gameplay and sprite changes are allowed, not just polish. Goal: every action answered
+within ~100 ms, rewards that escalate, and a first session with a clear "one more day" hook.
+
+How the work is split:
+- **3A, the juice engine (main session, code).** A `src/render/juice.ts` layer on top of
+  `particles.ts`: atlas-sprite particles with arcs and squash, screen-space "fly to the HUD"
+  flights (items to their hotbar slot, coins to the odometer) with landing callbacks, impact
+  stars, ring pulses, pop-in numbers that stack (+1, +2, +3…), pitch ladders for repeated
+  sounds, per-entity squash. Then wire it into: harvest (pluck arc, icon to slot, streak
+  counter), money (coin burst into the odometer), the night tally (rows reveal, total counts up,
+  best-day record), machines (squash + puff + output pop + chime), tools (impact stars, soil
+  chunks in the ground's real colors), big moments (quest complete, level up, unlocks).
+- **3B, the first session (main session, code + data), from the indie-critic's onboarding
+  review:** see the list below, filled in from the review. Owner notes (2026-10-09): the
+  derelict greenhouse is confusing (its frame shows open ground you can't till); add small
+  context bubbles next to things you can use, with the right key ("F Enter" at the house door,
+  "F Sleep" at the bed, "F Ship" at the crate…); playtest it; easy to understand and rewarding,
+  but still deep, with the factory/automation twist.
+- **3C, art (art-director agents, PixelLab, ≤ 250 of the 663 generations left this cycle):**
+  an FX sheet (coin spin, impact stars, puff, sparkle burst, ring, confetti, heart pop,
+  level-up burst, streak badge), the guide marker and the quest-complete ribbon, shoreline foam.
+  Owner request: a real sprocket emblem (8-frame seamless spin) for the hotbar end caps, and a
+  drawn title wordmark where the spinning sprocket is the O of "Sprocket" (`src/art/logo.*`).
+- **3D, verification:** typecheck, tests, smoke, `npm run screens` through `qa-screens`, then
+  the indie-critic replays the first session. Commits per chunk; pushing (= deploying) only with
+  the owner's OK.
+
+The original juice list:
 
 - Harvest: pop + bounce + magnet-to-player; streak counter for consecutive harvests.
 - Pickup / sale: coin burst, numbers that float up; night tally counts up with ticks.

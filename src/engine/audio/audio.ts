@@ -27,6 +27,8 @@ export class Audio {
   private crickets = 0;
   private birds = 0;
   private lastSfx = new Map<string, number>();
+  /** pitch multiplier for the sound being synthesized (sfx's pitch argument) */
+  private pm = 1;
   muted = false;
 
   constructor(settings: Vol) {
@@ -101,6 +103,7 @@ export class Audio {
     const o = ctx.createOscillator();
     const g = ctx.createGain();
     o.type = type;
+    freq *= this.pm;
     o.frequency.setValueAtTime(freq, t);
     if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq * slide), t + env.a + env.d);
     if (detune) o.detune.value = detune;
@@ -124,6 +127,7 @@ export class Audio {
     src.playbackRate.value = 0.5 + Math.random();
     const f = ctx.createBiquadFilter();
     f.type = filter;
+    freq *= this.pm;
     f.frequency.setValueAtTime(freq, t);
     if (sweep) f.frequency.exponentialRampToValueAtTime(Math.max(40, freq * sweep), t + dur);
     f.Q.value = q;
@@ -137,8 +141,8 @@ export class Audio {
     src.stop(t + dur + 0.05);
   }
 
-  /** Play a named sound effect. `v` scales volume (e.g. for distance). */
-  sfx(id: string, v = 1) {
+  /** Play a named sound effect. `v` scales volume (e.g. for distance); `pitch` multiplies the pitch (streak ladders). */
+  sfx(id: string, v = 1, pitch = 1) {
     const ctx = this.ctx;
     if (!ctx || v <= 0.02) return;
     const now = ctx.currentTime;
@@ -148,7 +152,8 @@ export class Audio {
     const B = this.sfxBus;
     const r = () => 1 + (Math.random() - 0.5) * 0.08;
     // sounds designed in jsfxr take priority; the rest are synthesized below
-    if (playSfxr(ctx, B, id, 0.35 * v, r())) return;
+    if (playSfxr(ctx, B, id, 0.35 * v, r() * pitch)) return;
+    this.pm = pitch;
     switch (id) {
       case 'click': this.tone(900 * r(), 'square', { a: 0.002, d: 0.04 }, 0.06 * v, B); break;
       case 'hover': this.tone(1400, 'sine', { a: 0.002, d: 0.025 }, 0.02 * v, B); break;
@@ -218,6 +223,7 @@ export class Audio {
         break;
       default: this.tone(600, 'sine', { a: 0.002, d: 0.05 }, 0.03 * v, B);
     }
+    this.pm = 1;
   }
 
   // ---------------- music ----------------

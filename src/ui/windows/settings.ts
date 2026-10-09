@@ -80,6 +80,9 @@ export function settingsPanel(ui: UI, app: App, onClose: () => void): boolean {
     yy += 18;
     const t6 = toggle(ui, 'pcur', x + 16, yy, 'Pixel-art mouse cursor', s.pixelCursor, 'Off uses your system cursor.');
     if (t6 !== s.pixelCursor) { s.pixelCursor = t6; changed = true; }
+    yy += 18;
+    const t7 = toggle(ui, 'kp', x + 16, yy, 'Key hints next to things you can use', s.keyPrompts, 'Little bubbles like "F  Enter" when you face a door, a bed, a crop or a machine.');
+    if (t7 !== s.keyPrompts) { s.keyPrompts = t7; changed = true; }
   } else {
     const listY = y + 52, listH = h - 84;
     const contentH = ACTIONS.length * 14;

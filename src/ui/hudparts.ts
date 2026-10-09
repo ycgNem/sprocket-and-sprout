@@ -281,12 +281,17 @@ export function drawChronometer(ui: UI, play: PlayScreen, x: number, y: number, 
 }
 
 function drawOdometer(ui: UI, play: PlayScreen, F: HudFx, x: number, y: number, w: number, dt: number) {
-  const money = Math.max(0, Math.floor(play.g.player.money));
-  if (money !== F.money) {
-    F.deltas.push({ n: money - F.money, t: 0 });
+  const J = play.app.renderer.juice;
+  const real = Math.max(0, Math.floor(play.g.player.money));
+  if (real !== F.money) {
+    F.deltas.push({ n: real - F.money, t: 0 });
     if (F.deltas.length > 3) F.deltas.shift();
-    F.money = money;
+    F.money = real;
   }
+  // coins still flying toward the counter haven't arrived yet: the digits roll as they land
+  const money = Math.max(0, real - Math.floor(J.moneyHeld));
+  J.anchors.money = { x: x + 8, y: y + 7 };
+  const bump = J.moneyBump < 0.12;
   const str = String(money);
   const nd = Math.max(5, str.length);
   const padded = str.padStart(nd, ' ');
@@ -294,10 +299,11 @@ function drawOdometer(ui: UI, play: PlayScreen, F: HudFx, x: number, y: number, 
   while (F.digits.length > nd) F.digits.shift();
   ui.fill(x, y, w, 14, C.ink);
   ui.fill(x + 1, y + 1, w - 2, 12, C.plum);
-  // coin
-  disc(ui, x + 8, y + 7, 4, C.brass);
-  disc(ui, x + 8, y + 7, 2, C.amber);
-  ui.fill(x + 8, y + 5, 1, 4, C.copper);
+  // coin (it flashes and jumps a pixel as each flying coin lands)
+  const cy = y + 7 - (bump ? 1 : 0);
+  disc(ui, x + 8, cy, 4, bump ? C.butter : C.brass);
+  disc(ui, x + 8, cy, 2, bump ? C.cream : C.amber);
+  ui.fill(x + 8, cy - 2, 1, 4, C.copper);
   const cw = 7;
   const x0 = x + w - 3 - nd * cw;
   for (let i = 0; i < nd; i++) {
@@ -402,10 +408,14 @@ export function drawHotbar(ui: UI, play: PlayScreen, dt: number) {
   const slotsX = hx + capW + 4;
   const block = ui.hover(hx, by, hw, bh);
   if (block) ui.block(hx, by, hw, bh);
+  const J = play.app.renderer.juice;
+  J.anchors.bag = { x: hx + hw - capW / 2 - 3, y: by + Math.floor(bh / 2) };
   for (let i = 0; i < N; i++) {
     const sx = slotsX + i * (S + gap);
     const sel = p.sel === i;
-    const lift = sel ? -2 : 0;
+    // a slot hops when a harvested crop or a reward lands in it
+    const lift = (sel ? -2 : 0) + J.slotLift(i);
+    J.anchors.slots[i] = { x: sx + S / 2, y: hy + 1 + S / 2 };
     const st = p.inv.slots[i];
     if (sel) {
       // glow frame

@@ -95,7 +95,15 @@ export type GameEvent =
   | { t: 'levelup'; skill: string; level: number }
   | { t: 'research'; id: string }
   | { t: 'ach'; id: string }
-  | { t: 'ui'; open: string; arg?: any };
+  | { t: 'ui'; open: string; arg?: any }
+  /** a crop picked by hand: what it gave and the running harvest streak */
+  | { t: 'harvest'; x: number; y: number; k: number; n: number; streak: number; bonus: boolean }
+  /** a machine finished a batch (entity id, first output item) */
+  | { t: 'made'; ent: number; item: string; x: number; y: number }
+  /** a quest was completed (the reward is already given) */
+  | { t: 'quest'; title: string; money: number; items: { item: string; n: number }[] }
+  /** a crop (tile index) or structure (entity id) gives a little hop */
+  | { t: 'hop'; tile?: number; ent?: number };
 
 export interface DaySummary {
   day: number;
@@ -105,6 +113,8 @@ export interface DaySummary {
   total: number;
   passedOut: boolean;
   penalty: number;
+  /** the best day's shipping total before this one (for the "best day yet" stamp) */
+  best?: number;
 }
 
 export interface Mods {

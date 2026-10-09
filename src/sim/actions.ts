@@ -11,7 +11,7 @@ import { TREE_BY_ID } from '../data/trees';
 import type { Game } from './Game';
 import { key, kDef, kId, ItemKey } from './inventory';
 import { O, T, Z } from './world/tilemap';
-import { canTill, fertilize, harvest, plant, plantSapling, shakeTree, sprinklerTiles, till, waterTile, canPlant } from './systems/farming';
+import { canTill, fertilize, harvest, harvestStreak, plant, plantSapling, shakeTree, sprinklerTiles, till, waterTile, canPlant } from './systems/farming';
 import { spawnDrop } from './systems/drops';
 import { deconstruct } from './build';
 import { machInsert, setRecipe } from './systems/machines';
@@ -525,10 +525,13 @@ export function interact(g: Game, tx: number, ty: number): boolean {
       return true;
     }
     const out = harvest(g, i);
-    if (out) {
+    if (out?.length) {
+      const streak = harvestStreak(g);
+      if (streak.bonus) out.push({ k: key(cr.produce, 0), n: 1 });
       for (const st of out) g.give(st.k, st.n);
-      g.emit({ t: 'sfx', id: 'harvest' });
       g.emit({ t: 'fx', kind: 'leaves', x: tx + 0.5, y: ty + 0.5, c: cr.look.leaf, n: 6 });
+      // the play screen plays the (streak-pitched) pick sound and flies the crop to its slot
+      g.emit({ t: 'harvest', x: tx + 0.5, y: ty + 0.5, k: out[0].k, n: out.reduce((a, s) => a + s.n, 0), streak: streak.n, bonus: streak.bonus });
     }
     return true;
   }

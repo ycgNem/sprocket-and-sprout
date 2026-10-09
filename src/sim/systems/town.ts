@@ -40,7 +40,7 @@ export function door(g: Game, b: BuildingInfo) {
       g.sys.mine?.enterPrompt?.(g);
       return;
     case 'greenhouse':
-      if (!g.flags.has('greenhouse_fixed')) g.toast('The old greenhouse is broken. The town restoration board could fix it...');
+      if (!g.flags.has('greenhouse_fixed')) g.toast('The glass roof is broken, so beds in here follow the seasons for now. Restore it at the clocktower to grow all year.');
       return;
   }
   const shop = shopFor(b.id);

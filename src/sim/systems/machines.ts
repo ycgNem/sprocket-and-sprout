@@ -216,7 +216,8 @@ export function updateMachines(g: Game, dt: number) {
       m.crafting = false;
       m.progress = 0;
       g.emit({ t: 'fx', kind: 'puff', x: e.x + e.w / 2, y: e.y });
-      if (m.made % 4 === 1) g.emit({ t: 'sfx', id: 'machine_done', x: e.x + e.w / 2, y: e.y + e.h / 2, v: 0.5 });
+      // the play screen turns this into a hop, an output pop and a note (each machine has its own)
+      g.emit({ t: 'made', ent: e.id, item: r.out[0].item, x: e.x + e.w / 2, y: e.y });
     }
   }
 }

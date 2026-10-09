@@ -149,9 +149,8 @@ function complete(g: Game, a: ActiveQuest) {
   }
   const giver = npcSys(g).byId.get(def.giver);
   if (giver && !r.friendship) addPoints(g, giver, 40);
-  g.toast(`Quest complete: ${def.title}!${r.money ? ` +${r.money} coins` : ''}`, undefined, 16);
-  g.emit({ t: 'sfx', id: 'quest' });
-  g.emit({ t: 'fx', kind: 'coins', x: g.player.x, y: g.player.y - 1 });
+  // the play screen shows a banner, flies the reward in and plays the fanfare
+  g.emit({ t: 'quest', title: def.title, money: r.money ?? 0, items: r.items ?? [] });
   g.count('quests');
   startAvailable(g);
 }

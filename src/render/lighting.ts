@@ -26,6 +26,19 @@ export class Lighting {
       main.fillRect(0, 0, r.W, r.H);
       this.flash -= 0.05;
     }
+    // golden hour (late afternoon) and a rosy dawn: warm the whole scene before dusk falls
+    if (!underground && !house && !g.isRaining()) {
+      const hr = g.time.min / 60;
+      const gold = Math.max(0, 1 - Math.abs(hr - 17.8) / 2.2), dawn = Math.max(0, 1 - Math.abs(hr - 6.6) / 1.1);
+      if (gold > 0 || dawn > 0) {
+        const [rr, gg, bb] = PALETTE_RGB[gold >= dawn ? C.amber : C.blush];
+        main.save();
+        main.globalCompositeOperation = 'soft-light';
+        main.fillStyle = `rgba(${rr},${gg},${bb},${0.32 * Math.max(gold, dawn)})`;
+        main.fillRect(0, 0, r.W, r.H);
+        main.restore();
+      }
+    }
     // dusk tint
     if (!underground && !house && night > 0.05 && night < 0.95) {
       const [rr, gg, bb] = PALETTE_RGB[C.apricot];

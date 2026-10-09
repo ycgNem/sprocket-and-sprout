@@ -32,6 +32,10 @@ import { OPENING } from '../sim/systems/modes';
 import { T } from '../sim/world/tilemap';
 import { PULSE_COL, machineState, pulseEnts } from '../ui/pulse';
 import { checkTips } from './tips';
+import { drawFx, ladderPitch, type Pt } from '../render/juice';
+import { promptAt, toolVerb } from '../sim/prompts';
+import { keyLabel } from '../engine/input';
+import { textWidth } from '../ui/font';
 
 export interface Toast { text: string; t: number; icon?: string; color?: number }
 
@@ -68,6 +72,10 @@ export class PlayScreen implements Screen {
   pulseFocus: { kind: 'ok' | 'starved' | 'blocked'; t: number } | null = null;
   private lastWhere = '';
   tipT = 0;
+  /** money last frame: a rise while you play becomes a coin shower into the odometer */
+  private lastMoney = 0;
+  /** where this frame's coin shower starts (UI px), if an event said so */
+  private coinSrc: Pt | null = null;
 
   constructor(app: App, g: Game, look: NPCLook, slot?: number) {
     this.app = app;
@@ -80,6 +88,8 @@ export class PlayScreen implements Screen {
     r.cam.targetZoom = r.cam.zoom = Math.max(2, Math.round(r.H / (16 * 20)));
     app.audio.setScene('farm');
     g.sys.ui = this;
+    r.juice.sfx = (id, v, p) => app.audio.sfx(id, v, p);
+    this.lastMoney = Math.floor(g.player.money);
     (window as any).__game = g;
     (window as any).__play = this;
     g.sys.onStart?.forEach?.((f: any) => f(g));
@@ -289,6 +299,7 @@ export class PlayScreen implements Screen {
     ui.begin(r.ctx, input, app.uiScale, dt);
     // a modal window owns the screen: the HUD would only peek out around its edges
     if (!this.modalOpen) drawHud(ui, this, dt);
+    this.drawPrompt(ui, dt);
     this.worldHover(ui);
     if (this.win) {
       this.win.t += dt;
@@ -306,6 +317,9 @@ export class PlayScreen implements Screen {
       if (pop < 1 && def?.modal !== false) ui.ctx.restore();
       if (!keep) this.closeWindow();
     }
+    // flights into the HUD, the streak counter, banners and confetti ride on top (the streak and
+    // banners wait while a window is open; the night tally's confetti shows over it)
+    r.juice.drawUI(ui.ctx, ui.w, ui.h, this.toUI(g.player.x, g.player.y - 1.9), this.modalOpen, dt);
     if (g.sleeping || this.sleepFade > 0.5) {
       ui.text('Z z z', ui.w / 2, ui.h / 2 - 20, C.cream, { align: 'center', scale: 3 });
       const h = Math.floor(g.time.min / 60) % 24, mm = Math.floor(g.time.min % 60 / 10) * 10;
@@ -333,7 +347,7 @@ export class PlayScreen implements Screen {
     app.audio.update(dt, g, near);
     // hud timers
     // toasts wait while a window covers the screen, then play out once it closes
-    if (!this.modalOpen) for (const t of this.hud.toasts) t.t += dt;
+    if (!this.modalOpen && !r.juice.banners.length) for (const t of this.hud.toasts) t.t += dt;
     this.hud.toasts = this.hud.toasts.filter((t) => t.t < toastLife(t.text));
     this.tipT += dt;
     if (this.tipT > 0.5) {
@@ -352,6 +366,62 @@ export class PlayScreen implements Screen {
       this.autoBuildT = 0;
       this.autoBuildGhosts();
     }
+  }
+
+  private promptKey = '';
+  private promptT = 0;
+
+  /**
+   * The key bubble: whatever the interact key would do on the tile you face ("F Enter",
+   * "F Harvest"), and, for the first few days, what a left click does with the tool in hand.
+   */
+  private drawPrompt(ui: any, dt: number) {
+    const g = this.g;
+    if (this.win || g.sleeping || this.mode !== 'normal' || this.heldPlaceable() || g.sys.fishing?.busy || !this.app.settings.keyPrompts) {
+      this.promptKey = '';
+      return;
+    }
+    const [fx, fy] = facingTile(g);
+    let pr = promptAt(g, fx, fy);
+    let key = keyLabel(this.app.input.binds.interact[0] ?? 'KeyF');
+    if (!pr && g.daysPlayed < 3 && !this.outOfReach) {
+      const [tx, ty] = this.lastTarget;
+      const verb = toolVerb(g, tx, ty);
+      if (verb) {
+        pr = { verb, x: tx + 0.5, y: ty - 0.1 };
+        key = 'Click';
+      }
+    }
+    if (!pr) {
+      this.promptKey = '';
+      return;
+    }
+    const id = key + pr.verb + Math.round(pr.x) + ',' + Math.round(pr.y);
+    if (id !== this.promptKey) {
+      this.promptKey = id;
+      this.promptT = 0;
+    }
+    this.promptT += dt;
+    const at = this.toUI(pr.x, pr.y);
+    const kw = textWidth(key) + 6, vw = textWidth(pr.verb);
+    const w = kw + vw + 10, h = 15;
+    const rise = this.promptT < 0.12 ? 2 : 0;
+    const x = Math.round(at.x - w / 2), y = Math.round(at.y - h - 6 + rise);
+    ui.ctx.globalAlpha = Math.min(1, this.promptT / 0.12);
+    // bubble with a tail pointing at the thing
+    ui.fill(x, y, w, h, C.ink);
+    ui.fill(x + 1, y + 1, w - 2, h - 2, C.plum);
+    ui.fill(x + 1, y + 1, w - 2, 1, C.slate);
+    ui.fill(Math.round(at.x) - 2, y + h, 5, 1, C.ink);
+    ui.fill(Math.round(at.x) - 1, y + h + 1, 3, 1, C.ink);
+    ui.fill(Math.round(at.x) - 1, y + h, 3, 1, C.plum);
+    // the key cap
+    ui.fill(x + 3, y + 3, kw, 9, C.ink);
+    ui.fill(x + 3, y + 2, kw, 9, C.cream);
+    ui.fill(x + 3, y + 10, kw, 1, C.pebble);
+    ui.text(key, x + 6, y + 3, C.ink);
+    ui.text(pr.verb, x + kw + 7, y + 4, C.cream);
+    ui.ctx.globalAlpha = 1;
   }
 
   /** tooltips for things under the mouse in the world: villagers, animals, structures */
@@ -793,13 +863,9 @@ export class PlayScreen implements Screen {
       ctx.lineWidth = 2;
       ctx.strokeRect(x * TILE + 1, y * TILE + 1, w * TILE - 2, h * TILE - 2);
       ctx.lineWidth = 1;
+      // the bouncing guide arrow (juice sheet; drawFx falls back to a code-drawn one)
       const bob = Math.round(Math.sin(this.playtime * 5) * 2);
-      const ax = (x + w / 2) * TILE, ay = y * TILE - 6 + bob;
-      ctx.fillStyle = rgba(C.amber, 0.95);
-      ctx.fillRect(ax - 3, ay - 3, 7, 2);
-      ctx.fillRect(ax - 2, ay - 1, 5, 1);
-      ctx.fillRect(ax - 1, ay, 3, 1);
-      ctx.fillRect(ax, ay + 1, 1, 1);
+      drawFx(ctx, 'fx:arrow', Math.floor(this.playtime * 8), (x + w / 2) * TILE, y * TILE - 3 + bob);
     };
     if (has('t_welcome')) {
       const B = OPENING.beans;
@@ -897,12 +963,67 @@ export class PlayScreen implements Screen {
     ctx.fillRect((e.x - s) * TILE, (e.y - s) * TILE, (e.w + s * 2) * TILE, (e.h + s * 2) * TILE);
   }
 
+  /** world tile coordinates -> UI px */
+  toUI(tx: number, ty: number): Pt {
+    const s = this.app.renderer.tileToScreen(tx, ty);
+    return { x: s.x / this.app.uiScale, y: s.y / this.app.uiScale };
+  }
+
+  /** hotbar slot holding this item, or -1 when it went to the bag */
+  private slotOf(k: number) {
+    const i = this.g.player.inv.slots.findIndex((s) => s?.k === k);
+    return i >= 0 && i < 12 ? i : -1;
+  }
+
   processEvents(evs: GameEvent[]) {
     const r = this.app.renderer, a = this.app.audio, g = this.g;
-    const P = r.particles;
+    const P = r.particles, J = r.juice;
     const camX = r.cam.x, camY = r.cam.y;
+    const onScreen = (x: number, y: number) => Math.abs(x - camX) < 16 && Math.abs(y - camY) < 10;
     for (const e of evs) {
       switch (e.t) {
+        case 'harvest': {
+          // the pick climbs a pentatonic ladder as the streak grows, the crop arcs into its slot
+          const step = Math.min(e.streak - 1, 10);
+          a.sfx('harvest', 1, ladderPitch(step));
+          const from = this.toUI(e.x, e.y - 0.5);
+          const slot = this.slotOf(e.k);
+          const id = kId(e.k);
+          for (let i = 0; i < Math.min(3, e.n); i++) J.flyItem(id, { x: from.x + i * 3, y: from.y }, slot, i * 0.07, i ? undefined : () => a.sfx('pickup', 0.4, ladderPitch(step)));
+          J.streak.n = e.streak;
+          J.streak.t = 0;
+          J.streak.punch = 0;
+          if (e.k & 3) J.fx('fx:glint', e.x * TILE, e.y * TILE - 8, { fps: 10 });
+          if (e.bonus) {
+            J.ring(e.x * TILE, e.y * TILE - 4, C.butter, 22);
+            J.confetti(e.x * TILE, e.y * TILE - 8, 18);
+            P.text(e.x * TILE, e.y * TILE - 16, 'Bonus!', C.butter);
+            a.sfx('chime', 0.8);
+          }
+          break;
+        }
+        case 'made': {
+          if (!onScreen(e.x, e.y) || g.player.where !== 'world') break;
+          J.hop(e.ent);
+          J.iconPop(e.item, e.x * TILE, e.y * TILE - 6);
+          // every machine has its own note on the ladder, so a busy factory plays a little tune
+          const d = Math.hypot(e.x - camX, e.y - camY);
+          a.sfx('machine_done', Math.max(0, 0.6 - d / 24), ladderPitch(e.ent % 9));
+          break;
+        }
+        case 'quest': {
+          a.sfx('quest');
+          J.banner({ title: 'Quest complete!', sub: e.title + (e.money ? `   ${ICON.coin}${e.money}` : ''), color: 29, items: e.items.map((it) => ({ id: it.item, n: it.n })) });
+          const top: Pt = { x: this.app.ui.w / 2, y: Math.max(72, this.app.ui.h * 0.24) + 20 };
+          J.confetti(top.x, top.y, 46, true, 90);
+          this.coinSrc = top;
+          e.items.forEach((it, i) => J.flyItem(it.item, { x: top.x - 20 + i * 14, y: top.y + 6 }, this.slotOf(key(it.item)), 0.45 + i * 0.12));
+          break;
+        }
+        case 'hop':
+          if (e.tile !== undefined) J.hopTile(e.tile);
+          if (e.ent !== undefined) J.hop(e.ent);
+          break;
         case 'sfx': {
           let v = e.v ?? 1;
           if (e.x !== undefined && e.y !== undefined) v *= Math.max(0, 1 - Math.hypot(e.x - camX, e.y - camY) / 18);
@@ -931,28 +1052,46 @@ export class PlayScreen implements Screen {
           const x = e.x * TILE, y = e.y * TILE;
           const n = e.n ?? 8;
           switch (e.kind) {
-            case 'dust': P.burst(x, y, n, [C.tan, C.pebble], { speed: 30, up: 10, g: 40, life: 0.5 }); break;
-            case 'dirt': P.burst(x, y, n, [C.walnut, C.oak, C.bark], { speed: 35, up: 40, life: 0.45 }); break;
-            case 'chips': P.burst(x, y - 8, n, [C.tan, C.oak, C.walnut], { speed: 50, up: 50, life: 0.5 }); break;
+            case 'dust': P.burst(x, y, n, [C.tan, C.pebble], { speed: 30, up: 10, g: 40, life: 0.5 }); J.fx('fx:puff', x, y - 3, { fps: 12 }); break;
+            case 'dirt': {
+              // chunks in the colours of the ground that was hit, plus an impact star
+              const gt = curMap(g).g(Math.floor(e.x), Math.floor(e.y));
+              const cols = gt === T.SAND ? [C.tan, C.apricot, C.oak] : gt === T.GRASS ? [C.walnut, C.oak, C.grass, C.leaf] : [C.walnut, C.oak, C.bark];
+              P.burst(x, y, n + 4, cols, { speed: 40, up: 50, life: 0.5 });
+              J.fx('fx:star', x, y - 2, { fps: 18 });
+              break;
+            }
+            case 'chips': P.burst(x, y - 8, n, [C.tan, C.oak, C.walnut], { speed: 50, up: 50, life: 0.5 }); J.fx('fx:star', x, y - 8, { fps: 18 }); break;
             case 'leaves': P.burst(x, y - 16, n, e.c !== undefined ? [e.c, C.leaf] : [C.leaf, C.grass, C.moss], { speed: 40, up: 20, g: 30, life: 1.2, size: 2 }); break;
-            case 'rock': P.burst(x, y, n, [C.stone, C.pebble, C.slate], { speed: 55, up: 50, life: 0.5 }); break;
+            case 'rock': P.burst(x, y, n, [C.stone, C.pebble, C.slate], { speed: 55, up: 50, life: 0.5 }); J.fx('fx:star', x, y - 4, { fps: 18 }); break;
             case 'grass': P.burst(x, y, n, [C.grass, C.leaf, C.lime], { speed: 40, up: 30, life: 0.6 }); break;
             case 'splash': P.burst(x, y, n, [C.aqua, C.frost, C.sky], { speed: 35, up: 45, life: 0.5 }); break;
             case 'sparkle': for (let i = 0; i < 5; i++) P.sparkle(x + (Math.random() - 0.5) * 12, y + (Math.random() - 0.5) * 12, e.c ?? C.butter); break;
             case 'seed': P.burst(x, y, 5, [C.tan, C.oak], { speed: 20, up: 25, life: 0.4 }); break;
             case 'puff': if (Math.random() < 0.5) P.smoke(x, y); break;
-            case 'hearts': P.burst(x, y - 20, 6, [C.rose, C.blush], { speed: 25, up: 40, g: -10, life: 1, size: 2 }); break;
-            case 'coins': P.burst(x, y, 10, [C.amber, C.brass, C.butter], { speed: 60, up: 60, life: 0.7 }); break;
-            case 'hit': P.burst(x, y - 8, n, [C.cream, C.rose], { speed: 70, up: 20, life: 0.3 }); break;
+            case 'hearts':
+              for (let i = 0; i < 3; i++) J.fx('fx:heart', x + (i - 1) * 7, y - 18 - i * 3, { vy: -16 - i * 4, life: 0.9, fps: 4, loop: true });
+              break;
+            case 'coins':
+              P.burst(x, y, 10, [C.amber, C.brass, C.butter], { speed: 60, up: 60, life: 0.7 });
+              this.coinSrc = this.toUI(e.x, e.y);
+              break;
+            case 'hit': P.burst(x, y - 8, n, [C.cream, C.rose], { speed: 70, up: 20, life: 0.3 }); J.fx('fx:star', x, y - 8, { fps: 18 }); break;
             case 'magic': P.burst(x, y - 8, n, [C.lavender, C.aqua, C.cream], { speed: 40, up: 30, g: -20, life: 1 }); break;
             case 'treefall': if (e.s) r.ambient.treeFall(e.s, e.x, e.y, e.dir ?? 1); break;
             default: P.burst(x, y, n, [C.cream], {});
           }
           break;
         }
-        case 'levelup':
+        case 'levelup': {
           this.toast(`${e.skill[0].toUpperCase() + e.skill.slice(1)} level ${e.level}!`, 'i:bundle_star', C.amber);
+          a.sfx('levelup');
+          const px = g.player.x * TILE, py = (g.player.y - 1) * TILE;
+          J.ring(px, py, C.butter, 26, 0.6);
+          J.ring(px, py, C.amber, 16, 0.4);
+          J.confetti(px, py - 8, 26);
           break;
+        }
         case 'research':
           a.sfx('research');
           break;
@@ -971,7 +1110,12 @@ export class PlayScreen implements Screen {
           break;
       }
     }
-    void g;
+    // money that arrives while you play showers into the odometer as coins
+    const money = Math.floor(g.player.money);
+    const dm = money - this.lastMoney;
+    this.lastMoney = money;
+    if (dm > 0 && !this.modalOpen && !g.sleeping && this.sleepFade === 0) J.coins(this.coinSrc ?? this.toUI(g.player.x, g.player.y - 1.2), dm);
+    this.coinSrc = null;
   }
 }
 

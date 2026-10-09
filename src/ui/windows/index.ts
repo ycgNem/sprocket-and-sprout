@@ -19,6 +19,8 @@ import { applyResearchMods } from '../../sim/save';
 import { runPerfScene } from '../../app/perf';
 import { getArtMode, setArtMode } from '../../render/atlas';
 import { resetSkin } from '../skin';
+import { drawFx, ladderPitch } from '../../render/juice';
+import { QUEST_BY_ID } from '../../data/goals';
 
 export interface WinState {
   id: string;
@@ -120,32 +122,108 @@ function drawHelp(ui: UI, play: PlayScreen, st: WinState): boolean {
   return true;
 }
 
+/**
+ * The night tally. Rows reveal one by one with rising ticks, the total counts up with a coin
+ * shower of sound, a record day gets a stamp and confetti, and a teaser line says what's waiting
+ * this morning. Enter/Space/click finishes the count; the next press closes.
+ */
 function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
   const s = st.arg;
   const g = play.g;
+  const a = play.app.audio, J = play.app.renderer.juice;
   const sold: { k: number; n: number; price: number }[] = s.sold ?? [];
+  const rows = sold.slice(0, 10);
+  const D = st.data as { shown?: number; ticks?: number; done?: boolean; tease?: string[]; stamped?: boolean };
+  if (!D.tease) D.tease = morningTease(play);
   // full 16 px icons in the night tally (the day's reward deserves more than belt-size icons)
   const ROW = 17;
-  const w = 300, h = Math.min(280, 96 + Math.min(10, sold.length) * ROW);
+  const w = 300, h = Math.min(300, 116 + Math.min(10, sold.length) * ROW + D.tease.length * 11);
   const { x, y } = centered(ui, w, h);
   ui.fill(0, 0, ui.w, ui.h, C.ink, 0.5);
   if (!frame(ui, x, y, w, h, `${SEASON_NAMES[s.season]} ${s.day}, Year ${s.year}`)) return false;
+  // timeline: rows 0.3 s + 0.14 s each, then the total counts up over ~1.1 s
+  const T0 = 0.3, STEP = 0.14, COUNT = 1.1;
+  const tRows = T0 + rows.length * STEP;
+  const skip = ui.input.keyPressed('Enter') || ui.input.keyPressed('Space') || ui.clicked;
+  if (!D.done && skip && st.t > 0.1) {
+    st.t = tRows + COUNT + 0.01;
+    D.done = true;
+    ui.clicked = false;
+  } else if (D.done && skip && st.t > tRows + COUNT + 0.15) return false;
+  const shown = Math.min(rows.length, Math.max(0, Math.floor((st.t - T0) / STEP) + 1));
+  if (shown > (D.shown ?? 0)) {
+    for (let i = D.shown ?? 0; i < shown; i++) a.sfx('pickup', 0.5, ladderPitch(i));
+    D.shown = shown;
+  }
+  const ck = Math.max(0, Math.min(1, (st.t - tRows) / COUNT));
+  const counted = Math.round(s.total * (1 - Math.pow(1 - ck, 3)));
+  const ticks = Math.floor(ck * 12);
+  if (ck < 1 && ticks > (D.ticks ?? -1) && s.total > 0) {
+    D.ticks = ticks;
+    a.sfx('coin_tick', 0.7, ladderPitch(Math.min(10, ticks)));
+  }
+  if (ck >= 1) D.done = true;
+  const record = s.total > 0 && s.total > (s.best ?? 0) && (s.best ?? 0) > 0;
   ui.text(s.passedOut ? 'You collapsed from exhaustion...' : 'A good day\'s work.', x + w / 2, y + 14, s.passedOut ? C.brick : C.walnut, { align: 'center' });
   if (s.passedOut) ui.text('You passed out and slept in until 10am.', x + w / 2, y + 26, C.brick, { align: 'center' });
   let yy = y + 40;
-  if (!sold.length) ui.text('Nothing was shipped.', x + w / 2, yy, C.oak, { align: 'center' });
-  sold.slice(0, 10).forEach((it) => {
-    ui.itemIcon(it.k, x + 18, yy - 5, 16);
-    ui.text(`${ITEMS[it.k >> 2].name} x${it.n}`, x + 38, yy, C.ink);
-    ui.text(`${ICON.coin}${it.price * it.n}`, x + w - 20, yy, C.moss, { align: 'right' });
+  if (!sold.length) ui.text('Nothing was shipped. Fill the crate by the house before bed!', x + w / 2, yy, C.oak, { align: 'center' });
+  rows.forEach((it, i) => {
+    if (i >= shown) return;
+    // each row slides in from the right
+    const age = st.t - (T0 + i * STEP);
+    const dx = age < 0.1 && !D.done ? Math.round((1 - age / 0.1) * 12) : 0;
+    ui.itemIcon(it.k, x + 18 + dx, yy - 5, 16);
+    ui.text(`${ITEMS[it.k >> 2].name} x${it.n}`, x + 38 + dx, yy, C.ink);
+    ui.text(`${ICON.coin}${(it.price * it.n).toLocaleString()}`, x + w - 20 + dx, yy, C.moss, { align: 'right' });
     yy += ROW;
   });
-  if (sold.length > 10) ui.text(`...and ${sold.length - 10} more kinds`, x + 38, yy, C.oak);
-  ui.text(`Total: ${ICON.coin}${s.total.toLocaleString()}`, x + w - 20, y + h - 40, C.ink, { align: 'right', scale: 1 });
-  ui.text(`Purse: ${ICON.coin}${g.player.money.toLocaleString()}`, x + 20, y + h - 40, C.walnut);
-  if (ui.button('sumok', x + w / 2 - 40, y + h - 26, 80, 18, 'Good morning!', { style: 'green' })) return false;
-  if (ui.input.keyPressed('Enter') || ui.input.keyPressed('Space')) return false;
+  if (sold.length > 10 && shown >= rows.length) ui.text(`...and ${sold.length - 10} more kinds`, x + 38, yy, C.oak);
+  // the coin pile grows with the count; the total rolls up beside it
+  const ty = y + h - 46 - D.tease.length * 11;
+  if (s.total > 0) {
+    const pf = Math.min(3, Math.floor((counted / Math.max(s.total, s.best ?? 0, 1)) * 4));
+    drawFx(ui.ctx, 'fx:pile', pf, x + w - 132, ty + 9);
+  }
+  ui.text(`Total: ${ICON.coin}${counted.toLocaleString()}`, x + w - 20, ty, C.ink, { align: 'right' });
+  ui.text(`Purse: ${ICON.coin}${g.player.money.toLocaleString()}`, x + 20, ty, C.walnut);
+  if (record && ck >= 1) {
+    if (!D.stamped) {
+      D.stamped = true;
+      a.sfx('levelup', 0.8);
+      J.confetti(x + w / 2, ty - 4, 40, true, 80);
+    }
+    const sw = 96;
+    ui.fill(x + w / 2 - sw / 2, ty - 18, sw, 13, C.ink);
+    ui.fill(x + w / 2 - sw / 2 + 1, ty - 17, sw - 2, 11, C.brick);
+    ui.text('Best day yet!', x + w / 2, ty - 15, C.cream, { align: 'center' });
+  }
+  // what's waiting this morning: a reason to get up
+  D.tease.forEach((line, i) => ui.text(line, x + w / 2, y + h - 40 - (D.tease!.length - i) * 11 + 6, C.pine, { align: 'center' }));
+  if (ui.button('sumok', x + w / 2 - 40, y + h - 26, 80, 18, D.done ? 'Good morning!' : 'Skip', { style: 'green' })) {
+    if (D.done) return false;
+    st.t = tRows + COUNT + 0.01;
+    D.done = true;
+  }
   return true;
+}
+
+/** one or two lines about what's ready this morning */
+function morningTease(play: PlayScreen): string[] {
+  const g = play.g;
+  const out: string[] = [];
+  let ripe = 0;
+  for (const s of g.soil.values()) if (s.crop?.ready && !s.crop.dead) ripe++;
+  let goods = 0;
+  for (const e of g.ents.machines) goods += e.mach?.outBuf.reduce((n, o) => n + o.n, 0) ?? 0;
+  if (ripe) out.push(`${ripe} crop${ripe > 1 ? 's are' : ' is'} ripe and ready to pick.`);
+  if (goods) out.push(`Your machines made ${goods} good${goods > 1 ? 's' : ''} overnight.`);
+  if (!out.length) {
+    const q = (g.sys.quests?.active ?? [])[0] as { id: string } | undefined;
+    const title = q ? QUEST_BY_ID.get(q.id)?.title : null;
+    if (title) out.push(`Today: ${title}`);
+  }
+  return out.slice(0, 2);
 }
 
 function afterSummary(play: PlayScreen) {

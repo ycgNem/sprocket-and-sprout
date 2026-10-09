@@ -24,8 +24,12 @@ export function stageOf(cr: CropDef, days: number): number {
   return cr.stages.length;
 }
 
+/**
+ * Under working glass: year-round crops, no rain. The derelict greenhouse (roof broken) is an
+ * ordinary seasonal plot you can already farm; restoring it is the upgrade, not the unlock.
+ */
 export function inGreenhouse(g: Game, i: number) {
-  return g.map.zone[i] === Z.GREENHOUSE;
+  return g.map.zone[i] === Z.GREENHOUSE && g.flags.has('greenhouse_fixed');
 }
 
 export function canTill(g: Game, x: number, y: number): boolean {
@@ -36,7 +40,6 @@ export function canTill(g: Game, x: number, y: number): boolean {
   const i = m.idx(x, y);
   const z = m.zone[i];
   if (z !== Z.FARM && z !== Z.GREENHOUSE) return false;
-  if (z === Z.GREENHOUSE && !g.flags.has('greenhouse_fixed')) return false;
   if (!TILLABLE.has(m.ground[i])) return false;
   const o = m.obj[i];
   if (o !== O.NONE && o !== O.TALLGRASS && o !== O.FLOWER) return false;
@@ -60,7 +63,17 @@ export function waterTile(g: Game, x: number, y: number): boolean {
   if (!s || s.water) return false;
   s.water = true;
   g.sys.quests?.notify?.(g, 'water', 1);
+  g.emit({ t: 'hop', tile: g.map.idx(x, y) });
   return true;
+}
+
+/** Hand harvests less than 2 s apart build a streak; every 10th pick in a streak gives a bonus crop. */
+export function harvestStreak(g: Game): { n: number; bonus: boolean } {
+  const s = (g.sys.streak ??= { n: 0, last: -9999 }) as { n: number; last: number };
+  s.n = g.tickN - s.last <= 120 ? s.n + 1 : 1;
+  s.last = g.tickN;
+  if (s.n > (g.counters.best_streak ?? 0)) g.counters.best_streak = s.n;
+  return { n: s.n, bonus: s.n % 10 === 0 };
 }
 
 export function canPlant(g: Game, cr: CropDef, i: number): string | null {
@@ -77,6 +90,7 @@ export function plant(g: Game, cr: CropDef, i: number): boolean {
   s.crop = { id: cr.id, days: 0, stage: 0, ready: false, harvests: 0, dead: false, giant: -1, frac: 0 };
   s.idle = 0;
   g.sys.quests?.notify?.(g, 'plant', 1);
+  g.emit({ t: 'hop', tile: i });
   return true;
 }
 
@@ -329,7 +343,7 @@ function treesDay(g: Game) {
       t.days++;
     }
     if (t.stage < 4) continue;
-    if (def.fruit && (def.season === season || (m.zone[i] === Z.GREENHOUSE))) {
+    if (def.fruit && (def.season === season || inGreenhouse(g, i))) {
       if (t.fruit < 3) t.fruit++;
     } else if (def.fruit && def.season !== season) t.fruit = 0;
   }

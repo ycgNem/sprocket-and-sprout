@@ -25,6 +25,7 @@ import { PRIO, FRINGE_SOURCES, TILE, paintTerrain } from './art/terrain';
 import { PixBuf } from './art/pixbuf';
 import { EXTRA_TOP } from './art/structs';
 import { Particles } from './particles';
+import { Juice } from './juice';
 import { Lighting } from './lighting';
 import { Weather } from './weather';
 import { Ambient } from './ambient';
@@ -72,6 +73,7 @@ export class Renderer {
   cam = new Camera();
   chunks = new Map<string, Chunk>();
   particles = new Particles();
+  juice = new Juice();
   lighting = new Lighting();
   weather = new Weather();
   ambient = new Ambient();
@@ -555,6 +557,8 @@ export class Renderer {
     // particles
     this.particles.update(dt);
     this.particles.draw(ctx);
+    this.juice.update(dt);
+    this.juice.drawWorld(ctx);
     // weather + lighting in screen space
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (m === g.map) this.weather.draw(ctx, g, this, dt);
@@ -717,10 +721,11 @@ export class Renderer {
           const cs = sprite(`crop:${c.id}:${stage}:${c.ready ? 1 : 0}:${m.deco[i] % 3}:${c.dead ? 1 : 0}`);
           const ripe = c.ready && !c.dead;
           D.push({ y: y + 0.6, f: () => {
-            drawSprite(ctx, cs, x * TILE, y * TILE);
+            // a ripe crop twinkles about every 2 s, staggered per tile, drawn over the plant, and
+            // gives a one-pixel "pick me" hop as it does; planted/watered crops hop too
+            const k = ripe ? Math.floor((((this.time * 0.5 + hash2(x, y, 23)) % 1) * 12)) : 9;
+            drawSprite(ctx, cs, x * TILE, y * TILE + (this.juice.tileHopOf(i) || (k === 1 ? -1 : 0)));
             if (!ripe) return;
-            // a ripe crop twinkles about every 2 s, staggered per tile, drawn over the plant
-            const k = Math.floor((((this.time * 0.5 + hash2(x, y, 23)) % 1) * 12));
             if (k > 2) return;
             const tx = x * TILE + 3 + Math.floor(hash2(x, y, 29) * 10), ty = y * TILE - 6 + Math.floor(hash2(x, y, 31) * 8);
             if (hasImage('fx:twinkle:0')) drawSprite(ctx, sprite(`fx:twinkle:${k}`), tx, ty);
@@ -841,7 +846,7 @@ export class Renderer {
         const shadowW = d.kind === 'decor' || d.kind === 'lamp' ? 10 : Math.round(e.w * TILE * 0.8);
         D.push({ y: e.y + e.h - 0.02, f: () => {
           drawSprite(ctx, sprite(`shadow:${shadowW}`), e.x * TILE + e.w * 8, (e.y + e.h) * TILE - 2);
-          drawSprite(ctx, s, e.x * TILE, e.y * TILE);
+          drawSprite(ctx, s, e.x * TILE, e.y * TILE + this.juice.hopOf(e.id));
           // imported windmill art animates its own sails
           if (d.id === 'windmill' && !hasImage(`st:windmill:${f}:${on ? 1 : 0}:${season}`)) this.drawWindmillBlades(g, e);
           if (d.kind === 'drill') this.drawDrillArrow(e);
