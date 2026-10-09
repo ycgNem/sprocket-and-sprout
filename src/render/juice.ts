@@ -375,7 +375,6 @@ export class Juice {
       const fr = Math.floor(this.time * 12) % 6;
       const name = c.phase === 1 ? `courier:perch:${c.t > C_PERCH * 0.35 && c.t < C_PERCH * 0.8 ? 1 : 0}` : c.phase === 0 ? `courier:fly:${fr}` : `courier:carry:${fr}`;
       const x = Math.round(c.x), y = Math.round(c.y);
-      if (c.phase !== 2 || c.t < 0.4) drawSprite(ctx, sprite('shadow:8'), Math.round(c.tx), Math.round(c.ty) + 1);
       if (hasImage(name)) drawSprite(ctx, sprite(name), x, y, 1, c.flip);
       else {
         // stand-in: a brass body with flapping copper wings

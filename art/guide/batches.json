@@ -1,0 +1,42 @@
+{
+  "_": "PixelLab design batches for the Phase 3 first-session guide sprites (courier, compass, ring, scroll, seal). Two create_1_direction_object calls (view sidescroller), 64 slots each, 10 generations each; both left in review, nothing promoted. They are the design reference only: the birds came back 18-22 px tall for a sprite that must fly inside 20 x 16 with its wings up, their wing poses don't chain into a flap cycle, and the snap muddies them, so art/guide/build.mjs hand-pixels every frame at 1x. Raw downloads: raw/<batch>/<slot>.png; review sheets: node scripts/contact.mjs art/guide/raw/<batch> --out e2e/out/guide/<batch>.png --cols 16 --scale 6.",
+  "style": {
+    "b20": "tiny pixel art sprite for a warm cozy steampunk farming game, Stardew Valley style, side view, crisp 1 px dark plum outline, light from the upper left, warm brass gold copper and cream colors, flat 2 to 3 shade shading, no anti-aliasing, chunky readable silhouette, centered on transparent background, no shadow",
+    "b24": "tiny pixel art sprite for a warm cozy steampunk farming game, side view facing right, a small shiny golden brass robot bird toy automaton, polished metal body with visible round rivets, copper metal wing plates, one big round glowing orange eye, short pointed metal beak, crisp 1 px dark plum outline, light from the upper left, flat 3 shade shading, no anti-aliasing, chunky readable silhouette, centered on transparent background, no shadow"
+  },
+  "batches": {
+    "b20": {
+      "object": "7be3797b-69cd-43fb-8e58-1d460c05fe66",
+      "size": 20,
+      "result": "Birds read as plain brown sparrows (no brass, no automaton): poses only. Scrolls (30-39), wax seals (40-45) and the kraft parcel (50-51) set those designs.",
+      "slots": [
+        ["0-3, 52-55", "clockwork mail bird standing, wings folded", "pose reference for courier:perch"],
+        ["4-7, 56", "flying, wings raised", "courier:fly:0"],
+        ["8-11", "gliding, wings level", "courier:fly:2/4"],
+        ["12-15, 57-59", "wings down / half up / half down", "courier:fly:1/3/5"],
+        ["16-19, 60-63", "flying with a string-tied parcel", "courier:carry"],
+        ["20-21", "pecking, head down", "courier:perch:1"],
+        ["22-27", "robin / sparrow / pigeon variants", "(rejected: generic birds)"],
+        ["28-39", "parchment scroll rolled, half open, open with ink lines and a red wax dot", "fx:scroll:0..3 (two rollers with brass caps, ink lines, wax dot)"],
+        ["40-45", "red wax seal with a sprocket emblem, soft blob, squashed", "fx:seal:0..2"],
+        ["46-47", "amber arrowhead pointer", "fx:compass (rejected: a filled triangle; drawn by rule instead)"],
+        ["48-49", "brass ring gauge with a green arc", "fx:ring (confirmed the look; drawn by rule)"],
+        ["50-51", "brown parcel tied with string", "the courier's parcel"]
+      ]
+    },
+    "b24": {
+      "object": "13b7e0ab-13c5-4172-949e-cada73b87ded",
+      "size": 24,
+      "result": "Gold bodies, copper wings, cream satchels: the courier's look. Models: #4/#5 (wings up, copper plates), #3 (copper wing on a gold body), #32 (satchel with a red wax dot), #40 (kraft parcel with a string cross), #0 (wind-up key: dropped, it collides with the raised wings at 16 px).",
+      "slots": [
+        ["0-3, 44, 52, 56", "golden brass robot bird standing (key, satchel, pocket-watch body, segmented tail)", "courier:perch"],
+        ["4-11, 33-35, 45-47, 53-54, 57-59", "flying, wings up / half / level / down", "courier:fly"],
+        ["12-14, 50-51, 60-62", "flying with a parcel in the claws", "courier:carry"],
+        ["15-16, 21, 39, 55, 63", "pecking, head down", "courier:perch:1"],
+        ["17", "standing on a crate", "scale check"],
+        ["18-31", "round / swallow / robin / owl / propeller variants", "(rejected: off-brief)"],
+        ["40-43", "parcel, satchel, envelope", "props"]
+      ]
+    }
+  }
+}

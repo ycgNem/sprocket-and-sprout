@@ -262,6 +262,35 @@ How the work is split:
   the indie-critic replays the first session. Commits per chunk; pushing (= deploying) only with
   the owner's OK.
 
+**Session 1 of Phase 3 (2026-10-09), done:**
+- [x] Juice layer `src/render/juice.ts` + sheet `src/art/juice.*` (coin, star, puff, glint,
+      heart, streak flame, guide arrow, gust, coin piles, chest): crops arc into their hotbar
+      slot, a harvest streak with a pentatonic pitch ladder (bonus crop every 10th pick, sim side),
+      coin showers into the odometer (digits roll as coins land), machines hop + pop their
+      output + ring their own note, impact stars and ground-coloured chunks, level-up rings,
+      confetti, ribbons for quests / research ("Discovery!") / the post, big crated values.
+- [x] Night tally counts up (rows reveal, ticks climb, coin pile grows), quests done today,
+      a morning teaser ("ripe and ready", "made N goods overnight", "ripen in N days"), record
+      day stamp.
+- [x] Key bubbles (`src/sim/prompts.ts`): "F Enter / Sleep / Harvest / Load / Collect / Ship…"
+      for whatever you face, "Click Till / Plant / Water / Chop" for the first 3 days; setting.
+- [x] Greenhouse: the derelict one is a seasonal plot you can farm; restoring it adds year-round.
+- [x] First session resequenced from the critic's review: the first quest completes on loading
+      the jar, the keeper's jar runs 4x for 3 batches, arm placement pays at once, "The Noon
+      Post" with a countdown beside the crate and a brass mail-bird courier, desk + "Bundle Up"
+      fill the morning, bed waits until 6pm on day one, "First Pickles" instead of selling raw,
+      "Double the Line" on day two (jar sold at the Workshop), shop visits count as talking,
+      guide arrow + off-screen compass for villagers, a marked first plot, arm snap, F loads
+      the desk, tutorial quests don't use the 3-quest cap, Water Power waits for the furnace.
+- [x] Title wordmark with the spinning sprocket as its O; sprocket emblem on the hotbar
+      (`src/art/logo.*`, drawn by rule).
+- [x] Designed jsfxr sounds for pickup, harvest, click, place, coin ticks, machine bells
+      (`scripts/sfx-design.mjs`), golden hour + dawn light, wind gusts, belt hum, status lamps.
+- [ ] Still open: shoreline foam (needs terrain art: the visible bank is offset half a tile
+      from tile edges, so code-drawn foam reads as grid lines), a compact HUD at 2x for
+      540–679 px tall windows (the UI drops to 1x there), the critic's later asks (Ottoline
+      meeting you at the bean patch, Tock the automaton guide), research-node select sound.
+
 The original juice list:
 
 - Harvest: pop + bounce + magnet-to-player; streak counter for consecutive harvests.
