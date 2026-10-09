@@ -2,8 +2,9 @@
 import { C, PALETTE, rgba } from '../data/palette';
 import type { Input } from '../engine/input';
 import { sprite, drawFit, drawItemIcon } from '../render/atlas';
-import { drawText, textWidth, wrapText, LINE_H } from './font';
+import { drawText, textWidth, wrapText, LINE_H, FONT_H } from './font';
 import { ITEMS } from '../data/items';
+import type { AuditRec, AuditKind } from './audit';
 
 export interface Rect { x: number; y: number; w: number; h: number }
 export interface TipLine { text: string; color?: number; icon?: string }
@@ -34,6 +35,17 @@ export class UI {
   focus: string | null = null;
   hoverId: string | null = null;
   sfx: (id: string) => void = () => {};
+  /** debug: record what each frame draws for the overlap audit (src/ui/audit.ts, npm run screens) */
+  audit = false;
+  /** the last complete frame's records, while audit is on */
+  lastAudit: AuditRec[] = [];
+  private auditLog: AuditRec[] = [];
+  private auditLayer: AuditRec['layer'] = 'ui';
+  private clips: Rect[] = [];
+
+  private rec(kind: AuditKind, x: number, y: number, w: number, h: number, s?: string) {
+    this.auditLog.push({ kind, x, y, w, h, s, clip: this.clips[this.clips.length - 1], layer: this.auditLayer, seq: this.auditLog.length });
+  }
 
   begin(ctx: CanvasRenderingContext2D, input: Input, scale: number, dt: number) {
     this.ctx = ctx;
@@ -51,6 +63,11 @@ export class UI {
     this.clicked = input.mouse.pressed[0];
     this.rclicked = input.mouse.pressed[2];
     this.hoverId = null;
+    if (this.audit) {
+      this.lastAudit = this.auditLog;
+      this.auditLog = [];
+      this.clips = [];
+    }
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
     ctx.imageSmoothingEnabled = false;
   }
@@ -83,6 +100,7 @@ export class UI {
   }
 
   fill(x: number, y: number, w: number, h: number, c: number, a = 1) {
+    if (this.audit && a >= 0.85 && w > 2 && h > 2) this.rec('fill', x, y, w, h);
     this.ctx.fillStyle = a >= 1 ? PALETTE[c] : rgba(c, a);
     this.ctx.fillRect(x, y, w, h);
   }
@@ -91,6 +109,7 @@ export class UI {
     x = Math.round(x);
     y = Math.round(y);
     if (blocking) this.block(x, y, w, h);
+    if (this.audit) this.rec('panel', x, y, w, h);
     const f = (xx: number, yy: number, ww: number, hh: number, c: number) => this.fill(xx, yy, ww, hh, c);
     switch (style) {
       case 'wood':
@@ -146,6 +165,7 @@ export class UI {
     let tx = x;
     if (opts.align === 'center') tx = x - Math.floor((textWidth(s) * sc) / 2);
     else if (opts.align === 'right') tx = x - textWidth(s) * sc;
+    if (this.audit && s.trim()) this.rec('text', Math.round(tx), Math.round(y), textWidth(s) * sc, FONT_H * sc, s);
     return drawText(this.ctx, s, Math.round(tx), Math.round(y), PALETTE[c], sc, opts.shadow !== undefined ? PALETTE[opts.shadow] : null);
   }
 
@@ -162,6 +182,7 @@ export class UI {
     const style = opts.style ?? 'wood';
     const base = opts.disabled ? C.stone : style === 'green' ? C.moss : style === 'red' ? C.brick : opts.active ? C.copper : style === 'flat' ? C.tan : C.oak;
     const hi = opts.disabled ? C.pebble : style === 'green' ? C.grass : style === 'red' ? C.terracotta : opts.active ? C.apricot : style === 'flat' ? C.butter : C.tan;
+    if (this.audit) this.rec('button', x, y, w, h);
     this.fill(x, y, w, h, C.ink);
     this.fill(x + 1, y + 1, w - 2, h - 2, hov ? hi : base);
     if (!down) {
@@ -276,9 +297,11 @@ export class UI {
     this.ctx.beginPath();
     this.ctx.rect(x, y, w, h);
     this.ctx.clip();
+    if (this.audit) this.clips.push({ x, y, w, h });
   }
   unclip() {
     this.ctx.restore();
+    if (this.audit) this.clips.pop();
   }
 
   /** single-line text field */
@@ -305,9 +328,11 @@ export class UI {
   }
 
   end() {
-    // dragged stack follows the mouse
+    // dragged stack follows the mouse; it and the tooltip float above the UI on purpose
+    this.auditLayer = 'tip';
     if (this.hand) this.itemIcon(this.hand.k, this.mx - 8, this.my - 8, 16, this.hand.n);
     if (this.tooltip && this.tooltip.length) this.drawTip(this.tooltip);
+    this.auditLayer = 'ui';
     if (!this.focus) this.input.textFocus = false;
   }
 

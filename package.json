@@ -11,7 +11,8 @@
     "test": "vitest run",
     "e2e": "node e2e/smoke.mjs",
     "desktop": "npm run build && electron .",
-    "dist:win": "npm run build && electron-builder --win nsis portable"
+    "dist:win": "npm run build && electron-builder --win nsis portable",
+    "screens": "node e2e/screens.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
