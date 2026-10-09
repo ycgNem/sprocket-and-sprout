@@ -8,6 +8,11 @@ This file is the plan for what comes next: fix the base, replace the art, add ju
 Work one phase per session. Start every session with "Read ROADMAP.md", end it with
 the `indie-critic` agent, a commit, and a push (the live site redeploys itself).
 
+**Owner's priority (2026-10-09): features and visible improvements over polish.** Phase 0
+is done; don't sink sessions into minor bug fixing. Fix only what is game-breaking or
+clearly visible, and spend the time on Phases 1–3. `npm run screens` catches layout
+regressions cheaply, so run it instead of hunting by hand.
+
 ## Where we are
 
 The game is complete and playable, but it looks bland. Root cause: every sprite is
@@ -15,14 +20,14 @@ drawn procedurally from a 32-color palette (`src/render/art/`, ~5,000 lines). Th
 uniform tiles, flat lighting, no hand-placed highlights and crops that read as sad.
 The sim, the content and the test rig are solid; the art and the feedback are the gap.
 
-### Known bugs, with where they live
+### Bugs reported 2026-10-08 (all fixed in Phase 0)
 
-| Bug | Where | Notes |
+| Bug | Cause | Fix |
 |---|---|---|
-| Character look reverts to the default | `src/app/app.ts:156` resets the look whenever the title screen is built; `src/render/atlas.ts` caches sprites by name and may not flush when `setPlayerLook` runs | One of these two. Check save/load round trip (`src/sim/save.ts` stores `look`). |
-| Belt items drawn off the pixel grid | `src/render/renderer.ts:600` scales 16×16 item sprites to 10×10 | Non-integer scale blurs and misaligns every item. Needs a dedicated belt-size sprite or 1:1 drawing. |
-| Title text overlaps the demo windmill | `src/app/app.ts:199` draws over the demo farm from `src/app/demo.ts` | Composition: reserve a clear zone in the demo layout, or draw a soft plate behind the title. |
-| Overlapping text/sprites in various windows | Unknown; nothing audits this yet | Phase 0 builds the screenshot sweep that finds them. |
+| Character look reverts to the default | Sprites are cached by name; `setPlayerLook` updated the look but not the cached `ch:player:*` frames drawn on the title screen | `setPlayerLook` flushes them (`invalidateSpritePrefix`) |
+| Belt items out of line | 16×16 icons squeezed to 10×10 at lane offsets that missed the belt surface | `ib:` 10×10 belt icons drawn 1:1, lanes at the surface's real centers |
+| "Sprocket" overlapped on the title | The spinning gear ornament sat on the letters; the demo farm drifts under the logo | Gear placed from the measured word width; soft plate behind the logo |
+| Overlapping text in windows | Toasts and the achievement banner under/over windows, HUD peeking around windows, raw key codes in the controls help, long lines | See Phase 0; `npm run screens` now reports 0 issues on 43 screens |
 
 ## Design principle for the overhaul
 
@@ -73,24 +78,28 @@ Hard rules from here on:
 
 No new art. Make the current game pixel-correct and overlap-free first.
 
-- [ ] Fix the character look reverting (see table above). Add a test that round-trips a
-      look through save/load.
-- [ ] Fix belt items: integer scale, centered on the lane, lanes readable at a glance.
-- [ ] Fix the title/windmill overlap.
-- [ ] Enforce the integer-grid rule: audit every `drawImage` in `src/render/` for
-      non-integer scales or positions.
-- [ ] Build `npm run screens`: a Playwright sweep that opens every screen and window
-      (title, new game, farm by season, house, mine, every window in `src/ui/windows/`,
-      every festival) and saves one PNG each to `e2e/out/screens/`. `e2e/shots.mjs` and
-      `e2e/windows.mjs` are the starting points. Add a simple overlap check: the UI
-      already knows every text and widget rectangle it draws in a frame; log any two
-      that intersect.
-- [ ] Fix everything the sweep finds.
-- [ ] Create the `qa-screens` agent (stub exists in `.claude/agents/`) and make it run
-      the sweep and read the results.
+**Done 2026-10-09.**
 
-Done when: every screen screenshots clean, the overlap check reports zero, the character
-keeps their look across save/load, and the critic agent confirms belts and the title.
+- [x] Character look reverting: cache flush on look change; the save round-trip test now
+      checks the whole look.
+- [x] Belt items: `ib:` belt icons (fill halved 2:1, edge-shaded, re-outlined), 1:1 on
+      whole pixels, centered on the lanes.
+- [x] Title: gear moved off the letters, backing plate behind the logo.
+- [x] Integer-grid rule: `drawFit` and `drawItemIcon` in `src/render/atlas.ts`; every
+      fractionally scaled `drawImage` routed through them. One exception left: the
+      rotated tool swing (`renderer.ts`, `drawToolSwing` area) needs drawn frames (Phase 2).
+- [x] `npm run screens`: 43 scripted screens/windows, one PNG each in `e2e/out/screens/`,
+      `report.md`, boxed `<name>.issues.png`; previous run in `screens-prev/`. The overlap
+      audit lives in `src/ui/audit.ts` (unit-tested in `tests/audit.test.ts`); the UI
+      records draws only while `ui.audit` is on.
+- [x] Fixed everything it found: 309 flagged → 0. Toasts and the achievement banner wait
+      while a modal window is open, the HUD is hidden under modal windows, controls help
+      uses real key names, long texts are shortened (`ellipsize` in `src/ui/font.ts`).
+- [x] `qa-screens` agent updated to run the sweep.
+- [ ] Not done: the critic agent pass (skipped at the owner's request to move on).
+
+Not covered by the sweep yet: festivals other than the kite/skate minigames, the
+evaluation and rush result screens, the cooking/adopt/elevator windows, dialogue.
 
 ### Phase 1 — Style bible and art pipeline spike (1 session)
 
@@ -125,7 +134,8 @@ In this order, because this is how much of the screen each occupies:
 4. Belts, items and machines: belt sprites with an animated surface, item icons at the
    belt size, machine idle/working frames, little puffs on completion.
 5. Trees, rocks, buildings and furniture.
-6. UI icons and the bitmap font pass (check legibility at 1× UI scale).
+6. UI icons and the bitmap font pass (check legibility at 1× UI scale). Tool-swing
+   frames to replace the rotated icon (the last off-grid draw).
 7. Delete the procedural generators in `src/render/art/` that no longer draw anything.
 
 Each session ends with `npm run screens`, the critic agent, a commit and a push.

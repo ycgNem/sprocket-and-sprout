@@ -39,6 +39,7 @@ See `HANDOFF.md` for details.
 | `npm run typecheck` | TypeScript only |
 | `npm test` | Vitest unit tests (simulation, data validation, pacing bot) |
 | `node e2e/smoke.mjs` | Playwright smoke test through the real UI (needs the dev server and Chrome) |
+| `npm run screens` | screenshots 43 screens and windows and checks the UI for overlapping or cut-off text; report in `e2e/out/screens/report.md` |
 | `node e2e/bot.mjs 14` | Playwright bot plays 14 in-game days, screenshots every morning |
 | `node e2e/perf.mjs` | builds a 1300-belt / 260-machine factory and measures frame + tick times |
 | `node e2e/shots.mjs farm,town,npcs,minefloor,factory` | screenshots of scenes and windows |

@@ -1,9 +1,18 @@
 # Handoff: Sprocket & Sprout
 
 A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript + Vite + Canvas 2D,
-with no engine and no asset files. All art and audio are procedural.
+with no engine and no asset files yet. Art and music are procedural; some SFX come from a jsfxr bank.
 
-**Status (October 8, 2026):** playable and feature-complete for the original brief. On top of that:
+**Status (October 9, 2026):** 1.0 is live, and the 1.1 visual overhaul is underway (`ROADMAP.md`).
+- **Live:** https://ycgnem.github.io/sprocket-and-sprout/ (redeploys on every push to `main`);
+  Windows installers on https://github.com/ycgNem/sprocket-and-sprout/releases/tag/v1.0.0.
+- **Phase 0 of the overhaul is done** (Oct 9): the player-look bug, belt items on the pixel grid,
+  the title overlap, an integer-grid rule for every scaled sprite, and `npm run screens` (a
+  43-screen sweep with an automatic UI overlap audit, now at 0 issues).
+- **Next: Phase 1**, the art pipeline spike (style bible, Resurrect 64 palette, PNG sprites in the
+  atlas, first PixelLab character). The owner wants features and visible change now, not polish.
+
+1.0 itself was feature-complete for the original brief. On top of that:
 - a large depth pass;
 - an "identity pass" driven by two indie-critic reviews:
   - a clockwork-first opening, 4 game modes and 5 farm maps;
@@ -13,16 +22,27 @@ with no engine and no asset files. All art and audio are procedural.
 
 All tests and e2e suites are green.
 
-- **Location:** `C:\Users\jacks\Documents\sprocket-and-sprout` (git repo, branch `main`, no remote yet).
+- **Location:** `C:\Users\jacks\Documents\sprocket-and-sprout` (git repo, branch `main`, remote
+  `origin` = https://github.com/ycgNem/sprocket-and-sprout, public).
 - **Docs:**
   - `README.md`: features and controls.
   - `PLAN.md`: architecture.
   - `DECISIONS.md`: 46 design decisions with reasons; #35-46 cover the identity pass.
   - `PROGRESS.md`: phase-by-phase status.
   - `SHARING.md`: putting the game online or packaging it.
-- **Design reviewer:** `.claude/agents/indie-critic.md` is a project subagent. Ask Claude to "have
-  indie-critic review X". It reads the code, plays the build with Playwright and returns a ranked,
-  evidence-tagged critique. It is read-only. Both review rounds are summarised in DECISIONS #35-46.
+  - `ROADMAP.md`: **the current plan** (visual overhaul toward 1.1): owner decisions, phases,
+    hard art rules and the prompt that starts each phase.
+  - `references/`: the owner's taste: `notes.md`, palettes (Resurrect 64 is the chosen one), and
+    screenshots of admired games (`games/`, gitignored because they are other studios' work).
+- **Project agents** (`.claude/agents/`):
+  - `indie-critic`: design review. Reads the code, plays the build with Playwright, returns a
+    ranked, evidence-tagged critique. Read-only. Both review rounds are in DECISIONS #35-46.
+  - `art-director`: owns `STYLE.md` (not written yet; Phase 1), generates art with PixelLab,
+    quantizes to the palette, imports through the atlas. Never commits.
+  - `qa-screens`: runs `npm run screens` and reports overlaps, off-grid sprites and regressions.
+    Read-only.
+- **Tools connected on this PC:** PixelLab MCP (pixel-art generation; added with `claude mcp add`,
+  local scope for this project), ComfyUI skill (concept art), jsfxr (in the repo).
 
 ## How to play
 
@@ -44,8 +64,8 @@ See `SHARING.md` for the full guide.
   - `public/manifest.webmanifest`, `public/sw.js` and the icons;
   - the service worker registers only for production builds over http(s);
   - the title screen shows **Install as an app** when the browser offers it.
-- **GitHub Pages.** `.github/workflows/deploy.yml` publishes on every push to `main`. Turn it on in repo
-  Settings -> Pages -> Source: GitHub Actions. The repo has no remote yet.
+- **GitHub Pages.** `.github/workflows/deploy.yml` runs the tests, builds and publishes on every push to
+  `main`. It is on and live at https://ycgnem.github.io/sprocket-and-sprout/. **Pushing = deploying.**
 - **Desktop.**
   - `Build desktop app.bat` (`npm run dist:win`) runs electron-builder and puts these in `release/`:
     `Sprocket-and-Sprout-Setup-<version>.exe` (NSIS installer) and `...-Portable-<version>.exe`.
@@ -60,10 +80,11 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 77 Vitest tests (sim, data, modes, maps, achievements, pacing bot)
+npm test                                   # 85 Vitest tests (sim, data, modes, maps, achievements, UI audit, pacing bot)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
 npm run build                              # production build, about 790 KB JS (280 KB gzipped)
 node e2e/smoke.mjs http://localhost:5173/  # real UI smoke, 0 console errors expected
+npm run screens                            # 43-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected)
 BASE=http://localhost:5173/ node e2e/flow.mjs  # real input: two-step new game, farm, house, bed, reload
 BASE=... node e2e/windows.mjs | qa.mjs | bot.mjs 7 | house.mjs | pet.mjs | guild.mjs | ...
 ```
@@ -78,7 +99,9 @@ Pacing bot over 28 days, 3 seeds:
 ## Code map
 
 ```
-src/engine/   loop (fixed 60 Hz sim, separate render), input (rebindable actions), rng, audio
+src/engine/   loop (fixed 60 Hz sim, separate render), input (rebindable actions, keyLabel), rng,
+              audio/audio.ts (procedural SFX + music), audio/sfxr.ts (jsfxr bank: base58 sounds
+              from sfxr.me; ids in SFXR_BANK override the synthesized version)
 src/data/     typed content: items, crops, trees, fish, creatures, structures, recipes, research,
               npcs, shops, goals (quests/projects/festivals), buffs, contracts, cookbook, furniture,
               perks, palette (32 colours), modes (game modes, farm maps, Rush medals)
@@ -88,8 +111,11 @@ src/sim/      pure simulation, no DOM. Game.ts (state, tick, endDay, simRate/clo
 src/sim/systems/  one file per system, registered with registerSystem({tick, dayStart, dayEnd,
               init, save, load, afterLoad, realtime}). Import order lives in src/sim/index.ts.
               New: modes.ts (start kits, the clockwork opening, Rush scoring), achievements.ts
-src/render/   renderer, lighting, weather, particles, ambient, atlas, art/*
-src/ui/       immediate-mode canvas UI kit, hud.ts (layout), hudparts.ts (chronometer, odometer,
+src/render/   renderer, lighting, weather, particles, ambient, art/* (procedural sprite generators),
+              atlas.ts (sprite cache + drawSprite, drawFit, drawItemIcon, invalidateSpritePrefix)
+src/ui/       immediate-mode canvas UI kit (ui.ts; records draws for the audit when ui.audit is on),
+              audit.ts (overlap checks: clash/overflow/covered), font.ts (textWidth, wrapText, ellipsize),
+              hud.ts (layout), hudparts.ts (chronometer, odometer,
               gear hotbar, gauges, build bar, Rush tracker), pulse.ts (factory lamps),
               cursor.ts (CSS pixel cursor), tooltips, windows/* (achievements, modes = Rush result,
               palette = Sandbox build palette, plus the older ones)
@@ -97,7 +123,8 @@ src/app/      App/title/new game (two steps: character, then mode + map with a l
               PlayScreen (input, build mode, guide markers, events -> UI), tips, profile.ts
               (cross-save achievement/Rush profile in localStorage), perf
 tests/        Vitest suites + tests/bot.ts (scripted player; it now plays the opening too)
-e2e/          Playwright scripts (e2e/out is gitignored scratch)
+e2e/          Playwright scripts (e2e/out is gitignored scratch); screens.mjs = the sweep (add new
+              screens to its SC table)
 ```
 
 ## Patterns to follow
@@ -124,6 +151,14 @@ e2e/          Playwright scripts (e2e/out is gitignored scratch)
   - Add them to `ACHIEVEMENTS` with either a `test(g)` (polled every 2 s) or an event-time `unlockAch`.
   - Secrets need a `hint`.
   - `tests/modes.test.ts` checks ids, icons and hints.
+- **Pixel grid (Phase 0 rule):** never draw a sprite at a fractional scale. Use `drawFit` (whole-number
+  scale into a box) or `drawItemIcon` (10 px `ib:` icon below 13 px, 16 px 1:1 up to 31, multiples
+  above); `ui.itemIcon` and `ui.spriteIcon` already do. The rotated tool swing is the one known exception.
+- **Overlays and windows:** while a modal window is open, the HUD isn't drawn, and toasts and the
+  achievement banner wait (they don't age). Non-modal windows (`modal: false`, e.g. the fade) don't count.
+  `PlayScreen.modalOpen` is the check.
+- **Sprite cache:** sprites are generated once per name and cached. If what a name draws changes at
+  runtime (like the player look), flush it with `invalidateSpritePrefix`.
 - **Other conventions (unchanged):**
   - Item keys are `index*4 + quality`. Saves store `[id, quality]`.
   - The `O` enum is saved by value, so only append to it.
@@ -131,8 +166,16 @@ e2e/          Playwright scripts (e2e/out is gitignored scratch)
 
 ## What's next
 
-`ROADMAP.md` is the plan for the 1.0 → 1.1 visual overhaul: known bugs with file
-pointers, the phases, the agents (`.claude/agents/`) and the prompt that starts each phase.
+`ROADMAP.md` is the plan for the 1.0 → 1.1 visual overhaul. Phase 0 is done; start Phase 1 with:
+
+> Read ROADMAP.md and HANDOFF.md. Phase 1 spike: write STYLE.md (palette: Resurrect 64; scope:
+> full replacement), put the palette into src/data/palette.ts with the old C names aliased,
+> add PNG sprite loading to the atlas, then use the art-director agent and PixelLab to make one
+> replacement player character with a 4-direction walk. Put old and new side by side in the game
+> and screenshot both. Commit, run npm run screens, push.
+
+Owner decisions so far: full art replacement; Resurrect 64 palette (never under 48 colors);
+features and visible change over polish.
 
 ## Environment notes (for whoever works on this next)
 
@@ -143,7 +186,17 @@ pointers, the phases, the agents (`.claude/agents/`) and the prompt that starts 
   helper. The in-app browser pane often runs hidden, which pauses `requestAnimationFrame`; use headless
   Playwright screenshots to check visuals.
 - **Shell gotcha:** in this environment, bash heredocs fed to `python -`/`cat` lose backslashes
-  (`\'` becomes `'`). Use the Edit tool for any text with escaped quotes.
+  (`\'` becomes `'`), and long heredocs with quotes can fail to parse. Use the Edit tool, or
+  write the script to a file first.
+- **Line endings:** git checks files out with CRLF here (autocrlf) and commits LF (`.gitattributes`).
+  Scripted edits must match CRLF or normalize first; the Edit tool handles it. "CRLF will be
+  replaced by LF" warnings on commit are harmless.
+- **The owner's dev server answers on `localhost`, not `127.0.0.1`.** Pass `http://localhost:5173/`.
+  After hot updates, Vite serves edited modules as `?t=` URLs, so `import('/src/...')` from page
+  scripts can get a second module instance; find the URL the app loaded via
+  `performance.getEntriesByType('resource')`, or reload first.
+- **Handy scratch helpers** (in gitignored `e2e/out/`): `titleshot.mjs` (title screen with a frozen
+  camera), `compare.mjs` (before/after side by side, pixel-perfect), `crop.mjs` (crop + enlarge).
 
 ## Known issues / loose ends
 
@@ -154,6 +207,10 @@ pointers, the phases, the agents (`.claude/agents/`) and the prompt that starts 
 - The pacing bot is simple: it ships crops and builds one arm line, with no real factory. It is a
   floor for balance, not a target.
 - Tinker's Yard's ruins are still plain cobble halls. They need wrecked-machine dressing.
+- The title screen says "v0.9"; package.json and the release say 1.0.0 (fix when bumping to 1.1).
+- The tool swing rotates its icon, which breaks the pixel grid (replace with drawn frames in Phase 2).
+- The jsfxr sounds (coin/sell/ship, levelup, hurt) are generated placeholders; nobody has listened yet.
+- `npm run screens` doesn't cover every festival, dialogue, cooking/adopt/elevator or the result screens.
 
 ## Deferred from the indie-critic reviews (biggest first)
 

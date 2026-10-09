@@ -122,9 +122,31 @@
 - Tests: 77 Vitest tests (new: tests/modes.test.ts for maps, modes, time dilation, bag loading, the post and achievements) +
   LONG=1 year run. E2E smoke/flow updated for the two-step new-game screen; all report 0 console errors.
 
+## 1.0 release and overhaul Phase 0 (October 8-9, 2026)
+- Published: public repo https://github.com/ycgNem/sprocket-and-sprout, GitHub Pages live at
+  https://ycgnem.github.io/sprocket-and-sprout/ (deploys on every push), v1.0.0 release with the
+  Windows Setup and Portable .exe.
+- Planning for the 1.1 visual overhaul: `ROADMAP.md` (owner decisions: full art replacement,
+  Resurrect 64 palette, features over polish), `references/` (taste notes, palettes, admired-game
+  screenshots kept local), `art-director` and `qa-screens` agents, PixelLab MCP connected.
+- jsfxr sound bank (`src/engine/audio/sfxr.ts`): designed SFX override the synthesized ones by id;
+  3 placeholder sounds seeded.
+- Phase 0 fixes:
+  - The player sprite no longer flips back to the default look (sprite cache flushed on change).
+  - Belt items are crisp 10x10 icons on the pixel grid, centered on the real lanes.
+  - Title: the gear ornament no longer sits on "Sprocket"; a plate keeps the logo readable.
+  - No sprite is drawn at a fractional scale any more (`drawFit`, `drawItemIcon`), except the
+    rotated tool swing.
+  - `npm run screens`: 43-screen Playwright sweep with an automatic UI overlap audit
+    (`src/ui/audit.ts`). It found 309 issues; all fixed: toasts and the achievement banner wait
+    for modal windows to close, the HUD hides under modal windows, the controls help shows real
+    key names, long texts are shortened to fit.
+- Tests: 85 Vitest tests (new: `tests/audit.test.ts`). Smoke and the sweep report 0 console errors.
+
 ## Next
-- More interior variety (decor items placeable indoors), farmhouse expansion tiers.
-- More depth for mid-game automation goals and late-game megaprojects.
+- Overhaul Phase 1 (art pipeline spike), then Phases 2-4 in `ROADMAP.md`.
+- Older ideas: more interior variety (decor items placeable indoors), farmhouse expansion tiers;
+  more depth for mid-game automation goals and late-game megaprojects.
 
 ## Known issues
 - Bumblebots in flight during a manual mid-day save return to their hive on load.

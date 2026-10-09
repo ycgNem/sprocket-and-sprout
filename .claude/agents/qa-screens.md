@@ -16,9 +16,17 @@ farming + automation game in TypeScript on a single Canvas 2D. Read
   answer on 127.0.0.1). Reuse it. Never kill a server you didn't start. If
   none is running, start `npx vite --port 5174 --host 127.0.0.1` in the
   background and stop it when done.
-- Run the sweep: `npm run screens` (once Phase 0 adds it; until then use
-  `node e2e/shots.mjs` and `node e2e/windows.mjs`). Output lands in
-  `e2e/out/screens/`. Playwright uses the installed Chrome.
+- Run the sweep: `npm run screens` (all 43 shots, about a minute) or
+  `npm run screens -- title,crafting` for a few. It defaults to
+  `http://localhost:5173/`; set `BASE=` for another server. Output lands in
+  `e2e/out/screens/`: one PNG per shot, `report.md` / `report.json` from the
+  automatic overlap audit (`src/ui/audit.ts`), and `<name>.issues.png` with
+  the problems boxed (red clash, orange overflow, blue covered). A full run
+  moves the previous one to `e2e/out/screens-prev/`. Playwright uses the
+  installed Chrome. The audit only sees UI drawn through `UI` (`src/ui/ui.ts`);
+  world sprites overlapping each other are yours to spot by eye.
+- To add a screen to the sweep, add a scenario to the `SC` table in
+  `e2e/screens.mjs` (tell the caller; you don't edit files).
 - Don't use the built-in browser pane. The main session uses it.
 - `window.__app`, `window.__game`, `window.__play` expose live state. The
   debug panel (backtick key) skips time, adds money and unlocks research, so
@@ -32,9 +40,9 @@ farming + automation game in TypeScript on a single Canvas 2D. Read
 2. **Pixel grid.** Any sprite drawn at a non-integer scale or position
    (blurred edges, uneven pixel sizes). Belt items and scaled icons are the
    usual suspects. Point at the `drawImage` call in `src/render/` or `src/ui/`.
-3. **Regressions.** Compare each PNG with the previous run's (keep the last
-   run in `e2e/out/screens-prev/`). Report every visible difference that
-   wasn't the intended change.
+3. **Regressions.** Compare each PNG with the previous run's in
+   `e2e/out/screens-prev/`. Report every visible difference that wasn't the
+   intended change.
 4. **Readability.** Can you tell crops apart at a glance? Can you read the
    bitmap font at 1× UI scale? Do items on belts read at gameplay zoom?
 5. **Console.** Any error or warning during the sweep.
