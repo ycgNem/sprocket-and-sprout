@@ -89,7 +89,21 @@ const SC = {
     await ev(S);
   },
   'first-morning': async () => ev(`(() => { S.play.closeWindow(); })()`),
-  'toast-over-window': async () => ev(`(() => { S.play.toast('Tip: Right-click a machine to load it: it takes what you hold, or a matching ingredient from your bag.'); S.play.openWindow('menu', 'crafting'); })()`),
+  // ---- Phase 3 overlays (the ribbon and streak are drawn through the UI kit, so audited) ----
+  // facing down at a ripe bean: the key bubble hangs below it, clear of the player
+  'prompt-harvest': async () => ev(`(() => { for (const t of ${JSON.stringify(ALL_TIPS)}) S.g.flags.add(t); S.play.hud.toasts = []; const g = S.g; g.player.x = 43.5; g.player.y = 25.9; g.player.dir = 2; })()`),
+  // zoomed in, a quest ribbon and a running harvest streak at the same time
+  'streak-ribbon': async () => {
+    await ev(`(() => { const r = S.play.app.renderer; r.cam.zoom = r.cam.targetZoom = 4; S.g.emit({ t: 'quest', title: 'Things That Move Themselves', money: 300, items: [] }); })()`);
+    await wait(300);
+    await ev(`(() => { S.play.app.renderer.juice.streak = { n: 7, t: 0, punch: 9 }; })()`);
+  },
+  // the longest research line, next to the quest tracker
+  'ribbon-discovery': async () => {
+    await ev(`(() => { const r = S.play.app.renderer; r.cam.zoom = r.cam.targetZoom = 2; r.juice.banners = []; S.g.emit({ t: 'research', id: 'r_assembly2' }); })()`);
+    await wait(300);
+  },
+  'toast-over-window': async () => ev(`(() => { const J = S.play.app.renderer.juice; J.banners = []; J.streak.t = 9; S.play.toast('Tip: Right-click a machine to load it: it takes what you hold, or a matching ingredient from your bag.'); S.play.openWindow('menu', 'crafting'); })()`),
   // from here on, no tutorial tips (shots stay deterministic)
   inventory: async () => ev(`(() => { S.play.closeWindow(); for (const t of ${JSON.stringify(ALL_TIPS)}) S.g.flags.add(t); S.g.player.inv.add(S.key('wood'), 120); S.g.player.inv.add(S.key('strawberry', 2), 7); S.g.player.inv.add(S.key('copper_ore'), 33); S.play.openWindow('menu', 'inventory'); })()`),
   crafting: async () => ev(`(() => { S.g.player.inv.add(S.key('stone'), 100); S.play.openWindow('menu', 'crafting'); S.play.win.data.sel = 'hand:chest_wood'; })()`),
@@ -140,6 +154,10 @@ const SC = {
   house: async () => ev(`(() => { const g = S.g; g.weather = 'sun'; g.time.min = 19 * 60; window.__house.enterHouse(g); })()`),
   mine: async () => ev(`(() => { const g = S.g; g.time.min = 11 * 60; window.__mine.enterFloor(g, 3); })()`),
   summary: async () => ev(`(() => { const g = S.g; g.player.where = 'world'; g.player.x = 54; g.player.y = 31; const bin = g.ents.get(g.shipBinId); bin.inv.add(S.key('radish'), 20); bin.inv.add(S.key('strawberry', 2), 5); bin.inv.add(S.key('wine_grape'), 2); g.goToBed(); g.time.min = 1559.99; g.tick(); })()`),
+  // the tally once it has counted up
+  'summary-end': async () => ev(`(() => { S.play.win.t = 9; })()`),
+  // a record day with more than ten kinds sold, a quest done and two teaser lines
+  'summary-record': async () => ev(`(() => { S.play.closeWindow(); const ids = ['radish', 'strawberry', 'wine_grape', 'wood', 'stone', 'copper_ore', 'cogbean', 'egg', 'wheat', 'amethyst', 'old_cog', 'bundle_green']; const sold = ids.map((id, i) => ({ k: S.key(id), n: 3 + i, price: 20 + i * 7, coins: (3 + i) * (20 + i * 7) })); const total = sold.reduce((a, s) => a + s.coins, 0); S.play.openWindow('summary', { season: 0, day: 12, year: 1, sold, total, best: 1000, passedOut: false, penalty: 0, quests: ['Double the Line'] }); S.play.win.data.tease = ['12 crops are ripe and ready to pick.', 'Your machines made 4 goods overnight.']; S.play.win.t = 9; })()`),
 };
 
 for (const [name, fn] of Object.entries(SC)) {
