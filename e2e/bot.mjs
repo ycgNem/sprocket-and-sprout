@@ -24,6 +24,10 @@ const fx = (Math.floor((uw - 340) / 2) + 150) * S, fy0 = (Math.floor((uh - 230) 
 await page.mouse.click(fx, fy0); await page.waitForTimeout(150); await page.keyboard.type('Botley'); await page.waitForTimeout(150);
 await page.mouse.click(fx, fy0 + 22 * S); await page.waitForTimeout(150); await page.keyboard.type('Gearfield'); await page.waitForTimeout(150);
 await page.mouse.click((Math.floor((uw - 340) / 2) + 340 - 62) * S, (Math.floor((uh - 230) / 2) + 230 - 18) * S);
+await page.waitForTimeout(400);
+// step 2: game mode + farm map (defaults) -> Begin!
+const w2 = Math.min(460, uw - 16), h2 = Math.min(272, uh - 16);
+await page.mouse.click((Math.floor((uw - w2) / 2) + w2 - 62) * S, (Math.floor((uh - h2) / 2) + h2 - 18) * S);
 await page.waitForTimeout(1500);
 const started = await page.evaluate(() => !!window.__game && window.__game.player.name);
 console.log('started as', started);

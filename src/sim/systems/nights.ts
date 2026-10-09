@@ -2,11 +2,13 @@
 import { CROP_BY_ID } from '../../data/crops';
 import { Game, registerSystem } from '../Game';
 import { O, T, Z } from '../world/tilemap';
+import { FARM } from '../world/worldgen';
 
 function freeFarmTile(g: Game, w = 1, h = 1): [number, number] | null {
   const m = g.map;
   for (let tries = 0; tries < 400; tries++) {
-    const x = g.rng.int(2, m.w - 3 - w), y = g.rng.int(2, m.h - 3 - h);
+    // sample inside the farm's bounds (the zone check below still applies)
+    const x = g.rng.int(FARM.x0 + 1, FARM.x1 - 1 - w), y = g.rng.int(FARM.y0 + 1, FARM.y1 - 1 - h);
     let ok = true;
     for (let yy = y - 1; yy <= y + h && ok; yy++)
       for (let xx = x - 1; xx <= x + w && ok; xx++) {

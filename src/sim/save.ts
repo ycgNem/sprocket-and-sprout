@@ -26,6 +26,8 @@ export interface SaveMeta {
   date: string;
   money: number;
   saved: number;
+  mode: string;
+  farmKind: string;
 }
 
 // ---------- RLE ----------
@@ -181,6 +183,8 @@ export function serialize(g: Game, look: NPCLook): any {
   return {
     v: SAVE_VERSION,
     seed: g.seed,
+    mode: g.mode,
+    farmKind: g.farmKind,
     saved: Date.now(),
     look,
     time: g.time,
@@ -238,7 +242,7 @@ export function migrate(d: any): any {
 
 export function deserialize(raw: any): { game: Game; look: NPCLook } {
   const d = migrate(raw);
-  const g = new Game({ seed: d.seed, name: d.player.name, farmName: d.player.farmName, favorite: d.player.favorite });
+  const g = new Game({ seed: d.seed, name: d.player.name, farmName: d.player.farmName, favorite: d.player.favorite, mode: d.mode ?? 'story', farm: d.farmKind ?? 'classic', loading: true });
   // remove the starting entities the constructor made
   for (const e of g.ents.all()) g.ents.remove(e);
   g.time = { ...d.time, season: d.time.season as Season };
@@ -312,6 +316,7 @@ export function metaOf(d: any, slot: number): SaveMeta {
   return {
     slot, name: d.player.name, farm: d.player.farmName,
     date: `${seasons[d.time.season]} ${d.time.day}, Year ${d.time.year}`, money: d.player.money, saved: d.saved ?? 0,
+    mode: d.mode ?? 'story', farmKind: d.farmKind ?? 'classic',
   };
 }
 
@@ -344,6 +349,12 @@ export function saveGame(g: Game, look: NPCLook, slot: number): boolean {
   if (!s) return false;
   try {
     s.setItem(PREFIX + slot, JSON.stringify(serialize(g, look)));
+    // ask the browser not to evict our saves under storage pressure (best effort)
+    try {
+      (globalThis as any).navigator?.storage?.persist?.();
+    } catch {
+      /* not supported */
+    }
     return true;
   } catch (err) {
     console.error('save failed', err);

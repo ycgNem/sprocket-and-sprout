@@ -28,6 +28,10 @@ const fx = (Math.floor((uw - 340) / 2) + 150) * S, fy0 = (Math.floor((uh - 230) 
 await page.mouse.click(fx, fy0); await wait(120); await page.keyboard.type('Wren2'); await wait(120);
 await page.mouse.click(fx, fy0 + 22 * S); await wait(120); await page.keyboard.type('Bramble'); await wait(120);
 await page.mouse.click((Math.floor((uw - 340) / 2) + 340 - 62) * S, (Math.floor((uh - 230) / 2) + 230 - 18) * S);
+await wait(400);
+// step 2: game mode + farm map (defaults: Story on the Homestead) -> Begin!
+const w2 = Math.min(460, uw - 16), h2 = Math.min(272, uh - 16);
+await page.mouse.click((Math.floor((uw - w2) / 2) + w2 - 62) * S, (Math.floor((uh - h2) / 2) + h2 - 18) * S);
 await wait(2200);
 check(await page.evaluate(() => window.__game?.player.name === 'Wren2'), 'new game started with typed name');
 await page.keyboard.press('Enter'); // close the welcome window

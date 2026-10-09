@@ -52,7 +52,7 @@ export function priceMult(g: Game, idx: number): number {
   const sat = 1 / (1 + s / satScale(d.price));
   const drift = m.drift[d.cat] ?? 1;
   const hot = m.hot.includes(d.id) ? 1.4 : 1;
-  return Math.max(0.3, sat * drift * hot);
+  return Math.max(0.4, sat * drift * hot);
 }
 
 /** profession price bonuses by category */
@@ -281,18 +281,62 @@ export function buyKit(g: Game, id: string): string | null {
   return null;
 }
 
+/** The post collects the shipping crates at noon and at 6pm as well as overnight. */
+export const POST_TIMES = [12 * 60, 18 * 60];
+
+function postCollect(g: Game, label: string) {
+  const res = shipAll(g);
+  if (!res.total) return;
+  g.player.money += res.total;
+  g.earned += res.total;
+  const day = (g.sys.postDay ??= { sold: [], total: 0 });
+  day.sold.push(...res.sold);
+  day.total += res.total;
+  const bin = g.ents.get(g.shipBinId);
+  if (bin) {
+    g.emit({ t: 'fx', kind: 'coins', x: bin.x + 0.5, y: bin.y + 0.3 });
+    g.emit({ t: 'float', text: `+${res.total}`, x: bin.x + 0.5, y: bin.y - 0.6, c: 6 });
+  }
+  g.emit({ t: 'sfx', id: 'chime' });
+  g.emit({ t: 'sfx', id: 'coin' });
+  g.toast(`The ${label} post collected your crate: +${res.total.toLocaleString()} coins.`, undefined, 6);
+}
+
 registerSystem({
   name: 'economy',
+  tick(g) {
+    if (g.map.w < 100 || g.sleeping) return;
+    const last = g.sys.postLast ?? -1;
+    for (const t of POST_TIMES) {
+      if (g.time.min >= t && last < t) {
+        g.sys.postLast = t;
+        postCollect(g, t === 720 ? 'noon' : 'evening');
+      }
+    }
+  },
   dayEnd(g, summary) {
     const res = shipAll(g);
-    summary.sold = res.sold;
-    summary.total = res.total;
+    // merge the day's noon/evening collections into the summary (already paid)
+    const early = g.sys.postDay ?? { sold: [], total: 0 };
+    const merged = new Map<number, { k: number; n: number; coins: number }>();
+    for (const s of [...early.sold, ...res.sold]) {
+      const e = merged.get(s.k) ?? { k: s.k, n: 0, coins: 0 };
+      e.n += s.n;
+      e.coins += s.price * s.n;
+      merged.set(s.k, e);
+    }
+    summary.sold = [...merged.values()].map((e) => ({ k: e.k, n: e.n, price: Math.round(e.coins / e.n) })).sort((a, b) => b.price * b.n - a.price * a.n);
+    summary.total = res.total + early.total;
+    g.sys.postDay = { sold: [], total: 0 };
+    g.sys.postLast = -1;
+    g.count('shipped', summary.sold.reduce((a, s) => a + s.n, 0));
+    if (summary.total > (g.counters.best_day ?? 0)) g.counters.best_day = summary.total;
     g.player.money += res.total;
     g.earned += res.total;
     const m = market(g);
     // saturation decays ~18% a day so the market recovers over a week or two
     for (const k of Object.keys(m.sat)) {
-      const v = m.sat[+k] * (g.sys.megaBonus?.market ? 0.67 : 0.82);
+      const v = m.sat[+k] * (g.sys.megaBonus?.market ? 0.7 : 0.85);
       if (v < 0.5) delete m.sat[+k];
       else m.sat[+k] = v;
     }
@@ -339,6 +383,8 @@ registerSystem({
     m.hot = d.hot ?? [];
     m.bought = d.bought ?? {};
     m.shipped = d.shipped ?? {};
+    // don't re-run a post collection that already happened today
+    g.sys.postLast = Math.max(-1, ...POST_TIMES.filter((t) => t <= g.time.min));
   },
 });
 

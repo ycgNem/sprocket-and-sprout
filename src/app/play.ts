@@ -25,9 +25,17 @@ import { WINDOWS, WinState } from '../ui/windows';
 import '../ui/windows/all';
 import { Blueprint, copyBlueprint, pasteBlueprint, rotateBlueprint, blueprintCost } from '../sim/blueprint';
 import type { App, Screen } from './app';
+import { unlockAch } from '../sim/systems/achievements';
+import { drawAchBanner, AchBanner } from '../ui/windows/achievements';
+import { recordAch } from './profile';
+import { OPENING } from '../sim/systems/modes';
+import { T } from '../sim/world/tilemap';
+import { PULSE_COL, machineState, pulseEnts } from '../ui/pulse';
 import { checkTips } from './tips';
 
 export interface Toast { text: string; t: number; icon?: string; color?: number }
+
+const KONAMI = 'ArrowUp,ArrowUp,ArrowDown,ArrowDown,ArrowLeft,ArrowRight,ArrowLeft,ArrowRight,KeyB,KeyA';
 
 export class PlayScreen implements Screen {
   app: App;
@@ -35,6 +43,9 @@ export class PlayScreen implements Screen {
   look: NPCLook;
   slot: number;
   hud: HudState = { pickups: [], toasts: [] };
+  achQ: AchBanner[] = [];
+  private keyTrail: string[] = [];
+  private zoomSeen = { min: false, max: false };
   win: WinState | null = null;
   rot: Dir = 0;
   drag: { x: number; y: number } | null = null;
@@ -51,6 +62,11 @@ export class PlayScreen implements Screen {
   debug = false;
   autoBuildT = 0;
   playtime = 0;
+  /** the mouse is on a tile just out of tool reach (red outline, no action) */
+  outOfReach = false;
+  /** factory pulse: highlight machines in one state for a few seconds */
+  pulseFocus: { kind: 'ok' | 'starved' | 'blocked'; t: number } | null = null;
+  private lastWhere = '';
   tipT = 0;
 
   constructor(app: App, g: Game, look: NPCLook, slot?: number) {
@@ -67,6 +83,33 @@ export class PlayScreen implements Screen {
     (window as any).__game = g;
     (window as any).__play = this;
     g.sys.onStart?.forEach?.((f: any) => f(g));
+  }
+
+  /** R: rotate the blueprint, the held structure, or the structure under the mouse */
+  rotateAction() {
+    const g = this.g;
+    if (this.mode === 'paste' && this.blueprint) this.blueprint = rotateBlueprint(this.blueprint);
+    else if (this.heldPlaceable()) {
+      this.rot = ((this.rot + 1) & 3) as Dir;
+      this.app.audio.sfx('rotate');
+    } else {
+      const t = this.mouseTile();
+      const e = g.player.where === 'world' ? g.ents.at(t.x, t.y) : null;
+      if (e) {
+        rotateStruct(g, e);
+        // easter egg: spin one structure 20 times in quick succession
+        const now = this.playtime;
+        if (this.spin.id !== e.id || now - this.spin.t > 10) this.spin = { id: e.id, n: 0, t: now };
+        if (++this.spin.n >= 20) unlockAch(g, 'spin');
+      }
+    }
+  }
+  private spin = { id: 0, n: 0, t: 0 };
+
+  cursorKind() {
+    if (this.app.ui.overUI) return 'arrow' as const;
+    if (this.mode !== 'normal' || (!this.win && this.heldPlaceable())) return 'build' as const;
+    return 'arrow' as const;
   }
 
   get paused() {
@@ -118,6 +161,16 @@ export class PlayScreen implements Screen {
   }
 
   toast(text: string, icon?: string, color?: number) {
+    // several quests starting at once read as one line
+    const NQ = 'New quest: ';
+    if (text.startsWith(NQ)) {
+      const prev = this.hud.toasts.find((t) => t.text.startsWith('New quest') && t.t < 1.5);
+      if (prev) {
+        prev.text = 'New quests: ' + prev.text.replace(/^New quests?: /, '') + ', ' + text.slice(NQ.length);
+        prev.t = 0;
+        return;
+      }
+    }
     const ex = this.hud.toasts.find((t) => t.text === text);
     if (ex) {
       ex.t = 0;
@@ -153,6 +206,14 @@ export class PlayScreen implements Screen {
   frame(dt: number) {
     const app = this.app, g = this.g, input = app.input, r = app.renderer, ui = app.ui;
     this.playtime += dt;
+    // building is a planning activity: the clock slows to a quarter while you do it
+    g.slowClock = g.player.where === 'world' && !!(this.mode !== 'normal' || (!this.win && this.heldPlaceable()) || this.win?.id === 'struct');
+    // tips belong to the scene they were shown in
+    if (g.player.where !== this.lastWhere) {
+      this.lastWhere = g.player.where;
+      this.hud.toasts = this.hud.toasts.filter((t) => !t.text.startsWith('Tip:'));
+    }
+    if (this.pulseFocus && (this.pulseFocus.t -= dt) <= 0) this.pulseFocus = null;
     // ---- sleeping fast-forward ----
     if (g.sleeping) {
       if (app.settings.overnight === 'full') {
@@ -201,6 +262,9 @@ export class PlayScreen implements Screen {
     if (!modal && (input.wasPressed('zoomIn') || (input.ctrl && input.mouse.wheel < 0))) r.cam.targetZoom = Math.min(6, r.cam.targetZoom + 1);
     if (!modal && (input.wasPressed('zoomOut') || (input.ctrl && input.mouse.wheel > 0))) r.cam.targetZoom = Math.max(1, r.cam.targetZoom - 1);
     if (input.ctrl) input.mouse.wheel = 0;
+    if (r.cam.targetZoom <= 1) this.zoomSeen.min = true;
+    if (r.cam.targetZoom >= 6) this.zoomSeen.max = true;
+    if (this.zoomSeen.min && this.zoomSeen.max) unlockAch(g, 'birdseye');
 
     // ---- world draw ----
     this.worldOverlays();
@@ -213,6 +277,7 @@ export class PlayScreen implements Screen {
 
     // ---- events ----
     this.processEvents(g.events);
+    if (!this.win && g.sys.mode?.showResult) this.openWindow('rush');
     g.events.length = 0;
 
     // ---- UI ----
@@ -241,6 +306,7 @@ export class PlayScreen implements Screen {
       ui.text(`${((h + 11) % 12) + 1}:${mm.toString().padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`, ui.w / 2, ui.h / 2 + 12, C.pebble, { align: 'center' });
       if (g.sleeping) ui.text('The farm hums through the night...', ui.w / 2, ui.h / 2 + 26, C.pebble, { align: 'center' });
     }
+    this.achQ = drawAchBanner(ui, this.achQ, dt);
     if (this.debug) WINDOWS.debug?.draw(ui, this, { id: 'debug', t: 0, data: {} });
     ui.end();
 
@@ -351,6 +417,19 @@ export class PlayScreen implements Screen {
 
   private handleKeys() {
     const input = this.app.input, g = this.g, ui = this.app.ui;
+    // easter egg: the Konami code
+    for (const code of input.pressed) {
+      this.keyTrail.push(code);
+      if (this.keyTrail.length > 10) this.keyTrail.shift();
+    }
+    if (this.keyTrail.join(',') === KONAMI) {
+      this.keyTrail = [];
+      if (unlockAch(g, 'konami')) {
+        g.give(key('radish_seed'), 30);
+        this.toast('Up, up, down, down... the valley grants you 30 extra lives. Well, radish seeds.', 'i:radish_seed', C.lavender);
+      } else this.toast('The valley remembers. No more free radishes.', undefined, C.lavender);
+      this.app.renderer.particles.burst(g.player.x * TILE, (g.player.y - 1) * TILE, 30, [C.rose, C.amber, C.leaf, C.sky, C.lavender], { speed: 90, up: 90, life: 1.4 });
+    }
     if (input.wasPressed('pause')) {
       input.consume('pause');
       ui.focus = null;
@@ -368,7 +447,7 @@ export class PlayScreen implements Screen {
     if (input.wasPressed('debug')) this.debug = !this.debug;
     if (this.win && WINDOWS[this.win.id]?.modal !== false) {
       // window shortcuts toggle closed
-      const map: Record<string, string> = { inventory: 'menu', craft: 'menu', research: 'research', stats: 'stats', journal: 'journal', map: 'map' };
+      const map: Record<string, string> = { inventory: 'menu', craft: 'menu', research: 'research', stats: 'stats', journal: 'journal', map: 'map', achievements: 'achievements' };
       for (const [a, w] of Object.entries(map)) {
         if (!input.wasPressed(a as any)) continue;
         const tab = a === 'inventory' ? 'inventory' : a === 'craft' ? 'crafting' : undefined;
@@ -386,22 +465,13 @@ export class PlayScreen implements Screen {
     if (input.wasPressed('stats')) this.openWindow('stats');
     if (input.wasPressed('journal')) this.openWindow('journal');
     if (input.wasPressed('map')) this.openWindow('map');
+    if (input.wasPressed('achievements')) this.openWindow('achievements');
     for (let i = 0; i < 10; i++) if (input.wasPressed(('hot' + (i + 1)) as any)) g.player.sel = i;
     if (input.mouse.wheel && !ui.overUI) {
       g.player.sel = (g.player.sel + (input.mouse.wheel > 0 ? 1 : 11)) % 12;
       input.mouse.wheel = 0;
     }
-    if (input.wasPressed('rotate')) {
-      if (this.mode === 'paste' && this.blueprint) this.blueprint = rotateBlueprint(this.blueprint);
-      else if (this.heldPlaceable()) {
-        this.rot = ((this.rot + 1) & 3) as Dir;
-        this.app.audio.sfx('rotate');
-      } else {
-        const t = this.mouseTile();
-        const e = g.player.where === 'world' ? g.ents.at(t.x, t.y) : null;
-        if (e) rotateStruct(g, e);
-      }
-    }
+    if (input.wasPressed('rotate')) this.rotateAction();
     if (input.wasPressed('eat')) eatHeld(g);
     if (input.wasPressed('stack')) {
       const r = quickStack(g);
@@ -428,13 +498,16 @@ export class PlayScreen implements Screen {
       if (st && !kDef(st.k).tool) {
         g.sys.drops?.spawn?.(g, st.k, 1, g.player.x + DX[g.player.dir] * 1.2, g.player.y + DY[g.player.dir] * 1.2);
         g.player.inv.remove(st.k, 1);
+        g.count('dropped');
+        const gt = g.map.g(Math.floor(g.player.x + DX[g.player.dir] * 1.2), Math.floor(g.player.y + DY[g.player.dir] * 1.2));
+        if (g.player.where === 'world' && (gt === T.OCEAN || gt === T.DEEP)) unlockAch(g, 'tide');
       }
     }
     if (input.wasPressed('interact')) {
       const [fx, fy] = facingTile(g);
       interact(g, fx, fy);
     }
-    if (input.wasPressed('build')) this.openWindow('menu', 'crafting');
+    if (input.wasPressed('build')) this.openWindow(g.mode === 'sandbox' ? 'palette' : 'menu', 'crafting');
   }
 
   private pipette() {
@@ -566,7 +639,17 @@ export class PlayScreen implements Screen {
     const d = st ? kDef(st.k) : null;
     const toolReach = 1.9 + (d?.tool?.kind === 'rod' ? 50 : 0);
     let tx = t.x, ty = t.y;
-    if (!this.reachOk(tx, ty, d?.tool || d?.weapon || d?.plant || d?.fertilizer ? toolReach : 2.3)) [tx, ty] = facingTile(g);
+    this.outOfReach = false;
+    if (!this.reachOk(tx, ty, d?.tool || d?.weapon || d?.plant || d?.fertilizer ? toolReach : 2.3)) {
+      // a near miss shows a red outline and does nothing; a far click works on the tile you face
+      const near = Math.hypot(t.x + 0.5 - p.x, t.y + 0.5 - (p.y - 0.3)) <= 4.5;
+      if (near && (d?.tool || d?.plant || d?.fertilizer) && !d?.weapon && d?.tool?.kind !== 'rod' && p.where === 'world') {
+        this.outOfReach = true;
+        this.holdT = 0;
+        this.charge = 0;
+        this.chargeT = 0;
+      } else [tx, ty] = facingTile(g);
+    }
     this.lastTarget = [tx, ty];
     const chargeable = d?.tool && (d.tool.kind === 'hoe' || d.tool.kind === 'can') && d.tool.tier > 0;
     if (d?.furniture && input.mouse.pressed[0]) {
@@ -577,7 +660,7 @@ export class PlayScreen implements Screen {
       return;
     }
     const lmb = input.mouse.down[0] || input.mouse.pressed[0];
-    if (lmb && !g.sys.fishing?.busy) {
+    if (lmb && !g.sys.fishing?.busy && !this.outOfReach) {
       if (chargeable) {
         this.chargeT += dt;
         this.charge = Math.min(d!.tool!.tier, Math.floor(this.chargeT / 0.45));
@@ -591,7 +674,7 @@ export class PlayScreen implements Screen {
       }
     }
     if (input.mouse.released[0] || (input.mouse.pressed[0] && !input.mouse.down[0])) {
-      if (chargeable) {
+      if (chargeable && !this.outOfReach) {
         useHeld(g, tx, ty, this.charge);
         this.charge = 0;
         this.chargeT = 0;
@@ -614,6 +697,7 @@ export class PlayScreen implements Screen {
     const t = this.mouseTile();
     const ctx = r.ctx;
     const grid = this.app.settings.showGrid;
+    r.overlays.push(() => this.guideOverlays());
     r.overlays.push(() => {
       const hs = g.player.inv.slots[g.player.sel];
       const hf = hs && g.player.where === 'house' ? FURN_BY_ID.get(kDef(hs.k).furniture ?? '') : null;
@@ -663,9 +747,9 @@ export class PlayScreen implements Screen {
       const [tx, ty] = this.lastTarget;
       const st = g.player.inv.slots[g.player.sel];
       const d = st ? kDef(st.k) : null;
-      ctx.strokeStyle = rgba(C.cream, 0.7);
+      ctx.strokeStyle = this.outOfReach ? rgba(C.rose, 0.9) : rgba(C.cream, 0.7);
       ctx.lineWidth = 1;
-      if (d?.tool && (d.tool.kind === 'hoe' || d.tool.kind === 'can') && this.charge > 0) {
+      if (d?.tool && (d.tool.kind === 'hoe' || d.tool.kind === 'can') && this.charge > 0 && !this.outOfReach) {
         const { toolArea } = require_actions();
         for (const [x, y] of toolArea(d.tool.kind, this.charge, tx, ty, g.player.dir)) ctx.strokeRect(x * TILE + 0.5, y * TILE + 0.5, TILE - 1, TILE - 1);
       } else if (g.player.where === 'world' || d) {
@@ -676,6 +760,45 @@ export class PlayScreen implements Screen {
       if (e && !e.ghost && (e.def.kind === 'arm' || e.def.kind === 'drill')) this.drawArmHint(e);
       if (e && !e.ghost && (e.def.kind === 'pole')) this.drawPoleArea(e);
     });
+  }
+
+  /** factory-pulse highlights and the opening's "do it here" markers */
+  private guideOverlays() {
+    const g = this.g, ctx = this.app.renderer.ctx;
+    if (g.player.where !== 'world') return;
+    const blink = 0.45 + 0.35 * Math.sin(this.playtime * 7);
+    if (this.pulseFocus) {
+      ctx.strokeStyle = rgba(PULSE_COL[this.pulseFocus.kind], blink + 0.2);
+      ctx.lineWidth = 2;
+      for (const e of pulseEnts(g)) {
+        if (machineState(e) !== this.pulseFocus.kind) continue;
+        ctx.strokeRect(e.x * TILE - 1, e.y * TILE - 1, e.w * TILE + 2, e.h * TILE + 2);
+      }
+      ctx.lineWidth = 1;
+    }
+    const q = g.sys.quests?.active as { id: string }[] | undefined;
+    const has = (id: string) => !!q?.some((a) => a.id === id);
+    const mark = (x: number, y: number, w = 1, h = 1) => {
+      ctx.fillStyle = rgba(C.amber, blink * 0.35);
+      ctx.fillRect(x * TILE, y * TILE, w * TILE, h * TILE);
+      ctx.strokeStyle = rgba(C.butter, blink + 0.3);
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x * TILE + 1, y * TILE + 1, w * TILE - 2, h * TILE - 2);
+      ctx.lineWidth = 1;
+      const bob = Math.round(Math.sin(this.playtime * 5) * 2);
+      const ax = (x + w / 2) * TILE, ay = y * TILE - 6 + bob;
+      ctx.fillStyle = rgba(C.amber, 0.95);
+      ctx.fillRect(ax - 3, ay - 3, 7, 2);
+      ctx.fillRect(ax - 2, ay - 1, 5, 1);
+      ctx.fillRect(ax - 1, ay, 3, 1);
+      ctx.fillRect(ax, ay + 1, 1, 1);
+    };
+    if (has('t_welcome')) {
+      const B = OPENING.beans;
+      if ([...g.soil.values()].some((s) => s.crop?.id === 'cogbean' && s.crop.ready)) mark(B.x, B.y, B.w, B.h);
+      else mark(OPENING.jar[0], OPENING.jar[1]);
+    }
+    if (has('t_arm') && !g.ents.at(OPENING.armTile[0], OPENING.armTile[1])) mark(OPENING.armTile[0], OPENING.armTile[1]);
   }
 
   private drawGrid(cx: number, cy: number) {
@@ -824,6 +947,12 @@ export class PlayScreen implements Screen {
           break;
         case 'research':
           a.sfx('research');
+          break;
+        case 'ach':
+          this.achQ.push({ id: e.id, t: 0 });
+          recordAch(e.id, g.player.farmName);
+          a.sfx('levelup');
+          P.burst(g.player.x * TILE, (g.player.y - 1.2) * TILE, 14, [C.butter, C.amber, C.cream], { speed: 60, up: 70, life: 0.9 });
           break;
         case 'dayEnd':
           this.app.loop.fastForward = null;

@@ -6,7 +6,7 @@ import { MONSTERS, MONSTER_BY_ID } from '../../data/creatures';
 import type { MonsterDef } from '../../data/types';
 import { Rng } from '../../engine/rng';
 import { Game, registerSystem } from '../Game';
-import { key } from '../inventory';
+import { key, kDef } from '../inventory';
 import { O, T, TileMap, Z } from '../world/tilemap';
 import { spawnDrop } from './drops';
 import { TOOL_POWER } from '../actions';
@@ -608,6 +608,8 @@ function tickMonsters(g: Game, dt: number) {
       g.addXp('combat', mo.def.xp);
       g.count('monsters');
       g.count('slain_' + mo.id);
+      const held = g.player.inv.slots[g.player.sel];
+      if (held && kDef(held.k).id === 'sword_0' && (g.sys.mine?.floor ?? 0) >= 50) g.sys.achUnlock?.(g, 'club');
       g.emit({ t: 'sfx', id: 'monster_die' });
       g.emit({ t: 'fx', kind: 'magic', x: mo.x, y: mo.y - 0.3, n: 14 });
       st.monsters.splice(i, 1);
@@ -640,6 +642,7 @@ function tickMonsters(g: Game, dt: number) {
 
 registerSystem({
   name: 'mine',
+  realtime: true,
   tick(g, dt) {
     if (g.player.where === 'mine') tickMonsters(g, dt);
   },

@@ -91,3 +91,48 @@ Running log of design and technical decisions made while building autonomously.
     evaluation but kinder: it repeats every year, rewards stay claimed, and the criteria span every
     pillar (cozy and factory alike), so different play styles can all reach four candles.
 
+
+## October 2026 identity pass (after the indie-critic review)
+
+35. **The opening leads with clockwork.** The old keeper left ripe cogbeans and a working
+    preserves jar by the shipping crate. You start with arms, belts, a chest and a Study Desk,
+    and belts, arms and preserving are known from minute one. The first automated sale lands
+    about four minutes in instead of on day 9. Old saves keep their quest chain: a quest that
+    depends on a flag-gated opening quest counts that quest as met when the flag is missing.
+36. **The post collects at noon and 6pm**, plus overnight. Automation should pay off while you
+    watch, not only in the morning summary. The day summary still lists everything sold that day.
+37. **Passing out costs your morning, not your coins.** You sleep in until 10am with 60% energy.
+    The old 10% coin fine copied a genre convention and punished long building sessions.
+38. **The world runs at 1/4 speed while you build** (holding a structure, in remove/copy/paste mode,
+    or with a machine window open), and at 1/2 in Cozy mode. The whole sim slows (clock, machines,
+    crops, villagers); only the player, pickups, fishing, festivals and the mine stay real-time
+    (`System.realtime`). The first version slowed only the clock, which the second review caught
+    as a 4x output-per-day exploit. A test now checks that output per game day is the same at any speed.
+39. **Modes and maps are rule sets and farm layouts, not new worlds.** The town, river, mine and
+    beach are shared, so villager schedules and story locations keep working. Only the farm area
+    changes (`src/sim/world/farms.ts`), and the save stores `mode` + `farmKind` so terrain regenerates
+    identically. Modes: Story, Cozy (half-speed clock, no pass-out cost, crops survive season
+    changes), Clockwork Rush (28-day scored run with medals), Sandbox (everything researched,
+    free crafting, no energy, clock stops unless you sleep).
+40. **Harvest cranes don't replace hand farming.** Machine-picked crops cap at silver quality and
+    give no farming XP. Star quality is hand-only. Cranes leave chaff (fiber) so research doesn't
+    stall on scything weeds; flax also turns into fiber.
+41. **Numbers are our own.** Artisan multipliers, animal prices, the XP curve and tool upgrade costs
+    were moved off the genre-standard tables (see the review), and the market floor rose to 40%.
+42. **Achievements are a curiosity loop.** About 120 achievements, about a third of them secret
+    easter eggs that show only a hint. Secrets pay 250 coins. A cross-save profile in localStorage
+    remembers every unlock across farms.
+43. **The HUD is a machine, not a wood sign.** A sky-window chronometer, a rolling brass odometer,
+    a factory pulse (working / starved / blocked lamps that highlight machines when clicked) and
+    a gear hotbar with steam-tube gauges. The cursor is a CSS pixel cursor (zero lag; it falls
+    back to the system cursor).
+44. **Clockwork Rush is its own ruleset**: no festivals or side stories (only the opening tutorial),
+    half-price research, Guild contracts from day 1 refreshed every 3 days. Medals (20k / 40k / 65k)
+    are calibrated at about 1.5x / 3x / 5x the pacing bot's 28-day Rush score (about 12.7k across 3 seeds).
+    **Sandbox** has no quests, a free build palette (G) and only counts its own challenge and
+    secret achievements, so it can't flood the profile with free unlocks.
+45. **Machines load from the bag.** Right-clicking a machine with nothing loadable in hand loads the
+    first ingredient it accepts from the whole backpack (fuel excluded). The opening relied on
+    "hold the beans", which a full hotbar made impossible. The starting hotbar keeps two slots free.
+46. **Quest objectives check state, not only events.** "Build X" and "craft X" count things you
+    already own, so doing a step before its quest starts never soft-locks the chain.

@@ -18,6 +18,7 @@ import { setResearch, canResearch } from '../src/sim/systems/research';
 import { RESEARCH } from '../src/data/research';
 import { questSys } from '../src/sim/systems/quests';
 import { shopOpen } from '../src/sim/systems/town';
+import { OPENING } from '../src/sim/systems/modes';
 
 export interface DayLog {
   day: number;
@@ -361,7 +362,9 @@ export class Bot {
       }
     }
     // metal parts for automation
-    if (g.research.done.has('r_metallurgy') && g.player.inv.countId('copper_bar') >= 2) tryCraft('copper_gear');
+    // keep 3 bars for Bram's furnace quest before turning bars into gears
+    const keepBars = questSys(g).done.includes('t_furnace') ? 2 : 5;
+    if (g.research.done.has('r_metallurgy') && g.player.inv.countId('copper_bar') >= keepBars) tryCraft('copper_gear');
     if (g.research.done.has('r_belts')) tryCraft('belt_1');
   }
 
@@ -433,12 +436,46 @@ export class Bot {
     this.collectDrops();
   }
 
+  /** the clockwork opening: pick the keeper's beans, feed the jar, place an arm into the crate */
+  opening() {
+    const g = this.g;
+    if (!g.flags.has('tinker_start') || this.openingDone) return;
+    this.openingDone = true;
+    const B = OPENING.beans;
+    this.walkTo(B.x + 1, B.y);
+    for (let y = B.y; y < B.y + B.h; y++)
+      for (let x = B.x; x < B.x + B.w; x++) {
+        for (const st of harvest(g, g.map.idx(x, y)) ?? []) g.player.inv.add(st.k, st.n);
+        this.wait(0.3);
+      }
+    const jar = g.ents.machines.find((e) => e.def.id === 'jar');
+    this.walkTo(OPENING.jar[0], OPENING.jar[1] + 1);
+    if (jar) {
+      for (const sl of g.player.inv.slots) {
+        if (!sl || kDef(sl.k).id !== 'cogbean') continue;
+        const n = machInsert(g, jar, sl.k, sl.n, true);
+        sl.n -= n;
+      }
+      g.player.inv.slots = g.player.inv.slots.map((s) => (s && s.n > 0 ? s : null));
+    }
+    const [ax, ay] = OPENING.armTile;
+    if (canPlace(g, 'arm_basic', ax, ay, 0).ok && g.player.inv.countId('arm_basic') > 0) {
+      g.player.inv.removeSpec('arm_basic', 1);
+      place(g, 'arm_basic', ax, ay, 0);
+      g.sys.quests?.notify?.(g, 'build', 1, 'arm_basic');
+      this.notes.push('opening line built');
+    }
+  }
+
+  openingDone = false;
+
   playDay() {
     const g = this.g;
     this.notes = [];
     const day = g.dayIndex;
     // you wake up inside the farmhouse
     if (g.player.where === 'house') g.sys.house.leave(g);
+    this.opening();
     this.farmMorning();
     this.expandPlot(Math.min(80, 12 + day * 6));
     this.farmMorning();

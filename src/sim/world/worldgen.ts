@@ -2,6 +2,8 @@
 import { Rng, fbm, hash2, valueNoise } from '../../engine/rng';
 import { C } from '../../data/palette';
 import { TileMap, T, Z, O, BuildingInfo } from './tilemap';
+import type { FarmKind } from '../../data/modes';
+import { shapeFarm } from './farms';
 
 export const WORLD_W = 200;
 export const WORLD_H = 150;
@@ -16,7 +18,7 @@ export function riverX(y: number) {
   return 98 + 3 * Math.sin(y / 11) + 1.5 * Math.sin(y / 4.7 + 1);
 }
 
-export function generateWorld(seed: number): TileMap {
+export function generateWorld(seed: number, farm: FarmKind = 'classic'): TileMap {
   const m = new TileMap(WORLD_W, WORLD_H);
   const rng = new Rng(seed);
   const W = WORLD_W, H = WORLD_H;
@@ -369,6 +371,7 @@ export function generateWorld(seed: number): TileMap {
     }
   });
   Ob(SHIPBIN_POS[0] + 2, SHIPBIN_POS[1], O.MAILBOX);
+  shapeFarm(m, seed, farm, FARM, plantTree);
 
   // artifact spots everywhere outdoors (respawn daily too)
   for (let k = 0; k < 40; k++) spawnArtifact(m, rng);

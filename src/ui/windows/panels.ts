@@ -28,8 +28,8 @@ STRUCT_PANELS.lab = (ui, play, e, x, y, w, st) => {
   const cur = g.research.current ? RESEARCH_BY_ID.get(g.research.current) : null;
   ui.text(cur ? `Studying: ${cur.name}` : 'No research selected. Open the research tree (T).', x + 14, y + 2, cur ? C.ink : C.brick);
   if (cur) {
-    ui.bar(x + 14, y + 13, w - 28, 5, (g.research.progress[cur.id] ?? 0) / researchUnits(cur.id), C.moss);
-    ui.text(`${g.research.progress[cur.id] ?? 0}/${researchUnits(cur.id)} units  -  this desk: ${Math.round((e.st.progress ?? 0) * 100)}%`, x + 14, y + 21, C.walnut);
+    ui.bar(x + 14, y + 13, w - 28, 5, (g.research.progress[cur.id] ?? 0) / researchUnits(cur.id, g), C.moss);
+    ui.text(`${g.research.progress[cur.id] ?? 0}/${researchUnits(cur.id, g)} units  -  this desk: ${Math.round((e.st.progress ?? 0) * 100)}%`, x + 14, y + 21, C.walnut);
     ui.text('Each unit uses: ', x + 14, y + 33, C.oak);
     cur.cost.forEach((c, i) => ui.itemIcon(key(c.item), x + 90 + i * 16, y + 29, 14));
   }

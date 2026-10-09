@@ -144,8 +144,8 @@ export const SHOP_BY_ID = new Map(SHOPS.map((s) => [s.id, s]));
 
 export const TOOL_UPGRADE_COST: [number, string, number][] = [
   // [coins, bar, bars needed] for tiers 1..4
-  [2000, 'copper_bar', 5],
-  [5000, 'iron_bar', 5],
-  [10000, 'gold_bar', 5],
-  [25000, 'starmetal_bar', 5],
+  [1800, 'copper_bar', 6],
+  [4500, 'iron_bar', 6],
+  [11000, 'gold_bar', 6],
+  [22000, 'starmetal_bar', 6],
 ];

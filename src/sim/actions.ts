@@ -285,6 +285,7 @@ export function useTool(g: Game, kind: string, tier: number, tx: number, ty: num
         fx(g, 'splash', x, y);
       }
       p.water -= Math.max(1, used);
+      if (used && g.isRaining() && p.where === 'world') g.count('rain_water');
       g.spend(cost);
       g.emit({ t: 'sfx', id: 'water' });
       if (used) g.addXp('farming', 1);
@@ -324,7 +325,10 @@ export function useTool(g: Game, kind: string, tier: number, tx: number, ty: num
         else {
           const e = g.ents.at(tx, ty);
           if (e && !e.ghost) deconstruct(g, e);
-          else g.emit({ t: 'sfx', id: 'swing' });
+          else {
+            g.emit({ t: 'sfx', id: 'swing' });
+            g.count('air_swings');
+          }
         }
       }
       return true;
@@ -415,6 +419,15 @@ export function useTool(g: Game, kind: string, tier: number, tx: number, ty: num
 function digArtifact(g: Game, x: number, y: number) {
   const m = g.map;
   m.setO(x, y, O.NONE);
+  // Tinker's Yard: the old workshop floor is full of salvage
+  if (g.farmKind === 'ruins' && m.z(x, y) === Z.FARM && g.rng.next() < 0.5) {
+    m.setO(x, y, O.NONE);
+    drop(g, g.rng.next() < 0.7 ? 'copper_gear' : g.rng.pick(['spring', 'old_cog', 'copper_coil']), g.rng.int(1, 2), x, y);
+    fx(g, 'dirt', x, y);
+    g.emit({ t: 'sfx', id: 'dig' });
+    g.count('dug');
+    return;
+  }
   const r = g.rng.next();
   const relics = ['old_cog', 'clay_whistle', 'fossil_shell', 'rusted_key', 'tin_soldier', 'star_chart', 'brass_compass', 'painted_tile'];
   if (r < 0.14) drop(g, g.rng.pick(relics), 1, x, y);
@@ -425,6 +438,7 @@ function digArtifact(g: Game, x: number, y: number) {
   fx(g, 'dirt', x, y);
   g.emit({ t: 'sfx', id: 'dig' });
   g.addXp('foraging', 5);
+  g.count('dug');
 }
 
 export function eatHeld(g: Game): boolean {
@@ -452,6 +466,10 @@ export function eatHeld(g: Game): boolean {
     g.toast(`${info.name} ${'I'.repeat(fb.lvl)} for ${fb.min / 60}h: ${info.per}${fb.lvl > 1 ? ` (x${fb.lvl})` : ''}${had && had.src !== d.id ? ' (replaces your last buff)' : ''}`, d.id, info.color);
   }
   g.emit({ t: 'sfx', id: 'eat' });
+  g.count('eaten');
+  g.count('eaten_day');
+  if (g.time.min >= 1440) g.sys.achUnlock?.(g, 'midnightsnack');
+  if ((g.counters.eaten_day ?? 0) >= 15) g.sys.achUnlock?.(g, 'glutton');
   g.emit({ t: 'float', text: `+${Math.round(d.edible.energy * mult)}`, x: p.x, y: p.y - 2, c: 16 });
   g.stats.use(st.k, 1);
   return true;
@@ -529,6 +547,7 @@ export function interact(g: Game, tx: number, ty: number): boolean {
       const q = g.hasPerk('botanist') ? 2 : g.rng.next() < lvl * 0.05 + luck * 0.04 ? 2 : g.rng.next() < lvl * 0.08 + 0.1 ? 1 : 0;
       g.give(key(id, ITEM_BY_ID.get(id)?.quality ? q : 0), g.rng.next() < luck * 0.1 + (g.hasPerk('gatherer') ? 0.2 : 0) ? 2 : 1);
       g.addXp('foraging', 7);
+      g.count('foraged');
       g.emit({ t: 'sfx', id: 'pickup' });
     }
     return true;
@@ -537,6 +556,7 @@ export function interact(g: Game, tx: number, ty: number): boolean {
     const out = shakeTree(g, i);
     if (!g.sys.treeShake) g.sys.treeShake = new Map();
     g.sys.treeShake.set(i, 3);
+    g.count('shakes');
     g.emit({ t: 'sfx', id: 'rustle' });
     for (const st of out) spawnDrop(g, st.k, st.n, tx + 0.5, ty + 0.8);
     return true;
@@ -556,6 +576,12 @@ export function interactStruct(g: Game, e: Ent): boolean {
   const p = g.player;
   const held = p.inv.slots[p.sel];
   const d = e.def;
+  if (d.kind === 'scarecrow') {
+    const lines = ['The scarecrow stares into the middle distance.', 'You tell the scarecrow about your day. It seems to listen.', "The scarecrow's button eyes look... grateful?", 'A crow lands on the scarecrow, sees you, and leaves.'];
+    g.toast(lines[(g.counters.scare_talk = (g.counters.scare_talk ?? 0) + 1) % lines.length]);
+    if (g.counters.scare_talk >= 3) g.sys.achUnlock?.(g, 'scarecrow');
+    return true;
+  }
   // collect machine output first
   if (e.mach && e.mach.outBuf.length) {
     let got = 0;
@@ -582,6 +608,28 @@ export function interactStruct(g: Game, e: Ent): boolean {
         g.emit({ t: 'float', text: `+${n}`, x: e.x + e.w / 2, y: e.y, c: 7 });
         return true;
       }
+    }
+  }
+  // nothing loadable in hand: load the first ingredient the machine takes from anywhere in the bag
+  // (fuel stays put: hold it to add fuel on purpose)
+  if (e.mach && d.kind !== 'beehouse') {
+    let loaded = 0, what = '';
+    for (const s of p.inv.slots) {
+      if (!s) continue;
+      const sd = kDef(s.k);
+      if (sd.tool || sd.weapon || sd.fuel || (what && sd.id !== what)) continue;
+      const n = machInsert(g, e, s.k, s.n, true);
+      if (n > 0) {
+        p.inv.remove(s.k, n);
+        loaded += n;
+        what = sd.id;
+      }
+    }
+    if (loaded) {
+      g.emit({ t: 'sfx', id: 'insert' });
+      g.emit({ t: 'float', text: `+${loaded}`, x: e.x + e.w / 2, y: e.y, c: 7 });
+      g.toast(`Loaded ${loaded} ${ITEM_BY_ID.get(what)?.name ?? what} from your bag.`);
+      return true;
     }
   }
   if (d.kind === 'pond' && held && kDef(held.k).cat === 'fish') {

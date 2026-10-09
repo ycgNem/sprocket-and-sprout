@@ -20,12 +20,12 @@ export const TIPS: Tip[] = [
   {
     id: 'welcome', big: true, title: 'Welcome to Thistlewick!',
     when: (p) => p.g.dayIndex === 0 && p.playtime > 1.2,
-    text: 'Move with WASD. Left-click uses the tool or item in your hand; right-click (or F) talks, harvests, opens and collects.\n\nPick hotbar slots with 1-0 or the mouse wheel. E opens your bag, C the crafting menu, J the journal. Esc pauses.\n\nYour first tasks are in the top-left corner. Take your time: the days are long and nobody is in a hurry here.',
+    text: 'The old keeper\'s clockwork farm is yours, and their machines still work.\n\nMove with WASD. Left-click uses the tool or item in your hand; right-click (or F) talks, harvests, loads machines and collects. 1-0 or the wheel picks hotbar slots. E bag, C crafting, T research, J journal, U achievements.\n\nYour first task is top-left, and amber markers show where to go. The post collects your shipping crate at noon, at 6pm and overnight.',
   },
-  { id: 'hoe', when: (p) => held(p)?.tool?.kind === 'hoe', title: '', text: 'Click grass or dirt near you to till it. Bare farm soil is the easiest to work.' },
+  { id: 'hoe', when: (p) => held(p)?.tool?.kind === 'hoe' && !p.g.sys.quests?.active?.some((a: { id: string }) => a.id === 't_welcome'), title: '', text: 'Click grass or dirt near you to till it. Bare farm soil is the easiest to work.' },
   { id: 'seeds', when: (p) => held(p)?.cat === 'seed', title: '', text: 'Click tilled soil to plant. Seeds only grow in their season; the tooltip tells you which.' },
   { id: 'can', when: (p) => held(p)?.tool?.kind === 'can', title: '', text: 'Water each planted tile every day (rain does it for you). Click the farm pond to refill.' },
-  { id: 'energy', when: (p) => p.g.player.energy < 60, title: '', text: 'Energy is getting low. Eat something (H) or head to bed. Passing out at 2am costs coins!' },
+  { id: 'energy', when: (p) => p.g.player.energy < 60, title: '', text: 'Energy is getting low. Eat something (H) or head to bed. Pass out at 2am and you sleep in until 10.' },
   { id: 'night', when: (p) => p.g.time.min > 21 * 60 && p.g.dayIndex < 3, title: '', text: 'It is getting late. Head inside the farmhouse and right-click the bed to sleep; the shipping crate pays out overnight.' },
   { id: 'home', when: (p) => p.g.player.where === 'house', title: '', text: 'Home sweet home. Right-click the bed to sleep, the almanac for the forecast and market news, and the hearth to warm up. Juniper at the Joinery can renovate.' },
   { id: 'stray', when: (p) => p.g.sys.pet?.stage === 'stray' && p.g.player.where === 'world' && Math.hypot(p.g.sys.pet.x - p.g.player.x, p.g.sys.pet.y - p.g.player.y) < 8, title: '', text: 'A stray is hanging around your farmhouse. Right-click it to say hello!' },
@@ -37,14 +37,14 @@ export const TIPS: Tip[] = [
   {
     id: 'lab', big: true, title: 'The Study Desk',
     when: (p) => p.g.ents.others.some((e) => e.def.kind === 'lab'),
-    text: 'Research turns farm goods into know-how. Craft Sprout Bundles (1 fiber + 1 crop) and put them in the desk, then pick a topic in the research tree (T).\n\nConveyance and Clockwork Arms are the first steps toward a farm that runs itself.',
+    text: 'Research turns farm goods into know-how. Put Sprout Bundles (1 fiber + 1 crop, or 3 crops) in the desk, then pick a topic in the research tree (T).',
   },
   {
     id: 'belts', big: true, title: 'Belts and Arms',
     when: (p) => p.g.ents.belts.length > 0,
     text: 'Belts carry items on two lanes. Drag to place long lines; they curve on their own.\n\nA Clockwork Arm picks up from the tile behind it (green) and drops on the tile in front (gold). Chest -> arm -> machine -> arm -> belt is the basic recipe of every factory.\n\nHover a structure to see what it is doing. P opens production stats.',
   },
-  { id: 'machine', when: (p) => p.g.ents.machines.length > 0, title: '', text: 'Right-click a machine with an item in hand to load it, or open it to pick a recipe. Finished goods wait inside.' },
+  { id: 'machine', when: (p) => p.g.ents.machines.length > 0, title: '', text: 'Right-click a machine to load it: it takes what you hold, or a matching ingredient from your bag. Finished goods wait inside.' },
   {
     id: 'power', big: true, title: 'Power',
     when: (p) => p.g.ents.gens.length > 0,
@@ -58,12 +58,16 @@ export const TIPS: Tip[] = [
 
 export function checkTips(p: PlayScreen) {
   if (p.win) return;
+  if (p.hud.toasts.some((t) => t.text.startsWith('Tip:'))) return;
   for (const t of TIPS) {
     if (p.g.flags.has('tip_' + t.id)) continue;
+    // nothing else pops up before the welcome on the first morning
+    if (t.id !== 'welcome' && p.g.dayIndex === 0 && !p.g.flags.has('tip_welcome')) continue;
     if (!t.when(p)) continue;
     p.g.flags.add('tip_' + t.id);
-    if (t.big) p.openWindow('message', { title: t.title, text: t.text, icon: undefined });
-    else p.toast('Tip: ' + t.text, undefined, 21);
+    // only the welcome is a window; everything else is a short toast, one at a time
+    if (t.id === 'welcome') p.openWindow('message', { title: t.title, text: t.text, icon: undefined });
+    else p.toast('Tip: ' + (t.title ? t.title + ': ' : '') + t.text.split('\n\n')[0], undefined, 21);
     return;
   }
 }

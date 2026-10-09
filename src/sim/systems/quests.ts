@@ -66,7 +66,14 @@ function startAvailable(g: Game) {
   for (const d of QUESTS) {
     if (q.done.includes(d.id) || q.active.some((a) => a.id === d.id)) continue;
     if (d.startDay !== undefined && g.dayIndex < d.startDay) continue;
-    if (d.after && !d.after.every((a) => q.done.includes(a))) continue;
+    if (d.needFlag && !g.flags.has(d.needFlag)) continue;
+    // Sandbox has no quests; Clockwork Rush keeps only the opening tutorial
+    if (g.mode === 'sandbox' || (g.mode === 'rush' && !d.tutorial)) continue;
+    // at most three story quests at once; the rest wait their turn
+    if (d.startDay === undefined && q.active.length >= 3) continue;
+    // a prerequisite gated behind a flag this save doesn't have (e.g. the new opening) counts as met
+    const met = (a: string) => q.done.includes(a) || (!!QUEST_BY_ID.get(a)?.needFlag && !g.flags.has(QUEST_BY_ID.get(a)!.needFlag!));
+    if (d.after && !d.after.every(met)) continue;
     if (!d.after && d.startDay === undefined) continue;
     start(g, d);
   }
@@ -84,7 +91,11 @@ function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
       for (let i = 0; i < ITEMS.length; i++) if (matchesSpec(ITEMS[i], o.item)) rate += g.stats.rate(i, 0, 'prod');
       return rate >= o.perMin || prog > 0;
     }
-    case 'research': return g.research.done.has(o.id);
+    // things crafted before the quest started count if you still have them (in the bag or placed)
+    case 'craft': return prog >= o.n || g.player.inv.countId(o.item) + g.ents.all().filter((e) => !e.ghost && e.def.item === o.item).length >= o.n;
+    // structures placed before the quest started count too
+    case 'build': return prog >= o.n || g.ents.all().filter((e) => !e.ghost && e.def.id === o.struct).length >= o.n;
+    case 'research': return o.id === '*' ? (g.counters.research ?? 0) >= 1 : g.research.done.has(o.id);
     case 'floor': return (g.sys.mine?.deepest ?? 0) >= o.n;
     case 'talk':
     case 'sleep':
@@ -104,7 +115,7 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
     case 'talk': return `Talk to ${shortName(NPC_BY_ID.get(o.npc)?.name ?? '')}`;
     case 'build': return `Build ${o.n > 1 ? o.n + ' ' : 'a '}${STRUCT_BY_ID.get(o.struct)?.name} (${Math.min(prog, o.n)}/${o.n})`;
     case 'craft': return `Craft ${o.n > 1 ? o.n + ' ' : 'a '}${item(o.item)}`;
-    case 'research': return `Research ${RESEARCH_BY_ID.get(o.id)?.name}`;
+    case 'research': return o.id === '*' ? 'Research any topic' : `Research ${RESEARCH_BY_ID.get(o.id)?.name}`;
     case 'floor': return `Reach mine floor ${o.n} (${Math.min(o.n, g.sys.mine?.deepest ?? 0)}/${o.n})`;
     case 'catch': return `Catch ${o.n} fish (${Math.min(prog, o.n)}/${o.n})`;
     case 'till': return `Till ${o.n} soil (${Math.min(prog, o.n)}/${o.n})`;

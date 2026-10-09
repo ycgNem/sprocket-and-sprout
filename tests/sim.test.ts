@@ -31,14 +31,31 @@ describe('time', () => {
     expect(g.weekday).toBe(g.dayIndex % 7);
   });
 
-  it('passing out at 2am costs money and energy', () => {
+  it('passing out at 2am costs your morning and energy, not coins', () => {
     const g = new Game({ seed: 4 });
     g.player.money = 1000;
     g.time.min = DAY_END - 0.005;
     g.tick();
     expect(g.time.day).toBe(2);
-    expect(g.player.money).toBe(900);
+    expect(g.player.money).toBe(1000);
+    expect(g.time.min).toBe(600);
     expect(g.player.energy).toBeLessThan(g.player.maxEnergy);
+  });
+
+  it('cozy mode runs the clock at half speed and forgives passing out', () => {
+    const g = new Game({ seed: 4, mode: 'cozy' });
+    for (let i = 0; i < 60 * 7; i++) g.tick();
+    expect(Math.round(g.time.min - DAY_START)).toBe(5);
+    g.time.min = DAY_END - 0.001;
+    g.tick();
+    expect(g.time.min).toBe(DAY_START);
+  });
+
+  it('the clock slows to a quarter while building', () => {
+    const g = new Game({ seed: 5 });
+    g.slowClock = true;
+    for (let i = 0; i < 60 * 28; i++) g.tick();
+    expect(Math.round(g.time.min - DAY_START)).toBe(10);
   });
 
   it('a 10-minute game step takes 7 real seconds', () => {
@@ -135,6 +152,9 @@ describe('economy', () => {
 describe('crafting', () => {
   it('hand crafting consumes ingredients and respects unlocks', () => {
     const g = new Game({ seed: 12 });
+    // the clockwork opening already knows belts and carries a chest: reset for this test
+    g.research.done.delete('r_belts');
+    g.player.inv.remove(key('chest_wood'), g.player.inv.countId('chest_wood'));
     g.player.inv.add(key('wood'), 40);
     const chest = HAND_RECIPES.find((r) => r.out[0].item === 'chest_wood')!;
     expect(craft(g, chest, 1)).toBe(1);

@@ -1,80 +1,32 @@
-// Heads-up display: clock & weather, money, energy/health, hotbar, toasts, pickups, minimap, quest tracker.
+// Heads-up display layout: chronometer, factory pulse, minimap, buff, hotbar, toasts, pickups, quest tracker.
+// The ornate pieces themselves live in hudparts.ts and pulse.ts.
 import { C, PALETTE } from '../data/palette';
-import { SEASON_NAMES, WEEKDAYS } from '../data/types';
 import { ITEMS } from '../data/items';
-import { itemName, kDef, key } from '../sim/inventory';
+import { itemName, key } from '../sim/inventory';
 import { BUFF_INFO } from '../data/buffs';
 import { T, Z } from '../sim/world/tilemap';
 import { curMap } from '../sim/systems/player';
-import { ICON, wrapText, textWidth } from './font';
-import { itemTooltip } from './tooltips';
+import { wrapText, textWidth } from './font';
 import type { UI } from './ui';
 import type { PlayScreen } from '../app/play';
+import { drawChronometer, drawHotbar, drawBuildBar, drawRushTracker } from './hudparts';
+import { drawPulse } from './pulse';
 
 export interface HudState {
   pickups: { k: number; n: number; t: number }[];
   toasts: { text: string; t: number; icon?: string; color?: number }[];
 }
 
-export function fmtTime(min: number) {
-  const h = Math.floor(min / 60) % 24;
-  const m = Math.floor((min % 60) / 10) * 10;
-  return `${((h + 11) % 12) + 1}:${m.toString().padStart(2, '0')}${h < 12 ? 'am' : 'pm'}`;
-}
-
-const WEATHER_COL: Record<string, number> = { sun: C.amber, rain: C.sky, storm: C.slate, snow: C.frost, wind: C.leaf };
-const WEATHER_NAME: Record<string, string> = { sun: 'Sunny', rain: 'Rain', storm: 'Storm', snow: 'Snow', wind: 'Breezy' };
-
-function weatherIcon(ui: UI, x: number, y: number, w: string) {
-  const f = (xx: number, yy: number, ww: number, hh: number, c: number) => ui.fill(x + xx, y + yy, ww, hh, c);
-  if (w === 'sun') {
-    f(3, 3, 6, 6, C.amber);
-    f(5, 0, 2, 12, C.amber);
-    f(0, 5, 12, 2, C.amber);
-    f(4, 4, 4, 4, C.butter);
-  } else if (w === 'rain' || w === 'storm') {
-    f(1, 2, 10, 5, w === 'storm' ? C.slate : C.pebble);
-    f(3, 0, 6, 3, w === 'storm' ? C.slate : C.pebble);
-    f(2, 8, 1, 2, C.sky);
-    f(5, 9, 1, 2, C.sky);
-    f(8, 8, 1, 2, C.sky);
-    if (w === 'storm') { f(6, 7, 2, 2, C.amber); f(5, 9, 2, 2, C.amber); }
-  } else if (w === 'snow') {
-    f(5, 1, 2, 10, C.frost);
-    f(1, 5, 10, 2, C.frost);
-    f(2, 2, 2, 2, C.cream);
-    f(8, 8, 2, 2, C.cream);
-  } else {
-    f(0, 3, 9, 1, C.leaf);
-    f(2, 6, 10, 1, C.leaf);
-    f(0, 9, 7, 1, C.leaf);
-  }
-}
-
 export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   const g = play.g;
   const p = g.player;
-  void dt;
-  // ---- clock panel (top right) ----
-  const cw = 104, ch = 54;
+  // ---- chronometer (top right) ----
+  const cw = 120;
   const cx = ui.w - cw - 4, cy = 4;
-  ui.panel(cx, cy, cw, ch, 'wood');
-  const day = `${WEEKDAYS[g.weekday]}. ${g.time.day}`;
-  ui.text(day, cx + 10, cy + 9, C.walnut);
-  ui.text(SEASON_NAMES[g.time.season], cx + cw - 10, cy + 9, [C.leaf, C.amber, C.terracotta, C.sky][g.time.season], { align: 'right' });
-  ui.text(fmtTime(g.time.min), cx + 10, cy + 21, C.ink);
-  weatherIcon(ui, cx + cw - 22, cy + 19, g.weather);
-  if (ui.hover(cx + cw - 24, cy + 17, 16, 16)) ui.tip([{ text: `Today: ${WEATHER_NAME[g.weather]}` }, { text: `Tomorrow: ${WEATHER_NAME[g.tomorrow]}`, color: C.pebble }, { text: `Wind: ${Math.round(g.wind * 100)}%`, color: C.pebble }]);
-  // sun/moon dial
-  const frac = Math.min(1, (g.time.min - 360) / 1200);
-  ui.fill(cx + 10, cy + 31, cw - 20, 3, C.walnut);
-  ui.fill(cx + 10, cy + 31, Math.round((cw - 20) * frac), 3, frac > 0.7 ? C.violet : C.amber);
-  ui.fill(cx + 6, cy + 38, cw - 12, 11, C.tan);
-  ui.text(`${ICON.coin} ${p.money.toLocaleString()}`, cx + cw - 10, cy + 40, C.ink, { align: 'right' });
-  if (ui.hover(cx, cy, cw, ch)) {
-    ui.block(cx, cy, cw, ch);
-    if (!ui.tooltip) ui.tip([{ text: `Year ${g.time.year}, ${SEASON_NAMES[g.time.season]} ${g.time.day}` }, { text: `Earned in total: ${g.earned.toLocaleString()}`, color: C.pebble }]);
-  }
+  const ch0 = drawChronometer(ui, play, cx, cy, cw, dt);
+  // ---- factory pulse (working / starved / blocked machines) ----
+  const ph = drawPulse(ui, play, cx, cy + ch0 + 3, cw);
+  const ch = ch0 + (ph ? ph + 3 : 0);
 
   // ---- minimap ----
   if (g.player.where !== 'house') drawMinimap(ui, play, ui.w - cw - 4, cy + ch + 4, cw, 70);
@@ -91,59 +43,11 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
     if (ui.hover(cx, by, cw, 22)) ui.tip([{ text: `${info.name} ${'I'.repeat(buff.lvl)}`, color: info.color }, { text: info.per + (buff.lvl > 1 ? ` (x${buff.lvl})` : '') }, { text: 'From ' + itemName(key(buff.src)) + '. Sleeping ends it.', color: C.pebble }]);
   }
 
-  // ---- energy / health ----
-  const maxE = p.maxEnergy + g.mods.energy;
-  const bh = 70;
-  const ex = ui.w - 18, ey = ui.h - bh - 8;
-  ui.fill(ex - 1, ey - 1, 12, bh + 2, C.ink);
-  ui.fill(ex, ey, 10, bh, C.walnut);
-  const ef = Math.max(0, p.energy / maxE);
-  const ecol = ef > 0.5 ? C.leaf : ef > 0.2 ? C.amber : C.rose;
-  ui.fill(ex + 2, ey + 2 + Math.round((bh - 4) * (1 - ef)), 6, Math.round((bh - 4) * ef), ecol);
-  ui.text('E', ex + 3, ey - 10, C.cream, { shadow: C.ink });
-  if (ui.hover(ex - 2, ey - 2, 14, bh + 4)) ui.tip([{ text: `Energy ${Math.max(0, Math.round(p.energy))} / ${maxE}` }, { text: 'Tools use energy. Eat food or sleep to recover.', color: C.pebble }]);
-  if (p.where === 'mine' || p.hp < p.maxHp) {
-    const hx = ex - 16;
-    ui.fill(hx - 1, ey - 1, 12, bh + 2, C.ink);
-    ui.fill(hx, ey, 10, bh, C.walnut);
-    const hf = Math.max(0, p.hp / p.maxHp);
-    ui.fill(hx + 2, ey + 2 + Math.round((bh - 4) * (1 - hf)), 6, Math.round((bh - 4) * hf), C.rose);
-    ui.text(ICON.heart, hx + 2, ey - 10, C.rose, { shadow: C.ink });
-    if (ui.hover(hx - 2, ey - 2, 14, bh + 4)) ui.tip([{ text: `Health ${Math.round(p.hp)} / ${p.maxHp}` }]);
-  }
+  // ---- hotbar + gauges ----
+  drawHotbar(ui, play, dt);
 
-  // ---- hotbar ----
-  const S = 20, gap = 2;
-  const hw = 12 * (S + gap) + 8;
-  const hx = Math.floor((ui.w - hw) / 2), hy = ui.h - S - 12;
-  ui.panel(hx, hy - 4, hw, S + 8 + 4, 'wood');
-  for (let i = 0; i < 12; i++) {
-    const sx = hx + 5 + i * (S + gap);
-    const st = p.inv.slots[i];
-    const r = ui.slot(sx, hy + 1, st, { selected: p.sel === i });
-    if (i < 10) ui.text(String((i + 1) % 10), sx + 1, hy + 1, C.walnut);
-    if (r.click) p.sel = i;
-    if (r.hover && st) ui.tip(itemTooltip(g, st.k, st.n));
-  }
-  // watering can level / charge
-  const sel = p.inv.slots[p.sel];
-  if (sel && kDef(sel.k).tool?.kind === 'can') {
-    const cap = [40, 55, 70, 85, 100][kDef(sel.k).tool!.tier];
-    ui.bar(hx + 5 + p.sel * (S + gap), hy - 6, S, 4, p.water / cap, C.sky);
-  }
-  if (play.charge > 0) ui.text('x'.repeat(play.charge), hx + 5 + p.sel * (S + gap) + S / 2, hy - 14, C.amber, { align: 'center', shadow: C.ink });
-  // selected item name
-  if (sel) {
-    const name = itemName(sel.k);
-    ui.text(name, ui.w / 2, hy - 16, C.cream, { align: 'center', shadow: C.ink });
-  }
-
-  // ---- build mode banner ----
-  if (play.mode !== 'normal') {
-    const msg = play.mode === 'decon' ? 'DECONSTRUCT: drag a box to pick up structures  (Esc to cancel)' : play.mode === 'copy' ? 'COPY: drag a box to copy a blueprint  (Esc to cancel)' : 'PASTE: click to place, R to rotate  (Esc to cancel)';
-    ui.panel(ui.w / 2 - 150, 6, 300, 16, 'dark', false);
-    ui.text(msg, ui.w / 2, 11, play.mode === 'decon' ? C.blush : C.aqua, { align: 'center' });
-  }
+  // ---- build toolbar (while placing or in an area mode) ----
+  drawBuildBar(ui, play);
 
   // ---- pickups (left) ----
   play.hud.pickups.forEach((pk, i) => {
@@ -158,9 +62,11 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   });
 
   // ---- toasts (top center) ----
-  let toastY = 28;
-  for (const t of play.hud.toasts) {
-    const life = t.text.startsWith('Tip:') ? 9 : 4.5;
+  // toasts make room under an achievement banner
+  let toastY = 28 + (play.achQ.length ? 44 : 0);
+  // at most three on screen, newest kept
+  for (const t of play.hud.toasts.slice(-3)) {
+    const life = t.text.startsWith('Tip:') ? 6 : 4.5;
     const a = t.t < life - 0.7 ? 1 : 1 - (t.t - (life - 0.7)) / 0.7;
     ui.ctx.globalAlpha = Math.max(0, Math.min(1, a, t.t * 6));
     const lines = wrapText(t.text, Math.min(320, ui.w - 240));
@@ -175,11 +81,16 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   // ---- quest tracker (top left) ----
   const tracker: { title: string; lines: { text: string; done: boolean }[] }[] = g.sys.quests?.tracker?.(g) ?? [];
   let ty = 4;
-  for (const q of tracker.slice(0, 2)) {
-    const h = 14 + q.lines.length * 10;
-    ui.panel(4, ty, 150, h, 'dark', false);
+  ty = drawRushTracker(ui, g, ty);
+  for (const q of tracker.slice(0, 3)) {
+    const lines = q.lines.flatMap((l) => wrapText((l.done ? '+ ' : '- ') + l.text, 150).map((t, i) => ({ t: i ? '  ' + t : t, done: l.done })));
+    const h = 17 + lines.length * 10;
+    ui.panel(4, ty, 160, h, 'dark', false);
+    ui.fill(4, ty, 160, 1, C.brass);
     ui.text(q.title, 9, ty + 4, C.amber);
-    q.lines.forEach((l, i) => ui.text((l.done ? '+ ' : '- ') + l.text, 9, ty + 14 + i * 10, l.done ? C.leaf : C.cream));
+    // objective pips
+    q.lines.forEach((l, i) => ui.fill(160 - (q.lines.length - i) * 6, ty + 5, 4, 4, l.done ? C.leaf : C.slate));
+    lines.forEach((l, i) => ui.text(l.t, 9, ty + 15 + i * 10, l.done ? C.leaf : C.cream));
     ty += h + 3;
   }
   // mine floor

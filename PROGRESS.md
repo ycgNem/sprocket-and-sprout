@@ -97,6 +97,31 @@
   save, house, pacing). E2E: smoke, flow (real input incl. the bed), windows (32 scenes), shots, bot,
   perf, qa, portraits, house. All report 0 console errors.
 
+## Identity pass (October 2026, driven by the indie-critic review)
+- Clockwork opening: ripe keeper's beans + a working jar by the crate, arms/belts/desk from minute
+  one, amber guide markers, new quests (The Keeper's Beans, A Helping Hand, Room to Grow, The
+  Study Desk). The post also collects the crate at noon and 6pm. First automated sale: about 4 minutes in.
+- Game modes (Story, Cozy, Clockwork Rush with medals + local best runs, Sandbox) and five farm
+  maps (Homestead, Riverside, Tinker's Yard, Highlands, Wildwood), picked on a second new-game
+  step with a live map preview. Saves store mode + map.
+- About 120 achievements (about 35 secret) with a U window, an unlock banner, 250-coin rewards for
+  secrets and a cross-save profile. Hooks: walking, belt riding (belts now carry the player), the
+  Konami code, poking the sun or moon in the sky window, spinning the hotbar gears, and more.
+- HUD rework: sky-window chronometer (weather, stars, an underground view in the mine), rolling
+  odometer with +/- deltas, factory pulse lamps, gear hotbar with tube gauges, build toolbar,
+  3-quest tracker with pips, at most 3 toasts, one tip at a time, pixel CSS cursor (with a setting).
+- Clock at 1/4 speed while building; passing out costs the morning, not coins.
+- Readable research tree (named nodes, state colours, tier headers, costs).
+- Economy: new artisan multipliers, animal prices, XP curve and tool costs. Sunflower, sweetcane,
+  tea and gear fixes. Market floor 40%. Cranes cap at silver with no XP and leave chaff. Flax -> fiber;
+  3-crop bundles.
+- Saves on tab hide/close, persistent-storage request, confirm before overwriting a full slot list.
+- Out-of-reach clicks show a red outline instead of acting on another tile.
+- Belt chevrons, warm brick furnaces, a brass and copper farmhouse.
+- Sharing: `Package for web.bat` builds + zips for itch.io, a GitHub Pages workflow, and SHARING.md.
+- Tests: 77 Vitest tests (new: tests/modes.test.ts for maps, modes, time dilation, bag loading, the post and achievements) +
+  LONG=1 year run. E2E smoke/flow updated for the two-step new-game screen; all report 0 console errors.
+
 ## Next
 - More interior variety (decor items placeable indoors), farmhouse expansion tiers.
 - More depth for mid-game automation goals and late-game megaprojects.

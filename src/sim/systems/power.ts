@@ -121,7 +121,7 @@ export function genCapacity(g: Game, e: Ent): number {
       return base * (g.time.season === 3 ? 0.6 : g.isRaining() ? 1.25 : 1);
     case 'windmill': {
       const gust = 0.85 + 0.15 * Math.sin(g.simTime * 0.37 + e.x) + 0.1 * Math.sin(g.simTime * 1.13 + e.y);
-      return base * g.wind * gust;
+      return base * g.wind * gust * (g.farmKind === 'highlands' ? 1.3 : 1);
     }
     case 'sunlens': {
       const d = g.daylight;

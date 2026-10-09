@@ -36,9 +36,9 @@ describe('research labs', () => {
     g.flags.add('lab');
     const lab = place(g, 'lab', 50, 32, 0);
     lab.inv!.add(key('bundle_green'), 10);
-    setResearch(g, 'r_belts');
+    setResearch(g, 'r_fertilizer');
     run(g, 6 * 6 + 2);
-    expect(g.research.done.has('r_belts')).toBe(true);
+    expect(g.research.done.has('r_fertilizer')).toBe(true);
     expect(lab.inv!.countId('bundle_green')).toBe(4);
   });
 
@@ -138,16 +138,22 @@ describe('megaprojects', () => {
 });
 
 describe('tutorial', () => {
-  it('the first quest starts and completes when tilling + planting', async () => {
+  it('the clockwork opening: pick the keeper beans, feed the jar, then the arm, planting and water quests', async () => {
     const g = new Game({ seed: 28 });
     const q = questSys(g);
     expect(q.active.some((a) => a.id === 't_welcome')).toBe(true);
-    for (let i = 0; i < 6; i++) {
-      q.notify(g, 'till', 1);
-      q.notify(g, 'plant', 1);
-    }
+    // ripe beans and a jar wait by the house; arms and belts are known from minute one
+    expect([...g.soil.values()].filter((s) => s.crop?.id === 'cogbean' && s.crop.ready).length).toBe(8);
+    expect(g.ents.machines.some((e) => e.def.id === 'jar')).toBe(true);
+    expect(g.research.done.has('r_arms')).toBe(true);
+    q.notify(g, 'harvest', 8, 'cogbean');
+    g.stats.add(key('pickles_cogbean'), 1);
+    for (let i = 0; i < 60 * 70; i++) g.tick();
     expect(q.done.includes('t_welcome')).toBe(true);
-    expect(q.active.some((a) => a.id === 't_water')).toBe(true);
+    const active = q.active.map((a) => a.id);
+    expect(active).toContain('t_arm');
+    expect(active).toContain('t_plant');
+    expect(active.length).toBeLessThanOrEqual(3);
   });
 });
 

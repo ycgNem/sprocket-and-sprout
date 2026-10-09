@@ -224,6 +224,7 @@ export class UI {
   slot(x: number, y: number, st: { k: number; n: number } | null, opts: { size?: number; selected?: boolean; ghost?: number; dim?: boolean; label?: string } = {}) {
     const S = opts.size ?? 20;
     const hov = this.hover(x, y, S, S);
+    if (hov) this.hoverId = 'slot';
     this.fill(x, y, S, S, opts.selected ? C.amber : C.oak);
     this.fill(x + 1, y + 1, S - 2, S - 2, hov ? C.butter : C.tan);
     this.fill(x + 1, y + 1, S - 2, 1, C.walnut);

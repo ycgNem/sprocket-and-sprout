@@ -24,3 +24,4 @@ import './systems/founders';
 import './systems/festivals';
 import './systems/bots';
 import './systems/achievements';
+import './systems/modes';

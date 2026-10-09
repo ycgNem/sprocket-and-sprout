@@ -166,6 +166,7 @@ export function deconstruct(g: Game, e: Ent, refund = true): boolean {
     g.give(key(root.def.item), 1);
   }
   g.ents.remove(root);
+  g.count('decon');
   g.sys.onRemove?.forEach?.((f: (g: Game, e: Ent) => void) => f(g, root));
   g.emit({ t: 'fx', kind: 'dust', x: root.x + root.w / 2, y: root.y + root.h / 2, n: 10 });
   g.emit({ t: 'sfx', id: 'pickup_struct', x: root.x, y: root.y });

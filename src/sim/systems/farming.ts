@@ -105,7 +105,8 @@ export function rollQuality(g: Game, s: Soil, rng: Rng): number {
 }
 
 /** Harvest a ripe crop. Returns item stacks (key, n). Leaves regrowing plants. */
-export function harvest(g: Game, i: number, rng = g.rng): { k: number; n: number }[] | null {
+/** `machine`: picked by a harvest crane, capped at silver quality and worth no farming XP */
+export function harvest(g: Game, i: number, rng = g.rng, machine = false): { k: number; n: number }[] | null {
   const s = g.soil.get(i);
   if (!s?.crop) return null;
   const c = s.crop;
@@ -124,14 +125,19 @@ export function harvest(g: Game, i: number, rng = g.rng): { k: number; n: number
       if (ss) ss.crop = null;
     }
     out.push({ k: key(cr.produce, 1 + (rng.next() < 0.5 ? 1 : 0)), n: 15 + rng.int(0, 6) });
+    g.count('harvested', out[0].n);
+    g.count('h_' + cr.id);
+    g.count('harvest_s' + g.time.season);
     return out;
   }
   const [lo, hi] = cr.yield ?? [1, 1];
   let n = rng.int(lo, hi);
   if (rng.next() < 0.02 * (g.player.skills.farming ?? 0)) n++;
-  const q = rollQuality(g, s, rng);
+  const q = machine ? Math.min(1, rollQuality(g, s, rng)) : rollQuality(g, s, rng);
   out.push({ k: key(cr.produce, q), n: 1 });
   if (n > 1) out.push({ k: key(cr.produce, 0), n: n - 1 });
+  // sunflowers drop a few of their own seeds
+  if (cr.id === 'sunflower') out.push({ k: key('sunflower_seed'), n: rng.int(1, 2) });
   c.harvests++;
   if (cr.regrow) {
     c.ready = false;
@@ -142,8 +148,12 @@ export function harvest(g: Game, i: number, rng = g.rng): { k: number; n: number
     // quality fertilizer is used up; speed/retain persists like soil amendments
     if (s.fert && ITEM_BY_ID.get(s.fert)?.fertilizer?.quality) s.fert = null;
   }
-  g.addXp('farming', Math.max(2, Math.round(Math.sqrt(cr.price) * 0.9)));
+  if (!machine) g.addXp('farming', Math.max(2, Math.round(Math.sqrt(cr.price) * 0.9)));
+  else g.count('crane_harvests');
   g.count('harvested', n);
+  g.count('h_' + cr.id);
+  g.count('harvest_s' + g.time.season);
+  if (q === 3) g.count('harvest_star');
   g.sys.quests?.notify?.(g, 'harvest', n, cr.produce);
   return out;
 }
@@ -185,6 +195,7 @@ function tryGiant(g: Game) {
     if (!ok || g.rng.next() > 0.05) continue;
     for (let yy = y; yy < y + 3; yy++) for (let xx = x; xx < x + 3; xx++) g.soil.get(m.idx(xx, yy))!.crop!.giant = i;
     g.toast(`A giant ${cr.name.toLowerCase()} grew overnight!`);
+    g.count('giant');
   }
 }
 
@@ -218,7 +229,8 @@ function seasonChange(g: Game, newSeason: Season) {
   for (const [i, s] of g.soil) {
     if (!s.crop || inGreenhouse(g, i)) continue;
     const cr = CROP_BY_ID.get(s.crop.id);
-    if (cr && !cr.seasons.includes(newSeason)) s.crop.dead = true;
+    // cozy and sandbox crops keep growing through the change of season
+    if (cr && !cr.seasons.includes(newSeason) && g.mode !== 'cozy' && g.mode !== 'sandbox') s.crop.dead = true;
   }
 }
 

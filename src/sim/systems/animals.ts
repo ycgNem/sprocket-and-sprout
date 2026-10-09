@@ -82,6 +82,7 @@ export function buyAnimal(g: Game, kindId: string): string | null {
 }
 
 function pet(g: Game, a: AnimalState) {
+  g.count('animal_pets');
   if (!a.petted) {
     a.petted = true;
     a.happy = Math.min(255, a.happy + 30);

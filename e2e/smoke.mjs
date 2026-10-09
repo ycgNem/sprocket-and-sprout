@@ -56,6 +56,11 @@ await shot('03-newgame-filled');
 const bx = (Math.floor((uw - 340) / 2) + 340 - 110 + 48) * S;
 const by = (Math.floor((uh - 230) / 2) + 230 - 28 + 10) * S;
 await page.mouse.click(bx, by);
+await wait(500);
+await shot('03b-mode-map');
+// step 2: game mode + farm map -> Begin!
+const w2 = Math.min(460, uw - 16), h2 = Math.min(272, uh - 16);
+await page.mouse.click((Math.floor((uw - w2) / 2) + w2 - 62) * S, (Math.floor((uh - h2) / 2) + h2 - 18) * S);
 await wait(2000);
 await shot('04-farm');
 await page.keyboard.press('Enter');

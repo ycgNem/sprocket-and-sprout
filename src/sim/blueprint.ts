@@ -78,6 +78,7 @@ export function blueprintCost(bp: Blueprint): Map<string, number> {
 
 export function pasteBlueprint(g: Game, bp: Blueprint, ox: number, oy: number): { placed: number; ghosts: number } {
   let placed = 0, ghosts = 0;
+  g.count('pastes');
   for (const it of bp.items) {
     const x = ox + it.dx, y = oy + it.dy;
     const chk = canPlace(g, it.def, x, y, it.rot, { ghostOk: true });

@@ -7,9 +7,11 @@ import type { Ent } from '../ents';
 import { key, kDef, kId } from '../inventory';
 import { PORT_HANDLERS } from '../ports';
 
-export function researchUnits(id: string) {
+/** bundle units a topic costs (half, rounded up, in Clockwork Rush) */
+export function researchUnits(id: string, g?: Game) {
   const r = RESEARCH_BY_ID.get(id)!;
-  return r.cost[0]?.n ?? 1;
+  const n = r.cost[0]?.n ?? 1;
+  return g?.mode === 'rush' ? Math.ceil(n / 2) : n;
 }
 
 export function canResearch(g: Game, id: string): boolean {
@@ -78,7 +80,7 @@ function updateLabs(g: Game, dt: number) {
     return;
   }
   const r = RESEARCH_BY_ID.get(cur)!;
-  const units = researchUnits(cur);
+  const units = researchUnits(cur, g);
   for (const e of g.ents.others) {
     if (e.def.kind !== 'lab' || e.ghost) continue;
     const inv = e.inv!;
@@ -114,7 +116,7 @@ function updateLabs(g: Game, dt: number) {
       e.st.progress = 0;
       g.sys.labsInFlight[node] = Math.max(0, (g.sys.labsInFlight[node] ?? 1) - 1);
       g.research.progress[node] = (g.research.progress[node] ?? 0) + 1;
-      if (g.research.progress[node] >= researchUnits(node) && !g.research.done.has(node)) complete(g, node);
+      if (g.research.progress[node] >= researchUnits(node, g) && !g.research.done.has(node)) complete(g, node);
     }
   }
 }

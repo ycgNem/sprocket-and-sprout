@@ -173,6 +173,8 @@ function land(g: Game, k: number, size: number) {
   const d = kDef(k);
   g.give(k, 1);
   g.emit({ t: 'sfx', id: d.cat === 'trash' ? 'splash' : 'catch' });
+  if (d.cat === 'trash' || d.id === 'kelp') g.count('trash_' + d.id);
+  if (d.cat === 'fish' && g.time.min >= 1500 && g.weather === 'storm') g.sys.achUnlock?.(g, 'graveyard');
   if (d.cat === 'fish') {
     g.count('fish_caught');
     g.count('caught_' + d.id);
@@ -246,6 +248,7 @@ function reelTick(g: Game, dt: number) {
 
 registerSystem({
   name: 'fishing',
+  realtime: true,
   tick(g, dt) {
     const f = g.sys.fishing as Fishing | undefined;
     if (!f) {

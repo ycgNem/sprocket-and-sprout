@@ -145,7 +145,8 @@ registerSystem({
   dayStart(g) {
     const gs = guild(g);
     if (!gs.unlocked) {
-      if (!g.research.done.has('r_arms')) return;
+      // the Guild writes once you have arms and a few days behind you (from day 1 in Clockwork Rush)
+      if (g.mode !== 'rush' && (!g.research.done.has('r_arms') || g.dayIndex < 2)) return;
       gs.unlocked = true;
       send(g, 'guild_intro', {
         from: 'The Trading Guild', title: 'A proposal from the Trading Guild',
@@ -156,7 +157,8 @@ registerSystem({
       postContracts(g);
       return;
     }
-    if (g.weekday === 0 || !gs.list.length || gs.week < Math.floor(g.dayIndex / 7) - 1) postContracts(g);
+    const fresh = g.mode === 'rush' ? g.dayIndex % 3 === 0 : g.weekday === 0;
+    if (fresh || !gs.list.length || gs.week < Math.floor(g.dayIndex / 7) - 1) postContracts(g);
   },
   save(g) {
     return g.sys.guild ?? null;

@@ -521,10 +521,26 @@ function drawBuilding(d: BldDesc, season: number, state: number): PixBuf {
     }
   }
   pb.rect(0, wallTop + 1, W, 2, DARK[roof]);
+  // the keeper's farmhouse: timber band, copper downpipe and a brass cog on the gable
+  if (d.kind === 'farmhouse') {
+    pb.rect(2, wallTop + 17, W - 4, 2, C.walnut);
+    pb.rect(3, wallTop + 2, 2, H - wallTop - 6, C.copper);
+    pb.rect(3, wallTop + 2, 1, H - wallTop - 6, C.apricot);
+    for (let y = wallTop + 6; y < H - 6; y += 8) pb.rect(2, y, 4, 1, C.brass);
+    pb.rect(1, H - 6, 6, 2, C.copper);
+    const gx = Math.floor(W / 2), gy = 7;
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      pb.rect(Math.round(gx + Math.cos(a) * 5) - 1, Math.round(gy + Math.sin(a) * 5) - 1, 2, 2, C.brass);
+    }
+    pb.disc(gx, gy, 4.2, C.brass);
+    pb.disc(gx, gy, 2.4, C.copper);
+    pb.disc(gx, gy, 1, C.ink);
+  }
   // chimney
   if (d.kind === 'farmhouse' || d.id === 'inn' || d.id === 'smithy' || d.id === 'hermit_hut') {
-    pb.rect(W - 18, 0, 7, 12, C.brick);
-    pb.rect(W - 19, 0, 9, 2, C.slate);
+    pb.rect(W - 18, 0, 7, 12, d.kind === 'farmhouse' ? C.copper : C.brick);
+    pb.rect(W - 19, 0, 9, 2, d.kind === 'farmhouse' ? C.brass : C.slate);
     for (let y = 3; y < 12; y += 3) pb.rect(W - 18, y, 7, 1, C.wine);
   }
   // door

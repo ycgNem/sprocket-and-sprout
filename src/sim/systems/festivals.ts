@@ -10,6 +10,8 @@ export function festivalOn(season: Season | number, day: number): FestivalDef | 
 }
 
 export function festivalToday(g: Game): FestivalDef | null {
+  // Clockwork Rush is all business: no festivals
+  if (g.mode === 'rush') return null;
   const f = festivalOn(g.time.season, g.time.day);
   if (!f) return null;
   return f;
@@ -49,12 +51,17 @@ export function finishActivity(g: Game, f: FestivalDef, score: number) {
   } else g.give(key('ticket'), 2);
   const best = g.counters['best_' + f.id] ?? 0;
   if (score > best) g.counters['best_' + f.id] = score;
-  g.count('festivals');
+  // count distinct festivals, not repeat visits
+  if (!g.flags.has('fest_seen_' + f.id)) {
+    g.flags.add('fest_seen_' + f.id);
+    g.count('festivals');
+  }
   return { prize, first: true };
 }
 
 registerSystem({
   name: 'festivals',
+  realtime: true,
   tick(g) {
     if (g.tickN % 30 !== 0) return;
     const fs = g.sys.festivals;
@@ -78,7 +85,7 @@ registerSystem({
     g.sys.festivals = {
       list: FESTIVALS,
       active: null,
-      isFestival: (s: Season, d: number) => !!festivalOn(s, d),
+      isFestival: (s: Season, d: number) => g.mode !== 'rush' && !!festivalOn(s, d),
       today: (gg: Game) => festivalToday(gg),
       npcSpot: (gg: Game, id: string) => {
         const f = festivalActive(gg);

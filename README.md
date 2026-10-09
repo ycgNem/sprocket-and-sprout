@@ -1,10 +1,10 @@
 # Sprocket & Sprout
 
-A cozy top-down pixel-art farming game that slowly becomes a humming, steam-puffing
-farm-factory. You arrive in the valley town of **Thistlewick** to take over an overgrown
-plot. You farm by hand at first. With help from Professor Cogwhistle's research you build
-clockwork arms, belts, mills, water wheels and little brass bumblebots, until the farm
-runs itself like a music box.
+A cozy top-down pixel-art farm-factory. You arrive in the valley town of **Thistlewick** to
+take over the old keeper's clockwork farm. Their beans are ripe and their preserves jar still
+works, and within minutes your first Clockwork Arm is carrying jars to the shipping crate.
+With Professor Cogwhistle's research you add belts, mills, water wheels and little brass
+bumblebots, until the farm runs itself like a music box.
 
 All art, music and sound are generated procedurally in code: there are no image or audio
 files. Everything is original.
@@ -21,7 +21,10 @@ npm install
 npm run dev
 ```
 
-Then open the URL Vite prints (usually http://localhost:5173). If PowerShell says `npm` is not
+Then open the URL Vite prints (usually http://localhost:5173).
+
+**Sharing with friends:** double-click `Package for web.bat` and follow [SHARING.md](SHARING.md)
+(itch.io, GitHub Pages, Netlify Drop or your local Wi-Fi). If PowerShell says `npm` is not
 recognized, Node isn't on your PATH: use `Play.bat`, or install Node.js LTS from nodejs.org.
 See `HANDOFF.md` for details.
 
@@ -57,6 +60,7 @@ See `HANDOFF.md` for details.
 | Deconstruct an area | X, then drag |
 | Copy blueprint / paste | V, then drag / B |
 | Eat held item | H |
+| Achievements | U |
 | Quick stack bag items into nearby chests | K |
 | Drop one item | Z |
 | Zoom | + / - or Ctrl + wheel |
@@ -69,6 +73,16 @@ Trading Guild with its depot, a fully renovated farmhouse, every furniture piece
 or a Brass Locket.
 
 ## Features
+
+**Ways to play**
+- Four game modes: **Story**, **Cozy** (half-speed clock, nothing punishes you), **Clockwork
+  Rush** (28 days, score as many coins as you can, bronze/silver/gold medals and local best runs)
+  and **Sandbox** (everything researched, free building, the clock waits for you).
+- Five farm maps: Overgrown Homestead, Riverside Mill (a stream through the farm), Tinker's Yard
+  (ruined workshop halls and a copper seam for drills), Terraced Highlands (cliff terraces, windy)
+  and Wildwood (a forest farm). Each one has its own starting kit and achievement.
+- About 120 achievements in 8 categories, including about 35 secret easter eggs that only show a
+  hint. Press U. Secrets pay a few coins, and a profile remembers every unlock across farms.
 
 **Farming life**
 - 36 crops across four seasons. Many regrow, some climb trellises, grains need a scythe, and
@@ -88,7 +102,7 @@ or a Brass Locket.
   treasure chests wait on every tenth floor, and infested floors must be cleared to go deeper.
 - Professions: choose one of two perks at skill levels 5 and 10 (24 perks across 6 skills).
 - Day/night with warm lighting, weather (sun, rain, storm with lightning, snow, wind), energy,
-  passing out at 2am, and the odd surprise overnight (meteorites, a crop fairy, windstorms).
+  passing out at 2am (you sleep in until 10), and the odd surprise overnight (meteorites, a crop fairy, windstorms).
 
 **Home**
 - A walk-in farmhouse: sleep in your bed (you wake up inside), warm up by the hearth, and read
@@ -147,7 +161,7 @@ or a Brass Locket.
   candles, each tier unlocking a reward.
 - A dynamic market: flooding one product lowers its price, weekly in-demand goods, and
   daily drift. This nudges you to diversify the factory.
-- Museum donations, a collection log, mail, 37 feats, skills (6) and tool upgrades.
+- Museum donations, a collection log, mail, skills (6) and tool upgrades.
 
 **Tech**
 - TypeScript + Vite + Canvas 2D, with no engine and no assets. A fixed 60 Hz simulation is

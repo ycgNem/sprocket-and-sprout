@@ -94,11 +94,14 @@ const ART: Record<string, Art> = {
     pb.rect(5, t + 7, 6, 3, C.cream);
   },
   furnace: (pb, W, H, t, f, on) => {
-    pb.ellipse(8, t + 8, 7, 9, C.stone);
-    for (let i = 0; i < 12; i++) pb.set(2 + Math.floor(hash2(i, 1, 1) * 12), t + Math.floor(hash2(1, i, 1) * 16), C.slate);
+    // warm brick with a copper hood (no cold grey stone in the cozy palette)
+    pb.ellipse(8, t + 8, 7, 9, C.brick);
+    for (let i = 0; i < 12; i++) pb.set(2 + Math.floor(hash2(i, 1, 1) * 12), t + Math.floor(hash2(1, i, 1) * 16), C.terracotta);
+    pb.rect(2, t + 2, 12, 2, C.copper);
+    pb.rect(2, t + 2, 12, 1, C.apricot);
     pb.ellipse(8, t + 11, 4, 3, C.ink);
     fire(pb, 5, t + 9, 6, f, on);
-    chimney(pb, 6, t - 8, 7, C.slate);
+    chimney(pb, 6, t - 8, 7, C.copper);
   },
   oven: (pb, W, H, t, f, on) => {
     brickWall(pb, 1, t + 2, W - 2, 14);
@@ -574,7 +577,9 @@ function drawBelt(tier: number, rot: number, curve: number, frame: number): PixB
         let c = col.surf;
         if (x <= 1 || x >= 14) c = x === 0 || x === 15 ? col.rail : col.rail2;
         else if ((y + frame * 2) % 8 === 0) c = col.stripe;
+        // a little chevron rides the belt so you can read the flow from a still frame
         else if ((y + frame * 2) % 8 === 4 && (x === 7 || x === 8)) c = col.mark;
+        else if ((y + frame * 2) % 8 === 5 && (x === 6 || x === 9)) c = col.mark;
         if ((x === 0 || x === 15) && (y + frame) % 4 === 0) c = C.ink;
         put(x, y, c);
       }

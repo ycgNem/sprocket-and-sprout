@@ -1,6 +1,7 @@
 // The main game menu: Inventory, Crafting, Skills tabs.
 import { C } from '../../data/palette';
 import { ITEM_BY_ID } from '../../data/items';
+import { FARM_BY_ID } from '../../data/modes';
 import { STRUCT_BY_ID } from '../../data/structures';
 import { RESEARCH_BY_ID } from '../../data/research';
 import type { RecipeDef } from '../../data/types';
@@ -80,7 +81,7 @@ export function drawMenu(ui: UI, play: PlayScreen, st: WinState): boolean {
     ui.panel(cx, cy, w - 28, 54, 'inset', false);
     ui.text(`${g.player.name} of ${g.player.farmName} Farm`, cx + 6, cy + 5, C.ink);
     ui.text(`Year ${g.time.year}  -  Day ${g.daysPlayed + 1} in Thistlewick`, cx + 6, cy + 16, C.walnut);
-    ui.text(`Favorite thing: ${g.player.favorite}`, cx + 6, cy + 27, C.walnut);
+    ui.text(`${{ story: 'Story', cozy: 'Cozy', rush: 'Clockwork Rush', sandbox: 'Sandbox' }[g.mode]} on the ${FARM_BY_ID.get(g.farmKind)?.name ?? 'Homestead'}`, cx + 6, cy + 27, C.walnut);
     ui.text(`Tools at the smithy: ${g.player.upgrading ? ITEM_BY_ID.get(g.player.upgrading.to)?.name + ` (${g.player.upgrading.days}d)` : 'none'}`, cx + 6, cy + 38, C.walnut);
     ui.text('Shift-click moves items. Right-click splits.', cx + w - 34, cy + 5, C.oak, { align: 'right' });
     return true;
@@ -122,7 +123,7 @@ function craftingTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: numbe
   CATS.forEach((c, i) => {
     if (ui.button('cat_' + c, x + 10 + i * 43, y + 28, 41, 13, c, { active: st.data.cat === c, style: 'flat' })) st.data.cat = c;
   });
-  const showLocked = st.data.showLocked ?? true;
+  const showLocked = st.data.showLocked ?? false;
   const list = HAND_RECIPES.filter((r) => (st.data.cat === 'All' || recipeCategory(r) === st.data.cat) && (showLocked || g.unlocked(r.unlock)))
     .filter((r, i, arr) => arr.findIndex((o) => o.out[0].item === r.out[0].item) === i || g.unlocked(r.unlock));
   list.sort((a, b) => (g.unlocked(b.unlock) ? 1 : 0) - (g.unlocked(a.unlock) ? 1 : 0));

@@ -284,6 +284,7 @@ export function addPoints(g: Game, n: NPCState, pts: number) {
 /** Player interacts: gift if holding a giftable item and allowed, otherwise talk. */
 export function talkTo(g: Game, n: NPCState) {
   const d = NPC_BY_ID.get(n.id)!;
+  g.count('talk_' + n.id);
   const fest = g.sys.festivals?.active;
   if (fest && fest.host === n.id) {
     n.met = true;
@@ -331,6 +332,7 @@ export function talkTo(g: Game, n: NPCState) {
       g.emit({ t: 'fx', kind: taste === 'love' ? 'hearts' : 'sparkle', x: n.x, y: n.y - 1 });
       g.emit({ t: 'sfx', id: taste === 'love' || taste === 'like' ? 'heart' : 'talk' });
       g.count('gifts');
+      if (hd.id === 'old_boot') g.sys.achUnlock?.(g, 'regift');
       openDialog(g, n, text, undefined, taste === 'love' || taste === 'like' ? 1 : taste === 'neutral' ? 0 : 2);
       return;
     }

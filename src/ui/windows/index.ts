@@ -122,7 +122,7 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
   ui.fill(0, 0, ui.w, ui.h, C.ink, 0.5);
   if (!frame(ui, x, y, w, h, `${SEASON_NAMES[s.season]} ${s.day}, Year ${s.year}`)) return false;
   ui.text(s.passedOut ? 'You collapsed from exhaustion...' : 'A good day\'s work.', x + w / 2, y + 14, s.passedOut ? C.brick : C.walnut, { align: 'center' });
-  if (s.penalty) ui.text(`Someone carried you home. The clinic bill was ${ICON.coin}${s.penalty}.`, x + w / 2, y + 26, C.brick, { align: 'center' });
+  if (s.passedOut) ui.text('You passed out and slept in until 10am.', x + w / 2, y + 26, C.brick, { align: 'center' });
   let yy = y + 40;
   if (!sold.length) ui.text('Nothing was shipped.', x + w / 2, yy, C.oak, { align: 'center' });
   sold.slice(0, 10).forEach((it) => {

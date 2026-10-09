@@ -332,6 +332,8 @@ export interface QuestDef {
   after?: string[];
   /** auto-start on this day index (0-based absolute day) */
   startDay?: number;
+  /** only offered when this flag is set (e.g. the clockwork opening) */
+  needFlag?: string;
   tutorial?: boolean;
   hint?: string;
 }

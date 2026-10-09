@@ -72,6 +72,10 @@ rec('assembler', [s('cloth', 3), s('linen', 2)], [s('quilt', 1)], 30, 'r_weaving
 
 // ---------------- Hand: research bundles ----------------
 rec('hand', [s('fiber', 1), s('#crop', 1)], [s('bundle_green', 1)], 2, 'flag:lab', 'hand:bundle_green');
+// fiber-free bundles and a farmable fiber source, so research never stalls on scything weeds
+rec('hand', [s('#crop', 3)], [s('bundle_green', 1)], 2, 'flag:lab', 'hand:bundle_green_3crop');
+rec('hand', [s('flax', 1)], [s('fiber', 3)], 1, undefined, 'hand:fiber_flax');
+rec('assembler', [s('flax', 1)], [s('fiber', 3)], 4, undefined, 'asm:fiber_flax');
 rec('hand', [s('fiber', 1), s('#fruit', 1)], [s('bundle_green', 1)], 2, 'flag:lab', 'hand:bundle_green_fruit');
 rec('hand', [s('fiber', 1), s('#forage', 1)], [s('bundle_green', 1)], 2, 'flag:lab', 'hand:bundle_green_forage');
 rec('hand', [s('copper_gear', 1), s('plank', 2)], [s('bundle_copper', 1)], 3, 'r_metallurgy', 'hand:bundle_copper');

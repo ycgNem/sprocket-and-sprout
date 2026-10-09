@@ -198,7 +198,7 @@ const comp = (id: string, name: string, price: number, icon: IconSpec, desc: str
   it(id, name, 'component', price, icon, desc, extra);
 comp('plank', 'Plank', 6, { t: 'plank', c: [C.tan, C.oak] }, 'A planed board. The sawmill makes them fast.', { fuel: 6 });
 comp('beam', 'Hardwood Beam', 40, { t: 'plank', c: [C.walnut, C.bark] }, 'A strong beam for big builds.', { fuel: 25 });
-comp('copper_gear', 'Copper Gear', 30, { t: 'gear', c: [C.copper, C.brick] }, 'The humble heart of every machine.');
+comp('copper_gear', 'Copper Gear', 70, { t: 'gear', c: [C.copper, C.brick] }, 'The humble heart of every machine.');
 comp('brass_gear', 'Brass Gear', 70, { t: 'gear', c: [C.brass, C.copper] }, 'A precise, shining gear.');
 comp('iron_plate', 'Iron Plate', 50, { t: 'plate', c: [C.stone, C.slate] }, 'Hammered flat and riveted.');
 comp('copper_coil', 'Copper Coil', 40, { t: 'coil', c: [C.copper, C.apricot] }, 'Wound wire that hums when power runs through.');
@@ -245,19 +245,19 @@ it('tangled_line', 'Tangled Line', 'trash', 0, { t: 'fiber', c: [C.pebble, C.sto
 
 // ---------------- Animal products ----------------
 const animal: [string, string, number, IconSpec, string, number][] = [
-  ['egg', 'Egg', 50, { t: 'egg', c: [C.cream, C.pebble] }, 'Still warm.', 20],
-  ['large_egg', 'Large Egg', 95, { t: 'egg', c: [C.butter, C.tan] }, 'A hefty golden-brown egg from a very happy hen.', 30],
-  ['duck_egg', 'Duck Egg', 95, { t: 'egg', c: [C.aqua, C.sky] }, 'A pale blue-green egg.', 25],
-  ['duck_feather', 'Duck Feather', 250, { t: 'feather', c: [C.cream, C.sky] }, 'Glossy and soft.', 0],
-  ['rabbit_fluff', 'Rabbit Fluff', 340, { t: 'wool', c: [C.cream, C.tan] }, 'A soft cloud from a happy rabbit.', 0],
-  ['lucky_foot', 'Lucky Clover', 560, { t: 'leaf', c: [C.leaf, C.lime] }, 'The rabbits keep finding these. Supposedly brings luck.', 0],
-  ['milk', 'Milk', 125, { t: 'milk', c: [C.cream, C.pebble] }, 'Fresh and creamy.', 25],
-  ['large_milk', 'Large Milk', 190, { t: 'milk', c: [C.butter, C.tan] }, 'Extra creamy, from an extra happy cow.', 40],
-  ['goat_milk', 'Goat Milk', 225, { t: 'milk', c: [C.frost, C.pebble] }, 'Rich and tangy.', 30],
-  ['large_goat_milk', 'Large Goat Milk', 345, { t: 'milk', c: [C.butter, C.pebble] }, 'A big pail of goat milk.', 45],
-  ['wool', 'Wool', 340, { t: 'wool', c: [C.cream, C.pebble] }, 'Soft and warm. A loom turns it into cloth.', 0],
-  ['truffle', 'Truffle', 625, { t: 'truffle', c: [C.walnut, C.bark] }, 'An earthy prize sniffed out by pigs.', 10],
-  ['alpaca_fleece', 'Alpaca Fleece', 420, { t: 'wool', c: [C.tan, C.oak] }, 'Silky and warm.', 0],
+  ['egg', 'Egg', 45, { t: 'egg', c: [C.cream, C.pebble] }, 'Still warm.', 20],
+  ['large_egg', 'Large Egg', 80, { t: 'egg', c: [C.butter, C.tan] }, 'A hefty golden-brown egg from a very happy hen.', 30],
+  ['duck_egg', 'Duck Egg', 110, { t: 'egg', c: [C.aqua, C.sky] }, 'A pale blue-green egg.', 25],
+  ['duck_feather', 'Duck Feather', 210, { t: 'feather', c: [C.cream, C.sky] }, 'Glossy and soft.', 0],
+  ['rabbit_fluff', 'Rabbit Fluff', 300, { t: 'wool', c: [C.cream, C.tan] }, 'A soft cloud from a happy rabbit.', 0],
+  ['lucky_foot', 'Lucky Clover', 480, { t: 'leaf', c: [C.leaf, C.lime] }, 'The rabbits keep finding these. Supposedly brings luck.', 0],
+  ['milk', 'Milk', 110, { t: 'milk', c: [C.cream, C.pebble] }, 'Fresh and creamy.', 25],
+  ['large_milk', 'Large Milk', 175, { t: 'milk', c: [C.butter, C.tan] }, 'Extra creamy, from an extra happy cow.', 40],
+  ['goat_milk', 'Goat Milk', 200, { t: 'milk', c: [C.frost, C.pebble] }, 'Rich and tangy.', 30],
+  ['large_goat_milk', 'Large Goat Milk', 310, { t: 'milk', c: [C.butter, C.pebble] }, 'A big pail of goat milk.', 45],
+  ['wool', 'Wool', 290, { t: 'wool', c: [C.cream, C.pebble] }, 'Soft and warm. A loom turns it into cloth.', 0],
+  ['truffle', 'Truffle', 540, { t: 'truffle', c: [C.walnut, C.bark] }, 'An earthy prize sniffed out by pigs.', 10],
+  ['alpaca_fleece', 'Alpaca Fleece', 450, { t: 'wool', c: [C.tan, C.oak] }, 'Silky and warm.', 0],
 ];
 for (const [id, name, price, icon, desc, energy] of animal)
   it(id, name, 'animal', price, icon, desc, { quality: true, tags: ['animal', ...(id.includes('egg') ? ['egg'] : []), ...(id.includes('milk') ? ['milk'] : [])], edible: energy ? { energy, health: energy / 2 } : undefined });
@@ -315,12 +315,12 @@ const colorOf = (id: string): number => {
   return id === 'raspberry' ? C.rose : C.terracotta;
 };
 for (const [id, name, price] of FRUITS) {
-  art(`wine_${id}`, `${name} Wine`, Math.round(price * 3), { t: 'bottle', c: [colorOf(id), -1, -1, C.wine] }, `Wine made from ${name.toLowerCase()}. Better with age.`, ['drink', 'wine'], 20);
-  art(`jam_${id}`, `${name} Jam`, Math.round(price * 2 + 50), { t: 'jar', c: [colorOf(id), -1, -1, C.cream] }, `Sweet ${name.toLowerCase()} preserves.`, ['preserve'], 25);
+  art(`wine_${id}`, `${name} Wine`, Math.round(price * 2.2 + 20), { t: 'bottle', c: [colorOf(id), -1, -1, C.wine] }, `Wine made from ${name.toLowerCase()}. Better with age.`, ['drink', 'wine'], 20);
+  art(`jam_${id}`, `${name} Jam`, Math.round(price * 1.6 + 40), { t: 'jar', c: [colorOf(id), -1, -1, C.cream] }, `Sweet ${name.toLowerCase()} preserves.`, ['preserve'], 25);
 }
 for (const [id, name, price] of VEG) {
-  art(`pickles_${id}`, `Pickled ${name}`, Math.round(price * 2 + 50), { t: 'jar', c: [colorOf(id), -1, -1, C.lime] }, `Crunchy, briny ${name.toLowerCase()}.`, ['preserve'], 20);
-  art(`juice_${id}`, `${name} Juice`, Math.round(price * 2.25), { t: 'bottle', c: [colorOf(id), -1, -1, C.lime] }, `Fresh-pressed ${name.toLowerCase()} juice.`, ['drink', 'juice'], 25);
+  art(`pickles_${id}`, `Pickled ${name}`, Math.round(price * 1.6 + 40), { t: 'jar', c: [colorOf(id), -1, -1, C.lime] }, `Crunchy, briny ${name.toLowerCase()}.`, ['preserve'], 20);
+  art(`juice_${id}`, `${name} Juice`, Math.round(price * 1.8 + 10), { t: 'bottle', c: [colorOf(id), -1, -1, C.lime] }, `Fresh-pressed ${name.toLowerCase()} juice.`, ['drink', 'juice'], 25);
 }
 
 // ---------------- Fish ----------------

@@ -31,7 +31,7 @@ function toggle(ui: UI, id: string, x: number, y: number, label: string, v: bool
 /** Returns true when the panel should close. */
 export function settingsPanel(ui: UI, app: App, onClose: () => void): boolean {
   const s = app.settings;
-  const w = 320, h = 250;
+  const w = 320, h = 268;
   const x = Math.floor((ui.w - w) / 2), y = Math.floor((ui.h - h) / 2);
   ui.panel(x, y, w, h);
   ui.text('Settings', x + w / 2, y + 10, C.walnut, { align: 'center', scale: 2 });
@@ -77,6 +77,9 @@ export function settingsPanel(ui: UI, app: App, onClose: () => void): boolean {
     yy += 18;
     const t5 = toggle(ui, 'auto', x + 16, yy, 'Autosave every morning', s.autosave);
     if (t5 !== s.autosave) { s.autosave = t5; changed = true; }
+    yy += 18;
+    const t6 = toggle(ui, 'pcur', x + 16, yy, 'Pixel-art mouse cursor', s.pixelCursor, 'Off uses your system cursor.');
+    if (t6 !== s.pixelCursor) { s.pixelCursor = t6; changed = true; }
   } else {
     const listY = y + 52, listH = h - 84;
     const contentH = ACTIONS.length * 14;

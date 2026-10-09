@@ -1,5 +1,6 @@
 // GameState + ordered systems. Pure simulation: no DOM access in here.
 import { Rng } from '../engine/rng';
+import type { GameMode, FarmKind } from '../data/modes';
 import type { Season, Weather, BuffKind } from '../data/types';
 import { TileMap } from './world/tilemap';
 import { generateWorld, PLAYER_START, WORLD_W, WORLD_H, SHIPBIN_POS } from './world/worldgen';
@@ -93,6 +94,7 @@ export type GameEvent =
   | { t: 'dayEnd'; summary: DaySummary }
   | { t: 'levelup'; skill: string; level: number }
   | { t: 'research'; id: string }
+  | { t: 'ach'; id: string }
   | { t: 'ui'; open: string; arg?: any };
 
 export interface DaySummary {
@@ -117,7 +119,7 @@ export interface Mods {
 }
 
 export const SKILLS = ['farming', 'foraging', 'mining', 'fishing', 'combat', 'tinkering'] as const;
-export const XP_LEVELS = [0, 100, 380, 770, 1300, 2150, 3300, 4800, 6900, 10000, 15000];
+export const XP_LEVELS = [0, 150, 450, 900, 1600, 2600, 4000, 6000, 8500, 12000, 16000];
 
 export interface GameOptions {
   seed?: number;
@@ -126,6 +128,10 @@ export interface GameOptions {
   favorite?: string;
   /** small empty map for tests */
   blank?: { w: number; h: number };
+  mode?: GameMode;
+  farm?: FarmKind;
+  /** constructing a game that a save is about to overwrite: skip new-game setup */
+  loading?: boolean;
 }
 
 /** Systems added by later modules register here (keeps Game decoupled). */
@@ -134,6 +140,10 @@ export type System = {
   tick?: (g: Game, dt: number) => void;
   dayStart?: (g: Game) => void;
   dayEnd?: (g: Game, s: DaySummary) => void;
+  /** ticks with real time even while the world is slowed (the player, pickups, minigames, the mine) */
+  realtime?: boolean;
+  /** one-time setup of a brand-new game (not called when loading) */
+  init?: (g: Game) => void;
   save?: (g: Game) => any;
   load?: (g: Game, d: any) => void;
   afterLoad?: (g: Game) => void;
@@ -177,16 +187,21 @@ export class Game {
   moveX = 0;
   moveY = 0;
   walkSlow = false;
+  /** rule set (story, cozy, rush, sandbox) and farm layout; both fixed for the save's life */
+  mode: GameMode = 'story';
+  farmKind: FarmKind = 'classic';
 
   constructor(opts: GameOptions = {}) {
     this.seed = opts.seed ?? Math.floor(Math.random() * 1e9);
+    this.mode = opts.mode ?? 'story';
+    this.farmKind = opts.farm ?? 'classic';
     this.rng = new Rng(this.seed ^ 0x5bd1e995);
     if (opts.blank) {
       this.map = new TileMap(opts.blank.w, opts.blank.h);
       this.map.ground.fill(1);
       this.map.zone.fill(1);
     } else {
-      this.map = generateWorld(this.seed);
+      this.map = generateWorld(this.seed, this.farmKind);
     }
     this.ents = new Ents(this.map.w, this.map.h);
     this.player = {
@@ -213,6 +228,7 @@ export class Game {
     }
     void WORLD_W;
     void WORLD_H;
+    if (!opts.blank && !opts.loading) for (const s of SYSTEMS) s.init?.(this);
     for (const s of SYSTEMS) s.dayStart?.(this);
   }
 
@@ -295,6 +311,7 @@ export class Game {
   }
 
   spend(energy: number) {
+    if (this.mode === 'sandbox') return;
     const p = this.player;
     p.energy = Math.max(-20, p.energy - energy);
     if (p.energy <= 0 && !p.exhausted) {
@@ -306,20 +323,40 @@ export class Game {
   tick() {
     this.tickN++;
     if (this.paused) return;
+    // the whole world (clock, machines, crops, villagers) runs at simRate; you always move in real time,
+    // so slowing time while building buys thinking time without changing what a game day produces
     const dt = DT;
-    this.simTime += dt;
+    const sdt = DT * this.simRate;
+    this.simTime += sdt;
     this.advanceClock(dt);
-    if (this.ents.powerDirty || this.tickN % 2 === 0) updatePower(this, dt * (this.ents.powerDirty ? 1 : 2));
-    updateBelts(this.ents, dt);
-    updateArms(this, dt);
-    updateMachines(this, dt);
-    for (const s of SYSTEMS) s.tick?.(this, dt);
-    this.stats.tick(this, dt);
+    if (sdt > 0) {
+      if (this.ents.powerDirty || this.tickN % 2 === 0) updatePower(this, sdt * (this.ents.powerDirty ? 1 : 2));
+      updateBelts(this.ents, sdt);
+      updateArms(this, sdt);
+      updateMachines(this, sdt);
+    }
+    for (const s of SYSTEMS) if (s.tick && (s.realtime || sdt > 0)) s.tick(this, s.realtime ? dt : sdt);
+    this.stats.tick(this, sdt);
+  }
+
+  /** set by the presentation layer while building: the clock slows to a quarter */
+  slowClock = false;
+
+  /** speed of the world sim: cozy runs at half speed, building at a quarter */
+  get simRate() {
+    if (this.sleeping) return 1;
+    return (this.mode === 'cozy' ? 0.5 : 1) * (this.slowClock && this.mode !== 'sandbox' ? 0.25 : 1);
+  }
+
+  /** speed of the day clock: the sim rate, except sandbox, whose clock only moves while you sleep */
+  get clockRate() {
+    if (this.mode === 'sandbox') return this.sleeping ? 1 : 0;
+    return this.simRate;
   }
 
   advanceClock(dt: number) {
     const t = this.time;
-    t.min += dt / SEC_PER_MIN;
+    t.min += (dt / SEC_PER_MIN) * this.clockRate;
     if (t.min >= DAY_END) {
       t.min = DAY_END;
       this.endDay(!this.sleeping);
@@ -331,14 +368,13 @@ export class Game {
     const summary: DaySummary = { day: this.time.day, season: this.time.season, year: this.time.year, sold: [], total: 0, passedOut, penalty: 0 };
     for (const s of SYSTEMS) s.dayEnd?.(this, summary);
     const p = this.player;
-    if (passedOut) {
-      summary.penalty = Math.min(1000, Math.floor(p.money * 0.1));
-      p.money -= summary.penalty;
-    }
+    // passing out costs your morning, not your coins (cozy mode forgives it entirely)
+    const sleptIn = passedOut && this.mode !== 'cozy' && this.mode !== 'sandbox';
+    if (passedOut) this.count('passed_out');
     // advance date
     const t = this.time;
     const lateness = this.sleepMin ?? DAY_END;
-    t.min = DAY_START;
+    t.min = sleptIn ? 600 : DAY_START;
     t.day++;
     if (t.day > DAYS_PER_SEASON) {
       t.day = 1;
@@ -348,7 +384,7 @@ export class Game {
     this.daysPlayed++;
     // energy recovery
     const maxE = p.maxEnergy + this.mods.energy;
-    if (passedOut) p.energy = Math.round(maxE * 0.5);
+    if (sleptIn) p.energy = Math.round(maxE * 0.6);
     else if (lateness > 1440) p.energy = Math.round(maxE * (1 - ((lateness - 1440) / 120) * (this.flags.has('home_featherbed') ? 0.25 : 0.5)));
     else p.energy = maxE;
     p.exhausted = false;
@@ -379,6 +415,7 @@ export class Game {
     if (this.sleeping) return;
     this.sleeping = true;
     this.sleepMin = this.time.min;
+    if (this.time.min < 19 * 60) this.sys.achUnlock?.(this, 'sleepyhead');
   }
 
   rollWeather(): Weather {

@@ -4,7 +4,7 @@ export const ACTIONS = [
   'up', 'down', 'left', 'right', 'run',
   'interact', 'inventory', 'craft', 'research', 'stats', 'journal', 'map',
   'pause', 'rotate', 'pipette', 'deconstruct', 'copy', 'paste', 'build',
-  'debug', 'zoomIn', 'zoomOut', 'drop', 'eat', 'stack',
+  'debug', 'zoomIn', 'zoomOut', 'drop', 'eat', 'stack', 'achievements',
   'hot1', 'hot2', 'hot3', 'hot4', 'hot5', 'hot6', 'hot7', 'hot8', 'hot9', 'hot10',
 ] as const;
 export type Action = (typeof ACTIONS)[number];
@@ -15,7 +15,7 @@ export const ACTION_LABELS: Record<Action, string> = {
   stats: 'Production stats', journal: 'Journal', map: 'Map', pause: 'Pause / close',
   rotate: 'Rotate', pipette: 'Pick structure', deconstruct: 'Deconstruct area', copy: 'Copy blueprint',
   paste: 'Paste blueprint', build: 'Build menu', debug: 'Debug panel', zoomIn: 'Zoom in',
-  zoomOut: 'Zoom out', drop: 'Drop item', eat: 'Eat held item', stack: 'Quick stack to chests',
+  zoomOut: 'Zoom out', drop: 'Drop item', eat: 'Eat held item', stack: 'Quick stack to chests', achievements: 'Achievements',
   hot1: 'Hotbar 1', hot2: 'Hotbar 2', hot3: 'Hotbar 3', hot4: 'Hotbar 4', hot5: 'Hotbar 5',
   hot6: 'Hotbar 6', hot7: 'Hotbar 7', hot8: 'Hotbar 8', hot9: 'Hotbar 9', hot10: 'Hotbar 10',
 };
@@ -25,7 +25,7 @@ export const DEFAULT_BINDS: Record<Action, string[]> = {
   run: ['ShiftLeft'], interact: ['KeyF'], inventory: ['KeyE', 'Tab'], craft: ['KeyC'], research: ['KeyT'],
   stats: ['KeyP'], journal: ['KeyJ'], map: ['KeyM'], pause: ['Escape'], rotate: ['KeyR'], pipette: ['KeyQ'],
   deconstruct: ['KeyX'], copy: ['KeyV'], paste: ['KeyB'], build: ['KeyG'], debug: ['Backquote'],
-  zoomIn: ['Equal', 'NumpadAdd'], zoomOut: ['Minus', 'NumpadSubtract'], drop: ['KeyZ'], eat: ['KeyH'], stack: ['KeyK'],
+  zoomIn: ['Equal', 'NumpadAdd'], zoomOut: ['Minus', 'NumpadSubtract'], drop: ['KeyZ'], eat: ['KeyH'], stack: ['KeyK'], achievements: ['KeyU'],
   hot1: ['Digit1'], hot2: ['Digit2'], hot3: ['Digit3'], hot4: ['Digit4'], hot5: ['Digit5'],
   hot6: ['Digit6'], hot7: ['Digit7'], hot8: ['Digit8'], hot9: ['Digit9'], hot10: ['Digit0'],
 };

@@ -16,10 +16,18 @@ import type { NPCLook } from '../data/types';
 import { settingsPanel } from '../ui/windows/settings';
 import { buildDemoFactory } from './demo';
 import { registerLook } from '../render/art/chars';
+import { PixelCursor, CursorKind } from '../ui/cursor';
+import { MODES, MODE_BY_ID, FARMS, FARM_BY_ID, GameMode, FarmKind } from '../data/modes';
+import { generateWorld, FARM } from '../sim/world/worldgen';
+import { tileColor } from '../ui/hud';
+import { PALETTE } from '../data/palette';
+import { recordStart } from './profile';
 
 export interface Screen {
   frame(dt: number): void;
   tick?(): void;
+  /** optional cursor override (e.g. 'build' while placing) */
+  cursorKind?(): CursorKind | null;
 }
 
 export class App {
@@ -32,9 +40,11 @@ export class App {
   screen!: Screen;
   loop: GameLoop;
   dpr = 1;
+  cursor: PixelCursor;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
+    this.cursor = new PixelCursor(canvas);
     this.settings = loadSettings();
     this.input.binds = this.settings.binds;
     this.input.attach(canvas);
@@ -78,10 +88,20 @@ export class App {
           report('frame', e);
           this.ui.ctx?.restore?.();
         }
+        this.updateCursor();
         this.input.endFrame();
       },
     );
     this.loop.start();
+    // browsers lose tabs: save whenever the page is hidden or closed
+    const saveNow = () => {
+      const s = this.screen as any;
+      if (s instanceof PlayScreen && !s.g.sleeping) s.save(true);
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') saveNow();
+    });
+    window.addEventListener('pagehide', saveNow);
     (window as any).__app = this;
     (window as any).__Game = Game;
   }
@@ -91,6 +111,16 @@ export class App {
     if (this.settings.uiScale > 0) return this.settings.uiScale;
     const w = this.canvas.width, h = this.canvas.height;
     return Math.max(1, Math.min(Math.floor(w / 560), Math.floor(h / 340)));
+  }
+
+  private updateCursor() {
+    const ui = this.ui;
+    let kind: CursorKind = 'arrow';
+    if (ui.hand) kind = 'grab';
+    else if (ui.hoverId) kind = 'hand';
+    else kind = this.screen.cursorKind?.() ?? 'arrow';
+    // one cursor pixel = one UI pixel, in CSS pixels
+    this.cursor.set(kind, this.uiScale / this.dpr, this.settings.pixelCursor);
   }
 
   saveSettings() {
@@ -262,8 +292,14 @@ class NewGameForm {
   t = 0;
   constructor(public app: App) {}
 
+  step: 'who' | 'where' = 'who';
+  mode: GameMode = 'story';
+  farmKind: FarmKind = 'classic';
+  previews = new Map<string, HTMLCanvasElement>();
+
   draw(ui: UI): 'back' | null {
     this.t += 1 / 60;
+    if (this.step === 'where') return this.drawWhere(ui);
     const w = 340, h = 230;
     const x = Math.floor((ui.w - w) / 2), y = Math.floor((ui.h - h) / 2);
     ui.panel(x, y, w, h);
@@ -275,10 +311,7 @@ class NewGameForm {
     ui.text('Farm name', x + 16, yy + 4, C.ink);
     this.farm = ui.textField('farm', x + 100, yy, 120, this.farm, 14);
     ui.text("Farm", x + 224, yy + 4, C.walnut);
-    yy += 22;
-    ui.text('Favorite thing', x + 16, yy + 4, C.ink);
-    this.fav = ui.textField('fav', x + 100, yy, 120, this.fav, 14);
-    yy += 28;
+    yy += 30;
     // appearance
     const rows: [string, keyof NewGameForm['idx'], number][] = [['Skin', 'skin', SKINS.length], ['Hair color', 'hair', HAIRS.length], ['Hair style', 'style', STYLES.length], ['Shirt', 'shirt', SHIRTS.length], ['Pants', 'pants', PANTS.length]];
     rows.forEach(([label, k, n], i) => {
@@ -317,11 +350,84 @@ class NewGameForm {
       /* look not registered yet */
     }
     const ok = this.name.trim().length > 0 && this.farm.trim().length > 0;
-    if (ui.button('begin', x + w - 110, y + h - 28, 96, 20, 'Begin!', { style: 'green', disabled: !ok, tip: ok ? 'Start your first spring' : 'Enter your name and farm name' })) {
-      const g = new Game({ name: this.name.trim(), farmName: this.farm.trim(), favorite: this.fav.trim() || 'Tea' });
-      this.app.startGame(g, this.look);
-    }
+    if (ui.button('next', x + w - 110, y + h - 28, 96, 20, 'Next >', { style: 'green', disabled: !ok, tip: ok ? 'Choose a game mode and farm map' : 'Enter your name and farm name' })) this.step = 'where';
     if (ui.button('back', x + 14, y + h - 28, 60, 20, 'Back')) return 'back';
+    return null;
+  }
+
+  /** a tiny map of the farm area for the chosen layout (1 pixel per tile) */
+  preview(kind: FarmKind): HTMLCanvasElement {
+    const hit = this.previews.get(kind);
+    if (hit) return hit;
+    const m = generateWorld(777, kind);
+    const W = FARM.x1 - FARM.x0 + 1, H = FARM.y1 - FARM.y0 + 1;
+    const c = document.createElement('canvas');
+    c.width = W;
+    c.height = H;
+    const cx = c.getContext('2d')!;
+    const img = cx.createImageData(W, H);
+    const fake = { map: null, time: { season: 0 }, soil: new Map(), ents: null };
+    for (let y = 0; y < H; y++)
+      for (let x = 0; x < W; x++) {
+        const hex = PALETTE[tileColor(fake, m, FARM.x0 + x, FARM.y0 + y)];
+        const i = (y * W + x) * 4;
+        img.data[i] = parseInt(hex.slice(1, 3), 16);
+        img.data[i + 1] = parseInt(hex.slice(3, 5), 16);
+        img.data[i + 2] = parseInt(hex.slice(5, 7), 16);
+        img.data[i + 3] = 255;
+      }
+    cx.putImageData(img, 0, 0);
+    this.previews.set(kind, c);
+    return c;
+  }
+
+  drawWhere(ui: UI): 'back' | null {
+    const w = Math.min(460, ui.w - 16), h = Math.min(272, ui.h - 16);
+    const x = Math.floor((ui.w - w) / 2), y = Math.floor((ui.h - h) / 2);
+    ui.panel(x, y, w, h);
+    ui.text('How will you play?', x + w / 2, y + 10, C.walnut, { align: 'center', scale: 2 });
+    // modes (left)
+    const colW = Math.floor((w - 36) / 2);
+    const lx = x + 12;
+    ui.text('Game mode', lx, y + 32, C.ink);
+    MODES.forEach((m, i) => {
+      const by = y + 42 + i * 19;
+      if (ui.button('mode_' + m.id, lx, by, colW, 17, m.name, { active: this.mode === m.id })) this.mode = m.id;
+    });
+    const md = MODE_BY_ID.get(this.mode)!;
+    let ty = y + 42 + MODES.length * 19 + 4;
+    ui.panel(lx, ty, colW, h - (ty - y) - 36, 'inset', false);
+    ui.text(md.tag, lx + 5, ty + 5, C.walnut);
+    md.lines.forEach((l, i) => ui.para('- ' + l, lx + 5, ty + 17 + i * 18, colW - 10, C.bark, 9));
+    // farm maps (right)
+    const rx = x + 24 + colW;
+    ui.text('Farm map', rx, y + 32, C.ink);
+    FARMS.forEach((f, i) => {
+      const bx = rx + (i % 2) * Math.floor(colW / 2), by = y + 42 + Math.floor(i / 2) * 19;
+      if (ui.button('farm_' + f.id, bx, by, Math.floor(colW / 2) - 2, 17, f.short, { active: this.farmKind === f.id, tip: f.name })) this.farmKind = f.id;
+    });
+    const fd = FARM_BY_ID.get(this.farmKind)!;
+    ty = y + 42 + 3 * 19 + 2;
+    const pv = this.preview(this.farmKind);
+    const ph = h - (ty - y) - 36;
+    const pw = Math.min(colW, Math.round((ph - 26) * (pv.width / pv.height)));
+    ui.panel(rx, ty, colW, ph, 'inset', false);
+    ui.fill(rx + 4, ty + 4, pw + 2, ph - 30, C.ink);
+    ui.ctx.drawImage(pv, rx + 5, ty + 5, pw, ph - 32);
+    ui.text(fd.name, rx + pw + 10, ty + 6, C.ink);
+    fd.lines.forEach((l, i) => ui.para(l, rx + pw + 10, ty + 18 + i * 20, colW - pw - 14, C.bark, 9));
+    ui.para('The town, mine and beach are the same on every map. Each map has its own achievement.', rx + 4, ty + ph - 23, colW - 8, C.oak, 9);
+    // begin
+    const full = listSaves().length >= 6;
+    if (ui.button('begin', x + w - 110, y + h - 28, 96, 20, 'Begin!', { style: 'green', tip: full ? 'All 6 save slots are full: the oldest will be replaced' : 'Start your first spring' })) {
+      const oldest = listSaves().sort((a, b) => a.saved - b.saved)[0];
+      if (!full || confirm(`All 6 save slots are full. Replace the oldest farm (${oldest.name} of ${oldest.farm})?`)) {
+        const g = new Game({ name: this.name.trim(), farmName: this.farm.trim(), favorite: 'Tea', mode: this.mode, farm: this.farmKind });
+        recordStart(this.farmKind, this.mode);
+        this.app.startGame(g, this.look);
+      }
+    }
+    if (ui.button('back2', x + 14, y + h - 28, 60, 20, '< Back')) this.step = 'who';
     return null;
   }
 }

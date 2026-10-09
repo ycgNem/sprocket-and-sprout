@@ -8,3 +8,6 @@ import './panels';
 import './home';
 import './perks';
 import './founders';
+import './achievements';
+import './modes';
+import './palette';

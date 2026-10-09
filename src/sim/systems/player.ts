@@ -3,6 +3,7 @@ import { CROP_BY_ID } from '../../data/crops';
 import { Game, registerSystem, SEC_PER_MIN } from '../Game';
 import { T, TileMap } from '../world/tilemap';
 import { decorSolid, houseMap } from './house';
+import { DX, DY } from '../ents';
 
 export function curMap(g: Game): TileMap {
   const w = g.player.where;
@@ -51,6 +52,7 @@ export function movePlayer(g: Game, dt: number) {
     p.ky *= Math.pow(0.002, dt);
   }
   if (g.sleeping || p.busy > 0.05 || g.sys.cutscene) mx = my = 0;
+  rideBelt(g, dt);
   const len = Math.hypot(mx, my);
   if (len < 0.01) {
     p.moving = false;
@@ -67,11 +69,57 @@ export function movePlayer(g: Game, dt: number) {
   const gt = m.g(tx, ty);
   if (gt === T.PATH || gt === T.PLANKS) speed *= 1.12;
   speed *= 1 + g.buffLvl('speed') * 0.08;
+  const ox = p.x, oy = p.y;
   tryMove(g, mx * speed * dt, my * speed * dt);
+  const prevDir = p.dir;
   if (Math.abs(mx) > Math.abs(my) + 0.1) p.dir = mx > 0 ? 1 : 3;
   else p.dir = my > 0 ? 2 : 0;
+  trackWalk(g, Math.hypot(p.x - ox, p.y - oy), prevDir);
   p.moving = true;
   p.walkT += dt * speed;
+}
+
+/** Conveyor belts carry whatever stands on them, farmers included. */
+function rideBelt(g: Game, dt: number) {
+  const p = g.player;
+  if (p.where !== 'world' || g.sleeping) return;
+  const e = g.ents.at(Math.floor(p.x), Math.floor(p.y - 0.1));
+  if (!e || e.ghost || e.def.kind !== 'belt' || !e.belt) return;
+  const sp = (e.belt.speed ?? 1.5) * 0.9;
+  const ox = p.x, oy = p.y;
+  tryMove(g, DX[e.rot] * sp * dt, DY[e.rot] * sp * dt);
+  const st = (g.sys._ride ??= { d: 0 });
+  st.d += Math.hypot(p.x - ox, p.y - oy);
+  if (st.d >= 1) {
+    g.count('belt_ride', Math.floor(st.d));
+    st.d -= Math.floor(st.d);
+  }
+}
+
+/** distance walked, plus the "walking in circles" easter egg */
+function trackWalk(g: Game, dist: number, prevDir: number) {
+  const st = (g.sys._walk ??= { d: 0, turns: 0, sense: 0, t: 0 });
+  st.d += dist;
+  if (st.d >= 1) {
+    g.count('walked', Math.floor(st.d));
+    st.d -= Math.floor(st.d);
+  }
+  st.t += 1 / 60;
+  const p = g.player;
+  if (p.dir === prevDir) {
+    if (st.t > 1.2) st.turns = 0;
+    return;
+  }
+  const sense = (p.dir - prevDir + 4) % 4 === 1 ? 1 : (prevDir - p.dir + 4) % 4 === 1 ? -1 : 0;
+  if (sense && sense === st.sense && st.t < 1.2) st.turns++;
+  else st.turns = 1;
+  st.sense = sense;
+  st.t = 0;
+  // three full circles
+  if (st.turns >= 12) {
+    st.turns = 0;
+    if (g.sys.achUnlock?.(g, 'dizzy')) g.emit({ t: 'float', text: '@_@', x: p.x, y: p.y - 2 });
+  }
 }
 
 function tryMove(g: Game, dx: number, dy: number) {
@@ -111,4 +159,4 @@ function tickBuff(g: Game, dt: number) {
   }
 }
 
-registerSystem({ name: 'player', tick(g, dt) { movePlayer(g, dt); tickBuff(g, dt); } });
+registerSystem({ name: 'player', realtime: true, tick(g, dt) { movePlayer(g, dt); tickBuff(g, dt); } });

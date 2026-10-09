@@ -28,6 +28,7 @@ export function spawnDrop(g: Game, k: number, n: number, x: number, y: number, p
 
 registerSystem({
   name: 'drops',
+  realtime: true,
   tick(g, dt) {
     const s = g.sys.drops as { list: Drop[] } | undefined;
     if (!s || !s.list.length) return;

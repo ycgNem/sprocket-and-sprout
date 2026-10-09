@@ -39,8 +39,14 @@ function harvesterTick(g: Game, e: Ent, dt: number) {
     const i = m.idx(x, y);
     const s = g.soil.get(i);
     if (!s?.crop?.ready || s.crop.giant >= 0) continue;
-    const out = harvest(g, i);
+    const out = harvest(g, i, g.rng, true);
     if (!out) continue;
+    // every third pick leaves a little chaff (fiber) in the hopper
+    e.st.chaff = (e.st.chaff ?? 0) + 1;
+    if (e.st.chaff >= 3) {
+      e.st.chaff = 0;
+      out.push({ k: key('fiber'), n: 1 });
+    }
     for (const st of out) {
       const left = e.inv!.add(st.k, st.n);
       if (left) g.sys.drops?.spawn?.(g, st.k, left, x + 0.5, y + 0.5);
