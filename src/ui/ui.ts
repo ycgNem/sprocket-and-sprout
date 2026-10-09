@@ -1,7 +1,7 @@
 // Immediate-mode UI kit drawn on canvas in "UI pixels" (screen / uiScale).
 import { C, PALETTE, rgba } from '../data/palette';
 import type { Input } from '../engine/input';
-import { sprite } from '../render/atlas';
+import { sprite, drawFit, drawItemIcon } from '../render/atlas';
 import { drawText, textWidth, wrapText, LINE_H } from './font';
 import { ITEMS } from '../data/items';
 
@@ -170,10 +170,9 @@ export class UI {
     }
     let tx = x + w / 2;
     if (opts.icon) {
-      const s = sprite(opts.icon);
       const iw = label ? 12 : 16;
       const ix = label ? x + 4 : x + (w - iw) / 2;
-      this.ctx.drawImage(s.img, s.x, s.y, s.w, s.h, Math.round(ix), Math.round(y + (h - iw) / 2 + (down ? 1 : 0)), iw, iw);
+      this.spriteIcon(opts.icon, Math.round(ix), Math.round(y + (h - iw) / 2 + (down ? 1 : 0)), iw);
       tx = x + 4 + iw + (w - 4 - iw) / 2;
     }
     if (label) {
@@ -202,12 +201,17 @@ export class UI {
     this.tipWidth = width;
   }
 
+  /** Draw a named sprite in a size×size box: item icons (`i:<id>`) via drawItemIcon, anything else fitted at a whole-number scale. */
+  spriteIcon(name: string, x: number, y: number, size: number) {
+    if (name.startsWith('i:')) drawItemIcon(this.ctx, name.slice(2), x, y, size);
+    else drawFit(this.ctx, sprite(name), x, y, size, size);
+  }
+
   itemIcon(k: number, x: number, y: number, size = 16, n = 0, alpha = 1) {
     const d = ITEMS[k >> 2];
     if (!d) return;
-    const s = sprite('i:' + d.id);
     if (alpha < 1) this.ctx.globalAlpha = alpha;
-    this.ctx.drawImage(s.img, s.x, s.y, 16, 16, Math.round(x), Math.round(y), size, size);
+    drawItemIcon(this.ctx, d.id, Math.round(x), Math.round(y), size);
     this.ctx.globalAlpha = 1;
     const q = k & 3;
     if (q) {
@@ -330,8 +334,7 @@ export class UI {
     wrapped.forEach((l, i) => {
       let tx = x + 5;
       if (l.icon) {
-        const s = sprite(l.icon);
-        this.ctx.drawImage(s.img, s.x, s.y, s.w, s.h, tx, y + 4 + i * LINE_H - 1, 10, 10);
+        this.spriteIcon(l.icon, tx, y + 4 + i * LINE_H - 1, 10);
         tx += 12;
       }
       this.text(l.text, tx, y + 5 + i * LINE_H, l.color);

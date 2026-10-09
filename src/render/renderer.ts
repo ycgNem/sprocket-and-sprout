@@ -16,7 +16,7 @@ import { powerState } from '../sim/systems/power';
 import { curMap } from '../sim/systems/player';
 import { O, T, TileMap, Z } from '../sim/world/tilemap';
 import { GREENHOUSE, SHIPBIN_POS } from '../sim/world/worldgen';
-import { drawSprite, sprite, Sprite } from './atlas';
+import { drawSprite, drawItemIcon, sprite, Sprite } from './atlas';
 import { makeCanvas, ctx2d } from './art/pixel';
 import { PRIO, FRINGE_SOURCES, TILE, paintTerrain } from './art/terrain';
 import { PixBuf } from './art/pixbuf';
@@ -202,8 +202,7 @@ export class Renderer {
         } else if (o === O.FORAGE) {
           const id = m.forage.get(i);
           if (id) {
-            const s2 = sprite('i:' + id);
-            ctx.drawImage(s2.img, s2.x, s2.y, 16, 16, px + 2, py + 2, 12, 12);
+            drawItemIcon(ctx, id, px + 2, py + 2, 12);
           }
         }
       }
@@ -394,10 +393,9 @@ export class Renderer {
   private drawSplitFilter(root: Ent, cx: number, cy: number) {
     const fk = root.belt?.sFilter ?? -1;
     if (fk < 0) return;
-    const ic = sprite('i:' + kId(fk));
     this.ctx.fillStyle = PALETTE[C.ink];
-    this.ctx.fillRect(cx - 5, cy - 5, 10, 10);
-    this.ctx.drawImage(ic.img, ic.x, ic.y, 16, 16, cx - 4, cy - 4, 8, 8);
+    this.ctx.fillRect(cx - 6, cy - 6, 12, 12);
+    drawItemIcon(this.ctx, kId(fk), cx - 5, cy - 5, 10);
   }
 
   /** furniture the player placed inside the farmhouse */
@@ -585,8 +583,7 @@ export class Renderer {
           }
           if (e.mach && e.mach.crafting) this.drawProgressPip(e, e.mach.progress);
           if (e.def.kind === 'decor' && e.def.id === 'sign' && e.st.k !== null && e.st.k !== undefined) {
-            const is = sprite('i:' + itemIdCache(e.st.k));
-            if (is) ctx.drawImage(is.img, is.x, is.y, 16, 16, e.x * TILE + 3, e.y * TILE - 3, 10, 10);
+            drawItemIcon(ctx, itemIdCache(e.st.k), e.x * TILE + 3, e.y * TILE - 3, 10);
           }
           if (e.def.kind === 'machine' && e.def.powerUse && e.sat < 0.5 && e.working) this.drawNoPower(e);
         } });
@@ -649,8 +646,7 @@ export class Renderer {
     ctx.fillStyle = PALETTE[C.slate];
     ctx.fillRect(Math.round(hx) - 2, Math.round(hy) - 1, 4, 2);
     if (a.held) {
-      const s = sprite('i:' + itemIdCache(a.held.k));
-      ctx.drawImage(s.img, s.x, s.y, 16, 16, Math.round(hx - 4), Math.round(hy - 6), 8, 8);
+      drawItemIcon(ctx, itemIdCache(a.held.k), Math.round(hx - 5), Math.round(hy - 7), 10);
     }
     if (a.powered && e.sat < 0.05) this.drawNoPower(e);
   }
@@ -822,8 +818,7 @@ export class Renderer {
         const held = p.inv.slots[p.sel];
         const hd = held ? ITEMS[held.k >> 2] : null;
         if (held && hd && !hd.tool && !hd.weapon && !hd.places && hd.cat !== 'seed' && hd.cat !== 'fertilizer' && !g.player.moving) {
-          const is = sprite('i:' + itemIdCache(held.k));
-          ctx.drawImage(is.img, is.x, is.y, 16, 16, Math.round(p.x * TILE - 5), Math.round(p.y * TILE - 34), 10, 10);
+          drawItemIcon(ctx, itemIdCache(held.k), Math.round(p.x * TILE - 5), Math.round(p.y * TILE - 34), 10);
         }
       }
     } });
@@ -907,8 +902,7 @@ export class Renderer {
       D.push({ y: d.y, f: () => {
         const bob = Math.sin(this.time * 4 + d.x * 3) * 1.5;
         drawSprite(ctx, sprite('shadow:8'), d.x * TILE, d.y * TILE);
-        const s = sprite('i:' + itemIdCache(d.k));
-        ctx.drawImage(s.img, s.x, s.y, 16, 16, Math.round(d.x * TILE - 6), Math.round(d.y * TILE - 13 - d.z * TILE + bob), 12, 12);
+        drawItemIcon(ctx, itemIdCache(d.k), Math.round(d.x * TILE - 6), Math.round(d.y * TILE - 13 - d.z * TILE + bob), 12);
       } });
     }
     // bumblebots (always above)
@@ -916,13 +910,9 @@ export class Renderer {
     for (const b of bots) {
       if (!onScreen(b.x, b.y)) continue;
       D.push({ y: b.y + 3, f: () => {
-        const s = sprite('i:bumblebot');
         const bob = Math.sin(this.time * 9 + b.id) * 1.5;
-        ctx.drawImage(s.img, s.x, s.y, 16, 16, Math.round(b.x * TILE - 6), Math.round(b.y * TILE - 22 + bob), 12, 12);
-        if (b.carry) {
-          const is = sprite('i:' + itemIdCache(b.carry.k));
-          ctx.drawImage(is.img, is.x, is.y, 16, 16, Math.round(b.x * TILE - 3), Math.round(b.y * TILE - 12 + bob), 7, 7);
-        }
+        drawItemIcon(ctx, 'bumblebot', Math.round(b.x * TILE - 8), Math.round(b.y * TILE - 24 + bob), 16);
+        if (b.carry) drawItemIcon(ctx, itemIdCache(b.carry.k), Math.round(b.x * TILE - 5), Math.round(b.y * TILE - 12 + bob), 10);
       } });
     }
     // fireballs in the mine

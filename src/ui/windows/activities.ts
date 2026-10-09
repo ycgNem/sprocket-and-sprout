@@ -8,7 +8,7 @@ import { key } from '../../sim/inventory';
 import { fishing } from '../../sim/systems/fishing';
 import { finishActivity } from '../../sim/systems/festivals';
 import { mine } from '../../sim/systems/mine';
-import { sprite } from '../../render/atlas';
+import { sprite, drawItemIcon } from '../../render/atlas';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { centered, frame } from './common';
@@ -58,9 +58,8 @@ function drawFishing(ui: UI, play: PlayScreen, st: WinState): boolean {
   ui.fill(nx - 1, gy - 3, 3, gh + 6, C.ink);
   ui.fill(nx, gy - 2, 1, gh + 4, f.tension > 0.9 ? C.rose : C.butter);
   // fish icon wiggles at the zone
-  const fs = sprite('i:' + fish.id);
   const wig = Math.sin(ui.time * 20) * (inZone ? 1 : 3);
-  ui.ctx.drawImage(fs.img, fs.x, fs.y, 16, 16, Math.round(zx + zw / 2 - 6 + wig), gy - 16, 12, 12);
+  drawItemIcon(ui.ctx, fish.id, Math.round(zx + zw / 2 - 6 + wig), gy - 16, 12);
   ui.text('slack', gx, gy + gh + 4, C.oak);
   ui.text('SNAP', gx + gw, gy + gh + 4, C.brick, { align: 'right' });
   // catch progress

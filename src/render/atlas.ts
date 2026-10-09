@@ -118,6 +118,34 @@ export function drawSprite(ctx: CanvasRenderingContext2D, s: Sprite, x: number, 
   ctx.drawImage(s.img, s.x, s.y, s.w, s.h, Math.round(x - s.ox * scale), Math.round(y - s.oy * scale), s.w * scale, s.h * scale);
 }
 
+/**
+ * Draw a sprite centered in a w×h box at the largest whole-number scale that fits. If it is
+ * bigger than the box it shrinks by a whole factor instead (1/2, 1/3…), never a fractional
+ * scale, so its pixels stay square and on the grid.
+ */
+export function drawFit(ctx: CanvasRenderingContext2D, s: Sprite, x: number, y: number, w: number, h: number) {
+  const k = Math.floor(Math.min(w / s.w, h / s.h));
+  let dw: number, dh: number;
+  if (k >= 1) [dw, dh] = [s.w * k, s.h * k];
+  else {
+    const d = Math.ceil(Math.max(s.w / w, s.h / h));
+    [dw, dh] = [Math.floor(s.w / d), Math.floor(s.h / d)];
+  }
+  ctx.drawImage(s.img, s.x, s.y, s.w, s.h, Math.round(x + (w - dw) / 2), Math.round(y + (h - dh) / 2), dw, dh);
+}
+
+/**
+ * Draw item `id`'s icon centered in a size×size box without fractional scaling: below 13 px
+ * the 10 px belt icon (`ib:`), from 13 px the 16 px icon at 1:1 (it has transparent margins),
+ * from 32 px a whole multiple of it.
+ */
+export function drawItemIcon(ctx: CanvasRenderingContext2D, id: string, x: number, y: number, size: number) {
+  if (size >= 32) return drawFit(ctx, sprite('i:' + id), x, y, size, size);
+  const n = size < 13 ? 10 : 16;
+  const s = sprite((n === 10 ? 'ib:' : 'i:') + id);
+  ctx.drawImage(s.img, s.x, s.y, n, n, Math.round(x + (size - n) / 2), Math.round(y + (size - n) / 2), n, n);
+}
+
 export function invalidateSprite(name: string) {
   cache.delete(name);
 }

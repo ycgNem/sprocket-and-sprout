@@ -15,7 +15,7 @@ import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { centered, frame } from './common';
 import { registerWindow, WinState } from './index';
-import { sprite } from '../../render/atlas';
+import { sprite, drawFit } from '../../render/atlas';
 import { daysLeftInWeek, guildRank, specLabel } from '../../sim/systems/contracts';
 import { GUILD_RANKS } from '../../data/contracts';
 import { ICON } from '../font';
@@ -96,7 +96,7 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
       const ry = by + 2 - off;
       ui.fill(bx + 4, ry, 22, 22, C.tan, 0.5);
       const ps = sprite(`pet:${pet.kind}:${pet.coat}:2`);
-      ui.ctx.drawImage(ps.img, ps.x, ps.y, ps.w, ps.h, bx + 4, ry + 2, 20, 20);
+      drawFit(ui.ctx, ps, bx + 4, ry + 1, 22, 22);
       ui.text(pet.name, bx + 34, ry + 3, C.ink);
       ui.text(`Your ${pet.kind}`, bx + 34, ry + 13, C.oak);
       const ph = Math.min(5, Math.floor(pet.points / 200));
@@ -183,7 +183,9 @@ function drawMap(ui: UI, play: PlayScreen, st: WinState): boolean {
   const m = g.map;
   const scale = Math.max(1, Math.min(Math.floor((ui.w - 40) / m.w), Math.floor((ui.h - 60) / m.h))) || 1;
   const mw = m.w * scale, mh = m.h * scale;
-  const fit = Math.min((ui.w - 40) / m.w, (ui.h - 60) / m.h);
+  // a whole-number scale keeps every map pixel the same size
+  const fitRaw = Math.min((ui.w - 40) / m.w, (ui.h - 60) / m.h);
+  const fit = fitRaw >= 1 ? Math.floor(fitRaw) : fitRaw;
   const s2 = scale >= 1 && m.w * scale < ui.w - 40 ? scale : fit;
   const w = Math.round(m.w * s2) + 16, h = Math.round(m.h * s2) + 30;
   const { x, y } = centered(ui, w, h);

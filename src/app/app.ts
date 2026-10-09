@@ -421,10 +421,14 @@ class NewGameForm {
     ty = y + 42 + 3 * 19 + 2;
     const pv = this.preview(this.farmKind);
     const ph = h - (ty - y) - 36;
-    const pw = Math.min(colW, Math.round((ph - 26) * (pv.width / pv.height)));
+    // one map pixel per tile, shown at a whole-number zoom (or an exact 1/n shrink) so it stays crisp
+    const maxW = Math.min(colW, Math.round((ph - 26) * (pv.width / pv.height))), maxH = ph - 32;
+    const zk = Math.min(maxW / pv.width, maxH / pv.height);
+    const zd = zk >= 1 ? Math.floor(zk) : 1 / Math.ceil(1 / zk);
+    const pw = Math.floor(pv.width * zd), pvh = Math.floor(pv.height * zd);
     ui.panel(rx, ty, colW, ph, 'inset', false);
-    ui.fill(rx + 4, ty + 4, pw + 2, ph - 30, C.ink);
-    ui.ctx.drawImage(pv, rx + 5, ty + 5, pw, ph - 32);
+    ui.fill(rx + 4, ty + 4, pw + 2, pvh + 2, C.ink);
+    ui.ctx.drawImage(pv, rx + 5, ty + 5, pw, pvh);
     ui.text(fd.name, rx + pw + 10, ty + 6, C.ink);
     fd.lines.forEach((l, i) => ui.para(l, rx + pw + 10, ty + 18 + i * 20, colW - pw - 14, C.bark, 9));
     ui.para('The town, mine and beach are the same on every map. Each map has its own achievement.', rx + 4, ty + ph - 23, colW - 8, C.oak, 9);

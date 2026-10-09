@@ -10,7 +10,7 @@ import { STRUCT_BY_ID } from '../../data/structures';
 import { key, kDef } from '../../sim/inventory';
 import { buy, buyKit, canAffordKit, crackGeode, dailyLeft, entryPrice, sellToShop, shopBuys, shopStock, startUpgrade, unitPrice, upgradeOptions } from '../../sim/systems/economy';
 import { finishHeartEvent, hearts, npcSys } from '../../sim/systems/npcs';
-import { sprite } from '../../render/atlas';
+import { sprite, drawFit } from '../../render/atlas';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { wrapText, ICON } from '../font';
@@ -27,7 +27,8 @@ function portrait(ui: UI, npcId: string, x: number, y: number, size = 48, mood =
     ui.ctx.beginPath();
     ui.ctx.rect(x + 4, y + 4, size, size);
     ui.ctx.clip();
-    ui.ctx.drawImage(ch.img, ch.x, ch.y, 16, 16, x + 4, y + 6, size, size);
+    const k = Math.max(1, Math.floor(size / 16));
+    ui.ctx.drawImage(ch.img, ch.x, ch.y, 16, 16, x + 4 + Math.floor((size - 16 * k) / 2), y + 6, 16 * k, 16 * k);
     ui.ctx.restore();
     return;
   }
@@ -255,7 +256,7 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
     ANIMALS.forEach((a, i) => {
       const ry = listY + i * 19;
       const s = sprite(`an:${a.id}:0:0`);
-      ui.ctx.drawImage(s.img, s.x, s.y, s.w, s.h, listX, ry, Math.min(18, s.w), Math.min(16, s.h));
+      drawFit(ui.ctx, s, listX, ry, 18, 16);
       ui.text(`${a.name}  (${a.building === 'coop' ? 'Coop' : 'Barn'} tier ${a.tier}+)`, listX + 22, ry + 1, C.ink);
       ui.text(`${ICON.coin}${a.price}  -  makes ${ITEM_BY_ID.get(a.product)!.name}`, listX + 22, ry + 10, C.walnut);
       if (ui.button('anim' + i, listX + listW - 46, ry + 1, 40, 15, 'Buy', { style: 'green', disabled: g.player.money < a.price })) {

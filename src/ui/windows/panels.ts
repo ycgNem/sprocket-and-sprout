@@ -10,7 +10,7 @@ import { researchUnits } from '../../sim/systems/research';
 import { residents } from '../../sim/systems/animals';
 import { hayCap } from '../../sim/systems/automation';
 import { megaNeed, megaStage, startMega, goals } from '../../sim/systems/goals';
-import { sprite } from '../../render/atlas';
+import { sprite, drawFit } from '../../render/atlas';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { invGrid } from './common';
@@ -78,7 +78,7 @@ STRUCT_PANELS.building = (ui, play, e, x, y, w, st) => {
     const def = ANIMAL_BY_ID.get(a.kind)!;
     const ax = x + 14 + (i % 4) * 78, ay = y + 14 + Math.floor(i / 4) * 24;
     const s = sprite(`an:${a.kind}:0:${a.baby ? 1 : 0}`);
-    ui.ctx.drawImage(s.img, s.x, s.y, s.w, s.h, ax, ay, Math.min(22, s.w), Math.min(18, s.h));
+    drawFit(ui.ctx, s, ax, ay, 22, 18);
     ui.text(a.name, ax + 24, ay + 2, C.ink);
     ui.text(a.baby ? 'baby' : ICON.heart.repeat(Math.max(1, Math.round(a.happy / 51))), ax + 24, ay + 11, C.rose);
     if (ui.hover(ax, ay, 76, 22)) ui.tip([{ text: `${a.name} the ${def.name}`, color: C.amber }, { text: def.desc }, { text: `Happiness ${a.happy}/255  Age ${a.age} days  Made ${a.made}`, color: C.pebble }, { text: a.petted ? 'Petted today' : 'Pet me today!', color: a.petted ? C.lime : C.blush }]);
