@@ -506,7 +506,7 @@ export class Renderer {
           const shake = g.sys.treeShake?.get(i) ?? 0;
           const fruitN = tr.fruit > 0 ? Math.min(3, tr.fruit) : 0;
           const s = sprite(`tree:${tr.species}:${tr.stage}:${season}:${fruitN}:${m.deco[i] % 3}`);
-          const sxx = x * TILE + 8 + (shake > 0 ? Math.sin(this.time * 50) * shake * 2 : 0);
+          const sxx = x * TILE + 8 + (shake > 0 ? Math.sin(this.time * 50) * shake * 2 : tr.stage >= 2 ? this.ambient.swayAt(x, y) : 0);
           // fade trees in front of the player
           D.push({ y: y + 0.95, f: () => {
             const p = g.player;
@@ -1096,10 +1096,12 @@ export class Renderer {
     const x0 = G.x * TILE, y0 = (G.y + 2) * TILE - 6, w = G.w * TILE, h = (G.h - 2) * TILE + 2;
     // imported glass: gh:glass:<0 broken|1 intact>, a 16x16 pane with its mullions, tiled
     if (hasImage('gh:glass:1')) {
-      // derelict: only the bare frame with shards, solid; repaired: glass panes, see-through
-      ctx.globalAlpha = inside ? 0.12 : fixed ? 0.4 : 1;
+      // repaired: glass panes, see-through. Derelict: a faint broken frame with whole panes
+      // missing, so the beds under it read as open, farmable ground (it is a seasonal plot)
+      ctx.globalAlpha = inside ? 0.12 : fixed ? 0.4 : 0.3;
       for (let y = 0; y < h; y += 16)
         for (let x = 0; x < w; x += 16) {
+          if (!fixed && hash2(x / 16, y / 16, 11) < 0.45) continue;
           const s = sprite(`gh:glass:${fixed ? 1 : 0}`);
           ctx.drawImage(s.img, s.x, s.y, Math.min(16, w - x), Math.min(16, h - y), x0 + x, y0 + y, Math.min(16, w - x), Math.min(16, h - y));
         }

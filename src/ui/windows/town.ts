@@ -58,7 +58,7 @@ function drawDialog(ui: UI, play: PlayScreen, st: WinState): boolean {
   portrait(ui, a.npc, x + 8, y + 7, 64, a.mood ?? 0);
   ui.panel(x + 8, y - 12, Math.max(70, a.name.length * 6 + 12), 14, 'brass', false);
   ui.text(a.name, x + 14, y - 8, C.ink);
-  heartsRow(ui, a.hearts, x + w - 82, y - 8);
+  if (a.hearts >= 0) heartsRow(ui, a.hearts, x + w - 82, y - 8);
   const shown = text.slice(0, Math.floor(st.data.chars));
   if (Math.floor(st.data.chars) % 3 === 0 && st.data.chars < text.length) ui.sfx('talk');
   wrapText(shown, w - 104).forEach((l, i) => ui.text(l, x + 86, y + 12 + i * 11, C.ink));

@@ -9,6 +9,7 @@ import type { UI } from './ui';
 import type { PlayScreen } from '../app/play';
 import { unlockAch } from '../sim/systems/achievements';
 import { RUSH_DAYS, RUSH_MEDALS } from '../data/modes';
+import { drawSprite, hasImage, sprite } from '../render/atlas';
 
 /** per-PlayScreen animation state for the HUD */
 interface HudFx {
@@ -397,7 +398,11 @@ export function drawHotbar(ui: UI, play: PlayScreen, dt: number) {
     const cx = side ? hx + hw - capW / 2 - 3 : hx + capW / 2 + 3;
     const gy = by + Math.floor(bh / 2);
     const ang = F.gearA + F.spin;
-    gear(ui, cx, gy, 6, side ? -ang : ang);
+    // the sprocket emblem (logo sheet): 8 frames through one tooth pitch, so frame = angle
+    if (hasImage('ui:sprocket:0')) {
+      const P = Math.PI / 4, a = side ? -ang : ang;
+      drawSprite(ui.ctx, sprite('ui:sprocket:' + Math.floor((((a % P) + P) % P) / P * 8) % 8), cx, gy);
+    } else gear(ui, cx, gy, 6, side ? -ang : ang);
     if (ui.clicked && ui.hover(cx - 8, gy - 8, 16, 16)) {
       ui.eat();
       F.spinV += 9;

@@ -1,11 +1,12 @@
-// Ambient life and juice in world space: butterflies, hopping birds, jumping fish,
-// and toppling trees when they're chopped down.
+// Ambient life and juice in world space: butterflies, hopping birds, jumping fish, wind gusts
+// that sweep across the view and sway the canopies, and toppling trees when they're chopped down.
 import { C, PALETTE } from '../data/palette';
 import type { Game } from '../sim/Game';
 import { T } from '../sim/world/tilemap';
 import { curMap } from '../sim/systems/player';
 import { drawSprite, hasImage, sprite } from './atlas';
 import type { Renderer } from './renderer';
+import { drawFx } from './juice';
 
 const TILE = 16;
 
@@ -13,13 +14,25 @@ interface Fly { x: number; y: number; vx: number; vy: number; ph: number; c: num
 interface Bird { x: number; y: number; vx: number; vy: number; z: number; flying: boolean; t: number; hop: number; c: number }
 interface Fall { s: string; x: number; y: number; t: number; dir: number }
 interface Jump { x: number; y: number; t: number }
+/** a band of wind moving right across the view (tile coords) */
+interface Gust { x: number; y0: number; y1: number; v: number; ph: number }
 
 export class Ambient {
   flies: Fly[] = [];
   birds: Bird[] = [];
   falls: Fall[] = [];
   jumps: Jump[] = [];
+  gusts: Gust[] = [];
   private jumpCd = 2;
+  private gustCd = 3;
+  /** called when a gust passes the player (the play screen plays a rustle) */
+  onRustle: (() => void) | null = null;
+
+  /** integer sideways sway (px) of a canopy at a tile: one pixel as a gust front passes */
+  swayAt(tx: number, ty: number): number {
+    for (const g of this.gusts) if (ty >= g.y0 - 2 && ty <= g.y1 + 2 && tx > g.x - 2.2 && tx < g.x + 0.3) return 1;
+    return 0;
+  }
 
   treeFall(spriteName: string, x: number, y: number, dir: number) {
     this.falls.push({ s: spriteName, x, y, t: 0, dir });
@@ -96,6 +109,21 @@ export class Ambient {
       }
     }
     for (let i = this.jumps.length - 1; i >= 0; i--) if ((this.jumps[i].t += dt) > 0.6) this.jumps.splice(i, 1);
+    // wind: a gust every few seconds outdoors (more often in storms), a soft rustle when it's near
+    this.gustCd -= dt * (g.weather === 'storm' ? 2.5 : 1);
+    if (outdoors && g.weather !== 'snow' && this.gustCd <= 0) {
+      this.gustCd = 5 + Math.random() * 7;
+      const h = 3 + Math.random() * 4, y0 = vy0 + Math.random() * Math.max(1, vy1 - vy0 - h);
+      this.gusts.push({ x: vx0 - 2, y0, y1: y0 + h, v: 4 + Math.random() * 2.5, ph: Math.random() * 10 });
+    }
+    for (let i = this.gusts.length - 1; i >= 0; i--) {
+      const gu = this.gusts[i];
+      const before = gu.x;
+      gu.x += gu.v * dt;
+      const py = g.player.y;
+      if (before < g.player.x && gu.x >= g.player.x && py > gu.y0 - 2 && py < gu.y1 + 2) this.onRustle?.();
+      if (gu.x > vx1 + 4 || !outdoors) this.gusts.splice(i, 1);
+    }
     for (let i = this.falls.length - 1; i >= 0; i--) if ((this.falls[i].t += dt) > 0.9) this.falls.splice(i, 1);
   }
 
@@ -154,6 +182,15 @@ export class Ambient {
       } else ctx.fillRect(x - 1, y - 2, 3, 2);
       ctx.fillStyle = PALETTE[C.ink];
       ctx.fillRect(x, y - 1, 1, 2);
+    }
+    // gust streaks: a loose diagonal of wisps behind the front
+    for (const gu of this.gusts) {
+      for (let k = 0; k < 4; k++) {
+        const x = (gu.x - k * 1.4) * TILE, y = (gu.y0 + ((k * 0.37 + gu.ph) % 1) * (gu.y1 - gu.y0)) * TILE + Math.sin(time * 3 + k + gu.ph) * 3;
+        ctx.globalAlpha = 0.75 - k * 0.15;
+        drawFx(ctx, 'fx:gust', Math.floor(time * 10 + k), x, y);
+      }
+      ctx.globalAlpha = 1;
     }
     for (const f of this.falls) {
       const k = Math.min(1, f.t / 0.7);

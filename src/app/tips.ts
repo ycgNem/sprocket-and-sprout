@@ -18,9 +18,10 @@ const held = (p: PlayScreen) => {
 
 export const TIPS: Tip[] = [
   {
+    // the professor greets you in three short lines; the key bubbles teach the rest as you go
     id: 'welcome', big: true, title: 'Welcome to Thistlewick!',
     when: (p) => p.g.dayIndex === 0 && p.playtime > 1.2,
-    text: 'The old keeper\'s clockwork farm is yours, and their machines still work.\n\nMove with WASD. Left-click uses the tool or item in your hand; right-click (or F) talks, harvests, loads machines and collects. 1-0 or the wheel picks hotbar slots. E bag, C crafting, T research, J journal, U achievements.\n\nYour first task is top-left, and amber markers show where to go. The post collects your shipping crate at noon, at 6pm and overnight.',
+    text: 'Welcome to Thistlewick, {name}! I\'m Professor Cogwhistle. The old keeper left you this farm, and their clockwork still ticks!\n\nTheir cogbeans are ripe, right beside the house. Walk over with WASD and press F to pick them. Follow the bouncing arrow!\n\nThen feed them to the preserves jar by the shipping crate. Beans make pickles, pickles make coins, coins make machines. Esc shows every control. Off you go!',
   },
   { id: 'hoe', when: (p) => held(p)?.tool?.kind === 'hoe' && !p.g.sys.quests?.active?.some((a: { id: string }) => a.id === 't_welcome'), title: '', text: 'Click grass or dirt near you to till it. Bare farm soil is the easiest to work.' },
   { id: 'seeds', when: (p) => held(p)?.cat === 'seed', title: '', text: 'Click tilled soil to plant. Seeds only grow in their season; the tooltip tells you which.' },
@@ -66,7 +67,7 @@ export function checkTips(p: PlayScreen) {
     if (!t.when(p)) continue;
     p.g.flags.add('tip_' + t.id);
     // only the welcome is a window; everything else is a short toast, one at a time
-    if (t.id === 'welcome') p.openWindow('message', { title: t.title, text: t.text, icon: undefined });
+    if (t.id === 'welcome') p.openWindow('dialog', { npc: 'ottoline', name: 'Professor Cogwhistle', hearts: -1, pages: t.text.replace('{name}', p.g.player.name).split('\n\n') });
     else p.toast('Tip: ' + (t.title ? t.title + ': ' : '') + t.text.split('\n\n')[0], undefined, 21);
     return;
   }

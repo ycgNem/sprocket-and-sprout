@@ -89,6 +89,7 @@ export class PlayScreen implements Screen {
     app.audio.setScene('farm');
     g.sys.ui = this;
     r.juice.sfx = (id, v, p) => app.audio.sfx(id, v, p);
+    r.ambient.onRustle = () => app.audio.sfx('rustle', 0.3);
     this.lastMoney = Math.floor(g.player.money);
     (window as any).__game = g;
     (window as any).__play = this;
@@ -341,6 +342,10 @@ export class PlayScreen implements Screen {
     if (g.player.where === 'world') {
       for (const e of g.ents.machines) if (e.working && Math.abs(e.x - p.x) < 12 && Math.abs(e.y - p.y) < 9) near++;
       for (const e of g.ents.arms) if (e.working && Math.abs(e.x - p.x) < 10 && Math.abs(e.y - p.y) < 8) near += 0.3;
+      // loaded belts add to the hum, so a busy line sounds busy
+      let carried = 0;
+      for (const e of g.ents.belts) if (e.belt && Math.abs(e.x - p.x) < 10 && Math.abs(e.y - p.y) < 8) carried += e.belt.lanes[0].k.length + e.belt.lanes[1].k.length;
+      near += Math.min(4, carried * 0.06);
     }
     const fest = g.sys.festivals?.active;
     app.audio.setScene(g.player.where === 'mine' ? 'mine' : g.player.where === 'house' ? 'home' : fest ? 'festival' : 'farm');
@@ -681,6 +686,11 @@ export class PlayScreen implements Screen {
     const placeable = this.heldPlaceable();
     if (placeable) {
       const def = STRUCT_BY_ID.get(placeable)!;
+      // the opening's first arm: over the marked tile it turns itself from the jar to the crate
+      if (def.kind === 'arm' && t.x === OPENING.armTile[0] && t.y === OPENING.armTile[1] && (g.sys.quests?.active as { id: string }[] | undefined)?.some((a) => a.id === 't_arm')) {
+        const bin = g.ents.get(g.shipBinId);
+        for (let d = 0; d < 4; d++) if (bin && g.ents.rootAt(t.x + DX[d], t.y + DY[d]) === bin) this.rot = d as Dir;
+      }
       if (input.mouse.pressed[0]) this.drag = { x: t.x, y: t.y };
       if (input.mouse.released[0] && this.drag) {
         const line = this.dragLine(placeable, this.drag.x, this.drag.y, t.x, t.y);
