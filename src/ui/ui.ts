@@ -3,6 +3,7 @@ import { C, PALETTE, rgba } from '../data/palette';
 import type { Input } from '../engine/input';
 import { sprite, drawFit, drawItemIcon } from '../render/atlas';
 import { drawText, textWidth, wrapText, LINE_H, FONT_H } from './font';
+import { drawSkin } from './skin';
 import { ITEMS } from '../data/items';
 import type { AuditRec, AuditKind } from './audit';
 
@@ -110,6 +111,11 @@ export class UI {
     y = Math.round(y);
     if (blocking) this.block(x, y, w, h);
     if (this.audit) this.rec('panel', x, y, w, h);
+    // imported skin frame (src/ui/skin.ts); the drop shadow stays a renderer effect
+    if (drawSkin(this.ctx, 'ui:panel:' + style, x, y, w, h)) {
+      if (style === 'wood') this.fill(x + 2, y + h, w - 2, 2, C.ink, 0.4);
+      return;
+    }
     const f = (xx: number, yy: number, ww: number, hh: number, c: number) => this.fill(xx, yy, ww, hh, c);
     switch (style) {
       case 'wood':
@@ -183,11 +189,15 @@ export class UI {
     const base = opts.disabled ? C.stone : style === 'green' ? C.moss : style === 'red' ? C.brick : opts.active ? C.copper : style === 'flat' ? C.tan : C.oak;
     const hi = opts.disabled ? C.pebble : style === 'green' ? C.grass : style === 'red' ? C.terracotta : opts.active ? C.apricot : style === 'flat' ? C.butter : C.tan;
     if (this.audit) this.rec('button', x, y, w, h);
-    this.fill(x, y, w, h, C.ink);
-    this.fill(x + 1, y + 1, w - 2, h - 2, hov ? hi : base);
-    if (!down) {
-      this.fill(x + 1, y + 1, w - 2, 1, hov ? C.cream : hi);
-      this.fill(x + 1, y + h - 2, w - 2, 1, C.walnut);
+    // skin states: 0 normal, 1 hover, 2 pressed, 3 disabled, 4 active (toggled on)
+    const state = opts.disabled ? 3 : down ? 2 : hov ? 1 : opts.active ? 4 : 0;
+    if (!drawSkin(this.ctx, `ui:button:${style}:${state}`, x, y, w, h)) {
+      this.fill(x, y, w, h, C.ink);
+      this.fill(x + 1, y + 1, w - 2, h - 2, hov ? hi : base);
+      if (!down) {
+        this.fill(x + 1, y + 1, w - 2, 1, hov ? C.cream : hi);
+        this.fill(x + 1, y + h - 2, w - 2, 1, C.walnut);
+      }
     }
     let tx = x + w / 2;
     if (opts.icon) {
@@ -250,11 +260,15 @@ export class UI {
     const S = opts.size ?? 20;
     const hov = this.hover(x, y, S, S);
     if (hov) this.hoverId = 'slot';
-    this.fill(x, y, S, S, opts.selected ? C.amber : C.oak);
-    this.fill(x + 1, y + 1, S - 2, S - 2, hov ? C.butter : C.tan);
-    this.fill(x + 1, y + 1, S - 2, 1, C.walnut);
-    this.fill(x + 1, y + 1, 1, S - 2, C.walnut);
-    if (opts.selected) {
+    // skin states: 0 normal, 1 hover, 2 selected
+    const skinned = drawSkin(this.ctx, `ui:slot:${opts.selected ? 2 : hov ? 1 : 0}`, x, y, S, S);
+    if (!skinned) {
+      this.fill(x, y, S, S, opts.selected ? C.amber : C.oak);
+      this.fill(x + 1, y + 1, S - 2, S - 2, hov ? C.butter : C.tan);
+      this.fill(x + 1, y + 1, S - 2, 1, C.walnut);
+      this.fill(x + 1, y + 1, 1, S - 2, C.walnut);
+    }
+    if (opts.selected && !skinned) {
       this.fill(x - 1, y - 1, S + 2, 1, C.amber);
       this.fill(x - 1, y + S, S + 2, 1, C.amber);
       this.fill(x - 1, y - 1, 1, S + 2, C.amber);

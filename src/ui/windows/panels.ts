@@ -22,6 +22,9 @@ import { contractInsert, daysLeftInWeek, guild, guildRank, specLabel } from '../
 import { GUILD_BONUS_PER_RANK, GUILD_RANKS } from '../../data/contracts';
 import { specIcon } from './menu';
 
+/** row height of the coop/barn animal list (fits the 28x26 barn animals at 1:1) */
+const ROW = 28;
+
 STRUCT_PANELS.lab = (ui, play, e, x, y, w, st) => {
   const g = play.g;
   st.data.target = (k: number, n: number) => PORT_HANDLERS.lab.insert!(g, e, k, n);
@@ -76,14 +79,15 @@ STRUCT_PANELS.building = (ui, play, e, x, y, w, st) => {
   }
   res.forEach((a, i) => {
     const def = ANIMAL_BY_ID.get(a.kind)!;
-    const ax = x + 14 + (i % 4) * 78, ay = y + 14 + Math.floor(i / 4) * 24;
+    // rows fit the 28x26 barn animals at 1:1 (a whole-number shrink would drop every other pixel)
+    const ax = x + 14 + (i % 4) * 78, ay = y + 14 + Math.floor(i / 4) * ROW;
     const s = sprite(`an:${a.kind}:0:${a.baby ? 1 : 0}`);
-    drawFit(ui.ctx, s, ax, ay, 22, 18);
-    ui.text(a.name, ax + 24, ay + 2, C.ink);
-    ui.text(a.baby ? 'baby' : ICON.heart.repeat(Math.max(1, Math.round(a.happy / 51))), ax + 24, ay + 11, C.rose);
-    if (ui.hover(ax, ay, 76, 22)) ui.tip([{ text: `${a.name} the ${def.name}`, color: C.amber }, { text: def.desc }, { text: `Happiness ${a.happy}/255  Age ${a.age} days  Made ${a.made}`, color: C.pebble }, { text: a.petted ? 'Petted today' : 'Pet me today!', color: a.petted ? C.lime : C.blush }]);
+    drawFit(ui.ctx, s, ax, ay, 28, 26);
+    ui.text(a.name, ax + 30, ay + 5, C.ink);
+    ui.text(a.baby ? 'baby' : ICON.heart.repeat(Math.max(1, Math.round(a.happy / 51))), ax + 30, ay + 14, C.rose);
+    if (ui.hover(ax, ay, 76, 26)) ui.tip([{ text: `${a.name} the ${def.name}`, color: C.amber }, { text: def.desc }, { text: `Happiness ${a.happy}/255  Age ${a.age} days  Made ${a.made}`, color: C.pebble }, { text: a.petted ? 'Petted today' : 'Pet me today!', color: a.petted ? C.lime : C.blush }]);
   });
-  const gy = y + 16 + Math.ceil(Math.max(1, res.length) / 4) * 24;
+  const gy = y + 16 + Math.ceil(Math.max(1, res.length) / 4) * ROW;
   ui.text('Products (click to collect; arms can take them):', x + 14, gy, C.walnut);
   invGrid(ui, play, e.inv!, x + 14, gy + 10, 12, { readonly: true });
   return gy - y + 36;

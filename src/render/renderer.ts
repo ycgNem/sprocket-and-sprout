@@ -7,8 +7,9 @@ import { CROP_BY_ID } from '../data/crops';
 import { MEGA_BY_ID } from '../data/goals';
 import { FURN_BY_ID } from '../data/furniture';
 import { TREE_BY_ID } from '../data/trees';
+import { ANIMAL_BY_ID } from '../data/creatures';
 import { hash2 } from '../engine/rng';
-import type { Game } from '../sim/Game';
+import type { Game, Soil } from '../sim/Game';
 import { BeltKind, DX, DY, Ent } from '../sim/ents';
 import { itemPos } from '../sim/systems/belts';
 import { armTiles } from '../sim/systems/arms';
@@ -16,8 +17,8 @@ import { powerState } from '../sim/systems/power';
 import { curMap } from '../sim/systems/player';
 import { O, T, TileMap, Z } from '../sim/world/tilemap';
 import { GREENHOUSE, SHIPBIN_POS } from '../sim/world/worldgen';
-import { drawSprite, drawItemIcon, invalidateSpritePrefix, sprite, Sprite } from './atlas';
-import { charArtHeight, compareIds, sheetToolKinds } from './art/sheets';
+import { drawSprite, drawItemIcon, hasImage, invalidateSpritePrefix, sprite, Sprite } from './atlas';
+import { charArtHeight, compareIds, sheetToolFrame, smokePoints, terrainArt, type TerrainArt } from './art/sheets';
 import { getLook, registerLook } from './art/chars';
 import { makeCanvas, ctx2d } from './art/pixel';
 import { PRIO, FRINGE_SOURCES, TILE, paintTerrain } from './art/terrain';
@@ -29,13 +30,21 @@ import { Weather } from './weather';
 import { Ambient } from './ambient';
 
 const CH = TileMap.CHUNK;
+/** flat objects baked into the ground that get a shadow, and its width */
+const SHADOWED_OBJ = new Map<O, number>([
+  [O.ROCK, 12], [O.BOULDER, 14], [O.STUMP, 12], [O.LOG, 14], [O.BUSH, 14], [O.ORE_ROCK, 12], [O.GEM_ROCK, 12], [O.BARREL, 12],
+  [O.CRATE, 12], [O.HEDGE, 14], [O.ICE_ROCK, 12], [O.STALAGMITE, 10], [O.CRYSTAL, 10], [O.TREASURE, 12], [O.WELL, 14], [O.SIGNPOST, 8],
+  [O.MAILBOX, 8], [O.BENCH, 14],
+]);
+/** shadow width under a tree by growth stage (seed, sprout, sapling, young, mature) */
+const TREE_SHADOW = [0, 8, 12, 20, 28];
 const FLAT_OBJ = new Set([
   O.ROCK, O.WEED, O.TWIG, O.STUMP, O.LOG, O.TALLGRASS, O.BUSH, O.FLOWER, O.ORE_ROCK, O.ARTIFACT, O.FENCE, O.BENCH,
   O.BARREL, O.GEM_ROCK, O.LADDER, O.SHAFT, O.REEDS, O.LILYPAD, O.MUSHROOM, O.SIGNPOST, O.WELL, O.MAILBOX, O.FLOWERBED,
   O.HEDGE, O.CRATE, O.ELEVATOR, O.MINE_EXIT, O.ICE_ROCK, O.STALAGMITE, O.CRYSTAL, O.BOULDER, O.TREASURE,
 ]);
 
-interface Chunk { c: HTMLCanvasElement; ver: number; season: number; theme: number }
+interface Chunk { c: HTMLCanvasElement; ver: number; season: number; theme: number; soilSig: number }
 
 export interface Drawable {
   y: number;
@@ -76,6 +85,8 @@ export class Renderer {
   view = { x0: 0, y0: 0, x1: 0, y1: 0 };
   /** per-frame overlays added by the UI (ghosts, highlights) */
   overlays: ((ctx: CanvasRenderingContext2D) => void)[] = [];
+  /** which way each bumblebot faces (from its last position) */
+  private botFace = new Map<number, { x: number; left: boolean }>();
   /** stats */
   drawCount = 0;
   lastMap: TileMap | null = null;
@@ -95,37 +106,234 @@ export class Renderer {
   /** screen px -> world tile coords */
   screenToTile(sx: number, sy: number): { x: number; y: number } {
     const z = this.cam.zoom;
-    const wx = (sx - this.W / 2) / z + this.cam.x * TILE;
-    const wy = (sy - this.H / 2) / z + this.cam.y * TILE;
+    const wx = (sx - this.W / 2) / z + Math.round(this.cam.x * TILE);
+    const wy = (sy - this.H / 2) / z + Math.round(this.cam.y * TILE);
     return { x: wx / TILE, y: wy / TILE };
   }
 
   tileToScreen(tx: number, ty: number): { x: number; y: number } {
     const z = this.cam.zoom;
-    return { x: (tx * TILE - this.cam.x * TILE) * z + this.W / 2, y: (ty * TILE - this.cam.y * TILE) * z + this.H / 2 };
+    return { x: (tx * TILE - Math.round(this.cam.x * TILE)) * z + this.W / 2, y: (ty * TILE - Math.round(this.cam.y * TILE)) * z + this.H / 2 };
   }
 
   invalidateAll() {
     this.chunks.clear();
   }
 
+  /** tilled soil is drawn by the terrain art (baked into chunks) instead of per-frame soil sprites */
+  soilBaked(): boolean {
+    return !!terrainArt()?.hasBase('soil');
+  }
+
   // ---------------- chunks ----------------
-  private chunk(m: TileMap, cx: number, cy: number, season: number, theme: number): HTMLCanvasElement {
+  /**
+   * Per-chunk signature of the tilled soil (tiles and wet state), for terrain art that bakes soil
+   * into the ground: a chunk rebakes when its signature changes. Soil on a chunk edge also counts
+   * for the neighbor, whose border vertex tiles it shapes.
+   */
+  private soilSigs(soil: Map<number, Soil>, m: TileMap): Map<number, number> {
+    const sig = new Map<number, number>();
+    const cw = Math.ceil(m.w / CH);
+    for (const [i, s] of soil) {
+      const x = i % m.w, y = (i / m.w) | 0;
+      const v = Math.imul(i + 1, 2654435761) ^ (s.water ? 0x5bd1e995 : 0x27d4eb2f);
+      for (let cy = Math.floor((y - 1) / CH); cy <= Math.floor((y + 1) / CH); cy++)
+        for (let cx = Math.floor((x - 1) / CH); cx <= Math.floor((x + 1) / CH); cx++) {
+          if (cx < 0 || cy < 0) continue;
+          const ci = cy * cw + cx;
+          sig.set(ci, ((sig.get(ci) ?? 0) + v) | 0);
+        }
+    }
+    return sig;
+  }
+
+  private chunk(m: TileMap, cx: number, cy: number, season: number, theme: number, soil: Map<number, Soil> | null, soilSig: number): HTMLCanvasElement {
     const key = `${m === this.lastMap ? 'm' : 'x'}${cx},${cy}`;
     const cw = Math.ceil(m.w / CH);
     const ci = cy * cw + cx;
     let ch = this.chunks.get(key);
     const dirty = m.dirtyChunks.has(ci);
-    if (ch && ch.season === season && ch.theme === theme && !dirty) return ch.c;
+    if (ch && ch.season === season && ch.theme === theme && ch.soilSig === soilSig && !dirty) return ch.c;
     if (!ch) {
-      ch = { c: makeCanvas(CH * TILE, CH * TILE), ver: 0, season, theme };
+      ch = { c: makeCanvas(CH * TILE, CH * TILE), ver: 0, season, theme, soilSig };
       this.chunks.set(key, ch);
     }
     m.dirtyChunks.delete(ci);
     ch.season = season;
     ch.theme = theme;
-    this.bake(m, cx, cy, ch.c, season, theme);
+    ch.soilSig = soilSig;
+    const art = terrainArt();
+    if (art) this.bakeArt(m, cx, cy, ch.c, season, theme, art, soil);
+    else this.bake(m, cx, cy, ch.c, season, theme);
     return ch.c;
+  }
+
+  /** The terrain class a map tile draws as (terrain art), or null for nothing (void). */
+  private terrainClass(m: TileMap, x: number, y: number, theme: number, soil: Map<number, Soil> | null): string | null {
+    x = Math.max(0, Math.min(m.w - 1, x));
+    y = Math.max(0, Math.min(m.h - 1, y));
+    const i = m.idx(x, y);
+    if (soil) {
+      const s = soil.get(i);
+      if (s) return s.water ? 'wet' : 'soil';
+    }
+    switch (m.ground[i] as T) {
+      case T.GRASS: case T.TOWNGRASS: case T.CLIFFTOP: return 'grass';
+      case T.DIRT: case T.GARDEN: return 'dirt';
+      case T.PATH: return 'path';
+      case T.SAND: return 'sand';
+      case T.RIVER: case T.LAKE: case T.POND: case T.OCEAN: case T.MINEWATER: return 'water';
+      case T.DEEP: return 'deep';
+      case T.PLANKS: return 'planks';
+      case T.CLIFF: return 'cliff';
+      case T.ROCK: return 'rock';
+      case T.ORE_VEIN: return 'ore' + m.objData[i];
+      case T.MINEFLOOR: return 'minefloor' + theme;
+      case T.MINEWALL: return 'minewall' + theme;
+      case T.LAVA: return 'lava';
+      case T.WOODFLOOR: return 'woodfloor';
+      case T.HOUSEWALL: { const v = m.deco[i] % 8; return v === 0 ? 'wall' : v === 3 ? 'wall_upper' : 'wall_top'; }
+      default: return null;
+    }
+  }
+
+  /**
+   * Ground from imported terrain art: a dual grid (one Wang tile per grid vertex, picked from the
+   * four tiles meeting there), per-tile classes (cliffs, planks, floors) on top, then decals and
+   * flat objects. Classes without art fall back to the procedural painter.
+   */
+  private bakeArt(m: TileMap, cx: number, cy: number, c: HTMLCanvasElement, season: number, theme: number, art: TerrainArt, soil: Map<number, Soil> | null) {
+    const ctx = ctx2d(c);
+    ctx.clearRect(0, 0, c.width, c.height);
+    const x0 = cx * CH, y0 = cy * CH;
+    const N = CH + 2;
+    // classes of the chunk's tiles plus a 1-tile border; per-tile classes get a Wang underlay
+    const WANG_FALLBACK: Record<string, string[]> = { deep: ['water'], wet: ['soil'], soil: [], path: [], sand: [], water: [], grass: [], dirt: [] };
+    const UNDER: Record<string, string> = { planks: 'water', cliff: 'grass', rock: 'dirt' };
+    const wangOf = (k: string | null): string | null => {
+      if (!k) return null;
+      const u = k in WANG_FALLBACK ? k : k.startsWith('ore') ? 'dirt' : UNDER[k];
+      if (!u) return null;
+      if (art.hasBase(u)) return u;
+      for (const f of WANG_FALLBACK[u] ?? []) if (art.hasBase(f)) return f;
+      return null;
+    };
+    const cls: (string | null)[] = new Array(N * N);
+    const wang: (string | null)[] = new Array(N * N);
+    for (let ly = -1; ly <= CH; ly++)
+      for (let lx = -1; lx <= CH; lx++) {
+        const k = this.terrainClass(m, x0 + lx, y0 + ly, theme, soil);
+        cls[(ly + 1) * N + lx + 1] = k;
+        wang[(ly + 1) * N + lx + 1] = wangOf(k);
+      }
+    const at = (lx: number, ly: number) => cls[(ly + 1) * N + lx + 1];
+    const wAt = (lx: number, ly: number) => wang[(ly + 1) * N + lx + 1];
+    // pass 1: vertex tiles
+    const missing: [number, number][] = [];
+    const sp = (name: string, px: number, py: number) => {
+      const s = sprite(name);
+      ctx.drawImage(s.img, s.x, s.y, s.w, s.h, px, py, s.w, s.h);
+    };
+    for (let vy = 0; vy <= CH; vy++)
+      for (let vx = 0; vx <= CH; vx++) {
+        const cs = [wAt(vx - 1, vy - 1), wAt(vx, vy - 1), wAt(vx - 1, vy), wAt(vx, vy)];
+        const known = cs.filter((k): k is string => !!k);
+        if (!known.length) continue;
+        // a corner without a Wang class takes the most common class around it
+        const common = known.sort((a, b) => known.filter((k) => k === b).length - known.filter((k) => k === a).length)[0];
+        const [nw, ne, sw, se] = cs.map((k) => k ?? common);
+        const name = art.vertex(nw!, ne!, sw!, se!, hash2(x0 + vx, y0 + vy, 7), season);
+        if (name) sp(name, vx * TILE - 8, vy * TILE - 8);
+        else missing.push([vx, vy]);
+      }
+    // pass 2: per-tile classes, and the procedural painter for anything without art
+    const old = (lx: number, ly: number) => {
+      const x = x0 + lx, y = y0 + ly, i = m.idx(x, y);
+      const t = m.ground[i] as T;
+      const pb = new PixBuf(TILE, TILE);
+      const extra = t === T.ORE_VEIN ? m.objData[i] : t === T.MINEFLOOR || t === T.MINEWALL ? theme : 0;
+      paintTerrain(pb, t, t === T.MINEFLOOR || t === T.MINEWALL ? 0 : season, m.deco[i] % 8, 0, 0, extra, x * TILE, y * TILE);
+      const tc = makeCanvas(TILE, TILE);
+      pb.drawTo(ctx2d(tc));
+      ctx.drawImage(tc, lx * TILE, ly * TILE);
+    };
+    const oldTiles = new Set<number>();
+    for (const [vx, vy] of missing)
+      for (const [lx, ly] of [[vx - 1, vy - 1], [vx, vy - 1], [vx - 1, vy], [vx, vy]])
+        if (lx >= 0 && ly >= 0 && lx < CH && ly < CH && m.inb(x0 + lx, y0 + ly)) oldTiles.add(ly * CH + lx);
+    for (let ly = 0; ly < CH; ly++)
+      for (let lx = 0; lx < CH; lx++) {
+        const x = x0 + lx, y = y0 + ly;
+        if (!m.inb(x, y)) continue;
+        const k = at(lx, ly);
+        if (!k) continue;
+        if (k in WANG_FALLBACK) {
+          if (!wAt(lx, ly)) oldTiles.add(ly * CH + lx);
+          continue;
+        }
+        const h = hash2(x, y, 9);
+        let role = k;
+        if (k === 'cliff') {
+          const above = at(lx, ly - 1), below = at(lx, ly + 1);
+          if (above !== 'cliff' && art.hasTile('cliff_top')) role = 'cliff_top';
+          else if (below !== 'cliff' && art.hasTile('cliff_base')) role = 'cliff_base';
+        }
+        const name = art.tile(role, h, season) ?? (k.startsWith('ore') ? art.tile('ore', h, season) ?? art.tile('rock', h, season) : null) ??
+          (/\d$/.test(k) ? art.tile(k.slice(0, -1), h, season) : null);
+        if (name) {
+          sp(name, lx * TILE, ly * TILE);
+          oldTiles.delete(ly * CH + lx);
+          if (k.startsWith('minewall')) {
+            // cave walls away from open floor sink into shadow (only faces next to the floor show rock)
+            const open = (yy: number) => { const gg = m.g(x, yy); return gg !== T.MINEWALL && gg !== T.VOID; };
+            if (!open(y + 1)) {
+              ctx.fillStyle = PALETTE[C.ink];
+              ctx.fillRect(lx * TILE, ly * TILE, TILE, open(y + 2) ? 8 : TILE);
+            }
+          }
+        } else oldTiles.add(ly * CH + lx);
+      }
+    for (const k of oldTiles) old(k % CH, Math.floor(k / CH));
+    // pass 3: decals where a tile and its 8 neighbors share a class (never across a transition)
+    for (let ly = 0; ly < CH; ly++)
+      for (let lx = 0; lx < CH; lx++) {
+        const k = at(lx, ly);
+        if (k !== 'grass' && k !== 'dirt' && k !== 'sand' && k !== 'path') continue;
+        const x = x0 + lx, y = y0 + ly;
+        // paths stay mostly clean: a stray leaf or pebble on 1 cobble in 12
+        if (hash2(x, y, 3) > (k === 'path' ? 0.08 : 0.2) || m.obj[m.idx(x, y)]) continue;
+        let same = true;
+        for (let dy = -1; dy <= 1 && same; dy++) for (let dx = -1; dx <= 1; dx++) if (at(lx + dx, ly + dy) !== k) { same = false; break; }
+        if (!same) continue;
+        const name = art.decal(k, hash2(x, y, 5), season);
+        if (!name) continue;
+        const s = sprite(name);
+        sp(name, lx * TILE + Math.floor(hash2(x, y, 11) * (TILE - s.w + 1)), ly * TILE + Math.floor(hash2(x, y, 13) * (TILE - s.h + 1)));
+      }
+    this.bakeObjects(m, x0, y0, ctx, season);
+  }
+
+  /** Flat objects and forage baked into the ground (both terrain paths). */
+  private bakeObjects(m: TileMap, x0: number, y0: number, ctx: CanvasRenderingContext2D, season: number) {
+    for (let ly = 0; ly < CH; ly++)
+      for (let lx = 0; lx < CH; lx++) {
+        const x = x0 + lx, y = y0 + ly;
+        if (!m.inb(x, y)) continue;
+        const i = m.idx(x, y);
+        const v = m.deco[i] % 8;
+        const px = lx * TILE, py = ly * TILE;
+        const o = m.obj[i] as O;
+        if (o && FLAT_OBJ.has(o)) {
+          const s2 = sprite(`o:${o}:${o === O.FLOWER || o === O.FLOWERBED ? m.objData[i] % 6 : o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.TREASURE ? m.objData[i] : v % 3}:${season}`);
+          // a soft shadow under things that stand on the ground (STYLE.md)
+          const sw = SHADOWED_OBJ.get(o);
+          if (sw) drawSprite(ctx, sprite(`shadow:${sw}`), px + 8, py + 14);
+          ctx.drawImage(s2.img, s2.x, s2.y, 16, 16, px, py, 16, 16);
+        } else if (o === O.FORAGE) {
+          const id = m.forage.get(i);
+          if (id) drawItemIcon(ctx, id, px + 2, py + 2, 12);
+        }
+      }
   }
 
   private bake(m: TileMap, cx: number, cy: number, c: HTMLCanvasElement, season: number, theme: number) {
@@ -226,7 +434,8 @@ export class Renderer {
     const cam = this.cam;
     const z = cam.zoom;
     const sh = cam.shake > 0 ? (Math.random() - 0.5) * cam.shake * 6 : 0;
-    const camPx = cam.x * TILE, camPy = cam.y * TILE;
+    // the camera snaps to whole world pixels like the sprites do, so they don't shimmer against it
+    const camPx = Math.round(cam.x * TILE), camPy = Math.round(cam.y * TILE);
     const ox = Math.round(this.W / 2 - camPx * z + sh), oy = Math.round(this.H / 2 - camPy * z + sh);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = PALETTE[m === g.map ? C.deepsea : C.ink];
@@ -238,13 +447,33 @@ export class Renderer {
     const tx0 = Math.max(0, Math.floor(vx0 / TILE) - 1), ty0 = Math.max(0, Math.floor(vy0 / TILE) - 1);
     const tx1 = Math.min(m.w - 1, Math.ceil(vx1 / TILE) + 1), ty1 = Math.min(m.h - 1, Math.ceil(vy1 / TILE) + 3);
 
-    // chunks
+    // chunks (with terrain art that has tilled-soil tiles, the soil is part of the farm's ground)
+    const soil = m === g.map && this.soilBaked() ? g.soil : null;
+    const soilSig = soil ? this.soilSigs(soil, m) : new Map<number, number>();
     const cx0 = Math.floor(tx0 / CH), cy0 = Math.floor(ty0 / CH), cx1 = Math.floor(tx1 / CH), cy1 = Math.floor(ty1 / CH);
     for (let cy = cy0; cy <= cy1; cy++)
       for (let cx = cx0; cx <= cx1; cx++) {
-        const c = this.chunk(m, cx, cy, season, theme);
+        const c = this.chunk(m, cx, cy, season, theme, soil, soil ? soilSig.get(cy * Math.ceil(m.w / CH) + cx) ?? 0 : 0);
         ctx.drawImage(c, cx * CH * TILE, cy * CH * TILE);
       }
+    // open water drifts: pure water vertices cycle through their ripple variants, staggered per tile
+    const tArt = terrainArt();
+    if (tArt) {
+      for (let vy = ty0; vy <= ty1 + 1; vy++)
+        for (let vx = tx0; vx <= tx1 + 1; vx++) {
+          const k = this.terrainClass(m, vx, vy, theme, null);
+          if (k !== 'water' && k !== 'deep') continue;
+          if (this.terrainClass(m, vx - 1, vy - 1, theme, null) !== k || this.terrainClass(m, vx, vy - 1, theme, null) !== k || this.terrainClass(m, vx - 1, vy, theme, null) !== k) continue;
+          // lily pads and reeds are baked into the ground under this tile: keep it still
+          if (m.inb(vx - 1, vy - 1) && m.inb(vx, vy) && (m.obj[m.idx(vx - 1, vy - 1)] || m.obj[m.idx(vx, vy - 1)] || m.obj[m.idx(vx - 1, vy)] || m.obj[m.idx(vx, vy)])) continue;
+          const ph = hash2(vx, vy, 17);
+          const step = Math.floor(this.time / (1.6 + ph * 1.4) + ph * 7);
+          const name = tArt.vertex(k, k, k, k, hash2(vx + step * 31, vy - step * 17, 7), season);
+          if (!name) continue;
+          const s = sprite(name);
+          ctx.drawImage(s.img, s.x, s.y, s.w, s.h, vx * TILE - 8, vy * TILE - 8, s.w, s.h);
+        }
+    }
     // water shimmer
     for (let y = ty0; y <= ty1; y++)
       for (let x = tx0; x <= tx1; x++) {
@@ -280,6 +509,7 @@ export class Renderer {
           D.push({ y: y + 0.95, f: () => {
             const p = g.player;
             const near = tr.stage >= 3 && p.y < y + 0.9 && p.y > y - 3.2 && Math.abs(p.x - (x + 0.5)) < 1.3;
+            if (tr.stage >= 1) drawSprite(ctx, sprite(`shadow:${TREE_SHADOW[tr.stage] ?? 28}`), x * TILE + 8, y * TILE + 14);
             if (near) ctx.globalAlpha = 0.55;
             drawSprite(ctx, s, sxx, y * TILE + 15);
             ctx.globalAlpha = 1;
@@ -299,7 +529,8 @@ export class Renderer {
     }
     // buildings
     for (const b of m.buildings) {
-      if ((b.x + b.w) * TILE < vx0 || b.x * TILE > vx1 || (b.y - 3) * TILE > vy1 || (b.y + b.h) * TILE < vy0) continue;
+      // imported frames overhang their footprint by up to ~9 px, so cull a tile wider
+      if ((b.x + b.w + 1) * TILE < vx0 || (b.x - 1) * TILE > vx1 || (b.y - 3) * TILE > vy1 || (b.y + b.h) * TILE < vy0) continue;
       const st = b.id === 'clocktower' ? (g.flags.has('clock_fixed') ? 1 : 0) : b.id === 'greenhouse' ? (g.flags.has('greenhouse_fixed') ? 1 : 0) : g.daylight < 0.55 ? 1 : 0;
       const s = sprite(`bld:${b.id}:${season}:${st}`);
       D.push({ y: b.y + b.h - 0.05, f: () => drawSprite(ctx, s, b.x * TILE, b.y * TILE) });
@@ -359,7 +590,10 @@ export class Renderer {
         const s = sprite(name);
         D.push({ y: sy, f: () => {
           drawSprite(ctx, s, flip ? px + 16 : px, py, 1, flip);
-          if (o === O.FIREPLACE) {
+          if (o === O.FIREPLACE && hasImage('hf:fire:0')) {
+            drawSprite(ctx, sprite(`hf:fire:${Math.floor(t * 9) % 6}`), px, py);
+            if (Math.sin(t * 3.1) > 0.97) { ctx.fillStyle = PALETTE[C.butter]; ctx.fillRect(px + 15 + Math.round(Math.sin(t * 40) * 3), Math.round(py - ((t * 20) % 4)), 1, 1); }
+          } else if (o === O.FIREPLACE) {
             // flickering flames over the logs
             const fx = px + 10, fy = py + 9;
             for (let k = 0; k < 6; k++) {
@@ -383,11 +617,19 @@ export class Renderer {
             };
             hand((hr / 12) * Math.PI * 2, 1.8, C.ink);
             hand((min / 60) * Math.PI * 2, 2.6, C.walnut);
-            // pendulum
-            ctx.fillStyle = PALETTE[C.brass];
-            ctx.fillRect(Math.round(cx - 0.5 + Math.sin(t * 3) * 1.5), py + 3, 2, 2);
+            // pendulum: imported frames 0 center, 1 right, 2 center, 3 left
+            const sw = Math.sin(t * 3);
+            if (hasImage('hf:pendulum:0')) drawSprite(ctx, sprite(`hf:pendulum:${sw > 0.5 ? 1 : sw < -0.5 ? 3 : 0}`), px, py);
+            else {
+              ctx.fillStyle = PALETTE[C.brass];
+              ctx.fillRect(Math.round(cx - 0.5 + sw * 1.5), py + 3, 2, 2);
+            }
           } else if (o === O.STOVE && g.flags.has('home_kitchen')) {
-            if (Math.sin(t * 2 + 1) > 0.3) { ctx.fillStyle = rgba(C.cream, 0.5); ctx.fillRect(px + 9 + Math.sin(t * 4) * 1.5, py - 6 - ((t * 6) % 5), 2, 1); }
+            if (hasImage('hf:steam:0')) {
+              ctx.globalAlpha = 0.6;
+              drawSprite(ctx, sprite(`hf:steam:${Math.floor(t * 5) % 4}`), px + 12, py - 3);
+              ctx.globalAlpha = 1;
+            } else if (Math.sin(t * 2 + 1) > 0.3) { ctx.fillStyle = rgba(C.cream, 0.5); ctx.fillRect(px + 9 + Math.sin(t * 4) * 1.5, py - 6 - ((t * 6) % 5), 2, 1); }
           }
         } });
       }
@@ -413,7 +655,18 @@ export class Renderer {
       const sy = f.flat ? -9 : f.wall ? -4 : d.y + f.h - 0.05;
       D.push({ y: sy, f: () => {
         drawSprite(ctx, s, px, py);
-        if (d.id === 'f_tank') {
+        if (d.id === 'f_tank' && hasImage('hf:fish:0:0')) {
+          // three fish drifting about the imported tank's water (px+2..29, py-12..-2)
+          for (let k = 0; k < 3; k++) {
+            const a = t * (0.5 + k * 0.2) + k * 2;
+            const fx = px + 5 + ((Math.sin(a) + 1) / 2) * 21, fy = py - 9 + k * 2 + Math.sin(t * 1.3 + k) * 1.2;
+            drawSprite(ctx, sprite(`hf:fish:${k}:${Math.floor(t * 4 + k) % 2}`), Math.round(fx), Math.round(fy), 1, Math.cos(a) < 0);
+          }
+          if (Math.sin(t * 2.2) > 0.6) { ctx.fillStyle = PALETTE[C.frost]; ctx.fillRect(px + 22, py - 4 - Math.floor((t * 6) % 6), 1, 1); }
+        } else if (d.id === 'f_gilded_clock' && hasImage('hf:gpend:0')) {
+          const sw = Math.sin(t * 2.4);
+          drawSprite(ctx, sprite(`hf:gpend:${sw > 0.5 ? 1 : sw < -0.5 ? 3 : 0}`), px, py);
+        } else if (d.id === 'f_tank') {
           // three goldfish drifting about
           for (let k = 0; k < 3; k++) {
             const fx = px + 6 + ((Math.sin(t * (0.5 + k * 0.2) + k * 2) + 1) / 2) * 18, fy = py - 4 + k * 2 + Math.sin(t * 1.3 + k) * 1.2;
@@ -429,6 +682,7 @@ export class Renderer {
   private drawSoil(g: Game, tx0: number, ty0: number, tx1: number, ty1: number, D: Drawable[]) {
     const ctx = this.ctx;
     const m = g.map;
+    const baked = this.soilBaked();
     for (let y = ty0; y <= ty1; y++)
       for (let x = tx0; x <= tx1; x++) {
         const i = m.idx(x, y);
@@ -439,8 +693,10 @@ export class Renderer {
         if (x < m.w - 1 && g.soil.has(i + 1)) mask |= 2;
         if (g.soil.has(i + m.w)) mask |= 4;
         if (x > 0 && g.soil.has(i - 1)) mask |= 8;
-        const sp = sprite(`soil:${s.water ? 1 : 0}:${mask}`);
-        ctx.drawImage(sp.img, sp.x, sp.y, 16, 16, x * TILE, y * TILE, 16, 16);
+        if (!baked) {
+          const sp = sprite(`soil:${s.water ? 1 : 0}:${mask}`);
+          ctx.drawImage(sp.img, sp.x, sp.y, 16, 16, x * TILE, y * TILE, 16, 16);
+        }
         if (s.fert) {
           const col = s.fert.includes('tonic') ? C.lime : s.fert.includes('mulch') ? C.sky : C.amber;
           const f = sprite(`fert:${col}`);
@@ -459,13 +715,20 @@ export class Renderer {
           if (!cr) continue;
           const stage = c.ready ? cr.stages.length : Math.min(c.stage, cr.stages.length - 1);
           const cs = sprite(`crop:${c.id}:${stage}:${c.ready ? 1 : 0}:${m.deco[i] % 3}:${c.dead ? 1 : 0}`);
-          const sway = c.ready && !c.dead ? Math.round(Math.sin(this.time * 2 + x * 0.7) * 0.6) : 0;
-          D.push({ y: y + 0.6, f: () => drawSprite(ctx, cs, x * TILE + sway, y * TILE) });
-          if (c.ready && !c.dead && Math.floor(this.time * 2 + x + y) % 9 === 0) {
-            // sparkle on ripe crops
-            ctx.fillStyle = PALETTE[C.cream];
-            ctx.fillRect(x * TILE + 3 + ((x * 7) % 9), y * TILE - 2, 1, 1);
-          }
+          const ripe = c.ready && !c.dead;
+          D.push({ y: y + 0.6, f: () => {
+            drawSprite(ctx, cs, x * TILE, y * TILE);
+            if (!ripe) return;
+            // a ripe crop twinkles about every 2 s, staggered per tile, drawn over the plant
+            const k = Math.floor((((this.time * 0.5 + hash2(x, y, 23)) % 1) * 12));
+            if (k > 2) return;
+            const tx = x * TILE + 3 + Math.floor(hash2(x, y, 29) * 10), ty = y * TILE - 6 + Math.floor(hash2(x, y, 31) * 8);
+            if (hasImage('fx:twinkle:0')) drawSprite(ctx, sprite(`fx:twinkle:${k}`), tx, ty);
+            else {
+              ctx.fillStyle = PALETTE[C.cream];
+              ctx.fillRect(tx, ty, 1, 1);
+            }
+          } });
         }
       }
   }
@@ -493,7 +756,10 @@ export class Renderer {
         if (e.belt) {
           const b = e.belt;
           const tier = d.tier ?? 1;
-          const bf = Math.floor(this.time * b.speed * 4) % 4;
+          // tread phase: 16 one-pixel steps with imported belts (locked to item speed), else 4
+          const fine = hasImage(`belt:${tier}:0:0:15`);
+          const bf = fine ? Math.floor(this.time * b.speed * 16) % 16 : Math.floor(this.time * b.speed * 4) % 4;
+          const uf = fine && !hasImage(`ug:${tier}:0:0:15`) ? bf >> 2 : bf;
           if (d.kind === 'splitter') {
             if (!e.parent) {
               // draw belts under both halves then the splitter box across them
@@ -531,7 +797,7 @@ export class Renderer {
               }
             }
           } else if (d.kind === 'underground') {
-            const sp = sprite(`ug:${tier}:${e.rot}:${b.kind === BeltKind.UnderIn ? 1 : 0}:${bf}`);
+            const sp = sprite(`ug:${tier}:${e.rot}:${b.kind === BeltKind.UnderIn ? 1 : 0}:${uf}`);
             drawSprite(ctx, sp, e.x * TILE, e.y * TILE);
           } else {
             const sp = sprite(`belt:${tier}:${e.rot}:${b.curve}:${bf}`);
@@ -561,17 +827,23 @@ export class Renderer {
             continue;
           }
         }
-        const on = e.working || (d.kind === 'lamp' && g.daylight < 0.6) || (d.kind === 'generator' && (e.gen?.out ?? 0) > 0) || (d.kind === 'hive' && e.st.bots > 0);
-        const animated = on && (e.mach || d.kind === 'generator' || d.kind === 'drill' || d.kind === 'harvester' || d.kind === 'planter' || d.kind === 'beehouse');
+        // buildings (coops, barns…) light their windows at night like the town's houses
+        const on = e.working || (d.kind === 'lamp' && g.daylight < 0.6) || (d.kind === 'generator' && (e.gen?.out ?? 0) > 0) || (d.kind === 'hive' && e.st.bots > 0) ||
+          (d.kind === 'building' && g.daylight < 0.55);
+        const animated = on && (e.mach || d.kind === 'generator' || d.kind === 'drill' || d.kind === 'harvester' || d.kind === 'planter' || d.kind === 'beehouse' ||
+          d.kind === 'lamp' || d.kind === 'hive' || d.kind === 'sprinkler' || d.kind === 'lab');
         const f = d.id === 'waterwheel' ? Math.floor(this.time * 6) % 4 : animated ? frame : 0;
         const s = sprite(`st:${d.id}:${f}:${on ? 1 : 0}:${season}`);
         if (d.kind === 'fence' || d.kind === 'gate') {
           D.push({ y: e.y + 0.7, f: () => drawSprite(ctx, s, e.x * TILE, e.y * TILE) });
           continue;
         }
+        const shadowW = d.kind === 'decor' || d.kind === 'lamp' ? 10 : Math.round(e.w * TILE * 0.8);
         D.push({ y: e.y + e.h - 0.02, f: () => {
+          drawSprite(ctx, sprite(`shadow:${shadowW}`), e.x * TILE + e.w * 8, (e.y + e.h) * TILE - 2);
           drawSprite(ctx, s, e.x * TILE, e.y * TILE);
-          if (d.id === 'windmill') this.drawWindmillBlades(g, e);
+          // imported windmill art animates its own sails
+          if (d.id === 'windmill' && !hasImage(`st:windmill:${f}:${on ? 1 : 0}:${season}`)) this.drawWindmillBlades(g, e);
           if (d.kind === 'drill') this.drawDrillArrow(e);
           if (d.kind === 'pond' && e.st.pop) {
             // the school swimming in circles
@@ -591,8 +863,12 @@ export class Renderer {
           }
           if (e.def.kind === 'machine' && e.def.powerUse && e.sat < 0.5 && e.working) this.drawNoPower(e);
         } });
-        // chimney smoke
-        if (on && EXTRA_TOP[d.id] >= 8 && (e.mach?.station === 'smelter' || e.def.fuel || d.id === 'steam_engine' || d.id === 'kitchen' || d.id === 'bottler' || d.kind === 'drill' || d.id === 'steam_loom')) {
+        // chimney smoke: imported machines list their chimney mouths (factory sheet meta.smoke)
+        const chim = smokePoints();
+        if (on && chim) {
+          const pt = chim[d.id];
+          if (pt && Math.random() < dt60(this) * 0.08) this.particles.smoke(e.x * TILE + pt[0], e.y * TILE + pt[1]);
+        } else if (on && EXTRA_TOP[d.id] >= 8 && (e.mach?.station === 'smelter' || e.def.fuel || d.id === 'steam_engine' || d.id === 'kitchen' || d.id === 'bottler' || d.kind === 'drill' || d.id === 'steam_loom')) {
           if (Math.random() < dt60(this) * 0.08) this.particles.smoke(e.x * TILE + e.w * TILE - 6, e.y * TILE - EXTRA_TOP[d.id] + 2);
         }
       }
@@ -647,8 +923,13 @@ export class Renderer {
     pxLine(ctx, ex, ey, hx, hy, col, 1);
     ctx.fillStyle = PALETTE[C.brass];
     ctx.fillRect(Math.round(ex) - 1, Math.round(ey) - 1, 2, 2);
-    ctx.fillStyle = PALETTE[C.slate];
-    ctx.fillRect(Math.round(hx) - 2, Math.round(hy) - 1, 4, 2);
+    // the claw: imported armh:<id>:<0 open|1 closed> centered on the hand, else a slate block
+    const claw = `armh:${e.def.id}:${a.held ? 1 : 0}`;
+    if (hasImage(claw)) drawSprite(ctx, sprite(claw), Math.round(hx), Math.round(hy));
+    else {
+      ctx.fillStyle = PALETTE[C.slate];
+      ctx.fillRect(Math.round(hx) - 2, Math.round(hy) - 1, 4, 2);
+    }
     if (a.held) {
       drawItemIcon(ctx, itemIdCache(a.held.k), Math.round(hx - 5), Math.round(hy - 7), 10);
     }
@@ -659,6 +940,10 @@ export class Renderer {
     const ctx = this.ctx;
     if (Math.floor(this.time * 2) % 2) return;
     const x = e.x * TILE + e.w * 8 - 4, y = e.y * TILE - 8;
+    if (hasImage('fx:nopower')) {
+      drawSprite(ctx, sprite('fx:nopower'), x, y);
+      return;
+    }
     ctx.fillStyle = PALETTE[C.ink];
     ctx.fillRect(x - 1, y - 1, 9, 9);
     ctx.fillStyle = PALETTE[C.amber];
@@ -673,6 +958,13 @@ export class Renderer {
     const ctx = this.ctx;
     const w = Math.min(12, e.w * TILE - 4);
     const x = e.x * TILE + (e.w * TILE - w) / 2, y = e.y * TILE + e.h * TILE - 3;
+    if (w === 12 && hasImage('fx:pipframe')) {
+      // imported trough (12 px track) filled with the 1x1 fill color, whole pixels
+      drawSprite(ctx, sprite('fx:pipframe'), x, y);
+      const f = sprite('fx:pipfill'), n = Math.round(w * Math.min(1, p));
+      if (n > 0) ctx.drawImage(f.img, f.x, f.y, 1, 1, x, y + 1, n, 1);
+      return;
+    }
     ctx.fillStyle = PALETTE[C.ink];
     ctx.fillRect(x - 1, y, w + 2, 3);
     ctx.fillStyle = PALETTE[C.lime];
@@ -730,7 +1022,10 @@ export class Renderer {
     const mb = SHIPBIN_POS;
     if (mb) {
       const [mx, my] = [mb[0] + 2, mb[1]];
-      if (unread > 0) {
+      if (unread > 0 && hasImage('fx:letter')) {
+        drawSprite(ctx, sprite('fx:mailflag'), mx * TILE + 11, my * TILE - 6);
+        drawSprite(ctx, sprite('fx:letter'), mx * TILE + 3, Math.round(my * TILE - 15 + Math.sin(this.time * 3) * 2));
+      } else if (unread > 0) {
         const wave = Math.round(Math.sin(this.time * 4));
         ctx.fillStyle = PALETTE[C.ink];
         ctx.fillRect(mx * TILE + 11, my * TILE - 6, 1, 8);
@@ -757,6 +1052,11 @@ export class Renderer {
           for (let i = 0; i < n; i++) {
             const t = i / n;
             const x = ax + (bx - ax) * t, y = ay + (by - ay) * t + Math.sin(t * Math.PI * 4) * 3 - 20;
+            const pn = `fx:pennant:${i % cols.length}`;
+            if (hasImage(pn)) {
+              drawSprite(ctx, sprite(pn), Math.round(x), Math.round(y));
+              continue;
+            }
             ctx.fillStyle = PALETTE[C.walnut];
             ctx.fillRect(Math.round(x), Math.round(y), 6, 1);
             ctx.fillStyle = PALETTE[cols[i % cols.length]];
@@ -789,6 +1089,18 @@ export class Renderer {
     const fixed = g.flags.has('greenhouse_fixed');
     ctx.globalAlpha = inside ? 0.12 : fixed ? 0.5 : 0.65;
     const x0 = G.x * TILE, y0 = (G.y + 2) * TILE - 6, w = G.w * TILE, h = (G.h - 2) * TILE + 2;
+    // imported glass: gh:glass:<0 broken|1 intact>, a 16x16 pane with its mullions, tiled
+    if (hasImage('gh:glass:1')) {
+      // derelict: only the bare frame with shards, solid; repaired: glass panes, see-through
+      ctx.globalAlpha = inside ? 0.12 : fixed ? 0.4 : 1;
+      for (let y = 0; y < h; y += 16)
+        for (let x = 0; x < w; x += 16) {
+          const s = sprite(`gh:glass:${fixed ? 1 : 0}`);
+          ctx.drawImage(s.img, s.x, s.y, Math.min(16, w - x), Math.min(16, h - y), x0 + x, y0 + y, Math.min(16, w - x), Math.min(16, h - y));
+        }
+      ctx.globalAlpha = 1;
+      return;
+    }
     for (let y = 0; y < h; y += 2)
       for (let x = 0; x < w; x += 16) {
         const broken = !fixed && hash2(Math.floor(x / 16), Math.floor(y / 12), 9) < 0.35;
@@ -811,9 +1123,11 @@ export class Renderer {
     const p = g.player;
     // frames: 0-3 walk, 4-5 tool use, 6 standing (procedural sprites draw 6 like 0), 7-8 a tool
     // swing an imported sheet draws with the tool in hand (no rotated icon then)
-    const sheetTool = !!p.anim && sheetToolKinds('player').includes(p.anim.kind);
     const early = !!p.anim && p.anim.t < p.anim.dur * 0.45;
-    const pf = p.anim ? (sheetTool ? (early ? 7 : 8) : early ? 4 : 5) : p.moving ? Math.floor(p.walkT * 1.6) % 4 : 6;
+    const toolFrame = p.anim ? sheetToolFrame('player', p.anim.kind, early ? 0 : 1) : null;
+    const sheetTool = !!toolFrame;
+    const pf: number | string = p.anim ? toolFrame ?? (early ? 4 : 5) : p.moving ? Math.floor(p.walkT * 1.6) % 4 : 6;
+    const pfOld = typeof pf === 'string' ? (early ? 4 : 5) : pf;
     D.push({ y: p.y, f: () => {
       const sh = sprite('shadow:12');
       drawSprite(ctx, sh, p.x * TILE, p.y * TILE);
@@ -836,7 +1150,7 @@ export class Renderer {
       const tx = p.x - 1.5;
       D.push({ y: p.y, f: () => {
         drawSprite(ctx, sprite('shadow:12'), tx * TILE, p.y * TILE);
-        drawSprite(ctx, sprite(`ch:player:${p.dir}:${pf > 6 ? pf - 3 : pf}:old`), tx * TILE, p.y * TILE, 1, p.dir === 3);
+        drawSprite(ctx, sprite(`ch:player:${p.dir}:${pfOld}:old`), tx * TILE, p.y * TILE, 1, p.dir === 3);
       } });
       // candidate sheets (art-director imports) in a row to the right, same look and frame
       const look = getLook('player');
@@ -857,18 +1171,21 @@ export class Renderer {
       D.push({ y: n.y, f: () => {
         drawSprite(ctx, sprite('shadow:12'), n.x * TILE, n.y * TILE);
         drawSprite(ctx, sprite(`ch:${n.id}:${n.dir}:${f}`), n.x * TILE, n.y * TILE, 1, n.dir === 3);
-        if (n.emote) this.drawEmote(n.x, n.y - 1.9, n.emote);
+        if (n.emote) this.drawEmote(n.x, n.y - (charArtHeight(n.id) + 8) / TILE, n.emote);
       } });
     }
     // animals
     const animals: any[] = m === g.map ? g.sys.animals?.list ?? [] : [];
     for (const a of animals) {
       if (!a.visible || !onScreen(a.x, a.y)) continue;
-      const f = a.moving ? Math.floor(a.walkT * 2) % 2 : 0;
+      // imported animals have a 4-frame walk (stand, stride, …), the procedural ones 2
+      const nf = hasImage(`an:${a.kind}:3:${a.baby ? 1 : 0}`) ? 4 : 2;
+      const f = a.moving ? Math.floor(a.walkT * nf) % nf : 0;
+      const big = !a.baby && ANIMAL_BY_ID.get(a.kind)?.building === 'barn';
       D.push({ y: a.y, f: () => {
-        drawSprite(ctx, sprite('shadow:12'), a.x * TILE, a.y * TILE);
+        drawSprite(ctx, sprite(big ? 'shadow:18' : 'shadow:12'), a.x * TILE, a.y * TILE);
         drawSprite(ctx, sprite(`an:${a.kind}:${f}:${a.baby ? 1 : 0}`), a.x * TILE, a.y * TILE, 1, a.dir === 3);
-        if (a.emote) this.drawEmote(a.x, a.y - 1.4, a.emote);
+        if (a.emote) this.drawEmote(a.x, a.y - (big ? 1.9 : 1.4), a.emote);
       } });
     }
     // your partner by the hearth in the evening
@@ -893,11 +1210,14 @@ export class Renderer {
     // the farm pet and its water bowl
     const pet = g.sys.pet;
     if (pet && pet.stage !== 'none' && pet.map === g.player.where && onScreen(pet.x, pet.y)) {
-      const pose = pet.mode === 'sleep' ? 3 : pet.mode === 'sit' ? 2 : pet.moving ? Math.floor(pet.walkT * 2.2) % 2 : 0;
+      // imported pets: walk cycle 0 1 4 5, sleep breathes 3 ↔ 6
+      const full = hasImage(`pet:${pet.kind}:${pet.coat}:5`);
+      const walk = full ? [0, 1, 4, 5][Math.floor(pet.walkT * 4.4) % 4] : Math.floor(pet.walkT * 2.2) % 2;
+      const pose = pet.mode === 'sleep' ? (full && Math.floor(this.time) % 2 ? 6 : 3) : pet.mode === 'sit' ? 2 : pet.moving ? walk : 0;
       D.push({ y: pet.y, f: () => {
         drawSprite(ctx, sprite('shadow:10'), pet.x * TILE, pet.y * TILE);
         drawSprite(ctx, sprite(`pet:${pet.kind}:${pet.coat}:${pose}`), pet.x * TILE, pet.y * TILE, 1, pet.dir === 3);
-        if (pet.emote) this.drawEmote(pet.x, pet.y - 1.1, pet.emote);
+        if (pet.emote) this.drawEmote(pet.x, pet.y - (full ? 1.4 : 1.1), pet.emote);
       } });
     }
     if (pet && pet.stage === 'adopted' && g.player.where === 'world' && onScreen(pet.bowl[0], pet.bowl[1])) {
@@ -908,7 +1228,9 @@ export class Renderer {
     const mons: any[] = g.player.where === 'mine' ? g.sys.mine?.monsters ?? [] : [];
     for (const mo of mons) {
       if (!onScreen(mo.x, mo.y)) continue;
-      const f = Math.floor(this.time * 6 + mo.phase) % 4;
+      // a burrowed mole or a crab posing as a pebble shows its hidden frame (imported art)
+      const hidden = (mo.def.behavior === 'burrow' && mo.state === 0) || (mo.def.behavior === 'chase' && mo.state === 1);
+      const f = hidden && hasImage(`mon:${mo.id}:4`) ? 4 : Math.floor(this.time * 6 + mo.phase) % 4;
       D.push({ y: mo.y, f: () => {
         drawSprite(ctx, sprite('shadow:10'), mo.x * TILE, mo.y * TILE);
         if (mo.hurt > 0) ctx.globalAlpha = 0.5 + Math.sin(this.time * 40) * 0.5;
@@ -938,7 +1260,14 @@ export class Renderer {
       if (!onScreen(b.x, b.y)) continue;
       D.push({ y: b.y + 3, f: () => {
         const bob = Math.sin(this.time * 9 + b.id) * 1.5;
-        drawItemIcon(ctx, 'bumblebot', Math.round(b.x * TILE - 8), Math.round(b.y * TILE - 24 + bob), 16);
+        // imported bumblebot: bot:<frame 0-3> (rotor/wing cycle), anchored at its bottom center
+        if (hasImage('bot:0')) {
+          drawSprite(ctx, sprite('shadow:8'), b.x * TILE, b.y * TILE);
+          const last = this.botFace.get(b.id);
+          const left = last && Math.abs(b.x - last.x) > 0.001 ? b.x < last.x : last?.left ?? false;
+          this.botFace.set(b.id, { x: b.x, left });
+          drawSprite(ctx, sprite(`bot:${Math.floor(this.time * 12 + b.id) % 4}`), Math.round(b.x * TILE), Math.round(b.y * TILE - 9 + bob), 1, left);
+        } else drawItemIcon(ctx, 'bumblebot', Math.round(b.x * TILE - 8), Math.round(b.y * TILE - 24 + bob), 16);
         if (b.carry) drawItemIcon(ctx, itemIdCache(b.carry.k), Math.round(b.x * TILE - 5), Math.round(b.y * TILE - 12 + bob), 10);
       } });
     }
@@ -948,6 +1277,10 @@ export class Renderer {
         if (!onScreen(b.x, b.y)) continue;
         D.push({ y: b.y + 0.5, f: () => {
           const fl = Math.floor(this.time * 20) % 2;
+          if (hasImage('fx:fireball:0')) {
+            drawSprite(ctx, sprite(`fx:fireball:${fl}`), Math.round(b.x * TILE), Math.round(b.y * TILE) - 4);
+            return;
+          }
           ctx.fillStyle = PALETTE[C.terracotta];
           ctx.fillRect(Math.round(b.x * TILE) - 3, Math.round(b.y * TILE) - 10, 6, 6);
           ctx.fillStyle = PALETTE[fl ? C.amber : C.butter];
@@ -986,6 +1319,12 @@ export class Renderer {
 
   private drawEmote(x: number, y: number, e: string) {
     const ctx = this.ctx;
+    // imported bubbles: emote:<heart|exclaim|question|note|zzz|smile>, anchored at the tail tip
+    const name = 'emote:' + ({ heart: 'heart', '!': 'exclaim', '?': 'question', note: 'note', zzz: 'zzz' }[e] ?? 'smile');
+    if (hasImage(name)) {
+      drawSprite(ctx, sprite(name), Math.round(x * TILE), Math.round(y * TILE) + 2);
+      return;
+    }
     const px = Math.round(x * TILE) - 6, py = Math.round(y * TILE) - 10;
     ctx.fillStyle = PALETTE[C.ink];
     ctx.fillRect(px - 1, py - 1, 14, 12);

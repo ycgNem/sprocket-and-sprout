@@ -4,7 +4,7 @@ import { C, PALETTE } from '../data/palette';
 import type { Game } from '../sim/Game';
 import { T } from '../sim/world/tilemap';
 import { curMap } from '../sim/systems/player';
-import { drawSprite, sprite } from './atlas';
+import { drawSprite, hasImage, sprite } from './atlas';
 import type { Renderer } from './renderer';
 
 const TILE = 16;
@@ -100,9 +100,16 @@ export class Ambient {
   }
 
   draw(ctx: CanvasRenderingContext2D, time: number) {
+    // imported critters: amb:fish:<0 up|1 down>, amb:bird:<0 brown|1 gray>:<0 sit|1 hop|2-3 flap>,
+    // amb:fly:<color 0-4>:<0 open|1 closed>; anchored at the body's bottom center
+    const art = hasImage('amb:fly:0:0');
     for (const j of this.jumps) {
       const k = j.t / 0.6;
       const x = j.x * TILE + (k - 0.5) * 8, y = j.y * TILE - Math.sin(k * Math.PI) * 9;
+      if (art) {
+        drawSprite(ctx, sprite(`amb:fish:${k < 0.5 ? 0 : 1}`), Math.round(x), Math.round(y) + 2);
+        continue;
+      }
       ctx.fillStyle = PALETTE[C.pebble];
       ctx.fillRect(Math.round(x) - 2, Math.round(y) - 1, 5, 2);
       ctx.fillStyle = PALETTE[C.sky];
@@ -110,6 +117,12 @@ export class Ambient {
     }
     for (const b of this.birds) {
       const x = Math.round(b.x * TILE), y = Math.round(b.y * TILE - b.z);
+      if (art) {
+        const fr = b.flying ? 2 + (Math.floor(time * 16) % 2) : b.z > 0.5 ? 1 : 0;
+        if (!b.flying) drawSprite(ctx, sprite('shadow:4'), x, Math.round(b.y * TILE) + 1);
+        drawSprite(ctx, sprite(`amb:bird:${b.c === C.walnut ? 0 : 1}:${fr}`), x, y + 1, 1, b.vx < 0);
+        continue;
+      }
       ctx.fillStyle = PALETTE[C.ink];
       ctx.fillRect(x - 2, y - 2, 5, 3);
       ctx.fillStyle = PALETTE[b.c];
@@ -126,9 +139,14 @@ export class Ambient {
         ctx.fillRect(x - 2, Math.round(b.y * TILE) + 1, 5, 1);
       }
     }
+    const FLY_COLS = [C.butter, C.blush, C.lavender, C.cream, C.amber];
     for (const f of this.flies) {
       const x = Math.round(f.x * TILE), y = Math.round(f.y * TILE);
       const open = Math.floor(time * 10 + f.ph) % 2 === 0;
+      if (art) {
+        drawSprite(ctx, sprite(`amb:fly:${Math.max(0, FLY_COLS.indexOf(f.c))}:${open ? 0 : 1}`), x, y + 1);
+        continue;
+      }
       ctx.fillStyle = PALETTE[f.c];
       if (open) {
         ctx.fillRect(x - 2, y - 1, 2, 2);

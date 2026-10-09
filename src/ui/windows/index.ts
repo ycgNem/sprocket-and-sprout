@@ -18,6 +18,7 @@ import { keyLabel } from '../../engine/input';
 import { applyResearchMods } from '../../sim/save';
 import { runPerfScene } from '../../app/perf';
 import { getArtMode, setArtMode } from '../../render/atlas';
+import { resetSkin } from '../skin';
 
 export interface WinState {
   id: string;
@@ -123,7 +124,9 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
   const s = st.arg;
   const g = play.g;
   const sold: { k: number; n: number; price: number }[] = s.sold ?? [];
-  const w = 300, h = Math.min(250, 96 + Math.min(10, sold.length) * 12);
+  // full 16 px icons in the night tally (the day's reward deserves more than belt-size icons)
+  const ROW = 17;
+  const w = 300, h = Math.min(280, 96 + Math.min(10, sold.length) * ROW);
   const { x, y } = centered(ui, w, h);
   ui.fill(0, 0, ui.w, ui.h, C.ink, 0.5);
   if (!frame(ui, x, y, w, h, `${SEASON_NAMES[s.season]} ${s.day}, Year ${s.year}`)) return false;
@@ -132,12 +135,12 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
   let yy = y + 40;
   if (!sold.length) ui.text('Nothing was shipped.', x + w / 2, yy, C.oak, { align: 'center' });
   sold.slice(0, 10).forEach((it) => {
-    ui.itemIcon(it.k, x + 20, yy - 3, 12);
-    ui.text(`${ITEMS[it.k >> 2].name} x${it.n}`, x + 36, yy, C.ink);
+    ui.itemIcon(it.k, x + 18, yy - 5, 16);
+    ui.text(`${ITEMS[it.k >> 2].name} x${it.n}`, x + 38, yy, C.ink);
     ui.text(`${ICON.coin}${it.price * it.n}`, x + w - 20, yy, C.moss, { align: 'right' });
-    yy += 12;
+    yy += ROW;
   });
-  if (sold.length > 10) ui.text(`...and ${sold.length - 10} more kinds`, x + 36, yy, C.oak);
+  if (sold.length > 10) ui.text(`...and ${sold.length - 10} more kinds`, x + 38, yy, C.oak);
   ui.text(`Total: ${ICON.coin}${s.total.toLocaleString()}`, x + w - 20, y + h - 40, C.ink, { align: 'right', scale: 1 });
   ui.text(`Purse: ${ICON.coin}${g.player.money.toLocaleString()}`, x + 20, y + h - 40, C.walnut);
   if (ui.button('sumok', x + w / 2 - 40, y + h - 26, 80, 18, 'Good morning!', { style: 'green' })) return false;
@@ -227,7 +230,7 @@ function drawDebug(ui: UI, play: PlayScreen, st: WinState): boolean {
   row(['year', 'Founders day', () => { g.flags.add('eval_pending'); }], ['locket', 'Locket', () => g.give(key('heart_charm'), 1)]);
   row(['mine', 'Mine +5 fl', () => g.sys.mine?.debugDescend?.(g, 5)], ['hearts', 'Friends +2h', () => { for (const n of g.sys.npcs?.list ?? []) n.points = Math.min(2500, (n.points ?? 0) + 500); }]);
   // art overhaul: imported sheets vs the procedural 1.0 art
-  row(['art', `Art: ${getArtMode()}`, () => { setArtMode(getArtMode() === 'new' ? 'old' : 'new'); app.renderer.invalidateAll(); }], ['cmp', `Compare ${app.renderer.compareArt ? 'on' : 'off'}`, () => (app.renderer.compareArt = !app.renderer.compareArt)]);
+  row(['art', `Art: ${getArtMode()}`, () => { setArtMode(getArtMode() === 'new' ? 'old' : 'new'); resetSkin(); app.renderer.invalidateAll(); }], ['cmp', `Compare ${app.renderer.compareArt ? 'on' : 'off'}`, () => (app.renderer.compareArt = !app.renderer.compareArt)]);
   btns.forEach(([id, label, fn], i) => {
     const bx = x + 6 + (i % 3) * 80, by = yy + Math.floor(i / 3) * 17;
     if (ui.button('dbg_' + id, bx, by, 76, 15, label, { style: 'flat' })) fn();

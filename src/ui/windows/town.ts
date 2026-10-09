@@ -3,6 +3,7 @@ import { shortName } from '../../data/cookbook';
 import { C } from '../../data/palette';
 import { ITEM_BY_ID } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
+import { charArtHeight } from '../../render/art/sheets';
 import { SHOP_BY_ID, BUILDING_KITS, HOME_UPGRADES } from '../../data/shops';
 import { buyHomeUpgrade, canBuyHomeUpgrade } from '../../sim/systems/house';
 import { ANIMALS } from '../../data/creatures';
@@ -28,7 +29,9 @@ function portrait(ui: UI, npcId: string, x: number, y: number, size = 48, mood =
     ui.ctx.rect(x + 4, y + 4, size, size);
     ui.ctx.clip();
     const k = Math.max(1, Math.floor(size / 16));
-    ui.ctx.drawImage(ch.img, ch.x, ch.y, 16, 16, x + 4 + Math.floor((size - 16 * k) / 2), y + 6, 16 * k, 16 * k);
+    // the 16x16 around the head: anchor column, from the top of the art down
+    const sx = ch.x + ch.ox - 8, sy = ch.y + Math.max(0, ch.oy - charArtHeight(npcId) - 1);
+    ui.ctx.drawImage(ch.img, sx, sy, 16, 16, x + 4 + Math.floor((size - 16 * k) / 2), y + 6, 16 * k, 16 * k);
     ui.ctx.restore();
     return;
   }
@@ -184,7 +187,8 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
       ui.fill(listX, ry, listW - 6, rowH - 1, hov ? C.butter : i % 2 ? C.tan : C.oak, hov ? 1 : 0.35);
       ui.itemIcon(key(e.item), listX + 2, ry + 1, 16);
       ui.text(d.name + (left !== Infinity ? `  (${left} left today)` : ''), listX + 22, ry + 5, left <= 0 ? C.stone : C.ink);
-      ui.text(`${ICON.coin}${price}`, listX + listW - 12, ry + 5, g.player.money >= price ? C.moss : C.brick, { align: 'right' });
+      // wine-dark prices stay legible on the salmon hover rows
+      ui.text(`${ICON.coin}${price}`, listX + listW - 12, ry + 5, g.player.money >= price ? (19 as C) : C.brick, { align: 'right' });
       if (hov) {
         ui.tip(itemTooltip(g, key(e.item), 1, [{ text: 'Click to buy one, shift-click for five, right-click for ten.', color: C.pebble }]));
         if (ui.clicked) {
@@ -257,8 +261,9 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
   } else if (st.data.tab === 'Animals') {
     ANIMALS.forEach((a, i) => {
       const ry = listY + i * 19;
-      const s = sprite(`an:${a.id}:0:0`);
-      drawFit(ui.ctx, s, listX, ry, 18, 16);
+      // the baby sprite fits the 19 px row at 1:1 (barn adults are 28x26)
+      const s = sprite(`an:${a.id}:0:${a.building === 'barn' ? 1 : 0}`);
+      drawFit(ui.ctx, s, listX, ry, 20, 18);
       ui.text(`${a.name}  (${a.building === 'coop' ? 'Coop' : 'Barn'} tier ${a.tier}+)`, listX + 22, ry + 1, C.ink);
       ui.text(`${ICON.coin}${a.price}  -  makes ${ITEM_BY_ID.get(a.product)!.name}`, listX + 22, ry + 10, C.walnut);
       if (ui.button('anim' + i, listX + listW - 46, ry + 1, 40, 15, 'Buy', { style: 'green', disabled: g.player.money < a.price })) {

@@ -14,8 +14,9 @@ fs.mkdirSync(out, { recursive: true });
 
 // candidate sheets in the order the game registers them (import.meta.glob sorts by path)
 const sheets = fs.readdirSync('src/art').filter((f) => f.endsWith('.json')).sort().map((f) => JSON.parse(fs.readFileSync('src/art/' + f, 'utf8')));
-const player = sheets.find((m) => m.ids?.includes('player'));
-const cands = sheets.filter((m) => m.kind === 'character' && !m.ids?.includes('player'));
+// the main player sheet (hair-style sheets are player-<style>), and the candidate sheets (ids cand_*)
+const player = sheets.find((m) => m.name === 'player') ?? sheets.find((m) => m.ids?.includes('player'));
+const cands = sheets.filter((m) => m.kind === 'character' && m.ids?.some((i) => i.startsWith('cand')));
 const short = (m) => (m.source ?? m.name).replace(/^PixelLab create_character /, '').split(/[(;]/)[0].trim();
 const labels = ['1.0 (old)', player?.label ?? 'player', ...cands.map((m) => m.label ?? m.name)];
 const legend = [player, ...cands].filter(Boolean).map((m) => `${m.label ?? m.name}: ${short(m)}`).join('  ·  ');

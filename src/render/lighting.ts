@@ -17,7 +17,8 @@ export class Lighting {
   draw(main: CanvasRenderingContext2D, g: Game, r: Renderer, underground: boolean) {
     const night = 1 - g.daylight;
     const house = g.player.where === 'house';
-    const rainDim = g.isRaining() && !underground ? 0.18 : g.weather === 'snow' ? 0.06 : 0;
+    // the brighter imported palette needs a deeper overcast to read as a storm
+    const rainDim = g.isRaining() && !underground ? (g.weather === 'storm' ? 0.32 : 0.22) : g.weather === 'snow' ? 0.06 : 0;
     // indoors is a little dim by day and cosy-dark at night, lit by the hearth
     let dark = house ? 0.22 + night * 0.48 + rainDim * 0.5 : underground ? 0.62 : Math.min(0.78, night * 0.78 + rainDim);
     if (this.flash > 0) {
@@ -119,6 +120,8 @@ export class Lighting {
       for (const b of m.buildings) {
         if (b.x > tx1 || b.x + b.w < tx0 || b.y > ty1 || b.y + b.h < ty0) continue;
         if (b.kind === 'house' || b.kind === 'shop' || b.kind === 'farmhouse') out.push({ x: b.x + b.w / 2, y: b.y + b.h - 0.8, r: 3.5, i: 0.75, c: C.amber, flicker: true });
+        // the lantern by the old mine's mouth
+        else if (b.kind === 'mine') out.push({ x: b.x + b.w / 2, y: b.y + b.h - 0.6, r: 3, i: 0.7, c: C.amber, flicker: true });
       }
       const seen = new Set<number>();
       for (let y = ty0; y <= ty1; y++)

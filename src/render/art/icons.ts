@@ -240,7 +240,16 @@ export function registerIconSprites(structIcon: (structId: string, ctx: CanvasRe
             const shade = at(x + 1, y) < 0 || at(x, y + 1) < 0 ? DARK[c] : at(x - 1, y) < 0 || at(x, y - 1) < 0 ? LIGHT[c] : c;
             pb.set(x + 1, y + 1, shade);
           }
-        pb.outline(C.ink);
+        // outline in the material's own dark shade on the lit top/left, plum only on the
+        // bottom/right, so neighbors on a full belt don't merge into one dark band
+        for (let y = 0; y < 10; y++)
+          for (let x = 0; x < 10; x++) {
+            if (at(x - 1, y - 1) >= 0) continue;
+            const below = at(x - 1, y), right = at(x, y - 1);
+            const above = at(x - 1, y - 2), left = at(x - 2, y - 1);
+            if (above >= 0 || left >= 0) pb.set(x, y, C.ink);
+            else if (below >= 0 || right >= 0) pb.set(x, y, DARK[DARK[below >= 0 ? below : right]]);
+          }
         pb.drawTo(ctx);
       },
     };

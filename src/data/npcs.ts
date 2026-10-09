@@ -169,7 +169,7 @@ export const NPCS: NPCDef[] = [
     job: 'Blacksmith of The Anvil & Ember',
     personality: 'Big, gruff and soot-smudged, with a heart like warm iron. Writes poetry about metal and would rather eat coal than admit it.',
     bio: "Bram has worked the forge at The Anvil & Ember since his father handed him the hammer and told him to listen to the metal. He talks in grunts and short sentences, but his hinges are works of art and the gates he mends never squeak. He and Juniper Oakroot spent a decade feuding over whether iron or oak was the nobler material before quietly becoming best friends. His notebook of verses lives in his apron pocket, wrapped in oilcloth.",
-    look: { skin: C.walnut, hair: C.ink, hairStyle: 'short', shirt: C.brick, pants: C.slate, accent: C.copper, beard: true, height: 'tall', apron: true },
+    look: { skin: C.walnut, hair: C.ink, hairStyle: 'short', shirt: C.deepsea, pants: C.slate, accent: C.copper, beard: true, height: 'tall', apron: true },
     birthday: { season: 3, day: 9 },
     gifts: {
       love: ['#bar', 'ruby', 'miners_pie', 'obsidian', 'stout'],
@@ -1885,7 +1885,7 @@ export const NPCS: NPCDef[] = [
     job: 'Forest hermit and keeper of rare seeds',
     personality: 'Cryptic, kind and slow as old roots. Speaks of forest spirits and the valley\'s deep past, and grows seeds that grow nowhere else.',
     bio: "Thorne has lived in the forest hut for twenty years, ever since the fall storm that took his father turned him away from the sea. He keeps a library of seeds in clay jars, some older than the town itself, and on Fridays and Saturdays he opens his door to sell the rarest of them. He talks to the trees and swears they answer. His sister Wren lives by the shore, and he leaves chanterelles on doorsteps all over town without ever being seen.",
-    look: { skin: C.tan, hair: C.pebble, hairStyle: 'long', shirt: C.moss, pants: C.bark, accent: C.leaf, beard: true, height: 'tall' },
+    look: { skin: C.tan, hair: C.pebble, hairStyle: 'long', shirt: C.wine, pants: C.bark, accent: C.leaf, beard: true, height: 'tall' },
     birthday: { season: 2, day: 28 },
     gifts: {
       love: ['morel', 'mooncap', 'woodland_koi', 'snow_lichen', 'honey_elderflower'],

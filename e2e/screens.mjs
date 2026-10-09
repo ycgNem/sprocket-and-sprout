@@ -131,7 +131,8 @@ const SC = {
   settings: async () => ev(`(() => { S.play.openWindow('pause'); S.play.win.data.settings = true; })()`),
   help: async () => ev(`(() => { S.play.openWindow('pause'); S.play.win.data.help = true; })()`),
   // ---- places, seasons, weather ----
-  'farm-summer': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.time.season = 1; g.weather = 'sun'; g.player.x = 54; g.player.y = 31; g.time.min = 10 * 60; window.__app.renderer.invalidateAll(); })()`),
+  // farming back under 5 so the profession prompt from the perk shot doesn't cover the farm
+  'farm-summer': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.player.skills.farming = 4; g.time.season = 1; g.weather = 'sun'; g.player.x = 54; g.player.y = 31; g.time.min = 10 * 60; window.__app.renderer.invalidateAll(); })()`),
   'farm-fall': async () => ev(`(() => { const g = S.g; g.time.season = 2; window.__app.renderer.invalidateAll(); })()`),
   'farm-winter': async () => ev(`(() => { const g = S.g; g.time.season = 3; g.weather = 'snow'; window.__app.renderer.invalidateAll(); })()`),
   'farm-night': async () => ev(`(() => { const g = S.g; g.time.season = 0; g.weather = 'sun'; g.time.min = 22 * 60; window.__app.renderer.invalidateAll(); })()`),

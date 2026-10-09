@@ -358,7 +358,7 @@ export function registerCharSprites() {
       w, h: Math.max(3, Math.round(w / 3)), ox: w / 2, oy: Math.max(3, Math.round(w / 3)) / 2,
       draw: (ctx) => {
         const h = Math.max(3, Math.round(w / 3));
-        ctx.fillStyle = 'rgba(26,18,32,0.28)';
+        ctx.fillStyle = 'rgba(46,34,47,0.28)'; // #2e222f at 28 % (STYLE.md)
         for (let y = 0; y < h; y++) {
           const t = 1 - Math.pow((y + 0.5 - h / 2) / (h / 2), 2);
           const ww = Math.round((w / 2) * Math.sqrt(Math.max(0, t)));

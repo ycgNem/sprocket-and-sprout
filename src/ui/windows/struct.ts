@@ -239,7 +239,8 @@ function powerPanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: n
     return;
   }
   ui.text(`Grid #${n.id}: ${n.poles} poles, ${n.gens} generators, ${n.consumers} machines`, x + 14, y + 16, C.walnut);
-  const satCol = n.sat >= 0.99 ? C.moss : n.sat > 0.5 ? C.amber : C.brick;
+  // rust instead of amber: amber text is unreadable on the peach panel
+  const satCol = n.sat >= 0.99 ? C.moss : n.sat > 0.5 ? (20 as C) : C.brick; // #9e4539
   ui.text(`Demand ${Math.round(n.demand)}   Supply ${Math.round(n.cap)}   Satisfaction ${Math.round(n.sat * 100)}%`, x + 14, y + 27, satCol);
   if (n.storeCap) ui.text(`Batteries ${Math.round(n.stored)} / ${n.storeCap}`, x + w - 14, y + 27, C.walnut, { align: 'right' });
   // graph

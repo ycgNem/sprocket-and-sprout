@@ -3,7 +3,8 @@ import { C, skin3 } from '../data/palette';
 import { GameLoop } from '../engine/loop';
 import { Input } from '../engine/input';
 import { Renderer } from '../render/renderer';
-import { artReady, setArtMode } from '../render/atlas';
+import { artReady, resetSprites, setArtMode } from '../render/atlas';
+import { resetSkin } from '../ui/skin';
 import { registerAllArt, registerMapBuildings, setPlayerLook } from '../render/art';
 import { UI } from '../ui/ui';
 import { Game } from '../sim/Game';
@@ -56,7 +57,11 @@ export class App {
     // ?art=old shows the procedural 1.0 art (side-by-side comparisons during the overhaul)
     if (new URLSearchParams(location.search).get('art') === 'old') setArtMode('old');
     // imported sheets load in the background; repaint cached terrain once they are in
-    artReady().then(() => this.renderer.invalidateAll());
+    artReady().then(() => {
+      resetSprites();
+      resetSkin();
+      this.renderer.invalidateAll();
+    });
     const resize = () => {
       this.dpr = Math.min(2, window.devicePixelRatio || 1);
       this.renderer.resize(Math.floor(window.innerWidth * this.dpr), Math.floor(window.innerHeight * this.dpr));
@@ -194,7 +199,7 @@ class TitleScreen implements Screen {
       const res = this.newGame.draw(ui);
       if (res === 'back') this.mode = 'main';
     }
-    ui.text('v0.9  -  all art and sound made procedurally', 4, ui.h - 10, C.cream, { shadow: C.ink });
+    ui.text(`v${version}  -  pixel art made with PixelLab, sound made procedurally`, 4, ui.h - 10, C.cream, { shadow: C.ink });
     ui.end();
     app.audio.update(dt, null);
   }
@@ -447,6 +452,7 @@ class NewGameForm {
 }
 
 import * as atlas from '../render/atlas';
+import { version } from '../../package.json';
 function require_atlas() {
   return atlas;
 }

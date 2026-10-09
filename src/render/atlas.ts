@@ -55,6 +55,16 @@ export function defSpriteFamily(prefix: string, fn: (name: string) => Gen | null
   prefixGens.push([prefix, fn]);
 }
 
+/**
+ * Is imported art for this sprite name loaded and in use (art mode 'new')? False while its sheet
+ * is still loading, so hooks that only exist for imported art keep their fallback until then.
+ */
+export function hasImage(name: string): boolean {
+  if (artMode !== 'new') return false;
+  const f = imageFrame(name);
+  return !!f && !!sheets.get(f.url)?.canvas;
+}
+
 export function hasSprite(name: string) {
   return cache.has(name) || generators.has(name) || prefixGens.some(([p]) => name.startsWith(p));
 }
@@ -277,6 +287,13 @@ export function drawItemIcon(ctx: CanvasRenderingContext2D, id: string, x: numbe
   const n = size < 13 ? 10 : 16;
   const s = sprite((n === 10 ? 'ib:' : 'i:') + id);
   ctx.drawImage(s.img, s.x, s.y, n, n, Math.round(x + (size - n) / 2), Math.round(y + (size - n) / 2), n, n);
+}
+
+/** Forget every cached sprite so all regenerate on next use (once every sheet has loaded, derived
+ * sprites such as belt icons were made from the fallback art). */
+export function resetSprites() {
+  cache.clear();
+  pages.length = 0;
 }
 
 export function invalidateSprite(name: string) {

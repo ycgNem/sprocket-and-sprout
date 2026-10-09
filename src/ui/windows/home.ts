@@ -84,7 +84,7 @@ function drawAdopt(ui: UI, play: PlayScreen, st: WinState): boolean {
   // portrait: the pet sitting, scaled up
   ui.fill(x + 14, y + 16, 76, 76, C.tan, 0.6);
   const s = sprite(`pet:${p.kind}:${p.coat}:${Math.floor(ui.time * 1.5) % 6 === 0 ? 0 : 2}`);
-  drawFit(ui.ctx, s, x + 20, y + 22, 64, 64);
+  drawFit(ui.ctx, s, x + 19, y + 24, 66, 60);
   ui.para(`A ${PET_COATS[p.kind][p.coat].toLowerCase()} ${p.kind} sits by your door, looking at you hopefully. It seems to have decided this is its farm now.`, x + 100, y + 18, W - 112, C.ink);
   ui.text('Name:', x + 100, y + 82, C.walnut);
   st.data.name = ui.textField('petname', x + 132, y + 78, 120, st.data.name, 14);

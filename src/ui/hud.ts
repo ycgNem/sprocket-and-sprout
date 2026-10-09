@@ -162,31 +162,34 @@ function drawMinimap(ui: UI, play: PlayScreen, x: number, y: number, w: number, 
   }
 }
 
+/** Map and minimap color of a tile: the terrain sheet's own colors (Resurrect indices). */
 export function tileColor(g: any, m: any, tx: number, ty: number): number {
   const i = m.idx(tx, ty);
+  const P = (n: number) => n as C;
   if (m.buildingAt[i]) return C.brick;
   const e = m === g.map ? g.ents.at(tx, ty) : null;
-  if (e) return e.belt ? C.amber : e.def.kind === 'arm' ? C.brass : e.def.kind === 'pole' ? C.copper : C.slate;
-  if (m === g.map && g.soil.has(i)) return g.soil.get(i).crop ? C.leaf : C.walnut;
+  if (e) return e.belt ? P(17) : e.def.kind === 'arm' ? P(18) : e.def.kind === 'pole' ? P(21) : P(5);
+  if (m === g.map && g.soil.has(i)) return g.soil.get(i).crop ? P(32) : P(19);
   const o = m.obj[i];
-  if (o === 1) return C.pine;
+  const season = g.time.season;
+  if (o === 1) return season === 3 ? P(36) : P(35);
   const t = m.ground[i];
+  const grass = season === 3 ? P(8) : season === 2 ? P(25) : P(30);
   switch (t) {
-    case T.GRASS: case T.TOWNGRASS: return g.time.season === 3 ? C.frost : m.zone[i] === Z.FOREST ? C.moss : C.grass;
-    case T.DIRT: return C.oak;
-    case T.SAND: return C.butter;
-    case T.RIVER: case T.LAKE: case T.POND: case T.OCEAN: return C.river;
-    case T.DEEP: return C.deepsea;
-    case T.PATH: return C.pebble;
-    case T.PLANKS: return C.walnut;
-    case T.CLIFF: return C.slate;
-    case T.CLIFFTOP: return C.pine;
-    case T.ROCK: return C.stone;
-    case T.ORE_VEIN: return C.copper;
-    case T.MINEFLOOR: return C.walnut;
+    case T.GRASS: case T.TOWNGRASS: case T.CLIFFTOP: return m.zone[i] === Z.FOREST && season !== 3 ? P(29) : grass;
+    case T.DIRT: return P(22);
+    case T.SAND: return P(23);
+    case T.RIVER: case T.LAKE: case T.POND: case T.OCEAN: return P(47);
+    case T.DEEP: return P(45);
+    case T.PATH: return P(3);
+    case T.PLANKS: return P(20);
+    case T.CLIFF: return P(2);
+    case T.ROCK: return P(3);
+    case T.ORE_VEIN: return P(21);
+    case T.MINEFLOOR: return P(20);
     case T.MINEWALL: return C.ink;
-    case T.LAVA: return C.terracotta;
-    case T.GARDEN: return C.bark;
+    case T.LAVA: return P(16);
+    case T.GARDEN: return P(19);
     default: return C.ink;
   }
 }
