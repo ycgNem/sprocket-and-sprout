@@ -868,7 +868,7 @@ export class Renderer {
           const close = e.mach?.crafting && Math.hypot(e.x + e.w / 2 - g.player.x, e.y + e.h / 2 - g.player.y) < 4.5;
           if (close) drawFx(ctx, 'fx:ring', Math.min(8, Math.floor(e.mach!.progress * 9)), e.x * TILE + e.w * 8, (e.y + e.h) * TILE - 7 + this.juice.hopOf(e.id));
           else if (e.mach && e.mach.crafting) this.drawProgressPip(e, e.mach.progress);
-          if (e.mach) this.drawStatusLamp(e);
+          if (e.mach || d.kind === 'lab') this.drawStatusLamp(e);
           if (e.def.kind === 'decor' && e.def.id === 'sign' && e.st.k !== null && e.st.k !== undefined) {
             drawItemIcon(ctx, itemIdCache(e.st.k), e.x * TILE + 3, e.y * TILE - 3, 10);
           }

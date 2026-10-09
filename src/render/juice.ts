@@ -138,6 +138,8 @@ interface Pop { text: string; x: number; y: number; t: number; c: number; scale:
 /** the post courier: flies in (0), perches on the crate and grabs the parcel (1), flies off (2) */
 interface Courier { x0: number; y0: number; tx: number; ty: number; x: number; y: number; t: number; phase: 0 | 1 | 2; flip: boolean }
 const C_ARRIVE = 0.7, C_PERCH = 0.45, C_LEAVE = 1.6;
+/** where ribbons sit: the top band, between the quest tracker and the chronometer column */
+export const RIBBON_Y = 6;
 export interface Pt { x: number; y: number }
 export interface Flight {
   kind: 'item' | 'coin';
@@ -269,6 +271,13 @@ export class Juice {
   }
 
   banner(b: Omit<Banner, 't'>) {
+    // the same kind of ribbon arriving within a moment merges into one ("A + B")
+    const last = this.banners[this.banners.length - 1];
+    if (last && last.title === b.title && last.t < 0.8 && !last.wait) {
+      last.sub += '  +  ' + b.sub;
+      last.items.push(...b.items);
+      return;
+    }
     this.banners.push({ ...b, t: 0 });
   }
 
@@ -412,7 +421,8 @@ export class Juice {
     const b = this.banners[0];
     if (!b || (b.wait ?? 0) > 0) return null;
     const w = this.bannerW(b, uiW);
-    return { x: Math.round(uiW / 2 - w / 2) - 10, y: Math.round(Math.max(72, uiH * 0.24)), w: w + 20, h: 44 };
+    void uiH;
+    return { x: Math.round(uiW / 2 - w / 2) - 10, y: RIBBON_Y, w: w + 20, h: 44 };
   }
 
   /** ribbons stay between the quest tracker (left) and the chronometer column (right) */
@@ -475,7 +485,8 @@ export class Juice {
     const sub = ellipsize(b.sub, w - 48);
     const x = Math.round(ui.w / 2 - w / 2);
     const k = b.t < 0.25 ? b.t / 0.25 : b.t > HOLD ? 1 - (b.t - HOLD) / 0.3 : 1;
-    const y = Math.round(Math.max(72, ui.h * 0.24) - 16 * (1 - k) * (1 - k));
+    // in the top band (toasts and achievement banners wait), so the world stays in view
+    const y = Math.round(RIBBON_Y - 50 * (1 - k) * (1 - k));
     ctx.globalAlpha = Math.min(1, k * 1.5);
     // ribbon: dark outline, coloured body, brass trim, folded tails
     ui.fill(x - 10, y + 8, 12, h - 12, C.ink); ui.fill(x + w - 2, y + 8, 12, h - 12, C.ink);

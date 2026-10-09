@@ -305,7 +305,8 @@ export type ObjectiveDef =
   | { t: 'have'; item: string; n: number }
   | { t: 'deliver'; item: string; n: number; to: string }
   | { t: 'ship'; item: string; n: number }
-  | { t: 'talk'; npc: string }
+  /** met: having already met them counts */
+  | { t: 'talk'; npc: string; met?: boolean }
   | { t: 'build'; struct: string; n: number }
   /** fresh: only items crafted after the quest started count (not ones you already own) */
   | { t: 'craft'; item: string; n: number; fresh?: boolean }

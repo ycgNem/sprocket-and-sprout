@@ -329,6 +329,8 @@ registerSystem({
     }
     summary.sold = [...merged.values()].map((e) => ({ k: e.k, n: e.n, price: Math.round(e.coins / e.n), coins: Math.round(e.coins) })).sort((a, b) => b.coins - a.coins);
     summary.total = res.total + early.total;
+    // rows are rounded per kind; settle the difference on the biggest row so they add up
+    if (summary.sold.length) summary.sold[0].coins! += summary.total - summary.sold.reduce((a, r) => a + (r.coins ?? 0), 0);
     g.sys.postDay = { sold: [], total: 0 };
     g.sys.postLast = -1;
     g.count('shipped', summary.sold.reduce((a, s) => a + s.n, 0));

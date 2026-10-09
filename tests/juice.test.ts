@@ -84,3 +84,34 @@ describe('key prompts', () => {
   });
 });
 
+
+describe('first session after the replay review', () => {
+  it('the desk quest completes when a topic is started, not finished (no soft-lock)', async () => {
+    const { questSys } = await import('../src/sim/systems/quests');
+    const g = new Game({ seed: 6 });
+    const q = questSys(g);
+    q.active.push({ id: 't_desk', prog: [0, 0], day: 0 });
+    g.ents.add('lab', 40, 32, 0);
+    g.research.current = 'r_brewing';
+    for (let i = 0; i < 61; i++) g.tick();
+    expect(q.done).toContain('t_desk');
+  });
+
+  it("the keeper's bean chest sits below the jar, with a dozen cogbeans for the feeding arm", async () => {
+    const g = new Game({ seed: 6 });
+    const chest = g.ents.at(OPENING.chest[0], OPENING.chest[1])!;
+    expect(chest.def.id).toBe('chest_wood');
+    expect(chest.inv!.countId('cogbean')).toBe(12);
+    expect(g.ents.at(OPENING.feedArm[0], OPENING.feedArm[1])).toBeFalsy();
+  });
+
+  it('"Meet the Neighbors" counts villagers you already met', async () => {
+    const { questSys } = await import('../src/sim/systems/quests');
+    const g = new Game({ seed: 6 });
+    const q = questSys(g);
+    for (const id of ['marigold', 'tobias', 'ottoline']) g.sys.npcs.byId.get(id).met = true;
+    q.active.push({ id: 't_town', prog: [0, 0, 0], day: 1 });
+    for (let i = 0; i < 61; i++) g.tick();
+    expect(q.done).toContain('t_town');
+  });
+});

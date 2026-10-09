@@ -162,7 +162,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'gearhead', name: 'Gear Head', desc: 'Spun the hotbar gears 25 times.', cat: 'secret', tier: 1, icon: 'brass_gear', secret: true, hint: 'Those cogs on the toolbar look loose.' },
   { id: 'nightowl', name: 'Night Owl', desc: 'Still awake at 1:50 in the morning.', cat: 'secret', tier: 1, icon: 'f_lantern', secret: true, hint: 'Bedtime is a suggestion.', test: (g) => g.time.min >= 1550 && !g.sleeping },
   { id: 'faceplant', name: 'Faceplant', desc: 'Passed out at 2am. The floor was comfy.', cat: 'secret', tier: 1, icon: 'hay', secret: true, hint: 'Push yourself a little too far.', ...num('passed_out', 1) },
-  { id: 'sleepyhead', name: 'Sleepyhead', desc: 'Went to bed before 7pm.', cat: 'secret', tier: 1, icon: 'quilt', secret: true, hint: 'Early to bed...' },
+  { id: 'sleepyhead', name: 'Sleepyhead', desc: 'Went to bed before 5pm.', cat: 'secret', tier: 1, icon: 'quilt', secret: true, hint: 'Early to bed...' },
   { id: 'dizzy', name: 'Dizzy Spell', desc: 'Walked in circles until the world spun.', cat: 'secret', tier: 1, icon: 'f_globe', secret: true, hint: 'Round and round and round...' },
   { id: 'shadowbox', name: 'Shadowboxer', desc: 'Swung your tools at thin air 50 times.', cat: 'secret', tier: 1, icon: 'sword_0', secret: true, hint: 'The air had it coming.', ...num('air_swings', 50) },
   { id: 'rainwater', name: 'Overachiever', desc: 'Watered crops in the rain 20 times.', cat: 'secret', tier: 1, icon: 'can_0', secret: true, hint: 'The sky is doing it already.', ...num('rain_water', 20) },

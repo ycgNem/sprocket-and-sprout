@@ -48,6 +48,8 @@ export const OPENING = {
   beans: { x: 42, y: 26, w: 4, h: 2 }, jar: [54, 23] as [number, number], armTile: [54, 22] as [number, number],
   /** bare dirt beside the beans that "Room to Grow" points at (6 tiles: till, plant, water) */
   plot: { x: 42, y: 29, w: 3, h: 2 },
+  /** the keeper's bean chest below the jar, and where "Hands Free" puts the arm that feeds the jar */
+  chest: [54, 25] as [number, number], feedArm: [54, 24] as [number, number],
 };
 
 /**
@@ -86,12 +88,14 @@ function tinkerStart(g: Game) {
       g.map.ground[i] = T.DIRT;
     }
   const [jx, jy] = OPENING.jar;
-  for (const [x, y] of [OPENING.jar, OPENING.armTile]) {
+  for (const [x, y] of [OPENING.jar, OPENING.armTile, OPENING.chest, OPENING.feedArm]) {
     g.map.obj[g.map.idx(x, y)] = O.NONE;
     g.map.trees.delete(g.map.idx(x, y));
   }
   // the keeper's jar runs its first three batches at 4x: the first pickle in ~15 s
   g.ents.add('jar', jx, jy, 0).st.quick = 3;
+  // the keeper's cellar: a dozen cogbeans for an arm to feed the jar with ("Hands Free")
+  g.ents.add('chest_wood', OPENING.chest[0], OPENING.chest[1], 0).inv?.add(key('cogbean'), 12);
   // these tutorial steps are covered by the opening
   const q = questSys(g);
   for (const id of ['t_research', 't_belts', 't_factory']) if (!q.done.includes(id)) q.done.push(id);

@@ -129,6 +129,13 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   ui.text(`Cost: ${units} x`, px + 6, yy, C.oak);
   sel.cost.forEach((c, i) => ui.itemIcon(key(c.item), px + 56 + i * 15, yy - 4, 14));
   yy += 14;
+  // what you have toward it (bag + desks), so a pick you can't afford yet says so up front
+  const have = (id: string) => g.player.inv.countId(id) + labs.reduce((a, l) => a + (l.inv?.countId(id) ?? 0), 0);
+  const short = sel.cost.filter((c) => have(c.item) < units);
+  if (!g.research.done.has(sel.id)) {
+    ui.text(short.length ? `You have ${short.map((c) => have(c.item)).join(' + ')} of ${units}: craft more (C)` : 'You have enough bundles', px + 6, yy, short.length ? C.brick : C.moss);
+    yy += 12;
+  }
   ui.text(`${sel.unitTime}s per unit per desk`, px + 6, yy, C.oak);
   yy += 12;
   const unl = unlocksOf(sel.id);

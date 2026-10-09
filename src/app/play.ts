@@ -32,7 +32,8 @@ import { OPENING } from '../sim/systems/modes';
 import { T } from '../sim/world/tilemap';
 import { PULSE_COL, machineState, pulseEnts } from '../ui/pulse';
 import { checkTips } from './tips';
-import { drawFx, Juice, ladderPitch, type Pt } from '../render/juice';
+import { drawFx, Juice, ladderPitch, RIBBON_Y, type Pt } from '../render/juice';
+import { ACH_BY_ID } from '../sim/systems/achievements';
 import { promptAt, questTarget, toolVerb } from '../sim/prompts';
 import { POST_TIMES } from '../sim/systems/economy';
 import { unitPrice } from '../sim/systems/economy';
@@ -334,7 +335,7 @@ export class PlayScreen implements Screen {
       if (g.sleeping) ui.text('The farm hums through the night...', ui.w / 2, ui.h / 2 + 26, C.pebble, { align: 'center' });
     }
     // like toasts, the banner waits for the window to close rather than covering its title
-    if (!this.modalOpen) this.achQ = drawAchBanner(ui, this.achQ, dt);
+    if (!this.modalOpen && !r.juice.banners.length) this.achQ = drawAchBanner(ui, this.achQ, dt);
     if (this.debug) WINDOWS.debug?.draw(ui, this, { id: 'debug', t: 0, data: {} });
     ui.end();
 
@@ -710,11 +711,10 @@ export class PlayScreen implements Screen {
       // the opening's first arm snaps onto its marked tile when you aim near it
       const snap = this.armSnap(t);
       const tt = snap ? { ...t, x: snap.x, y: snap.y } : t;
-      // the opening's first arm: over the marked tile it turns itself from the jar to the crate
-      if (def.kind === 'arm' && tt.x === OPENING.armTile[0] && tt.y === OPENING.armTile[1] && (g.sys.quests?.active as { id: string }[] | undefined)?.some((a) => a.id === 't_arm')) {
-        const bin = g.ents.get(g.shipBinId);
-        for (let d = 0; d < 4; d++) if (bin && g.ents.rootAt(tt.x + DX[d], tt.y + DY[d]) === bin) this.rot = d as Dir;
-      }
+      // the opening's arms: over the marked tile they turn themselves to face their target
+      const slot = def.kind === 'arm' ? this.armSlot() : null;
+      if (slot && tt.x === slot.x && tt.y === slot.y)
+        for (let d = 0; d < 4; d++) if (g.ents.rootAt(tt.x + DX[d], tt.y + DY[d]) === slot.to) this.rot = d as Dir;
       if (input.mouse.pressed[0]) this.drag = { x: tt.x, y: tt.y };
       if (input.mouse.released[0] && this.drag) {
         const line = this.dragLine(placeable, this.drag.x, this.drag.y, tt.x, tt.y);
@@ -804,13 +804,22 @@ export class PlayScreen implements Screen {
 
   /** during "A Helping Hand", an arm held within a tile of the marked spot snaps onto it */
   armSnap(t: { x: number; y: number }): { x: number; y: number } | null {
-    const g = this.g;
     const held = this.heldPlaceable();
     if (!held || STRUCT_BY_ID.get(held)?.kind !== 'arm') return null;
-    if (!(g.sys.quests?.active as { id: string }[] | undefined)?.some((a) => a.id === 't_arm')) return null;
-    const [ax, ay] = OPENING.armTile;
-    if (g.ents.at(ax, ay) || Math.max(Math.abs(t.x - ax), Math.abs(t.y - ay)) > 1) return null;
-    return { x: ax, y: ay };
+    const slot = this.armSlot();
+    if (!slot || Math.max(Math.abs(t.x - slot.x), Math.abs(t.y - slot.y)) > 1) return null;
+    return { x: slot.x, y: slot.y };
+  }
+
+  /** the opening's next arm: jar -> crate ("A Helping Hand"), then bean chest -> jar ("Hands Free") */
+  armSlot(): { x: number; y: number; to: Ent } | null {
+    const g = this.g;
+    const q = g.sys.quests?.active as { id: string }[] | undefined;
+    const jar = g.ents.at(OPENING.jar[0], OPENING.jar[1]);
+    const bin = g.ents.get(g.shipBinId);
+    if (q?.some((a) => a.id === 't_arm') && bin && !g.ents.at(OPENING.armTile[0], OPENING.armTile[1])) return { x: OPENING.armTile[0], y: OPENING.armTile[1], to: bin };
+    if (q?.some((a) => a.id === 't_feed') && jar && !g.ents.at(OPENING.feedArm[0], OPENING.feedArm[1])) return { x: OPENING.feedArm[0], y: OPENING.feedArm[1], to: jar };
+    return null;
   }
 
   /** ghost preview, target highlight, area selection rectangles */
@@ -921,6 +930,7 @@ export class PlayScreen implements Screen {
       else mark(OPENING.jar[0], OPENING.jar[1]);
     }
     if (has('t_arm') && !g.ents.at(OPENING.armTile[0], OPENING.armTile[1])) mark(OPENING.armTile[0], OPENING.armTile[1]);
+    if (has('t_feed') && !g.ents.at(OPENING.feedArm[0], OPENING.feedArm[1])) mark(OPENING.feedArm[0], OPENING.feedArm[1]);
     // the first planting: the bare plot beside the beans, until it's tilled, planted and watered
     const P = OPENING.plot;
     const plotTiles: number[] = [];
@@ -1144,7 +1154,7 @@ export class PlayScreen implements Screen {
         case 'quest': {
           a.sfx('quest');
           J.banner({ title: 'Quest complete!', sub: e.title + (e.money ? `   ${ICON.coin}${e.money.toLocaleString()}` : ''), color: 29, items: e.items.map((it) => ({ id: it.item, n: it.n })) });
-          const top: Pt = { x: this.app.ui.w / 2, y: Math.max(72, this.app.ui.h * 0.24) + 20 };
+          const top: Pt = { x: this.app.ui.w / 2, y: RIBBON_Y + 26 };
           J.confetti(top.x, top.y, 46, true, 90);
           this.coinSrc = top;
           e.items.forEach((it, i) => J.flyItem(it.item, { x: top.x - 20 + i * 14, y: top.y + 6 }, this.slotOf(key(it.item)), 0.45 + i * 0.12));
@@ -1253,15 +1263,22 @@ export class PlayScreen implements Screen {
           const unl = unlocksOf(e.id).items.map((i) => ITEM_BY_ID.get(i)?.name ?? i);
           const sub = (def?.name ?? 'Research') + (unl.length ? '  -  new: ' + unl.slice(0, 2).join(', ') + (unl.length > 2 ? '...' : '') : '');
           J.banner({ title: 'Discovery!', sub, color: 50, items: [] });
-          J.confetti(this.app.ui.w / 2, Math.max(72, this.app.ui.h * 0.24) + 20, 40, true, 90);
+          J.confetti(this.app.ui.w / 2, RIBBON_Y + 26, 40, true, 90);
           break;
         }
-        case 'ach':
-          this.achQ.push({ id: e.id, t: 0 });
+        case 'ach': {
           recordAch(e.id, g.player.farmName);
+          // the first two days are busy enough: small (bronze, not secret) ones are a quiet toast
+          const ad = ACH_BY_ID.get(e.id);
+          if (ad && ad.tier === 1 && !ad.secret && g.daysPlayed < 2) {
+            this.toast(`Achievement: ${ad.name}`, undefined, C.amber);
+            break;
+          }
+          this.achQ.push({ id: e.id, t: 0 });
           a.sfx('levelup');
           P.burst(g.player.x * TILE, (g.player.y - 1.2) * TILE, 14, [C.butter, C.amber, C.cream], { speed: 60, up: 70, life: 0.9 });
           break;
+        }
         case 'dayEnd':
           this.app.loop.fastForward = null;
           this.openWindow('summary', e.summary);

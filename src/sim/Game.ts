@@ -432,7 +432,8 @@ export class Game {
     if (this.sleeping) return;
     this.sleeping = true;
     this.sleepMin = this.time.min;
-    if (this.time.min < 19 * 60) this.sys.achUnlock?.(this, 'sleepyhead');
+    // before 5pm (the tutorial sends everyone to bed at 6pm on day one, which shouldn't count)
+    if (this.time.min < 17 * 60) this.sys.achUnlock?.(this, 'sleepyhead');
   }
 
   rollWeather(): Weather {

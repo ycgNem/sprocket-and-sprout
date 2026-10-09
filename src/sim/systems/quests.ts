@@ -99,9 +99,11 @@ function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
     case 'craft': return prog >= o.n || (!o.fresh && g.player.inv.countId(o.item) + g.ents.all().filter((e) => !e.ghost && e.def.item === o.item).length >= o.n);
     // structures placed before the quest started count too
     case 'build': return prog >= o.n || g.ents.all().filter((e) => !e.ghost && e.def.id === o.struct).length >= o.n;
-    case 'research': return o.id === '*' ? (g.counters.research ?? 0) >= 1 : g.research.done.has(o.id);
+    // "any topic" counts once one is being studied (a costly first pick must not stall the tutorial)
+    case 'research': return o.id === '*' ? (g.counters.research ?? 0) >= 1 || !!g.research.current : g.research.done.has(o.id);
     case 'floor': return (g.sys.mine?.deepest ?? 0) >= o.n;
-    case 'talk':
+    // `met`: having already met them counts (you said hello before the quest asked)
+    case 'talk': return prog >= 1 || (!!o.met && !!npcSys(g).byId.get(o.npc)?.met);
     case 'sleep':
     case 'visit':
       return prog >= 1;
@@ -124,7 +126,7 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
     }
     case 'craft': return `Craft ${o.n > 1 ? o.n + ' ' : 'a '}${item(o.item)}` + (o.fresh ? ` (${Math.min(prog, o.n)}/${o.n})` : '');
     case 'load': return `Load the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct}`;
-    case 'research': return o.id === '*' ? 'Research any topic' : `Research ${RESEARCH_BY_ID.get(o.id)?.name}`;
+    case 'research': return o.id === '*' ? 'Start researching a topic' : `Research ${RESEARCH_BY_ID.get(o.id)?.name}`;
     case 'floor': return `Reach mine floor ${o.n} (${Math.min(o.n, g.sys.mine?.deepest ?? 0)}/${o.n})`;
     case 'catch': return `Catch ${o.n} fish (${Math.min(prog, o.n)}/${o.n})`;
     case 'till': return `Till ${o.n} soil (${Math.min(prog, o.n)}/${o.n})`;

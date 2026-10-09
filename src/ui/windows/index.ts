@@ -172,7 +172,7 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
     const hw = textWidth('Best day yet!');
     drawFx(ui.ctx, 'fx:seal', Math.max(0, sf), x + w / 2 - hw / 2 - 14, y + 18);
     ui.text('Best day yet!', x + w / 2, y + 14, C.brick, { align: 'center' });
-  } else ui.text(s.passedOut ? 'You collapsed from exhaustion...' : 'A good day\'s work.', x + w / 2, y + 14, s.passedOut ? C.brick : C.walnut, { align: 'center' });
+  } else ui.text(s.passedOut ? 'You collapsed from exhaustion...' : s.total > 0 ? 'A good day\'s work.' : 'A quiet day.', x + w / 2, y + 14, s.passedOut ? C.brick : C.walnut, { align: 'center' });
   if (s.passedOut) ui.text('You passed out and slept in until 10am.', x + w / 2, y + 26, C.brick, { align: 'center' });
   let yy = y + 40;
   if (!sold.length) ui.text('Nothing was shipped. Fill the crate by the house before bed!', x + w / 2, yy, C.oak, { align: 'center' });
@@ -229,7 +229,11 @@ function morningTease(play: PlayScreen): string[] {
   for (const e of g.ents.machines) goods += e.mach?.outBuf.reduce((n, o) => n + o.n, 0) ?? 0;
   if (ripe) out.push(`${ripe} crop${ripe > 1 ? 's are' : ' is'} ripe and ready to pick.`);
   if (goods) out.push(`Your machines made ${goods} good${goods > 1 ? 's' : ''} overnight.`);
-  // the soonest crop still growing: a date to look forward to
+  // crops only grow on watered days: say so before promising a date
+  let dry = 0;
+  if (!g.isRaining()) for (const s of g.soil.values()) if (s.crop && !s.crop.ready && !s.crop.dead && !s.water) dry++;
+  if (dry && out.length < 2) out.push(`${dry} crop${dry > 1 ? 's are' : ' is'} dry: water ${dry > 1 ? 'them' : 'it'} to keep ${dry > 1 ? 'them' : 'it'} growing.`);
+  // the soonest crop still growing: a date to look forward to (counting watered days)
   if (out.length < 2) {
     let best: { name: string; days: number } | null = null;
     for (const s of g.soil.values()) {
@@ -240,7 +244,10 @@ function morningTease(play: PlayScreen): string[] {
       const days = cropTotal(cr) - c.days;
       if (!best || days < best.days) best = { name: ITEM_BY_ID.get(cr.produce)?.name ?? cr.name, days };
     }
-    if (best) out.push(`Your ${best.name.toLowerCase()} ${best.days <= 1 ? 'ripen tomorrow' : `ripen in ${best.days} days`}.`);
+    if (best) {
+      const nm = best.name.toLowerCase(), plural = nm.endsWith('s') ? nm : nm + 's';
+      out.push(`Your ${plural} ripen ${best.days <= 1 ? 'tomorrow' : `in ${best.days} watered days`}.`);
+    }
   }
   if (!out.length) {
     const q = (g.sys.quests?.active ?? [])[0] as { id: string } | undefined;

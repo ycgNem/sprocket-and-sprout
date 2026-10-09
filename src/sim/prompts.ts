@@ -9,6 +9,8 @@ import { kDef } from './inventory';
 import { cartHere } from './systems/cart';
 import { canTill } from './systems/farming';
 import { petAt } from './systems/pet';
+import { shopOpen } from './systems/town';
+import { SHOPS } from '../data/shops';
 import { curMap } from './systems/player';
 import { O } from './world/tilemap';
 
@@ -62,7 +64,7 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   if (cp && cartHere(g) && tx >= cp[0] - 1 && tx <= cp[0] + 3 && ty >= cp[1] - 1 && ty <= cp[1] + 2) return { verb: "Mags' cart", x: cp[0] + 1.5, y: cp[1] - 0.5 };
   const b = m.buildingAtTile(tx, ty) ?? m.buildingAtTile(tx, ty - 1);
   if (b && (ty === b.y + b.h - 1 || ty === b.y + b.h) && Math.abs(tx - b.door[0]) <= 1) {
-    const verb = b.kind === 'farmhouse' ? 'Enter' : b.kind === 'mine' ? 'Enter the mine' : b.kind === 'tower' ? 'Clocktower' : b.kind === 'greenhouse' ? (g.flags.has('greenhouse_fixed') ? '' : 'Old greenhouse') : 'Enter ' + first(b.name);
+    const verb = b.kind === 'farmhouse' ? 'Enter' : b.kind === 'mine' ? 'Enter the mine' : b.kind === 'tower' ? 'Clocktower' : b.kind === 'greenhouse' ? (g.flags.has('greenhouse_fixed') ? '' : 'Old greenhouse') : 'Enter the ' + b.name.split(' ').pop();
     if (verb) return { verb, x: b.door[0] + 0.5, y: b.y + b.h - 1.2 };
   }
   if (b && b.id === 'greenhouse') return null;
@@ -118,33 +120,48 @@ export function toolVerb(g: Game, tx: number, ty: number): string | null {
   return null;
 }
 
+/** 540 -> "9am", 1080 -> "6pm" */
+const clock = (min: number) => `${((Math.floor(min / 60) + 11) % 12) + 1}${min % 60 ? ':' + String(min % 60).padStart(2, '0') : ''}${min < 720 ? 'am' : 'pm'}`;
+
 /**
  * Where the current quest wants you to go, for the guide arrow and the off-screen compass:
- * the first villager you still need to talk to (their shop door when they're indoors) or the
- * first place you still need to visit. Null when nothing needs walking to.
+ * among the quests the tracker shows, the nearest villager you still need to talk to who you
+ * can reach now (outdoors, or in their open shop), else the first one with when they open, or
+ * a place you still need to visit. Null when nothing needs walking to.
  */
 export function questTarget(g: Game): { x: number; y: number; label: string } | null {
   if (g.player.where !== 'world') return null;
   const q = g.sys.quests;
   if (!q?.active) return null;
-  for (const a of q.active as { id: string; prog: number[] }[]) {
+  const p = g.player;
+  // the same quests the tracker shows: tutorial steps first, at most three
+  const shown = [...(q.active as { id: string; prog: number[] }[])]
+    .sort((a, b) => (QUEST_BY_ID.get(b.id)?.tutorial ? 1 : 0) - (QUEST_BY_ID.get(a.id)?.tutorial ? 1 : 0))
+    .slice(0, 3);
+  let best: { x: number; y: number; label: string; score: number } | null = null;
+  const consider = (x: number, y: number, label: string, score: number) => {
+    if (!best || score < best.score) best = { x, y, label, score };
+  };
+  for (const a of shown) {
     const def = QUEST_BY_ID.get(a.id);
     if (!def) continue;
-    for (let i = 0; i < def.objectives.length; i++) {
-      const o = def.objectives[i];
-      if (a.prog[i] >= 1) continue;
+    def.objectives.forEach((o, i) => {
+      if (a.prog[i] >= 1) return;
       if (o.t === 'talk') {
         const n = g.sys.npcs?.byId?.get(o.npc);
-        if (!n) continue;
+        if (!n || (o.met && n.met)) return;
         const name = first(NPC_BY_ID.get(o.npc)?.name ?? '');
-        // indoors: point at the door they went in by (where they vanished)
-        return { x: n.x, y: n.visible ? n.y - 1.6 : n.y - 0.6, label: n.visible ? name : `${name} (inside)` };
-      }
-      if (o.t === 'visit') {
+        const d = Math.hypot(n.x - p.x, n.y - p.y);
+        if (n.visible) return consider(n.x, n.y - 1.6, name, d);
+        // indoors: point at the door they went in by, saying when the shop opens if it's shut
+        const shop = SHOPS.find((s) => s.owner === o.npc);
+        const open = !!shop && shopOpen(g, shop.id).open;
+        consider(n.x, n.y - 0.6, shop && !open ? `${name} (opens ${clock(shop.open)})` : `${name} (inside)`, d + (open || !shop ? 4 : 500));
+      } else if (o.t === 'visit') {
         const l = g.map.locs.get(o.loc);
-        if (l) return { x: l[0] + 0.5, y: l[1] - 0.5, label: o.loc[0].toUpperCase() + o.loc.slice(1) };
+        if (l) consider(l[0] + 0.5, l[1] - 0.5, o.loc[0].toUpperCase() + o.loc.slice(1), Math.hypot(l[0] - p.x, l[1] - p.y) + 2);
       }
-    }
+    });
   }
-  return null;
+  return best;
 }

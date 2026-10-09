@@ -60,7 +60,7 @@ export const SHOPS: ShopDef[] = [
       { item: 'apple_sapling' }, { item: 'cherry_sapling' }, { item: 'apricot_sapling' }, { item: 'peach_sapling' }, { item: 'pear_sapling' },
       { item: 'plum_sapling' }, { item: 'orange_sapling', seasons: [1, 2] }, { item: 'snowberry_sapling', seasons: [2, 3] },
       { item: 'bread', price: 140 }, { item: 'flour', price: 110 }, { item: 'sugar', price: 120 }, { item: 'oil', price: 220 },
-      { item: 'chest_wood', price: 240 }, { item: 'scarecrow', price: 260 }, { item: 'sign', price: 40 },
+      { item: 'chest_wood', price: 240 }, { item: 'scarecrow', price: 260 }, { item: 'sign', price: 40 }, { item: 'jar', price: 400, unlock: 'r_preserves' },
       ...FURNITURE.filter((f) => f.shop === 'general').map((f) => ({ item: f.id, price: f.price })),
     ],
     buys: ['crop', 'fruit', 'flower', 'forage', 'seed', 'artisan', 'food', 'animal'],
