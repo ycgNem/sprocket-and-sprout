@@ -1,0 +1,38 @@
+{
+ "id": "2c0ea7f2-8e6f-4400-b9ec-9f4aa94b3874",
+ "prompt": "glamorous confident adult woman airship captain, stylized cute game proportions with a large head and big expressive eyes with lashes, clearly visible face: confident smirk, red lipstick, beauty mark, gold hoop earrings; long voluminous wavy wine-red crimson hair swept behind one shoulder, face fully visible, brass-rimmed aviator goggles pushed up on top of her head; warm tan skin; oxblood red leather corset bodice with a modest sweetheart neckline and brass buckles; cropped open dark brown aviator jacket with a cream fleece collar, sleeves pushed up; high-waisted dark plum trousers; tall heeled lace-up brown boots; brass-buckled belt with a small wrench; standing tall with one hand on her hip; cozy steampunk farming game villager sprite, warm colors, readable silhouette",
+ "mode": "v3, size 40, low top-down, single color outline, high detail",
+ "size": {
+  "width": 40,
+  "height": 40
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: walking-4-frames, mode skeleton-v3 (poses the sprite instead of redrawing it), south east north (group 9ddff107-096c-4e59-a9c1-e10705697d06)",
+  "idle: v3 custom, 8 frames + reference, end frame = the rotation so it loops, south east north (group f2997079-2f8b-4a0d-a10b-42a1b7ac6eff)",
+  "greet: v3 custom, 8 frames + reference, south (group 862794f5-ee0b-4284-bcb0-dc81fce374b5); frames 2, 3, 5, 1 used"
+ ],
+ "rejected": {
+  "a4c435cd-c1ea-4f2f-8770-bd02a5925b89": "A v3 36: right outfit, realistic proportions, face 6 px and dark, does not read at 1x",
+  "a866b811-ad55-49be-86ca-73269c0696a4": "B v3 36: same problem, all-black clothes",
+  "33bb8b0d-eb54-4c9f-8778-4dea8c846b30": "C pro flash 40 (Hazel style): villager proportions but orange/green colors, messy corset",
+  "644e163f-4d88-43d6-9d44-b194a0f0a05b": "E pro flash 48 (Hazel style): glam but 39 px, olive-gold jacket, small face",
+  "d4a8819b-37ac-4cf5-9c1d-e9bb3a9cd2bb": "F v3 40: wide, face shadowed by goggles",
+  "front1 (create_image_pro 45a9f5ce, 64 at 40x40)": "31 px stocky, hair across the face"
+ },
+ "download": {
+  "rotations": "node art/npcs/roxy/dl.mjs rot https://backblaze.pixellab.ai/file/pixellab-characters/859e3c7d-c1c3-4eee-9e06-c95bf333277b/2c0ea7f2-8e6f-4400-b9ec-9f4aa94b3874/ art/npcs/roxy",
+  "walk": [
+   "node art/npcs/roxy/dl.mjs anim https://backblaze.pixellab.ai/file/pixellab-characters/859e3c7d-c1c3-4eee-9e06-c95bf333277b/2c0ea7f2-8e6f-4400-b9ec-9f4aa94b3874/animations/2907edbb-b916-42cf-8a53-84470a4ef0e3/{dir}/{i}.png south 4 art/npcs/roxy/walk",
+   "node art/npcs/roxy/dl.mjs anim https://backblaze.pixellab.ai/file/pixellab-characters/859e3c7d-c1c3-4eee-9e06-c95bf333277b/2c0ea7f2-8e6f-4400-b9ec-9f4aa94b3874/animations/5b05bc63-b651-4c75-8f1e-13489cea6912/{dir}/{i}.png east 4 art/npcs/roxy/walk",
+   "node art/npcs/roxy/dl.mjs anim https://backblaze.pixellab.ai/file/pixellab-characters/859e3c7d-c1c3-4eee-9e06-c95bf333277b/2c0ea7f2-8e6f-4400-b9ec-9f4aa94b3874/animations/f22103e5-fd8e-4831-a339-375766b29a71/{dir}/{i}.png north 4 art/npcs/roxy/walk"
+  ],
+  "idle": [
+   "node art/npcs/roxy/dl.mjs anim https://backblaze.pixellab.ai/file/pixellab-characters/859e3c7d-c1c3-4eee-9e06-c95bf333277b/2c0ea7f2-8e6f-4400-b9ec-9f4aa94b3874/animations/abb523d4-e9f8-4732-ae97-bbbaa069fcbc/{dir}/{i}.png south 9 art/npcs/roxy/idle",
+   "node art/npcs/roxy/dl.mjs anim https://backblaze.pixellab.ai/file/pixellab-characters/859e3c7d-c1c3-4eee-9e06-c95bf333277b/2c0ea7f2-8e6f-4400-b9ec-9f4aa94b3874/animations/6e2f8f2a-d4ba-4f58-99cb-2f70c116593e/{dir}/{i}.png east 9 art/npcs/roxy/idle",
+   "node art/npcs/roxy/dl.mjs anim https://backblaze.pixellab.ai/file/pixellab-characters/859e3c7d-c1c3-4eee-9e06-c95bf333277b/2c0ea7f2-8e6f-4400-b9ec-9f4aa94b3874/animations/fbe5047c-db6d-432d-a687-7d60c6d58bb8/{dir}/{i}.png north 9 art/npcs/roxy/idle"
+  ],
+  "greet": "node art/npcs/roxy/dl.mjs anim https://backblaze.pixellab.ai/file/pixellab-characters/859e3c7d-c1c3-4eee-9e06-c95bf333277b/2c0ea7f2-8e6f-4400-b9ec-9f4aa94b3874/animations/78dcaec9-f3fb-420a-a5d8-6fb1cd7b3817/{dir}/{i}.png south 9 art/npcs/roxy/greet"
+ },
+ "rejected_note": "rejected candidates are not kept in the repo; the character ids below re-download with dl.mjs rot"
+}

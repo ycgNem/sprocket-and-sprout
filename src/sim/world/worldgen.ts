@@ -13,6 +13,36 @@ export const HOUSE = { x: 46, y: 17, w: 7, h: 5 };
 export const SHIPBIN_POS: [number, number] = [54, 21];
 export const GREENHOUSE = { x: 28, y: 18, w: 11, h: 8 };
 export const PLAYER_START: [number, number] = [49.5, 23.5];
+/** Roxy's airship, the Brass Vixen, moored on Skyhook Field under the east cliffs (a shop building). */
+export const AIRSHIP = { id: 'airship', x: 175, y: 55, w: 8, h: 5 };
+
+/**
+ * Skyhook Field: a clear meadow around the airship and the lane that carries main street out to it.
+ * Worldgen runs it before the wild decoration; old saves (whose ground and objects are stored)
+ * run it on load, so returns true when it changed anything there.
+ */
+export function skyfield(m: TileMap): boolean {
+  let changed = false;
+  const clear = (x: number, y: number, t: T | null) => {
+    if (!m.inb(x, y)) return;
+    const i = m.idx(x, y), g = m.ground[i];
+    if (g === T.CLIFF || g === T.CLIFFTOP) return;
+    const to = t ?? (g === T.GRASS ? T.TOWNGRASS : g);
+    if (!m.obj[i] && !m.trees.has(i) && !m.forage.has(i) && to === g) return;
+    m.obj[i] = O.NONE;
+    m.objData[i] = 0;
+    m.trees.delete(i);
+    m.forage.delete(i);
+    m.ground[i] = to;
+    m.markDirty(x, y);
+    changed = true;
+  };
+  for (let y = AIRSHIP.y - 1; y <= AIRSHIP.y + AIRSHIP.h + 3; y++)
+    for (let x = AIRSHIP.x - 2; x <= AIRSHIP.x + AIRSHIP.w + 3; x++) clear(x, y, null);
+  // main street carries on east to the gangplank
+  for (let x = 171; x <= AIRSHIP.x + AIRSHIP.w + 1; x++) for (const y of [60, 61]) clear(x, y, T.PATH);
+  return changed;
+}
 
 export function riverX(y: number) {
   return 98 + 3 * Math.sin(y / 11) + 1.5 * Math.sin(y / 4.7 + 1);
@@ -215,6 +245,10 @@ export function generateWorld(seed: number, farm: FarmKind = 'classic'): TileMap
   m.locs.set('clocktower', [tower.door[0], tower.y + tower.h]);
   bld('mine', 'mine', 'Old Mine', 126, 9, 5, 4, C.walnut, C.stone);
   m.locs.set('mine_entrance', [128, 14]);
+  // Skyhook Field: Roxy's airship, moored on the meadow under the east cliffs
+  skyfield(m);
+  bld(AIRSHIP.id, 'shop', 'The Brass Vixen', AIRSHIP.x, AIRSHIP.y, AIRSHIP.w, AIRSHIP.h, C.wine, C.oak, 'airship');
+  m.locs.set('skyfield', [AIRSHIP.x + AIRSHIP.w + 1, AIRSHIP.y + AIRSHIP.h - 1]);
   // farm buildings
   const house = bld('farmhouse', 'farmhouse', 'Farmhouse', HOUSE.x, HOUSE.y, HOUSE.w, HOUSE.h, C.terracotta, C.cream);
   m.locs.set('farmhouse', [house.door[0], house.y + house.h]);

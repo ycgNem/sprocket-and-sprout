@@ -1,0 +1,578 @@
+{
+ "name": "airship",
+ "kind": "sprites",
+ "meta": {
+  "footprint": [
+   8,
+   5
+  ],
+  "door": [
+   4,
+   4
+  ],
+  "frames": 4,
+  "source": "art/airship/raw/p1_2.png"
+ },
+ "sprites": [
+  {
+   "match": "bld:airship:0:0:0",
+   "file": "out/day0.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true
+  },
+  {
+   "match": "bld:airship:0:0:1",
+   "file": "out/day1.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true
+  },
+  {
+   "match": "bld:airship:0:0:2",
+   "file": "out/day2.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true
+  },
+  {
+   "match": "bld:airship:0:0:3",
+   "file": "out/day3.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true
+  },
+  {
+   "match": "bld:airship:0:1:0",
+   "file": "out/day0.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:0:1:1",
+   "file": "out/day1.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:0:1:2",
+   "file": "out/day2.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:0:1:3",
+   "file": "out/day3.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:1:0:0",
+   "file": "out/day0.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true
+  },
+  {
+   "match": "bld:airship:1:0:1",
+   "file": "out/day1.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true
+  },
+  {
+   "match": "bld:airship:1:0:2",
+   "file": "out/day2.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true
+  },
+  {
+   "match": "bld:airship:1:0:3",
+   "file": "out/day3.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true
+  },
+  {
+   "match": "bld:airship:1:1:0",
+   "file": "out/day0.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:1:1:1",
+   "file": "out/day1.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:1:1:2",
+   "file": "out/day2.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:1:1:3",
+   "file": "out/day3.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:2:0:0",
+   "file": "out/day0.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#4c3e24"
+   }
+  },
+  {
+   "match": "bld:airship:2:0:1",
+   "file": "out/day1.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#4c3e24"
+   }
+  },
+  {
+   "match": "bld:airship:2:0:2",
+   "file": "out/day2.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#4c3e24"
+   }
+  },
+  {
+   "match": "bld:airship:2:0:3",
+   "file": "out/day3.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#4c3e24"
+   }
+  },
+  {
+   "match": "bld:airship:2:1:0",
+   "file": "out/day0.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#4c3e24",
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:2:1:1",
+   "file": "out/day1.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#4c3e24",
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:2:1:2",
+   "file": "out/day2.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#4c3e24",
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:2:1:3",
+   "file": "out/day3.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#4c3e24",
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:3:0:0",
+   "file": "out/winter0.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#9babb2"
+   }
+  },
+  {
+   "match": "bld:airship:3:0:1",
+   "file": "out/winter1.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#9babb2"
+   }
+  },
+  {
+   "match": "bld:airship:3:0:2",
+   "file": "out/winter2.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#9babb2"
+   }
+  },
+  {
+   "match": "bld:airship:3:0:3",
+   "file": "out/winter3.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#9babb2"
+   }
+  },
+  {
+   "match": "bld:airship:3:1:0",
+   "file": "out/winter0.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#9babb2",
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:3:1:1",
+   "file": "out/winter1.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#9babb2",
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:3:1:2",
+   "file": "out/winter2.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#9babb2",
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  },
+  {
+   "match": "bld:airship:3:1:3",
+   "file": "out/winter3.png",
+   "place": "none",
+   "frame": [
+    148,
+    148
+   ],
+   "origin": [
+    4,
+    68
+   ],
+   "keepStrays": true,
+   "recolor": {
+    "#165a4c": "#9babb2",
+    "#484a77": "#e6904e",
+    "#4d9be6": "#fbb954",
+    "#8fd3ff": "#fbff86"
+   }
+  }
+ ]
+}

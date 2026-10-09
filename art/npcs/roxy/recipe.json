@@ -1,0 +1,135 @@
+{
+ "name": "npc-roxy",
+ "frame": [
+  48,
+  48
+ ],
+ "anchor": [
+  24,
+  46
+ ],
+ "rows": [
+  "up",
+  "right",
+  "down",
+  "left"
+ ],
+ "cols": [
+  "walk0",
+  "walk1",
+  "walk2",
+  "walk3",
+  "stand",
+  "idle0",
+  "idle1",
+  "idle2",
+  "idle3",
+  "idle4",
+  "idle5",
+  "idle6",
+  "idle7",
+  "greet0",
+  "greet1",
+  "greet2",
+  "greet3"
+ ],
+ "input": {
+  "up": [
+   "src/up/walk0.png",
+   "src/up/walk1.png",
+   "src/up/walk2.png",
+   "src/up/walk3.png",
+   "src/up/stand.png",
+   "src/up/idle0.png",
+   "src/up/idle1.png",
+   "src/up/idle2.png",
+   "src/up/idle3.png",
+   "src/up/idle4.png",
+   "src/up/idle5.png",
+   "src/up/idle6.png",
+   "src/up/idle7.png",
+   "src/up/stand.png",
+   "src/up/stand.png",
+   "src/up/stand.png",
+   "src/up/stand.png"
+  ],
+  "right": [
+   "src/right/walk0.png",
+   "src/right/walk1.png",
+   "src/right/walk2.png",
+   "src/right/walk3.png",
+   "src/right/stand.png",
+   "src/right/idle0.png",
+   "src/right/idle1.png",
+   "src/right/idle2.png",
+   "src/right/idle3.png",
+   "src/right/idle4.png",
+   "src/right/idle5.png",
+   "src/right/idle6.png",
+   "src/right/idle7.png",
+   "src/right/stand.png",
+   "src/right/stand.png",
+   "src/right/stand.png",
+   "src/right/stand.png"
+  ],
+  "down": [
+   "src/down/walk0.png",
+   "src/down/walk1.png",
+   "src/down/walk2.png",
+   "src/down/walk3.png",
+   "src/down/stand.png",
+   "src/down/idle0.png",
+   "src/down/idle1.png",
+   "src/down/idle2.png",
+   "src/down/idle3.png",
+   "src/down/idle4.png",
+   "src/down/idle5.png",
+   "src/down/idle6.png",
+   "src/down/idle7.png",
+   "src/down/greet0.png",
+   "src/down/greet1.png",
+   "src/down/greet2.png",
+   "src/down/greet3.png"
+  ]
+ },
+ "mirror": {
+  "left": "right"
+ },
+ "align": "none",
+ "height": [
+  34,
+  38
+ ],
+ "meta": {
+  "label": "Roxy Vane v3",
+  "kind": "character",
+  "ids": [
+   "roxy"
+  ],
+  "frames": {
+   "0": "walk0",
+   "1": "walk1",
+   "2": "walk2",
+   "3": "walk3",
+   "4": "stand",
+   "5": "stand",
+   "6": "stand",
+   "i0": "idle0",
+   "i1": "idle1",
+   "i2": "idle2",
+   "i3": "idle3",
+   "i4": "idle4",
+   "i5": "idle5",
+   "i6": "idle6",
+   "i7": "idle7",
+   "g0": "greet0",
+   "g1": "greet1",
+   "g2": "greet2",
+   "g3": "greet3"
+  },
+  "idleFrames": 8,
+  "greetFrames": 4,
+  "source": "PixelLab create_character v3, size 40, low top-down, single color outline, high detail (character 2c0ea7f2-8e6f-4400-b9ec-9f4aa94b3874); walk: walking-4-frames in skeleton-v3 mode; idle: v3 custom 8 frames looping back to the rotation; greet: v3 custom, south. Frames prepared by art/npcs/roxy/prep.mjs (material snap, head lock, 48x48 placement)",
+  "notes": "The one villager allowed past the NPC caps (owner, 1.1): 48x48 frame, about 38 px tall with heels and hair. Left row = mirrored right (the v3 west rotation came out 3/4). Idle i0-i7 loops (i0 = the stand pose); greet g0-g3 is south only, other rows hold the stand pose."
+ }
+}

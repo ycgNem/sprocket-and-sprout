@@ -6,7 +6,8 @@ import { NPC_BY_ID } from '../../data/npcs';
 import { WEEKDAYS } from '../../data/types';
 import { Game, registerSystem } from '../Game';
 import type { BuildingInfo } from '../world/tilemap';
-import { npcSys, openDialog } from './npcs';
+import { skyfield } from '../world/worldgen';
+import { addPoints, npcSys, openDialog } from './npcs';
 
 function fmt(min: number) {
   const h = Math.floor(min / 60);
@@ -58,12 +59,21 @@ export function door(g: Game, b: BuildingInfo) {
     }
     g.emit({ t: 'sfx', id: 'door' });
     if (shop.id === 'clinic') g.player.hp = g.player.maxHp;
-    // stepping into a keeper's shop counts as saying hello (quests that say "talk to" them)
-    if (keeper) {
-      keeper.met = true;
-      keeper.talked = true;
-    }
+    // stepping into a keeper's shop counts as saying hello (quests that say "talk to" them), with
+    // the day's chat friendship; the first visit is the introduction, then the counter
     g.sys.quests?.notify?.(g, 'talk', 1, shop.owner);
+    if (keeper) {
+      const firstVisit = !keeper.met;
+      keeper.met = true;
+      if (!keeper.talked) {
+        keeper.talked = true;
+        addPoints(g, keeper, 20);
+      }
+      if (firstVisit) {
+        openDialog(g, keeper, NPC_BY_ID.get(keeper.id)!.intro, shop.id);
+        return;
+      }
+    }
     g.emit({ t: 'ui', open: 'shop', arg: shop.id });
     return;
   }
@@ -92,5 +102,9 @@ registerSystem({
   name: 'town',
   dayStart(g) {
     g.sys.town = { door };
+  },
+  afterLoad(g) {
+    // saves from before Skyhook Field keep their own ground and objects: clear the airship's meadow
+    if (g.map.w >= 100) skyfield(g.map);
   },
 });

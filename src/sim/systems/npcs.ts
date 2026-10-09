@@ -2,7 +2,7 @@
 import { shortName } from '../../data/cookbook';
 import { NPCS, NPC_BY_ID } from '../../data/npcs';
 import { ITEM_BY_ID, matchesSpec } from '../../data/items';
-import type { DialogueLine, HeartEventDef, NPCDef, ScheduleDef } from '../../data/types';
+import type { DialogueLine, HeartEventDef, ItemDef, NPCDef, ScheduleDef } from '../../data/types';
 import { Game, registerSystem } from '../Game';
 import { kDef } from '../inventory';
 import { findPath } from '../world/path';
@@ -281,6 +281,17 @@ export function addPoints(g: Game, n: NPCState, pts: number) {
   }
 }
 
+/** Can this item be given as a gift at all (tools, structures, research and the locket can't)? */
+export function giftable(hd: ItemDef): boolean {
+  return !hd.tool && !hd.weapon && hd.cat !== 'placeable' && hd.cat !== 'research' && hd.id !== 'heart_charm';
+}
+
+/** Would F hand this villager the held item as a gift right now (not just chat)? */
+export function wouldGift(g: Game, n: NPCState, hd: ItemDef): boolean {
+  if (!n.met || !giftable(hd) || n.giftedToday) return false;
+  return n.giftsWeek < 2 || isBirthday(g, NPC_BY_ID.get(n.id)!);
+}
+
 /** Player interacts: gift if holding a giftable item and allowed, otherwise talk. */
 export function talkTo(g: Game, n: NPCState) {
   const d = NPC_BY_ID.get(n.id)!;
@@ -301,8 +312,7 @@ export function talkTo(g: Game, n: NPCState) {
   }
   if (held && n.met) {
     const hd = kDef(held.k);
-    const giftable = !hd.tool && !hd.weapon && hd.cat !== 'placeable' && hd.cat !== 'research' && hd.id !== 'heart_charm';
-    if (giftable) {
+    if (giftable(hd)) {
       const bday = isBirthday(g, d);
       if (n.giftedToday) {
         openDialog(g, n, `${shortName(d.name)} smiles. "You already gave me something today, {player}."`);
@@ -399,6 +409,8 @@ function checkHeartEvents(g: Game) {
 
 function startHeartEvent(g: Game, n: NPCState, ev: HeartEventDef) {
   n.seen.push(ev.hearts);
+  // shops can stock things from a heart event on (`unlock: 'flag:heart_<npc>_<hearts>'`)
+  g.flags.add(`heart_${n.id}_${ev.hearts}`);
   const d = NPC_BY_ID.get(n.id)!;
   // bring the NPC next to the player
   n.visible = true;

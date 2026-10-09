@@ -138,6 +138,19 @@ export const SHOPS: ShopDef[] = [
     ],
     buys: ['forage', 'gem', 'mineral'],
   },
+  {
+    // Roxy's hold: city goods. Seeds out of season (for the greenhouse), clockwork parts before the
+    // research would let the Workshop sell them, at a premium. Tuesday is her city run.
+    id: 'airfreight', name: 'Vane Air Freight', owner: 'roxy', loc: 'airship', open: 600, close: 960, closedDays: [1],
+    greeting: 'Welcome aboard, sugar. City goods, no questions, no refunds.',
+    stock: [
+      ...CROPS.filter((c) => c.seasons.length < 4).map((c) => ({ item: c.seed, price: c.seedPrice * 2, seasons: [0, 1, 2, 3].filter((s) => !c.seasons.includes(s as any)) as any, daily: 10 })),
+      { item: 'brass_gear', price: 520, daily: 5 }, { item: 'spring', price: 420, daily: 5 }, { item: 'lens', price: 450, daily: 3 },
+      { item: 'clockwork_core', price: 2400, daily: 1 }, { item: 'coffee_drink', price: 320, daily: 5 },
+      { item: 'heart_charm', price: 7500, daily: 1, unlock: 'flag:heart_roxy_6' },
+    ],
+    buys: ['artisan', 'gem'],
+  },
 ];
 
 export const SHOP_BY_ID = new Map(SHOPS.map((s) => [s.id, s]));

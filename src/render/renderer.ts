@@ -18,7 +18,7 @@ import { curMap } from '../sim/systems/player';
 import { O, T, TileMap, Z } from '../sim/world/tilemap';
 import { GREENHOUSE, SHIPBIN_POS } from '../sim/world/worldgen';
 import { drawSprite, drawItemIcon, hasImage, invalidateSpritePrefix, sprite, Sprite } from './atlas';
-import { charArtHeight, compareIds, sheetToolFrame, smokePoints, terrainArt, type TerrainArt } from './art/sheets';
+import { charArtHeight, charFrames, compareIds, sheetToolFrame, smokePoints, terrainArt, type TerrainArt } from './art/sheets';
 import { getLook, registerLook } from './art/chars';
 import { makeCanvas, ctx2d } from './art/pixel';
 import { PRIO, FRINGE_SOURCES, TILE, paintTerrain } from './art/terrain';
@@ -90,6 +90,8 @@ export class Renderer {
   overlays: ((ctx: CanvasRenderingContext2D) => void)[] = [];
   /** which way each bumblebot faces (from its last position) */
   private botFace = new Map<number, { x: number; left: boolean }>();
+  /** when each villager's chat with the player began (renderer time), for a sheet's greeting frames */
+  private greetAt = new Map<string, number>();
   /** stats */
   drawCount = 0;
   lastMap: TileMap | null = null;
@@ -532,10 +534,11 @@ export class Renderer {
     }
     // buildings
     for (const b of m.buildings) {
-      // imported frames overhang their footprint by up to ~9 px, so cull a tile wider
-      if ((b.x + b.w + 1) * TILE < vx0 || (b.x - 1) * TILE > vx1 || (b.y - 3) * TILE > vy1 || (b.y + b.h) * TILE < vy0) continue;
+      // imported frames overhang their footprint (the airship's balloon by 68 px), so cull wider
+      if ((b.x + b.w + 1) * TILE < vx0 || (b.x - 1) * TILE > vx1 || (b.y - 5) * TILE > vy1 || (b.y + b.h) * TILE < vy0) continue;
       const st = b.id === 'clocktower' ? (g.flags.has('clock_fixed') ? 1 : 0) : b.id === 'greenhouse' ? (g.flags.has('greenhouse_fixed') ? 1 : 0) : g.daylight < 0.55 ? 1 : 0;
-      const s = sprite(`bld:${b.id}:${season}:${st}`);
+      // the airship bobs: its sheet has 4 frames (bld:airship:<season>:<night>:<frame>)
+      const s = sprite(b.id === 'airship' ? `bld:airship:${season}:${st}:${Math.floor(this.time * 3) % 4}` : `bld:${b.id}:${season}:${st}`);
       D.push({ y: b.y + b.h - 0.05, f: () => drawSprite(ctx, s, b.x * TILE, b.y * TILE) });
     }
     // actors
@@ -1197,7 +1200,7 @@ export class Renderer {
     const npcs: any[] = m === g.map ? g.sys.npcs?.list ?? [] : [];
     for (const n of npcs) {
       if (!n.visible || !onScreen(n.x, n.y)) continue;
-      const f = n.moving ? Math.floor(n.walkT * 1.6) % 4 : 0;
+      const f = n.moving ? Math.floor(n.walkT * 1.6) % 4 : this.npcStandFrame(g, n);
       D.push({ y: n.y, f: () => {
         drawSprite(ctx, sprite('shadow:12'), n.x * TILE, n.y * TILE);
         drawSprite(ctx, sprite(`ch:${n.id}:${n.dir}:${f}`), n.x * TILE, n.y * TILE, 1, n.dir === 3);
@@ -1345,6 +1348,24 @@ export class Renderer {
         }
       } });
     }
+  }
+
+  /**
+   * A standing villager's frame: a sheet with greeting frames (g0…) plays them once when a chat
+   * starts, one with idle frames (i0…) loops them at a breathing pace; others hold frame 0.
+   */
+  private npcStandFrame(g: Game, n: { id: string; x: number }): number | string {
+    const talking = g.sys.dialogue?.npc === n.id || g.sys.cutscene?.npc === n.id;
+    if (!talking) this.greetAt.delete(n.id);
+    else if (!this.greetAt.has(n.id)) this.greetAt.set(n.id, this.time);
+    const gn = charFrames(n.id, 'g');
+    if (gn && talking) {
+      const k = Math.floor((this.time - this.greetAt.get(n.id)!) * 6);
+      if (k < gn) return 'g' + k;
+    }
+    const idle = charFrames(n.id, 'i');
+    // each villager breathes on its own beat
+    return idle ? 'i' + (Math.floor(this.time * 5 + n.x * 3) % idle) : 0;
   }
 
   private drawEmote(x: number, y: number, e: string) {

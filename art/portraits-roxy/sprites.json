@@ -1,0 +1,21 @@
+{
+ "name": "portraits-roxy",
+ "kind": "sprites",
+ "meta": {
+  "source": "PixelLab create_image_pro 7e539bf5 (16 tight 64x64 busts with Roxy's look, pick batch2/0.png), moods 1-3: edit_image_pro_flash on that bust (48b46974 happy, a961b6b3 sad, 55a08df9 surprised), face zone composited onto the neutral bust by moods.mjs",
+  "moods": "0 neutral (confident smirk), 1 happy laughing with closed eyes (also the blink), 2 sad / worried, 3 surprised and flustered (blush)",
+  "size": "64x64: drawn 1:1 in the dialogue's 64 px box (the villagers' 32x32 portraits are drawn 2x)"
+ },
+ "defaults": {
+  "frame": [64, 64],
+  "place": "none",
+  "origin": [0, 0],
+  "keepStrays": true
+ },
+ "sprites": [
+  { "match": "portrait:roxy:0:*", "file": "moods/roxy-0.png" },
+  { "match": "portrait:roxy:1:*", "file": "moods/roxy-1.png" },
+  { "match": "portrait:roxy:2:*", "file": "moods/roxy-2.png" },
+  { "match": "portrait:roxy:3:*", "file": "moods/roxy-3.png" }
+ ]
+}

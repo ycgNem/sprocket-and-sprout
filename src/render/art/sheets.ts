@@ -98,6 +98,24 @@ export function charArtHeight(id: string): number {
   return m?.artHeight ?? 22; // the procedural 16x24 characters
 }
 
+/**
+ * How many frames of an extra animation this look's sheet maps as `<prefix>0`, `<prefix>1`, … in
+ * `meta.frames` (0 without one): `i` idle, `g` greeting. Cached per look and prefix.
+ */
+const extraFrames = new Map<string, number>();
+export function charFrames(id: string, prefix: string): number {
+  if (getArtMode() !== 'new') return 0;
+  const k = id + ':' + prefix;
+  let n = extraFrames.get(k);
+  if (n === undefined) {
+    const m = charSheets.find((m) => drawsLook(m, id));
+    n = 0;
+    while (m?.frames?.[prefix + n]) n++;
+    extraFrames.set(k, n);
+  }
+  return n;
+}
+
 /** Look ids of the candidate player sheets (ids `cand_*`) the debug Compare lineup shows. */
 export function compareIds(): string[] {
   return charSheets.map((m) => m.ids?.[0]).filter((x): x is string => !!x && x.startsWith('cand'));
@@ -105,6 +123,7 @@ export function compareIds(): string[] {
 
 function defCharSheet(url: string, m: SheetMeta) {
   charSheets.push(m);
+  extraFrames.clear();
   const [fw, fh] = m.frame;
   const [ax, ay] = m.anchor;
   // sprite names: ch:<look id>:<dir>:<frame>

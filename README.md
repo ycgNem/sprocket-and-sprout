@@ -125,12 +125,18 @@ or a Brass Locket.
   and it will follow you around, nap in its bed and leave gifts by the door.
 
 **Town**
-- 13 villagers with schedules, A*-pathing, 37+ lines of dialogue each (by season, weather, time,
+- 14 villagers with schedules, A*-pathing, 37+ lines of dialogue each (by season, weather, time,
   weekday and friendship), gift tastes, birthdays, and four heart events with choices.
   Friends drop by your farm on weekend afternoons.
+- New in 1.1: **Roxy Vane**, sky-courier and captain of the Brass Vixen, an airship moored on
+  Skyhook Field at the east end of Main Street. She drops you a card on day 4. Her hold sells
+  off-season seeds for the greenhouse and clockwork parts before your research catches up, and
+  she has her own story (engine trouble, a card game, a sunset flight, a choice about the long
+  route). She's drawn in more detail than the other villagers: a taller sprite with idle and
+  greeting animation, and 64 px portraits.
 - Romance: give the Brass Locket to a villager you love. Your partner makes breakfast, helps
   with chores and spends evenings by your hearth.
-- 9 shops plus Mags' Traveling Cart (Fridays and Sundays) with rare seeds, recipe cards and
+- 10 shops plus Mags' Traveling Cart (Fridays and Sundays) with rare seeds, recipe cards and
   furniture.
 - 4 festivals with minigames (Kite Day, Lantern Night, Pumpkin Roll, Frostlight Skate) and a
   token stall.

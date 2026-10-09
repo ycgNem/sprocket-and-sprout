@@ -109,7 +109,12 @@ only changes lightness looks plastic.
   right. Every sheet, every tile, every icon.
 - **Shadows under everything that stands on the ground**, drawn by the renderer as a separate
   sprite (`shadow:<w>`), never baked into a sheet: a flat ellipse of `#2e222f` at 28 % opacity,
-  width ≈ ¾ of the footprint, height = width / 3, centered under the anchor.
+  width ≈ ¾ of the footprint, height = width / 3, centered under the anchor. Exception:
+  buildings (the renderer adds no shadow for them) bake their ground shadow in a key colour that
+  the sheet recolours per season (the airship, `art/airship/build.mjs`).
+- **Roxy Vane is the one villager allowed past the size caps** (owner's request, 1.1): 48×48
+  frames, 38 px tall, 8 idle frames (`i0…i7`) and a 4-frame greeting (`g0…g3`, down row), 64 px portraits drawn
+  1:1. Everyone else stays at the numbers above.
 - 3–4 shades per material. No gradients, no pillow shading, no anti-aliasing (no
   semi-transparent pixels), dithering only on large flat areas (sky, water, big walls).
 

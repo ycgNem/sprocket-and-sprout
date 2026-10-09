@@ -8,6 +8,7 @@ import can be rerun. Rules: `STYLE.md`. Plan: `ROADMAP.md`.
 |---|---|---|---|
 | `player/` | player character sheet (look-swappable) | `scripts/art-import.mjs` | `src/art/player.*` |
 | `npcs/` | NPC character sheets | `scripts/art-import.mjs` | `src/art/npc-*.*` |
+| `airship/` | Roxy's airship (`bld:airship:<season>:<night>:<frame>`), graded by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/airship.*` |
 | `terrain/` | Wang tilesets, base variants, per-tile classes, decals | `scripts/terrain-import.mjs` | `src/art/terrain.*` |
 | everything else | sprites by name (crops, objects, trees, buildings, machines, icons…) | `scripts/sprites-import.mjs` | `src/art/<group>.*` |
 

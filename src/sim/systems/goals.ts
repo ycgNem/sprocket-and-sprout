@@ -4,6 +4,7 @@ import { shortName } from '../../data/cookbook';
 import { MEGAPROJECTS, MEGA_BY_ID, PROJECTS, PROJECT_BY_ID } from '../../data/goals';
 import { ITEMS, ITEM_BY_ID, matchesSpec } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
+import { C } from '../../data/palette';
 import { Game, registerSystem } from '../Game';
 import type { Ent } from '../ents';
 import { key, kDef, kId } from '../inventory';
@@ -284,6 +285,15 @@ registerSystem({
         text: `Dear ${g.player.name},\n\nWelcome to ${g.player.farmName} Farm! The old place has been empty for years, so forgive the weeds. The townsfolk are eager to meet you; the town is just east across the bridge.\n\nI've left a few radish seeds and some coins to get you started.\n\nWarmly,\nMayor Tobias Thistle`,
         items: [{ item: 'radish_seed', n: 5 }],
       });
+    }
+    // day 4: Roxy drops a card from the sky so players find Skyhook Field
+    if (g.dayIndex >= 3 && g.map.w > 100 && !g.flags.has('mail_roxy')) {
+      g.flags.add('mail_roxy');
+      send(g, 'roxy_intro', {
+        from: 'roxy', title: 'Dropped from a red balloon',
+        text: `Hey, farmer.\n\nThe red balloon over the east meadow is mine: the Brass Vixen, Vane Air Freight. Off-season seeds for that greenhouse of yours, city clockwork parts before the Professor's notes catch up with you, and coffee that could start a boiler.\n\nWalk Main Street east until the road runs out. Ten till four, closed Tuesdays. Don't be a stranger, sugar.\n\n- Roxy`,
+      });
+      g.toast('A card fluttered down from a passing airship. Check your mail!', undefined, C.amber);
     }
     seasonalMail(g);
     applyMega(g);

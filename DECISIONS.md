@@ -136,3 +136,15 @@ Running log of design and technical decisions made while building autonomously.
     "hold the beans", which a full hotbar made impossible. The starting hotbar keeps two slots free.
 46. **Quest objectives check state, not only events.** "Build X" and "craft X" count things you
     already own, so doing a step before its quest starts never soft-locks the chain.
+47. **Roxy Vane breaks the villager template on purpose (1.1, owner request).** The owner asked
+    for a glamorous female villager and said she could be more detailed than the rest. She is a
+    taller sprite (48 px frames, 38 px tall against the 28-31 px cap in STYLE.md, goggles included) with idle
+    and greeting frames, and 64 px portraits drawn 1:1 where the others are 32 px drawn 2x. She
+    ties in lightly: a shop on her airship (off-season seeds for the greenhouse, clockwork parts
+    before the research unlocks them, at a premium), four daily requests, four heart events, and
+    the locket in her stock after her 6-heart event. Skyhook Field sits outside the town zone at
+    the end of Main Street; saves from 1.0 get the meadow cleared on load (`skyfield()`).
+48. **The UI stays at 2x on laptop browser windows.** The automatic scale wanted 340 UI px of
+    height, so a 1366x768 laptop (about 620-660 px of browser viewport) fell to 1x, which is too
+    small to read. From 600 px tall and 1120 wide it now keeps 2x; the screen sweep at 1366x620
+    (`VIEW=1366x620 npm run screens`) shows every window fits.

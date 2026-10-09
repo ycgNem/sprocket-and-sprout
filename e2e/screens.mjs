@@ -7,12 +7,15 @@
 // Usage: npm run screens                  (all shots, against http://localhost:5173/)
 //        npm run screens -- title,crafting (only these)
 //        BASE=http://127.0.0.1:5174/ npm run screens
+//        VIEW=1366x620 npm run screens   (another window size; writes e2e/out/screens-1366x620/)
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 
 const only = process.argv[2]?.split(',');
 const base = process.env.BASE ?? 'http://localhost:5173/';
-const out = 'e2e/out/screens', prev = 'e2e/out/screens-prev';
+const view = process.env.VIEW;
+const [VW, VH] = (view ?? '1280x720').split('x').map(Number);
+const out = view ? `e2e/out/screens-${view}` : 'e2e/out/screens', prev = out + '-prev';
 if (!only && fs.existsSync(out)) {
   fs.rmSync(prev, { recursive: true, force: true });
   fs.renameSync(out, prev);
@@ -20,7 +23,7 @@ if (!only && fs.existsSync(out)) {
 fs.mkdirSync(out, { recursive: true });
 
 const browser = await chromium.launch({ channel: process.env.PW_CHANNEL ?? 'chrome', headless: true, args: ['--autoplay-policy=no-user-gesture-required'] });
-const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const page = await browser.newPage({ viewport: { width: VW, height: VH } });
 const errors = [];
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`[${m.type()}] ${m.text()}`); });
 page.on('pageerror', (e) => errors.push(`[pageerror] ${e.message}`));
@@ -37,12 +40,13 @@ await ev(async () => {
   window.__O = (await import('/src/sim/world/tilemap.ts')).O;
   window.__house = await import('/src/sim/systems/house.ts');
   window.__mine = await import('/src/sim/systems/mine.ts');
+  window.__npcs = await import('/src/sim/systems/npcs.ts');
 });
 
 const report = [];
 /** Screenshot the current state, run the overlap audit on the last frame, box any issues. */
 async function shot(name) {
-  await page.mouse.move(1279, 719); // park the mouse in a corner so hover tooltips stay out of the way
+  await page.mouse.move(VW - 1, VH - 1); // park the mouse in a corner so hover tooltips stay out of the way
   await wait(450);
   await page.screenshot({ path: `${out}/${name}.png` });
   const { issues, k } = await ev(() => {
@@ -130,6 +134,10 @@ const SC = {
   smithy: async () => ev(`(() => { S.play.openWindow('shop', 'smithy'); S.play.win.data.tab = 'Upgrades'; })()`),
   carpenter: async () => ev(`(() => { S.play.openWindow('shop', 'carpenter'); S.play.win.data.tab = 'Buildings'; })()`),
   ranch: async () => ev(`(() => { S.play.openWindow('shop', 'ranch'); S.play.win.data.tab = 'Animals'; })()`),
+  // Roxy (1.1): her shop on the airship, her field in the morning, and a chat with her 64 px portrait
+  airfreight: async () => ev(`(() => { S.play.openWindow('shop', 'airfreight'); })()`),
+  skyfield: async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.time.min = 8 * 60; g.player.x = 182.5; g.player.y = 60.6; g.player.dir = 1; const n = g.sys.npcs.byId.get('roxy'); n.x = 184.5; n.y = 60.9; n.visible = true; n.path = []; n.dir = 3; })()`),
+  'roxy-chat': async () => ev(`(() => { const g = S.g; const n = g.sys.npcs.byId.get('roxy'); n.met = true; n.points = 900; window.__npcs.openDialog(g, n, "Evening, gorgeous. Yes, I mean you. Don't look behind you, there's nobody there.", undefined, 0); })()`),
   map: async () => ev(`(() => { S.play.openWindow('map'); })()`),
   restoration: async () => ev(`(() => { S.play.openWindow('restoration'); })()`),
   board: async () => ev(`(() => { S.play.openWindow('board'); })()`),

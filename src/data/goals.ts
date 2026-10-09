@@ -187,6 +187,10 @@ export const REQUEST_POOL: { npc: string; item: string; n: number; seasons?: num
   { npc: 'rowan', item: 'cheese', n: 3, text: 'Cheese plates are trending. Three wheels?' },
   { npc: 'marigold', item: 'jam_strawberry', n: 2, text: 'Customers keep asking for strawberry jam.' },
   { npc: 'bram', item: 'gold_bar', n: 2, text: 'Gold. Two bars. For a wedding ring commission.' },
+  { npc: 'roxy', item: 'coffee_drink', n: 2, text: 'Night run to the city. Two coffees, strong as you make them.' },
+  { npc: 'roxy', item: 'copper_coil', n: 4, text: "The starboard engine's sulking. Four copper coils, sugar?" },
+  { npc: 'roxy', item: 'jam_emberpepper', n: 2, text: 'City folk pay double for anything that burns. Two jars of ember jam.' },
+  { npc: 'roxy', item: 'wine_cherry', n: 1, seasons: [1, 2], text: 'A client with expensive taste wants something red. Cherry wine?' },
 ];
 
 export const PROJECTS: ProjectDef[] = [

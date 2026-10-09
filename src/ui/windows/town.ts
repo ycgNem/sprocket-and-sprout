@@ -39,8 +39,15 @@ function portrait(ui: UI, npcId: string, x: number, y: number, size = 48, mood =
   // a gentle blink every few seconds
   const blink = mood !== 1 && Math.floor(ui.time * 10 + npcId.length * 7) % 47 === 0;
   const s = sprite(`portrait:${npcId}:${blink ? 1 : mood}:${elder ? 1 : 0}`);
-  const sz = Math.floor(size / 32) * 32 || size;
-  ui.ctx.drawImage(s.img, s.x, s.y, 32, 32, x + 4 + Math.floor((size - sz) / 2), y + 4 + Math.floor((size - sz) / 2), sz, sz);
+  // portraits are 32 px, drawn 2x; a detailed 64 px one (Roxy) is drawn 1:1 in the same box
+  const pw = s.w >= 64 ? 64 : 32;
+  if (pw === 64 && size < 64) {
+    // smaller boxes show the face 1:1 rather than shrinking the art off the pixel grid
+    ui.ctx.drawImage(s.img, s.x + Math.floor((64 - size) / 2), s.y + Math.min(64 - size, 10), size, size, x + 4, y + 4, size, size);
+    return;
+  }
+  const sz = Math.floor(size / pw) * pw || size;
+  ui.ctx.drawImage(s.img, s.x, s.y, pw, pw, x + 4 + Math.floor((size - sz) / 2), y + 4 + Math.floor((size - sz) / 2), sz, sz);
 }
 
 function heartsRow(ui: UI, h: number, x: number, y: number) {
