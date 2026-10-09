@@ -4,8 +4,11 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 9, 2026):** 1.0 shipped; the 1.1 visual overhaul (`ROADMAP.md`) has Phases 0-2 done
-and live on the website. Phases 3 (juice) and 4 (review, release 1.1) remain.
+**Status (October 9, 2026, evening):** 1.0 shipped; the 1.1 visual overhaul (`ROADMAP.md`) has Phases
+0-2 done and live on the website. **Phase 3 session 1 is done and committed locally (not pushed yet:
+pushing deploys)**: the juice layer, key bubbles, a resequenced first session from the indie-critic's
+playthrough, the post courier, the title wordmark with the sprocket O. See ROADMAP.md, Phase 3,
+"Session 1 … done" for the list and what's still open. Phase 4 (review, release 1.1) remains.
 - **Live:** https://ycgnem.github.io/sprocket-and-sprout/ (redeploys on every push to `main`);
   Windows installers on https://github.com/ycgNem/sprocket-and-sprout/releases/tag/v1.0.0.
 - **Phase 0 of the overhaul is done** (Oct 9): the player-look bug, belt items on the pixel grid,
@@ -89,11 +92,11 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 94 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, pacing bot)
+npm test                                   # 99 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, pacing bot)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
 npm run build                              # production build, about 1.1 MB JS (380 KB gzipped) + ~500 KB of PNG sheets
 node e2e/smoke.mjs http://localhost:5173/  # real UI smoke, 0 console errors expected
-npm run screens                            # 43-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected)
+npm run screens                            # 48-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected)
 node e2e/coverage.mjs                      # every sprite name vs imported art (6415/6415 = 100% expected)
 node e2e/sprites.mjs <name> ...            # imported vs procedural sprites side by side
 BASE=http://localhost:5173/ node e2e/flow.mjs  # real input: two-step new game, farm, house, bed, reload
@@ -116,13 +119,16 @@ src/engine/   loop (fixed 60 Hz sim, separate render), input (rebindable actions
 src/data/     typed content: items, crops, trees, fish, creatures, structures, recipes, research,
               npcs, shops, goals (quests/projects/festivals), buffs, contracts, cookbook, furniture,
               perks, palette (32 colours), modes (game modes, farm maps, Rush medals)
-src/sim/      pure simulation, no DOM. Game.ts (state, tick, endDay, simRate/clockRate),
+src/sim/      pure simulation, no DOM. prompts.ts (what F / a left click would do on a tile, for the key
+              bubbles; questTarget for the guide arrow and compass). Game.ts (state, tick, endDay, simRate/clockRate),
               ents.ts, ports.ts, build.ts, blueprint.ts, save.ts (SAVE_VERSION 2 + MIGRATIONS;
               saves also store mode + farmKind), world/ (tilemap, worldgen, farms.ts = map variants, A*)
 src/sim/systems/  one file per system, registered with registerSystem({tick, dayStart, dayEnd,
               init, save, load, afterLoad, realtime}). Import order lives in src/sim/index.ts.
               New: modes.ts (start kits, the clockwork opening, Rush scoring), achievements.ts
-src/render/   renderer (dual-grid terrain bake, y-sorted sprites), lighting, weather, particles, ambient,
+src/render/   juice.ts (Phase 3 reward layer: sprite effects, confetti, rings, hops, item/coin flights
+              into the HUD, streak counter, ribbons, big pop numbers, the post courier; drawFx with
+              code fallbacks), renderer (dual-grid terrain bake, y-sorted sprites), lighting, weather, particles, ambient,
               atlas.ts (sprite cache, imported sheet frames, hasImage, drawFit, drawItemIcon),
               art/sheets.ts (loads src/art/*.json: character, sprites, terrain kinds), art/match.ts
               (pattern + Wang vertex rules), art/* (procedural generators = the ?art=old fallback)
@@ -196,11 +202,23 @@ e2e/          Playwright scripts (e2e/out is gitignored scratch); screens.mjs = 
 
 ## What's next
 
-`ROADMAP.md` is the plan for the 1.0 → 1.1 visual overhaul. Phases 0-2 are done. Next session:
+`ROADMAP.md` is the plan for the 1.0 → 1.1 visual overhaul. Phases 0-2 are done; Phase 3 session 1
+is done (local commits, not pushed). Next session:
 
-> Read ROADMAP.md and HANDOFF.md. Fix the open indie-critic items from the Phase 2 review
-> (ROADMAP.md, Phase 2), then start Phase 3 (juice). Use the art-director agent for art changes.
-> Run npm run screens, then the indie-critic agent. Commit and push.
+> Read ROADMAP.md and HANDOFF.md. Push the Phase 3 commits if the owner agreed. Then Phase 3
+> session 2: the open items in ROADMAP.md Phase 3 (the critic's replay findings, shoreline foam
+> via terrain art, a compact HUD for 540–679 px tall windows). Use the art-director agent for art.
+> Run npm run screens through qa-screens, then the indie-critic agent. Commit; push with the OK.
+
+Phase 3 patterns:
+- Sim code emits reward events (`harvest`, `made`, `quest`, `post`, `crated`, `hop`); `PlayScreen.processEvents`
+  turns them into juice. Money earned while playing becomes a coin shower automatically (money diff per frame);
+  set `coinSrc`/`coinWait` in an event handler to aim or delay it.
+- Effects are looked up by name (`drawFx(ctx, 'fx:star', frame, x, y)`); frame counts live in `FRAMES` in
+  juice.ts. Sheets: `src/art/juice.*`, `src/art/logo.*`, `src/art/guide.*` (sources in `art/<group>/build.mjs`).
+- Quests: `load` objective (F at a machine), `craft … fresh: true`, `firstDayFrom` (hour gate on day one).
+- jsfxr sounds designed as parameter sets in `scripts/sfx-design.mjs` (`--wav` writes files to listen to);
+  loudness per sound in `BANK_GAIN` (base58 strings carry no volume); `Audio.sfx(id, v, pitch)`.
 
 Owner decisions so far: full art replacement through PixelLab (generation budget is fine to spend;
 compromise with code-drawn art only where it looks as good); anything that moves gets real
