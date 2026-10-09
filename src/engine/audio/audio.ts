@@ -1,6 +1,7 @@
 // Procedural audio: synthesized SFX, ambient beds, and a generative music loop
 // whose key, scale, tempo and instrumentation follow the season and time of day.
 import type { Game } from '../../sim/Game';
+import { playSfxr } from './sfxr';
 
 interface Vol { master: number; music: number; sfx: number }
 
@@ -146,6 +147,8 @@ export class Audio {
     this.lastSfx.set(id, now);
     const B = this.sfxBus;
     const r = () => 1 + (Math.random() - 0.5) * 0.08;
+    // sounds designed in jsfxr take priority; the rest are synthesized below
+    if (playSfxr(ctx, B, id, 0.35 * v, r())) return;
     switch (id) {
       case 'click': this.tone(900 * r(), 'square', { a: 0.002, d: 0.04 }, 0.06 * v, B); break;
       case 'hover': this.tone(1400, 'sine', { a: 0.002, d: 0.025 }, 0.02 * v, B); break;
