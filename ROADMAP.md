@@ -318,6 +318,37 @@ The original juice list:
   Bump to 1.1.0 in both places.
 - `Build desktop app.bat`, `gh release create v1.1.0 …` as in `SHARING.md`.
 
+**Done 2026-10-09 (1.1.0 released).**
+- [x] Owner request: **Roxy Vane**, a sky-courier villager with her airship (the Brass Vixen) on
+      Skyhook Field at the east end of Main Street. More detail than the template on purpose
+      (DECISIONS #47): 48 px frames, 38 px tall, 8-frame idle, a greeting wave, 64 px portraits
+      with four moods. Shop (off-season seeds, clockwork parts ahead of research, the locket after
+      her 6-heart event), 39 lines, four heart events, four requests, a card on day 4. Art:
+      `art/npcs/roxy`, `art/portraits-roxy`, `art/airship` (about 100 generations, 520 left).
+- [x] `/code-review` (high) on v1.0.0..HEAD: 5 findings, 3 fixed (shop doors skipped the keeper's
+      intro and the day's chat points; the gift bubble promised gifts F wouldn't give; dead code),
+      2 left (crate pop shows the pre-saturation price; raw palette indices in the HUD).
+- [x] Version 1.1.0 (title footer reads package.json).
+- [x] indie-critic full review. Fixed: belts deliver into whatever they run into (crate, chest,
+      machine) so "Double the Line" works as hinted; the debug panel only with `?debug` or in dev;
+      the post timer steers clear of the HUD; artisan goods saturate half as fast and the night
+      tally names a flooding good; "Meet the Neighbors" starts after the noon post on day one
+      (no dead afternoon) and "Double the Line" follows it; the two arms come with "The Noon Post";
+      the keeper's cellar adds 12 cogbeans a day on days 2-4; the guide arrow leaves the beans once
+      8 are picked; the name form autofocuses, Tab/Enter work, the farm name is suggested; "F (or
+      right-click)" everywhere; the Professor's desk quest is skipped in the clockwork opening;
+      trees fade only when you're right behind them; dialogue types per second, not per frame;
+      friendlier dry-crop line; persistent storage requested when a game starts.
+- [x] The UI keeps 2x on laptop browser windows (1120+ x 600-679, DECISIONS #48); the minimap
+      edge carries the terrain on; research topics click.
+- [x] Checks: typecheck, 107 tests, `npm run screens` 51 shots / 0 issues (and 1366x620 clean),
+      flow + smoke + a Roxy real-input pass with 0 console errors, production build.
+- [ ] Still open from the critic: arms read as "?" at rest (needs an arm redraw), day-2 toast
+      clipped by the tracker, shift-click in the backpack, look-alike tool icons, crafting grid
+      labels, the farmhouse doorway, research window colours, the 960x600 embed size. The critic
+      also asked to draw Roxy at the template's density; the owner asked for more detail, so she
+      stays (DECISIONS #47).
+
 ## Agents, skills and tools
 
 | Thing | Use | Status |

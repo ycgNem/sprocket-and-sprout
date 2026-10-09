@@ -4,13 +4,13 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 9, 2026, evening):** 1.0 shipped; the 1.1 visual overhaul (`ROADMAP.md`) has Phases
-0-2 done and live on the website. **Phase 3 session 1 is done and pushed (live)**: the juice layer,
-key bubbles, a first session resequenced over three indie-critic playthroughs, the post courier,
-the title wordmark with the sprocket O. See ROADMAP.md, Phase 3, "Session 1 … done" for the list
-and what's still open. Phase 4 (review, version 1.1.0, desktop builds, GitHub release) remains.
+**Status (October 9, 2026, night): 1.1.0 is released.** The visual overhaul (`ROADMAP.md`, Phases
+0-4) is done: imported PixelLab art everywhere, the juice layer, a reworked first session, then a
+code review and a full indie-critic review with their fixes (ROADMAP.md, Phase 4). New in 1.1 at
+the owner's request: **Roxy Vane**, a sky-courier villager with her airship on Skyhook Field
+(DECISIONS #47). Open items are at the end of ROADMAP.md Phase 4.
 - **Live:** https://ycgnem.github.io/sprocket-and-sprout/ (redeploys on every push to `main`);
-  Windows installers on https://github.com/ycgNem/sprocket-and-sprout/releases/tag/v1.0.0.
+  Windows installers on https://github.com/ycgNem/sprocket-and-sprout/releases/tag/v1.1.0 (1.0.0 is still there too).
 - **Phase 0 of the overhaul is done** (Oct 9): the player-look bug, belt items on the pixel grid,
   the title overlap, an integer-grid rule for every scaled sprite, and `npm run screens` (a
   43-screen sweep with an automatic UI overlap audit, now at 0 issues).
@@ -92,11 +92,11 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 102 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, pacing bot)
+npm test                                   # 107 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
 npm run build                              # production build, about 1.1 MB JS (380 KB gzipped) + ~500 KB of PNG sheets
 node e2e/smoke.mjs http://localhost:5173/  # real UI smoke, 0 console errors expected
-npm run screens                            # 48-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected)
+npm run screens                            # 51-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 for another size
 node e2e/coverage.mjs                      # every sprite name vs imported art (6415/6415 = 100% expected)
 node e2e/sprites.mjs <name> ...            # imported vs procedural sprites side by side
 BASE=http://localhost:5173/ node e2e/flow.mjs  # real input: two-step new game, farm, house, bed, reload
@@ -202,13 +202,22 @@ e2e/          Playwright scripts (e2e/out is gitignored scratch); screens.mjs = 
 
 ## What's next
 
-`ROADMAP.md` is the plan for the 1.0 → 1.1 visual overhaul. Phases 0-2 are done; Phase 3 session 1
-is done and live. Next session:
+1.1.0 is out. Next session (1.1.1 or 1.2):
 
-> Read ROADMAP.md and HANDOFF.md. Phase 3
-> session 2: the open items in ROADMAP.md Phase 3 (the critic's replay findings, shoreline foam
-> via terrain art, a compact HUD for 540–679 px tall windows). Use the art-director agent for art.
-> Run npm run screens through qa-screens, then the indie-critic agent. Commit; push with the OK.
+> Read ROADMAP.md and HANDOFF.md. Work the open items at the end of ROADMAP.md Phase 4, arm
+> redraw first (the art-director agent: arms read as "?" at rest). Then the deferred critic list
+> below. Run npm run screens, then the indie-critic agent. Commit; push with the OK.
+
+Patterns from 1.1's last session:
+- A belt that ends at a structure delivers into it through `portInsert` (`Game.beltSink`); full
+  means it backs up. No arm needed at the end of a line.
+- The debug panel and its key exist only in dev builds or with `?debug` (`DEBUG_KEYS` in input.ts).
+- Extra character animations: a sheet can map `i0…` (idle, looped while standing) and `g0…`
+  (greeting, once when a chat starts) in `meta.frames`; `charFrames(id, prefix)` counts them.
+  Portraits may be 64 px (drawn 1:1; smaller boxes crop the face).
+- Heart events set `heart_<npc>_<hearts>` flags, so shop stock can unlock from them.
+- Saves store ground and objects but not buildings: anything new on the overworld needs an
+  `afterLoad` clean-up for old saves (see `skyfield()` in worldgen.ts).
 
 Phase 3 patterns:
 - Sim code emits reward events (`harvest`, `made`, `quest`, `post`, `crated`, `hop`); `PlayScreen.processEvents`
@@ -255,7 +264,6 @@ visible change over polish.
 - The pacing bot is simple: it ships crops and builds one arm line, with no real factory. It is a
   floor for balance, not a target.
 - Tinker's Yard's ruins are still plain cobble halls. They need wrecked-machine dressing.
-- The title footer shows package.json's version (1.0.0); bump to 1.1.0 at release (Phase 4).
 - Open art items from the Phase 2 critic review are in ROADMAP.md (NPC walk faces, strike-frame
   tool heads, riverbanks, winter dirt, the world-map window, logo, chronometer sky, player portrait).
 - The jsfxr sounds (coin/sell/ship, levelup, hurt) are generated placeholders; nobody has listened yet.

@@ -163,9 +163,16 @@
   - The procedural art stays as the fallback (`?art=old`, `name:old`).
 - Tests: 94 Vitest tests (new: `tests/art.test.ts`). `npm run screens`: 43 shots, 0 issues.
 
+## Overhaul Phases 3-4 and the 1.1.0 release (October 9, 2026)
+- Phase 3: the juice layer, key bubbles, the reworked first session, the post courier, the
+  sprocket wordmark (ROADMAP.md, Phase 3).
+- Phase 4: a code review and a full critic review, their fixes, version 1.1.0, Windows builds and
+  a GitHub release (ROADMAP.md, Phase 4).
+- New villager: Roxy Vane and her airship on Skyhook Field (the owner's request; DECISIONS #47).
+
 ## Next
-- Overhaul Phase 3 (juice) and Phase 4 (review, release 1.1) in `ROADMAP.md`; the indie-critic's
-  Phase 2 review items that are still open are listed there.
+- The open items at the end of ROADMAP.md Phase 4 (arm redraw first) and the deferred critic
+  list in HANDOFF.md.
 - Older ideas: more interior variety (decor items placeable indoors), farmhouse expansion tiers;
   more depth for mid-game automation goals and late-game megaprojects.
 
