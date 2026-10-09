@@ -37,11 +37,24 @@ on the Windows PATH, and `Play.bat` adds it by itself. To use `npm` in a termina
 
 ## Sharing / publishing
 
-See `SHARING.md`. Short version:
-- `Package for web.bat` builds `dist/` and `sprocket-and-sprout-web.zip`. That zip is a complete static
-  website: upload it anywhere.
-- `.github/workflows/deploy.yml` publishes to GitHub Pages on every push to `main`. Turn it on in
-  repo Settings -> Pages -> Source: GitHub Actions.
+See `SHARING.md` for the full guide.
+
+- **Website.** `Package for web.bat` builds `dist/` (plus `sprocket-and-sprout-web.zip`). It is a complete
+  static site and also an installable, offline-capable web app:
+  - `public/manifest.webmanifest`, `public/sw.js` and the icons;
+  - the service worker registers only for production builds over http(s);
+  - the title screen shows **Install as an app** when the browser offers it.
+- **GitHub Pages.** `.github/workflows/deploy.yml` publishes on every push to `main`. Turn it on in repo
+  Settings -> Pages -> Source: GitHub Actions. The repo has no remote yet.
+- **Desktop.**
+  - `Build desktop app.bat` (`npm run dist:win`) runs electron-builder and puts these in `release/`:
+    `Sprocket-and-Sprout-Setup-<version>.exe` (NSIS installer) and `...-Portable-<version>.exe`.
+  - `electron/main.cjs` serves `dist/` over a private `app://` scheme, so modules, saves and relative
+    paths behave like the website.
+  - `npm run desktop` runs it from source.
+  - The builds are unsigned: SmartScreen shows "More info -> Run anyway".
+  - Bump `version` in package.json for each release.
+- **Icons.** `scripts/make-icons.mjs` regenerates the pixel-art icons into `public/` and `build/`.
 
 ## Verify everything
 

@@ -1,74 +1,151 @@
-# Sharing Sprocket & Sprout with friends
+# Sharing Sprocket & Sprout
 
-The game is a static web page: one `index.html` plus one JavaScript file, with no server code. Anything that hosts static files can host it, and your friends only need a browser.
+There are three ways to get the game to people:
 
-## 1. Build it
+| | What people get | You run | Cost |
+|---|---|---|---|
+| **1. Your own website** | Play in the browser at your link, and press **Install** to keep it as an offline app | `Package for web.bat` | Free (a custom domain is about $10/year) |
+| **2. A Windows download** | An installer `.exe` (Start menu + desktop shortcut) or a portable `.exe` | `Build desktop app.bat` | Free |
+| **3. itch.io** | A game page with the browser version and/or the download | either | Free |
 
-Double-click **`Package for web.bat`**. It:
+You can do all three. They are built from the same code.
 
-1. runs the type checker and builds the game into `dist/`;
-2. zips `dist/` into **`sprocket-and-sprout-web.zip`** (about 300 KB).
+---
 
-Or run the same steps from a terminal:
+## 1. Host your own website
 
-```bash
-npm run build
-```
+The game is a static website: an `index.html`, one JavaScript file, icons, a web-app manifest and a
+small offline service worker. It needs no server code, which means free static hosts work.
 
-> Rebuild and re-upload whenever you change the game. Friends get the new version the next time they open the page.
+### Build it
 
-## 2. Pick where to put it
+Double-click **`Package for web.bat`**. You get:
 
-### Option A: itch.io (recommended)
+- `dist/`: the website folder (upload its contents);
+- `sprocket-and-sprout-web.zip`: the same thing zipped.
 
-itch.io is the usual home for indie browser games. It is free, it gives you a page with screenshots and a description, and it can keep the game private to the friends you invite.
+### Option A: GitHub Pages (recommended: free, updates on every push)
 
-1. Make a free account at https://itch.io and choose **Upload new project** (from the dashboard).
-2. **Kind of project:** *HTML*.
-3. **Uploads:** add `sprocket-and-sprout-web.zip`, then tick **"This file will be played in the browser"**.
-4. **Embed options:**
-   - Viewport: **1280 × 720**.
-   - Turn on **Fullscreen button**.
-   - Leave **Mobile friendly** off. The game needs a keyboard and mouse.
-5. **Visibility:**
-   - **Draft** while you test it yourself.
-   - **Restricted** + a password, to share with only your friends.
-   - **Public** when you're ready for everyone.
-6. Save, open the page and play. Send your friends the link (and the password if it's restricted).
+The repo already has `.github/workflows/deploy.yml`. It runs the tests, builds the game and publishes `dist/`.
 
-### Option B: GitHub Pages (free, automatic updates)
+1. Make a free account at https://github.com, then log the GitHub CLI in. It is already installed on this PC:
 
-The repo includes `.github/workflows/deploy.yml`. On every push to `main` it runs the tests, builds the game and publishes it.
+   ```bash
+   gh auth login
+   ```
 
-1. Create a repo and push. The GitHub CLI is already installed on this PC:
+2. Create the repo and push (from the project folder):
 
    ```bash
    gh repo create sprocket-and-sprout --public --source . --push
    ```
 
-2. On GitHub, open **Settings → Pages → Source: GitHub Actions**.
-3. Each push publishes the game at `https://<your-username>.github.io/sprocket-and-sprout/`.
+3. On github.com, open the repo and go to **Settings → Pages**. Under **Build and deployment → Source**, choose **GitHub Actions**.
+4. Wait about a minute (watch the **Actions** tab). The game is live at:
 
-This works because the build uses relative paths (`base: './'` in `vite.config.ts`).
+   `https://<your-github-username>.github.io/sprocket-and-sprout/`
 
-### Option C: Netlify Drop (no account setup, 1 minute)
+5. To update it later, commit and push. The site rebuilds itself:
 
-Go to https://app.netlify.com/drop and drag the **`dist` folder** onto the page. It gives you a link straight away. You need a free account to keep the link longer than an hour.
+   ```bash
+   git push
+   ```
 
-### Option D: same Wi-Fi only (no upload at all)
+### Option B: Netlify or Cloudflare Pages (drag and drop, or connect the repo)
 
-Run the dev server on your local network:
+- **Netlify:** sign in at https://app.netlify.com, then **Add new site → Deploy manually**, and drag the `dist` folder in. Or connect your GitHub repo with build command `npm run build` and publish directory `dist`.
+- **Cloudflare Pages:** at https://dash.cloudflare.com go to **Workers & Pages → Create → Pages**. Connect the repo or upload `dist`. Use the same settings: `npm run build`, output `dist`.
 
-```bash
-npm run dev -- --host
-```
+Both give you a free `something.netlify.app` / `something.pages.dev` address and HTTPS.
 
-Vite prints a "Network" address such as `http://192.168.1.23:5173`, and friends on the same Wi-Fi open that address. If Windows Firewall asks, allow Node.js on **private** networks. The game stops when you close the terminal.
+### Your own domain (optional, e.g. `sprocketandsprout.com`)
+
+1. Buy a domain from Cloudflare Registrar, Porkbun or Namecheap (about $10-12/year).
+2. In your host's settings, add the custom domain:
+   - GitHub Pages: **Settings → Pages → Custom domain**.
+   - Netlify / Cloudflare Pages: **Domains**.
+3. The host tells you which DNS records to add at your registrar (usually a `CNAME` to the host's address). HTTPS is set up automatically within an hour or so.
+
+### "Install" from the website
+
+Anyone who opens your site in Chrome or Edge can install the game like an app:
+- a green **Install as an app** button appears on the title screen;
+- or they can use the install icon in the address bar.
+
+It then gets its own window, a Start-menu/desktop icon, and it **works offline**. This needs HTTPS,
+which all the hosts above provide. On iPhone/iPad, Safari's **Share → Add to Home Screen** does the
+same, but the game needs a keyboard and mouse.
+
+---
+
+## 2. A downloadable Windows app
+
+### Build it
+
+Double-click **`Build desktop app.bat`** (or run `npm run dist:win`). After a minute the `release` folder holds:
+
+- **`Sprocket-and-Sprout-Setup-1.0.0.exe`**: a normal installer (about 80 MB). It asks where to install and adds Start-menu and desktop shortcuts. It uninstalls from Windows Settings like any app.
+- **`Sprocket-and-Sprout-Portable-1.0.0.exe`**: one file that runs without installing. Good for a USB stick.
+
+It's the same game in its own window (press F11 for fullscreen). Saves are stored per Windows user,
+and you can move them with **Pause → Export save** / **Import Save**.
+
+To run the desktop version straight from the code without building an installer: `npm run desktop`.
+
+### Where to put the download
+
+- **GitHub Releases (free, recommended).** On your repo page, go to **Releases → Draft a new release**.
+  Tag it `v1.0.0`, drag in the Setup (and Portable) `.exe`, and publish. Link people to
+  `https://github.com/<you>/sprocket-and-sprout/releases/latest`. From the terminal:
+
+  ```bash
+  gh release create v1.0.0 "release/Sprocket-and-Sprout-Setup-1.0.0.exe" "release/Sprocket-and-Sprout-Portable-1.0.0.exe" --title "Sprocket & Sprout 1.0" --notes "First release"
+  ```
+
+- **Your website.** Put a "Download for Windows" link on your site that points at the GitHub release, so you don't serve 80 MB files yourself.
+- **itch.io.** It accepts `.exe` downloads too, and its free "itch app" can keep installs updated.
+- **Google Drive / Dropbox.** Fine for a few friends: share the Setup `.exe` link.
+
+### The "Windows protected your PC" warning
+
+The installer isn't *code-signed*. Signing certificates cost money, roughly $100-400 a year, or about
+$10/month for Azure Trusted Signing. So the first time someone runs it, Windows SmartScreen shows a
+blue box. They click **More info → Run anyway**. Tell your friends in advance; it's normal for indie
+downloads. If you sell the game later, buy signing, or ship on Steam or itch, which friends trust more.
+
+### Releasing an update
+
+1. Change `"version"` in `package.json` (e.g. `1.0.1`).
+2. Run `Build desktop app.bat`.
+3. Upload the new Setup `.exe` as a new GitHub release.
+
+Installing over the old version keeps the player's saves.
+
+### Mac and Linux
+
+`electron-builder` can also make a Mac `.dmg` and a Linux `.AppImage` (configured in `package.json`),
+but each has to be built on that system (`npx electron-builder --mac` on a Mac,
+`npx electron-builder --linux` on Linux). The website version already works on every platform, so
+for Mac and Linux friends, just send the link.
+
+---
+
+## 3. itch.io (optional)
+
+1. Make a free account at https://itch.io and choose **Upload new project**.
+2. Pick **Kind of project: HTML**.
+3. Upload `sprocket-and-sprout-web.zip` and tick **"This file will be played in the browser"**. Set the viewport to 1280 × 720 and turn on the **Fullscreen button**.
+4. Optionally also upload the Setup `.exe` as a Windows download.
+5. Set visibility to **Draft** (just you), **Restricted** + password (friends), or **Public**.
+
+---
 
 ## Good to know
 
-- **Saves live in each player's browser** (`localStorage` for that website), so every friend has their own farm. Saves don't move between browsers or computers. Use **Pause → Export save** and **Title → Import Save** to move a farm. Clearing site data deletes saves, so tell friends to export a backup now and then.
-- An itch.io save and a GitHub Pages save are separate, because they are different websites.
-- Achievements are kept per farm and also in a profile for the whole browser (also stored in `localStorage`).
-- Supported browsers: recent Chrome, Edge and Firefox on desktop. Safari works but is less tested.
-- The first click or key press turns the sound on, because browsers block audio until you interact with the page.
+- **Saves live with the player:**
+  - On the website, saves sit in that browser for that site.
+  - In the desktop app, saves are per Windows user.
+  - They don't sync between the two. **Export / Import save** moves a farm, and players should export a backup now and then.
+- **The first click or key turns the sound on**, because browsers block audio until you interact.
+- **Browsers:** recent Chrome, Edge or Firefox on desktop. Safari works but is less tested.
+- **Publishing makes the game public.** Once it's on a public site or a public GitHub repo, anyone with the link can play (and see the code, if the repo is public). Use a private repo plus Netlify or Cloudflare if you'd rather keep the code private.

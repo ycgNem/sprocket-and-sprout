@@ -225,6 +225,15 @@ class TitleScreen implements Screen {
     if (ui.button('settings', cx - bw / 2, y, bw, bh, 'Settings')) this.mode = 'settings';
     y += bh + 6;
     if (ui.button('import', cx - bw / 2, y, bw, bh, 'Import Save (.json)')) this.importFile();
+    // the browser offers to install the site as an app (Chrome/Edge): put that one click away
+    const prompt = (window as any).__installPrompt;
+    if (prompt) {
+      y += bh + 6;
+      if (ui.button('install', cx - bw / 2, y, bw, bh, 'Install as an app', { style: 'green', tip: 'Adds Sprocket & Sprout to your desktop and Start menu. Works offline.' })) {
+        prompt.prompt();
+        (window as any).__installPrompt = null;
+      }
+    }
     if (this.importMsg) ui.text(this.importMsg, cx, y + bh + 6, C.cream, { align: 'center', shadow: C.ink });
   }
 
