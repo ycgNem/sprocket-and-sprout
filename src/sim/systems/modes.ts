@@ -43,14 +43,8 @@ function swap(g: Game, from: string, to: string) {
   if (i >= 0) inv.slots[i] = { k: key(to), n: 1 };
 }
 
-/** Where the opening's pieces sit (all inside the farmhouse yard on every map). */
-export const OPENING = {
-  beans: { x: 42, y: 26, w: 4, h: 2 }, jar: [54, 23] as [number, number], armTile: [54, 22] as [number, number],
-  /** bare dirt beside the beans that "Room to Grow" points at (6 tiles: till, plant, water) */
-  plot: { x: 42, y: 29, w: 3, h: 2 },
-  /** the keeper's bean chest below the jar, and where "Hands Free" puts the arm that feeds the jar */
-  chest: [54, 25] as [number, number], feedArm: [54, 24] as [number, number],
-};
+export { OPENING } from '../opening';
+import { OPENING } from '../opening';
 
 /**
  * The clockwork opening: the old keeper left ripe cogbeans and a working preserves jar

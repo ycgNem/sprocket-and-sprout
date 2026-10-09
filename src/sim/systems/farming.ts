@@ -8,6 +8,7 @@ import { Game, registerSystem, Soil } from '../Game';
 import { key } from '../inventory';
 import { O, T, Z } from '../world/tilemap';
 import { plantTree, spawnArtifact } from '../world/worldgen';
+import { openingTile } from '../opening';
 
 export const TILLABLE = new Set([T.GRASS, T.DIRT, T.TOWNGRASS]);
 
@@ -309,7 +310,7 @@ function farmDebris(g: Game) {
   for (let n = 0; n < 6; n++) {
     const x = g.rng.int(23, 92), y = g.rng.int(17, 97);
     const i = m.idx(x, y);
-    if (m.zone[i] !== Z.FARM || m.obj[i] || g.soil.has(i) || g.ents.at(x, y) || m.ground[i] !== T.GRASS) continue;
+    if (m.zone[i] !== Z.FARM || m.obj[i] || g.soil.has(i) || g.ents.at(x, y) || m.ground[i] !== T.GRASS || openingTile(g, x, y)) continue;
     m.setO(x, y, n % 3 === 0 ? O.TALLGRASS : O.WEED, n % 3);
   }
   // quarry rocks respawn

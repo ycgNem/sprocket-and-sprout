@@ -3,6 +3,7 @@ import { CROP_BY_ID } from '../../data/crops';
 import { Game, registerSystem } from '../Game';
 import { O, T, Z } from '../world/tilemap';
 import { FARM } from '../world/worldgen';
+import { openingTile } from '../opening';
 
 function freeFarmTile(g: Game, w = 1, h = 1): [number, number] | null {
   const m = g.map;
@@ -13,7 +14,7 @@ function freeFarmTile(g: Game, w = 1, h = 1): [number, number] | null {
     for (let yy = y - 1; yy <= y + h && ok; yy++)
       for (let xx = x - 1; xx <= x + w && ok; xx++) {
         const i = m.idx(xx, yy);
-        if (m.zone[i] !== Z.FARM || !m.walkable(xx, yy) || m.obj[i] || g.soil.has(i) || g.ents.at(xx, yy)) ok = false;
+        if (m.zone[i] !== Z.FARM || !m.walkable(xx, yy) || m.obj[i] || g.soil.has(i) || g.ents.at(xx, yy) || openingTile(g, xx, yy)) ok = false;
       }
     if (ok) return [x, y];
   }

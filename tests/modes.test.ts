@@ -11,8 +11,27 @@ import { modeState } from '../src/sim/systems/modes';
 import { questSys } from '../src/sim/systems/quests';
 import { O, T } from '../src/sim/world/tilemap';
 import { PLAYER_START } from '../src/sim/world/worldgen';
+import { OPENING } from '../src/sim/opening';
+import { canPlace } from '../src/sim/build';
 
 const look = { skin: 1, hair: 2, hairStyle: 'short' as const, shirt: 3, pants: 4 };
+
+describe('the clockwork opening', () => {
+  it("keeps its marked tiles clear of weeds and storm debris on every seed, so the first arm always fits", () => {
+    for (let seed = 1; seed <= 150; seed++) {
+      const g = new Game({ seed });
+      for (let d = 0; d < 3; d++) {
+        for (const [x, y] of [OPENING.armTile, OPENING.feedArm]) {
+          // the day starts in the farmhouse after sleeping, so check the ground, then a placement on day one
+          expect(g.map.obj[g.map.idx(x, y)], `seed ${seed} day ${d} arm tile ${x},${y}`).toBe(O.NONE);
+          if (d === 0) expect(canPlace(g, 'arm_basic', x, y, 0).ok, `seed ${seed} arm tile ${x},${y}`).toBe(true);
+        }
+        g.time.min = DAY_END - 0.001;
+        g.tick();
+      }
+    }
+  });
+});
 
 describe('farm maps', () => {
   for (const f of FARMS) {
