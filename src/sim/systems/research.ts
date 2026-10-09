@@ -57,8 +57,7 @@ function complete(g: Game, id: string) {
   // re-apply mods from scratch
   g.mods = { armHand: 0, machineSpeed: 1, labSpeed: 1, energy: 0, droneSpeed: 1, droneCount: 0, reach: 0, marketBonus: 0 };
   applyEffects(g);
-  const unl = unlocksOf(id).items.map((i) => ITEM_BY_ID.get(i)!.name);
-  g.toast(`Research complete: ${r.name}!${unl.length ? ' Unlocked: ' + unl.slice(0, 3).join(', ') + (unl.length > 3 ? '...' : '') : ''}`, undefined, 6);
+  // the play screen shows a "Discovery!" ribbon naming what it unlocked
   g.emit({ t: 'research', id });
   g.emit({ t: 'fx', kind: 'magic', x: g.player.x, y: g.player.y - 1, n: 20 });
   g.sys.quests?.notify?.(g, 'research', 1, id);

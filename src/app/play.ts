@@ -35,6 +35,8 @@ import { checkTips } from './tips';
 import { drawFx, ladderPitch, type Pt } from '../render/juice';
 import { promptAt, toolVerb } from '../sim/prompts';
 import { unitPrice } from '../sim/systems/economy';
+import { unlocksOf } from '../sim/systems/research';
+import { RESEARCH } from '../data/research';
 import { keyLabel } from '../engine/input';
 import { textWidth } from '../ui/font';
 
@@ -1110,9 +1112,15 @@ export class PlayScreen implements Screen {
           J.confetti(px, py - 8, 26);
           break;
         }
-        case 'research':
+        case 'research': {
           a.sfx('research');
+          const def = RESEARCH.find((x) => x.id === e.id);
+          const unl = unlocksOf(e.id).items.map((i) => ITEM_BY_ID.get(i)?.name ?? i);
+          const sub = (def?.name ?? 'Research') + (unl.length ? '  -  new: ' + unl.slice(0, 2).join(', ') + (unl.length > 2 ? '...' : '') : '');
+          J.banner({ title: 'Discovery!', sub, color: 50, items: [] });
+          J.confetti(this.app.ui.w / 2, Math.max(72, this.app.ui.h * 0.24) + 20, 40, true, 90);
           break;
+        }
         case 'ach':
           this.achQ.push({ id: e.id, t: 0 });
           recordAch(e.id, g.player.farmName);
