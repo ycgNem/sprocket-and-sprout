@@ -1,9 +1,11 @@
 # Handoff: Sprocket & Sprout
 
 A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript + Vite + Canvas 2D,
-with no engine and no asset files yet. Art and music are procedural; some SFX come from a jsfxr bank.
+with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
+music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 9, 2026):** 1.0 is live, and the 1.1 visual overhaul is underway (`ROADMAP.md`).
+**Status (October 9, 2026):** 1.0 shipped; the 1.1 visual overhaul (`ROADMAP.md`) has Phases 0-2 done
+and live on the website. Phases 3 (juice) and 4 (review, release 1.1) remain.
 - **Live:** https://ycgnem.github.io/sprocket-and-sprout/ (redeploys on every push to `main`);
   Windows installers on https://github.com/ycgNem/sprocket-and-sprout/releases/tag/v1.0.0.
 - **Phase 0 of the overhaul is done** (Oct 9): the player-look bug, belt items on the pixel grid,
@@ -44,8 +46,8 @@ All tests and e2e suites are green.
 - **Project agents** (`.claude/agents/`):
   - `indie-critic`: design review. Reads the code, plays the build with Playwright, returns a
     ranked, evidence-tagged critique. Read-only. Both review rounds are in DECISIONS #35-46.
-  - `art-director`: owns `STYLE.md` (not written yet; Phase 1), generates art with PixelLab,
-    quantizes to the palette, imports through the atlas. Never commits.
+  - `art-director`: owns `STYLE.md`, generates art with PixelLab, grades it onto the palette and
+    imports it as sheets (`art/README.md`). Several can run in parallel, one per art group. Never commits.
   - `qa-screens`: runs `npm run screens` and reports overlaps, off-grid sprites and regressions.
     Read-only.
 - **Tools connected on this PC:** PixelLab MCP (pixel-art generation; added with `claude mcp add`,
@@ -87,11 +89,13 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 85 Vitest tests (sim, data, modes, maps, achievements, UI audit, pacing bot)
+npm test                                   # 94 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, pacing bot)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
-npm run build                              # production build, about 790 KB JS (280 KB gzipped)
+npm run build                              # production build, about 1.1 MB JS (380 KB gzipped) + ~500 KB of PNG sheets
 node e2e/smoke.mjs http://localhost:5173/  # real UI smoke, 0 console errors expected
 npm run screens                            # 43-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected)
+node e2e/coverage.mjs                      # every sprite name vs imported art (6415/6415 = 100% expected)
+node e2e/sprites.mjs <name> ...            # imported vs procedural sprites side by side
 BASE=http://localhost:5173/ node e2e/flow.mjs  # real input: two-step new game, farm, house, bed, reload
 BASE=... node e2e/windows.mjs | qa.mjs | bot.mjs 7 | house.mjs | pet.mjs | guild.mjs | ...
 ```
@@ -118,8 +122,12 @@ src/sim/      pure simulation, no DOM. Game.ts (state, tick, endDay, simRate/clo
 src/sim/systems/  one file per system, registered with registerSystem({tick, dayStart, dayEnd,
               init, save, load, afterLoad, realtime}). Import order lives in src/sim/index.ts.
               New: modes.ts (start kits, the clockwork opening, Rush scoring), achievements.ts
-src/render/   renderer, lighting, weather, particles, ambient, art/* (procedural sprite generators),
-              atlas.ts (sprite cache + drawSprite, drawFit, drawItemIcon, invalidateSpritePrefix)
+src/render/   renderer (dual-grid terrain bake, y-sorted sprites), lighting, weather, particles, ambient,
+              atlas.ts (sprite cache, imported sheet frames, hasImage, drawFit, drawItemIcon),
+              art/sheets.ts (loads src/art/*.json: character, sprites, terrain kinds), art/match.ts
+              (pattern + Wang vertex rules), art/* (procedural generators = the ?art=old fallback)
+src/art/      imported sprite sheets (PNG + JSON manifest), written by scripts/*-import.mjs
+art/          per-group art sources: raw PixelLab downloads, build scripts, import recipes
 src/ui/       immediate-mode canvas UI kit (ui.ts; records draws for the audit when ui.audit is on),
               audit.ts (overlap checks: clash/overflow/covered), font.ts (textWidth, wrapText, ellipsize),
               hud.ts (layout), hudparts.ts (chronometer, odometer,
@@ -229,8 +237,9 @@ visible change over polish.
 - The pacing bot is simple: it ships crops and builds one arm line, with no real factory. It is a
   floor for balance, not a target.
 - Tinker's Yard's ruins are still plain cobble halls. They need wrecked-machine dressing.
-- The title screen says "v0.9"; package.json and the release say 1.0.0 (fix when bumping to 1.1).
-- The tool swing rotates its icon, which breaks the pixel grid (replace with drawn frames in Phase 2).
+- The title footer shows package.json's version (1.0.0); bump to 1.1.0 at release (Phase 4).
+- Open art items from the Phase 2 critic review are in ROADMAP.md (NPC walk faces, strike-frame
+  tool heads, riverbanks, winter dirt, the world-map window, logo, chronometer sky, player portrait).
 - The jsfxr sounds (coin/sell/ship, levelup, hurt) are generated placeholders; nobody has listened yet.
 - `npm run screens` doesn't cover every festival, dialogue, cooking/adopt/elevator or the result screens.
 
