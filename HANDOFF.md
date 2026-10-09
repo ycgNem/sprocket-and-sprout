@@ -129,6 +129,11 @@ e2e/          Playwright scripts (e2e/out is gitignored scratch)
   - The `O` enum is saved by value, so only append to it.
   - Flags are saved automatically.
 
+## What's next
+
+`ROADMAP.md` is the plan for the 1.0 → 1.1 visual overhaul: known bugs with file
+pointers, the phases, the agents (`.claude/agents/`) and the prompt that starts each phase.
+
 ## Environment notes (for whoever works on this next)
 
 - **Keep the project in a normal folder like Documents.** The app's scratch-workspace path broke Vite.

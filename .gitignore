@@ -6,3 +6,6 @@ sprocket-and-sprout-web.zip
 .claude/launch.json
 .claude/settings.local.json
 release
+# game and UI screenshots are copyrighted; keep them local
+references/games/
+references/ui/

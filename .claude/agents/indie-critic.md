@@ -21,9 +21,18 @@ is fine, skip it. Spend your words on problems.
 ## The project
 
 **Sprocket & Sprout** is a top-down pixel-art farming + automation game in
-TypeScript + Vite on a single Canvas 2D. All art is drawn procedurally from a
-32-color palette. The UI is immediate-mode and drawn on the canvas with a
-bitmap font. Audio is procedural Web Audio. The sim (`src/sim/`) is pure and
+TypeScript + Vite on a single Canvas 2D. Art started fully procedural from a
+32-color palette (`src/data/palette.ts`). The owner decided on a **full
+replacement**: every sprite gets replaced, phase by phase, with imported
+pixel-art sheets (PixelLab-generated, loaded through the same atlas). The
+new palette is **Resurrect 64** (warm, 64 colors; hex list in `ROADMAP.md`,
+file in `references/palettes/resurrect-64.hex`; never fewer than 48 colors).
+Until Phase 1 writes it into `palette.ts`, the old 32 colors are what's on
+screen. Expect a mix of old and new art during the overhaul and judge whether
+the two styles clash. The UI is immediate-mode and drawn on the canvas with a bitmap font.
+Audio is procedural Web Audio plus a jsfxr sound bank
+(`src/engine/audio/sfxr.ts`): sounds in the bank are designed at sfxr.me,
+the rest are still synthesized. The sim (`src/sim/`) is pure and
 runs at a fixed 60 Hz. Each system is one file in `src/sim/systems/`.
 Rendering is in `src/render/` and UI in `src/ui/` (windows in
 `src/ui/windows/`). Content data is in `src/data/`. App screens are in
@@ -36,6 +45,12 @@ code map and environment notes):
   industrial gray"), architecture, 20-phase roadmap.
 - `DECISIONS.md`: design decisions with reasons. Challenge any you disagree
   with, and say why.
+- `ROADMAP.md`: the current plan (visual overhaul toward 1.1), its phases and
+  the hard rules for art. Judge the build against the phase it claims to be in.
+- `STYLE.md` (once Phase 1 writes it): the art bible. Hold every sprite to it.
+- `references/`: the owner's taste. `references/notes.md` says what they like
+  and why; the subfolders hold palettes, mood boards and screenshots of games
+  they admire. Use it loosely, for a sense of the target, not as a spec.
 - `PROGRESS.md`: what is actually built. Critique what exists. Flag plans
   that look risky, but don't review features that aren't built yet as if they
   were.
