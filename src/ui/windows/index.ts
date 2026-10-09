@@ -13,7 +13,7 @@ import { drawMenu } from './menu';
 import { drawStruct } from './struct';
 import { centered, frame } from './common';
 import { settingsPanel } from './settings';
-import { ICON, wrapText } from '../font';
+import { ICON, textWidth, wrapText } from '../font';
 import { keyLabel } from '../../engine/input';
 import { applyResearchMods } from '../../sim/save';
 import { runPerfScene } from '../../app/perf';
@@ -21,6 +21,8 @@ import { getArtMode, setArtMode } from '../../render/atlas';
 import { resetSkin } from '../skin';
 import { drawFx, ladderPitch } from '../../render/juice';
 import { QUEST_BY_ID } from '../../data/goals';
+import { CROP_BY_ID } from '../../data/crops';
+import { cropTotal } from '../../sim/systems/farming';
 
 export interface WinState {
   id: string;
@@ -131,13 +133,13 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
   const s = st.arg;
   const g = play.g;
   const a = play.app.audio, J = play.app.renderer.juice;
-  const sold: { k: number; n: number; price: number }[] = s.sold ?? [];
+  const sold: { k: number; n: number; price: number; coins?: number }[] = s.sold ?? [];
   const rows = sold.slice(0, 10);
   const D = st.data as { shown?: number; ticks?: number; done?: boolean; tease?: string[]; stamped?: boolean };
   if (!D.tease) D.tease = morningTease(play);
   // full 16 px icons in the night tally (the day's reward deserves more than belt-size icons)
   const ROW = 17;
-  const w = 300, h = Math.min(300, 116 + Math.min(10, sold.length) * ROW + D.tease.length * 11);
+  const w = 300, h = Math.min(316, 116 + Math.min(10, sold.length) * ROW + D.tease.length * 11 + ((s.quests ?? []).length ? 14 : 0));
   const { x, y } = centered(ui, w, h);
   ui.fill(0, 0, ui.w, ui.h, C.ink, 0.5);
   if (!frame(ui, x, y, w, h, `${SEASON_NAMES[s.season]} ${s.day}, Year ${s.year}`)) return false;
@@ -164,7 +166,13 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
   }
   if (ck >= 1) D.done = true;
   const record = s.total > 0 && s.total > (s.best ?? 0) && (s.best ?? 0) > 0;
-  ui.text(s.passedOut ? 'You collapsed from exhaustion...' : 'A good day\'s work.', x + w / 2, y + 14, s.passedOut ? C.brick : C.walnut, { align: 'center' });
+  // a record day: the headline itself turns into the stamp (with the wax seal pressing in)
+  if (record && ck >= 1) {
+    const sf = Math.min(2, Math.floor((st.t - tRows - COUNT) / 0.08));
+    const hw = textWidth('Best day yet!');
+    drawFx(ui.ctx, 'fx:seal', Math.max(0, sf), x + w / 2 - hw / 2 - 14, y + 18);
+    ui.text('Best day yet!', x + w / 2, y + 14, C.brick, { align: 'center' });
+  } else ui.text(s.passedOut ? 'You collapsed from exhaustion...' : 'A good day\'s work.', x + w / 2, y + 14, s.passedOut ? C.brick : C.walnut, { align: 'center' });
   if (s.passedOut) ui.text('You passed out and slept in until 10am.', x + w / 2, y + 26, C.brick, { align: 'center' });
   let yy = y + 40;
   if (!sold.length) ui.text('Nothing was shipped. Fill the crate by the house before bed!', x + w / 2, yy, C.oak, { align: 'center' });
@@ -175,10 +183,17 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
     const dx = age < 0.1 && !D.done ? Math.round((1 - age / 0.1) * 12) : 0;
     ui.itemIcon(it.k, x + 18 + dx, yy - 5, 16);
     ui.text(`${ITEMS[it.k >> 2].name} x${it.n}`, x + 38 + dx, yy, C.ink);
-    ui.text(`${ICON.coin}${(it.price * it.n).toLocaleString()}`, x + w - 20 + dx, yy, C.moss, { align: 'right' });
+    ui.text(`${ICON.coin}${(it.coins ?? it.price * it.n).toLocaleString()}`, x + w - 20 + dx, yy, C.moss, { align: 'right' });
     yy += ROW;
   });
   if (sold.length > 10 && shown >= rows.length) ui.text(`...and ${sold.length - 10} more kinds`, x + 38, yy, C.oak);
+  // quests finished today, under the sales
+  const qs: string[] = s.quests ?? [];
+  if (qs.length && shown >= rows.length) {
+    const qy = y + h - 60 - D.tease.length * 11;
+    drawFx(ui.ctx, 'fx:scroll', 3, x + 26, qy + 8);
+    ui.text(`Quests done: ${qs.slice(0, 2).join(', ')}${qs.length > 2 ? ` +${qs.length - 2}` : ''}`, x + 38, qy, C.walnut, { maxW: w - 58 });
+  }
   // the coin pile grows with the count; the total rolls up beside it
   const ty = y + h - 46 - D.tease.length * 11;
   if (s.total > 0) {
@@ -191,12 +206,8 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
     if (!D.stamped) {
       D.stamped = true;
       a.sfx('levelup', 0.8);
-      J.confetti(x + w / 2, ty - 4, 40, true, 80);
+      J.confetti(x + w / 2, y + 18, 40, true, 80);
     }
-    const sw = 96;
-    ui.fill(x + w / 2 - sw / 2, ty - 18, sw, 13, C.ink);
-    ui.fill(x + w / 2 - sw / 2 + 1, ty - 17, sw - 2, 11, C.brick);
-    ui.text('Best day yet!', x + w / 2, ty - 15, C.cream, { align: 'center' });
   }
   // what's waiting this morning: a reason to get up
   D.tease.forEach((line, i) => ui.text(line, x + w / 2, y + h - 40 - (D.tease!.length - i) * 11 + 6, C.pine, { align: 'center' }));
@@ -218,6 +229,19 @@ function morningTease(play: PlayScreen): string[] {
   for (const e of g.ents.machines) goods += e.mach?.outBuf.reduce((n, o) => n + o.n, 0) ?? 0;
   if (ripe) out.push(`${ripe} crop${ripe > 1 ? 's are' : ' is'} ripe and ready to pick.`);
   if (goods) out.push(`Your machines made ${goods} good${goods > 1 ? 's' : ''} overnight.`);
+  // the soonest crop still growing: a date to look forward to
+  if (out.length < 2) {
+    let best: { name: string; days: number } | null = null;
+    for (const s of g.soil.values()) {
+      const c = s.crop;
+      if (!c || c.ready || c.dead) continue;
+      const cr = CROP_BY_ID.get(c.id);
+      if (!cr) continue;
+      const days = cropTotal(cr) - c.days;
+      if (!best || days < best.days) best = { name: ITEM_BY_ID.get(cr.produce)?.name ?? cr.name, days };
+    }
+    if (best) out.push(`Your ${best.name.toLowerCase()} ${best.days <= 1 ? 'ripen tomorrow' : `ripen in ${best.days} days`}.`);
+  }
   if (!out.length) {
     const q = (g.sys.quests?.active ?? [])[0] as { id: string } | undefined;
     const title = q ? QUEST_BY_ID.get(q.id)?.title : null;

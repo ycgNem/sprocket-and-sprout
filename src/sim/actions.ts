@@ -17,6 +17,7 @@ import { deconstruct } from './build';
 import { machInsert, setRecipe } from './systems/machines';
 import { curMap } from './systems/player';
 import { Ent } from './ents';
+import { portInsert } from './ports';
 
 export const TOOL_POWER = [1, 1.6, 2.4, 3.4, 5];
 const BASE_COST: Record<string, number> = { hoe: 2, can: 2, axe: 2, pick: 2, scythe: 0, rod: 3, sword: 0 };
@@ -607,6 +608,8 @@ export function interactStruct(g: Game, e: Ent): boolean {
       const n = machInsert(g, e, held.k, held.n, true);
       if (n > 0) {
         p.inv.remove(held.k, n);
+        g.sys.quests?.notify?.(g, 'load', 1, d.id);
+        g.emit({ t: 'hop', ent: e.id });
         g.emit({ t: 'sfx', id: 'insert' });
         g.emit({ t: 'float', text: `+${n}`, x: e.x + e.w / 2, y: e.y, c: 7 });
         return true;
@@ -629,11 +632,36 @@ export function interactStruct(g: Game, e: Ent): boolean {
       }
     }
     if (loaded) {
+      g.sys.quests?.notify?.(g, 'load', 1, d.id);
+      g.emit({ t: 'hop', ent: e.id });
       g.emit({ t: 'sfx', id: 'insert' });
       g.emit({ t: 'float', text: `+${loaded}`, x: e.x + e.w / 2, y: e.y, c: 7 });
       g.toast(`Loaded ${loaded} ${ITEM_BY_ID.get(what)?.name ?? what} from your bag.`);
       return true;
     }
+  }
+  // the study desk: F loads research bundles from the bag, then (if no topic is picked) opens
+  // the research tree, so the first study is one key away
+  if (d.kind === 'lab') {
+    let loaded = 0;
+    for (const s of [...p.inv.slots]) {
+      if (!s || kDef(s.k).cat !== 'research') continue;
+      const n = portInsert(g, e, s.k, s.n, 0);
+      if (n > 0) {
+        p.inv.remove(s.k, n);
+        loaded += n;
+      }
+    }
+    if (loaded) {
+      g.emit({ t: 'hop', ent: e.id });
+      g.emit({ t: 'sfx', id: 'insert' });
+      g.emit({ t: 'float', text: `+${loaded}`, x: e.x + e.w / 2, y: e.y, c: 7 });
+    }
+    if (loaded && !g.research.current) {
+      g.emit({ t: 'ui', open: 'research' });
+      return true;
+    }
+    if (loaded) return true;
   }
   if (d.kind === 'pond' && held && kDef(held.k).cat === 'fish') {
     if (stockPond(g, e, held.k)) {

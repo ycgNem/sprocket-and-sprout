@@ -54,23 +54,26 @@ function start(g: Game, def: QuestDef) {
   q.active.push({ id: def.id, prog: def.objectives.map(() => 0), day: g.dayIndex });
   if (g.dayIndex > 0 || def.id !== 't_welcome') {
     g.toast(`New quest: ${def.title}`, undefined, 6);
-    g.emit({ t: 'sfx', id: 'quest' });
+    // a soft sting for a new quest; the big fanfare is for finishing one
+    g.emit({ t: 'sfx', id: 'chime', v: 0.7 });
   }
   g.sys.mail?.send?.(g, 'quest:' + def.id, { title: def.title, text: def.desc, from: def.giver });
   // some objectives may already be satisfied
   poll(g);
 }
 
-function startAvailable(g: Game) {
+/** `bedtime`: the day is ending, so quests held back by `firstDayFrom` start now (and can complete) */
+function startAvailable(g: Game, bedtime = false) {
   const q = questSys(g);
   for (const d of QUESTS) {
     if (q.done.includes(d.id) || q.active.some((a) => a.id === d.id)) continue;
     if (d.startDay !== undefined && g.dayIndex < d.startDay) continue;
+    if (!bedtime && d.firstDayFrom !== undefined && g.dayIndex === 0 && g.time.min < d.firstDayFrom * 60) continue;
     if (d.needFlag && !g.flags.has(d.needFlag)) continue;
     // Sandbox has no quests; Clockwork Rush keeps only the opening tutorial
     if (g.mode === 'sandbox' || (g.mode === 'rush' && !d.tutorial)) continue;
-    // at most three story quests at once; the rest wait their turn
-    if (d.startDay === undefined && q.active.length >= 3) continue;
+    // at most three story quests at once; the rest wait their turn (tutorial steps don't count)
+    if (d.startDay === undefined && !d.tutorial && q.active.filter((a) => !QUEST_BY_ID.get(a.id)?.tutorial).length >= 3) continue;
     // a prerequisite gated behind a flag this save doesn't have (e.g. the new opening) counts as met
     const met = (a: string) => q.done.includes(a) || (!!QUEST_BY_ID.get(a)?.needFlag && !g.flags.has(QUEST_BY_ID.get(a)!.needFlag!));
     if (d.after && !d.after.every(met)) continue;
@@ -92,7 +95,7 @@ function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
       return rate >= o.perMin || prog > 0;
     }
     // things crafted before the quest started count if you still have them (in the bag or placed)
-    case 'craft': return prog >= o.n || g.player.inv.countId(o.item) + g.ents.all().filter((e) => !e.ghost && e.def.item === o.item).length >= o.n;
+    case 'craft': return prog >= o.n || (!o.fresh && g.player.inv.countId(o.item) + g.ents.all().filter((e) => !e.ghost && e.def.item === o.item).length >= o.n);
     // structures placed before the quest started count too
     case 'build': return prog >= o.n || g.ents.all().filter((e) => !e.ghost && e.def.id === o.struct).length >= o.n;
     case 'research': return o.id === '*' ? (g.counters.research ?? 0) >= 1 : g.research.done.has(o.id);
@@ -113,8 +116,13 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
     case 'deliver': return `Bring ${o.n} ${item(o.item)} to ${shortName(NPC_BY_ID.get(o.to)?.name ?? '')}`;
     case 'ship': return `Ship ${o.n} ${item(o.item)} (${Math.min(prog, o.n)}/${o.n})`;
     case 'talk': return `Talk to ${shortName(NPC_BY_ID.get(o.npc)?.name ?? '')}`;
-    case 'build': return `Build ${o.n > 1 ? o.n + ' ' : 'a '}${STRUCT_BY_ID.get(o.struct)?.name} (${Math.min(prog, o.n)}/${o.n})`;
-    case 'craft': return `Craft ${o.n > 1 ? o.n + ' ' : 'a '}${item(o.item)}`;
+    case 'build': {
+      // placed ones count, so show them (not just the ones built since the quest began)
+      const placed = g.ents.all().filter((e) => !e.ghost && e.def.id === o.struct).length;
+      return `Build ${o.n > 1 ? o.n + ' ' : 'a '}${STRUCT_BY_ID.get(o.struct)?.name} (${Math.min(Math.max(prog, placed), o.n)}/${o.n})`;
+    }
+    case 'craft': return `Craft ${o.n > 1 ? o.n + ' ' : 'a '}${item(o.item)}` + (o.fresh ? ` (${Math.min(prog, o.n)}/${o.n})` : '');
+    case 'load': return `Load the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct}`;
     case 'research': return o.id === '*' ? 'Research any topic' : `Research ${RESEARCH_BY_ID.get(o.id)?.name}`;
     case 'floor': return `Reach mine floor ${o.n} (${Math.min(o.n, g.sys.mine?.deepest ?? 0)}/${o.n})`;
     case 'catch': return `Catch ${o.n} fish (${Math.min(prog, o.n)}/${o.n})`;
@@ -143,6 +151,7 @@ function complete(g: Game, a: ActiveQuest) {
   }
   for (const it of r.items ?? []) g.give(key(it.item), it.n);
   if (r.flag) g.flags.add(r.flag);
+  (q.today ??= []).push(def.title);
   if (r.friendship) {
     const n = npcSys(g).byId.get(r.friendship[0]);
     if (n) addPoints(g, n, r.friendship[1]);
@@ -176,6 +185,7 @@ function notify(g: Game, type: string, n: number, extra?: string) {
         case 'harvest': if (!o.item || o.item === extra) a.prog[i] += n; break;
         case 'ship': if (o.item === extra || (o.item[0] === '#' && extra && matchesSpec(ITEM_BY_ID.get(extra)!, o.item))) a.prog[i] += n; break;
         case 'craft': if (o.item === extra) a.prog[i] += n; break;
+        case 'load': if (o.struct === extra) a.prog[i] += n; break;
         case 'build': if (o.struct === extra) a.prog[i] += n; break;
         case 'catch': if (!o.fish || o.fish === extra) a.prog[i] += n; break;
         case 'till': case 'plant': case 'water': a.prog[i] += n; break;
@@ -270,6 +280,8 @@ registerSystem({
         });
       }
       poll(g);
+      // quests held back until an hour of the first day (bedtime) start when it comes
+      if (g.dayIndex === 0) startAvailable(g);
     }
   },
   dayStart(g) {
@@ -278,8 +290,12 @@ registerSystem({
     startAvailable(g);
     rollRequests(g);
   },
-  dayEnd(g) {
+  dayEnd(g, summary) {
+    startAvailable(g, true);
     notify(g, 'sleep', 1);
+    const q = questSys(g);
+    summary.quests = q.today ?? [];
+    q.today = [];
   },
   save(g) {
     const q = questSys(g);

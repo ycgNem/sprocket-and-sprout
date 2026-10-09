@@ -57,7 +57,7 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
     }
   } else if (e.inv) {
     const readonly = kind === 'harvester' || kind === 'fishtrap' || kind === 'tapper' || kind === 'drill' || (kind === 'building' && e.def.id !== 'silo');
-    if (kind === 'shipbin') ui.text('Items here are sold overnight. Arms can feed this crate.', x + 14, top + 2, C.walnut);
+    if (kind === 'shipbin') ui.text('The post takes it at noon, 6pm and overnight.', x + 14, top + 2, C.walnut);
     else if (kind === 'planter') ui.text('Seeds and fertilizer for sowing. Arms can refill it.', x + 14, top + 2, C.walnut);
     else ui.text(readonly ? 'Collected goods. Click to take, or use an arm.' : `${e.inv.slots.filter(Boolean).length}/${e.inv.size} stacks used. Shift-click to move.`, x + 14, top + 2, C.walnut);
     invGrid(ui, play, e.inv, x + 14, top + 14, 12, { target: inv, readonly, accept: kind === 'shipbin' ? (k) => kDef(k).price > 0 : undefined });
@@ -66,7 +66,7 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
     if (kind === 'shipbin') {
       let total = 0;
       for (const s of e.inv.slots) if (s) total += (g.sys.market?.priceOf?.(g, s.k) ?? kDef(s.k).price) * s.n;
-      ui.text(`Estimated value: ${ICON.coin}${total}`, x + w - 14, top + 2, C.moss, { align: 'right' });
+      ui.text(`Worth ${ICON.coin}${total.toLocaleString()}`, x + w - 14, top + 2, C.moss, { align: 'right' });
     }
   } else if (e.arm) {
     armPanel(ui, play, e, x, top, w);

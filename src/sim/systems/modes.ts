@@ -44,7 +44,11 @@ function swap(g: Game, from: string, to: string) {
 }
 
 /** Where the opening's pieces sit (all inside the farmhouse yard on every map). */
-export const OPENING = { beans: { x: 42, y: 26, w: 4, h: 2 }, jar: [54, 23] as [number, number], armTile: [54, 22] as [number, number] };
+export const OPENING = {
+  beans: { x: 42, y: 26, w: 4, h: 2 }, jar: [54, 23] as [number, number], armTile: [54, 22] as [number, number],
+  /** bare dirt beside the beans that "Room to Grow" points at (6 tiles: till, plant, water) */
+  plot: { x: 42, y: 29, w: 3, h: 2 },
+};
 
 /**
  * The clockwork opening: the old keeper left ripe cogbeans and a working preserves jar
@@ -72,12 +76,22 @@ function tinkerStart(g: Game) {
       g.map.ground[i] = T.DIRT;
       g.soil.set(i, { water: true, fert: null, idle: 0, crop: { id: 'cogbean', days: 8, stage: 4, ready: true, harvests: 0, dead: false, giant: -1, frac: 0 } });
     }
+  // a clear patch of dirt for the first planting
+  const P = OPENING.plot;
+  for (let y = P.y; y < P.y + P.h; y++)
+    for (let x = P.x; x < P.x + P.w; x++) {
+      const i = g.map.idx(x, y);
+      g.map.obj[i] = O.NONE;
+      g.map.trees.delete(i);
+      g.map.ground[i] = T.DIRT;
+    }
   const [jx, jy] = OPENING.jar;
   for (const [x, y] of [OPENING.jar, OPENING.armTile]) {
     g.map.obj[g.map.idx(x, y)] = O.NONE;
     g.map.trees.delete(g.map.idx(x, y));
   }
-  g.ents.add('jar', jx, jy, 0);
+  // the keeper's jar runs its first three batches at 4x: the first pickle in ~15 s
+  g.ents.add('jar', jx, jy, 0).st.quick = 3;
   // these tutorial steps are covered by the opening
   const q = questSys(g);
   for (const id of ['t_research', 't_belts', 't_factory']) if (!q.done.includes(id)) q.done.push(id);

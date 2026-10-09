@@ -58,6 +58,12 @@ export function door(g: Game, b: BuildingInfo) {
     }
     g.emit({ t: 'sfx', id: 'door' });
     if (shop.id === 'clinic') g.player.hp = g.player.maxHp;
+    // stepping into a keeper's shop counts as saying hello (quests that say "talk to" them)
+    if (keeper) {
+      keeper.met = true;
+      keeper.talked = true;
+    }
+    g.sys.quests?.notify?.(g, 'talk', 1, shop.owner);
     g.emit({ t: 'ui', open: 'shop', arg: shop.id });
     return;
   }

@@ -33,7 +33,8 @@ import { T } from '../sim/world/tilemap';
 import { PULSE_COL, machineState, pulseEnts } from '../ui/pulse';
 import { checkTips } from './tips';
 import { drawFx, ladderPitch, type Pt } from '../render/juice';
-import { promptAt, toolVerb } from '../sim/prompts';
+import { promptAt, questTarget, toolVerb } from '../sim/prompts';
+import { POST_TIMES } from '../sim/systems/economy';
 import { unitPrice } from '../sim/systems/economy';
 import { unlocksOf } from '../sim/systems/research';
 import { RESEARCH } from '../data/research';
@@ -304,17 +305,17 @@ export class PlayScreen implements Screen {
     // a modal window owns the screen: the HUD would only peek out around its edges
     if (!this.modalOpen) drawHud(ui, this, dt);
     this.drawPrompt(ui, dt);
+    this.drawPostTimer(ui);
+    this.drawCompass(ui);
     this.worldHover(ui);
     if (this.win) {
       this.win.t += dt;
       const def = WINDOWS[this.win.id];
       const pop = Math.min(1, this.win.t / 0.12);
       if (pop < 1 && def?.modal !== false) {
-        const sc = 0.94 + 0.06 * pop;
+        // windows rise into place by whole pixels and fade in (no fractional scaling)
         ui.ctx.save();
-        ui.ctx.translate(ui.w / 2, ui.h / 2);
-        ui.ctx.scale(sc, sc);
-        ui.ctx.translate(-ui.w / 2, -ui.h / 2);
+        ui.ctx.translate(0, Math.round((1 - pop) * 8));
         ui.ctx.globalAlpha = 0.4 + 0.6 * pop;
       }
       const keep = def ? def.draw(ui, this, this.win) : false;
@@ -323,7 +324,7 @@ export class PlayScreen implements Screen {
     }
     // flights into the HUD, the streak counter, banners and confetti ride on top (the streak and
     // banners wait while a window is open; the night tally's confetti shows over it)
-    r.juice.drawUI(ui.ctx, ui.w, ui.h, this.toUI(g.player.x, g.player.y - 1.9), this.modalOpen, dt);
+    r.juice.drawUI(ui, this.toUI(g.player.x, g.player.y - 1.9), this.modalOpen, dt);
     if (g.sleeping || this.sleepFade > 0.5) {
       ui.text('Z z z', ui.w / 2, ui.h / 2 - 20, C.cream, { align: 'center', scale: 3 });
       const h = Math.floor(g.time.min / 60) % 24, mm = Math.floor(g.time.min % 60 / 10) * 10;
@@ -387,7 +388,7 @@ export class PlayScreen implements Screen {
     const g = this.g;
     // a running harvest streak owns the space over your head; the bubble comes back when it fades
     const streak = this.app.renderer.juice.streak;
-    if (this.win || g.sleeping || this.mode !== 'normal' || this.heldPlaceable() || g.sys.fishing?.busy || !this.app.settings.keyPrompts || (streak.n >= 3 && streak.t < 1.8)) {
+    if (this.win || g.sleeping || this.mode !== 'normal' || this.heldPlaceable() || g.sys.fishing?.busy || !this.app.settings.keyPrompts || (streak.n >= 3 && streak.t < 1.8) || this.app.renderer.juice.banners.length) {
       this.promptKey = '';
       return;
     }
@@ -413,12 +414,17 @@ export class PlayScreen implements Screen {
       this.promptT = 0;
     }
     this.promptT += dt;
-    const at = this.toUI(pr.x, pr.y);
+    // facing down, the thing is under the player's feet: the bubble hangs below it instead
+    const facingDown = key !== 'Click' && g.player.dir === 2;
+    const at = this.toUI(pr.x, facingDown ? Math.max(pr.y, fy) + 1.05 : pr.y);
     const kw = textWidth(key) + 6, vw = textWidth(pr.verb);
     const w = kw + vw + 10, h = 15;
-    const below = key === 'Click';
+    let below = key === 'Click' || facingDown;
+    // never over the hotbar and the held-item label: flip above the tile instead
+    if (below && at.y + 3 + h > ui.h - 64) below = false;
+    const ay = below ? at.y : facingDown ? this.toUI(pr.x, Math.min(pr.y, fy - 1.7)).y : key === 'Click' ? this.toUI(pr.x, pr.y - 1.15).y : at.y;
     const rise = this.promptT < 0.12 ? (below ? -2 : 2) : 0;
-    const x = Math.round(at.x - w / 2), y = Math.round(below ? at.y + 3 + rise : at.y - h - 6 + rise);
+    const x = Math.round(at.x - w / 2), y = Math.round(below ? at.y + 3 + rise : ay - h - 6 + rise);
     ui.ctx.globalAlpha = Math.min(1, this.promptT / 0.12);
     // bubble with a tail pointing at the thing
     ui.fill(x, y, w, h, C.ink);
@@ -699,14 +705,17 @@ export class PlayScreen implements Screen {
     const placeable = this.heldPlaceable();
     if (placeable) {
       const def = STRUCT_BY_ID.get(placeable)!;
+      // the opening's first arm snaps onto its marked tile when you aim near it
+      const snap = this.armSnap(t);
+      const tt = snap ? { ...t, x: snap.x, y: snap.y } : t;
       // the opening's first arm: over the marked tile it turns itself from the jar to the crate
-      if (def.kind === 'arm' && t.x === OPENING.armTile[0] && t.y === OPENING.armTile[1] && (g.sys.quests?.active as { id: string }[] | undefined)?.some((a) => a.id === 't_arm')) {
+      if (def.kind === 'arm' && tt.x === OPENING.armTile[0] && tt.y === OPENING.armTile[1] && (g.sys.quests?.active as { id: string }[] | undefined)?.some((a) => a.id === 't_arm')) {
         const bin = g.ents.get(g.shipBinId);
-        for (let d = 0; d < 4; d++) if (bin && g.ents.rootAt(t.x + DX[d], t.y + DY[d]) === bin) this.rot = d as Dir;
+        for (let d = 0; d < 4; d++) if (bin && g.ents.rootAt(tt.x + DX[d], tt.y + DY[d]) === bin) this.rot = d as Dir;
       }
-      if (input.mouse.pressed[0]) this.drag = { x: t.x, y: t.y };
+      if (input.mouse.pressed[0]) this.drag = { x: tt.x, y: tt.y };
       if (input.mouse.released[0] && this.drag) {
-        const line = this.dragLine(placeable, this.drag.x, this.drag.y, t.x, t.y);
+        const line = this.dragLine(placeable, this.drag.x, this.drag.y, tt.x, tt.y);
         let placed = 0;
         for (const L of line) {
           const st = p.inv.slots[p.sel];
@@ -719,11 +728,11 @@ export class PlayScreen implements Screen {
           if (def.kind === 'belt') this.rot = L.rot;
         }
         if (!placed && line.length === 1) {
-          const chk = canPlace(g, placeable, t.x, t.y, this.rot);
+          const chk = canPlace(g, placeable, tt.x, tt.y, this.rot);
           if (!chk.ok) {
             this.toast(chk.reason ?? "Can't place that here.");
             app.audio.sfx('error');
-          } else if (!this.reachOk(t.x, t.y, buildReach)) this.toast('Too far away.');
+          } else if (!this.reachOk(tt.x, tt.y, buildReach)) this.toast('Too far away.');
         }
         g.sys.quests?.notify?.(g, 'build', placed, placeable);
         this.drag = null;
@@ -791,6 +800,17 @@ export class PlayScreen implements Screen {
     }
   }
 
+  /** during "A Helping Hand", an arm held within a tile of the marked spot snaps onto it */
+  armSnap(t: { x: number; y: number }): { x: number; y: number } | null {
+    const g = this.g;
+    const held = this.heldPlaceable();
+    if (!held || STRUCT_BY_ID.get(held)?.kind !== 'arm') return null;
+    if (!(g.sys.quests?.active as { id: string }[] | undefined)?.some((a) => a.id === 't_arm')) return null;
+    const [ax, ay] = OPENING.armTile;
+    if (g.ents.at(ax, ay) || Math.max(Math.abs(t.x - ax), Math.abs(t.y - ay)) > 1) return null;
+    return { x: ax, y: ay };
+  }
+
   /** ghost preview, target highlight, area selection rectangles */
   private worldOverlays() {
     const r = this.app.renderer, g = this.g;
@@ -835,7 +855,8 @@ export class PlayScreen implements Screen {
       const placeable = this.heldPlaceable();
       if (placeable) {
         if (grid) this.drawGrid(t.x, t.y);
-        const line = this.drag ? this.dragLine(placeable, this.drag.x, this.drag.y, t.x, t.y) : [{ x: t.x, y: t.y, rot: this.rot }];
+        const sn = this.armSnap(t) ?? t;
+        const line = this.drag ? this.dragLine(placeable, this.drag.x, this.drag.y, sn.x, sn.y) : [{ x: sn.x, y: sn.y, rot: this.rot }];
         for (const L of line) {
           const chk = canPlace(g, placeable, L.x, L.y, L.rot);
           const inReach = this.reachOk(L.x, L.y, 9 + g.mods.reach);
@@ -896,6 +917,74 @@ export class PlayScreen implements Screen {
       else mark(OPENING.jar[0], OPENING.jar[1]);
     }
     if (has('t_arm') && !g.ents.at(OPENING.armTile[0], OPENING.armTile[1])) mark(OPENING.armTile[0], OPENING.armTile[1]);
+    // the first planting: the bare plot beside the beans, until it's tilled, planted and watered
+    const P = OPENING.plot;
+    const plotTiles: number[] = [];
+    for (let y = P.y; y < P.y + P.h; y++) for (let x = P.x; x < P.x + P.w; x++) plotTiles.push(g.map.idx(x, y));
+    const plotTodo = (has('t_plant') && plotTiles.some((i) => !g.soil.get(i)?.crop)) || (has('t_water') && plotTiles.some((i) => g.soil.get(i)?.crop && !g.soil.get(i)!.water));
+    if (plotTodo) mark(P.x, P.y, P.w, P.h);
+    // a villager or place the quest wants you to reach, when it's on screen
+    const tg = questTarget(g);
+    if (tg && Math.abs(tg.x - this.app.renderer.cam.x) < 14 && Math.abs(tg.y - this.app.renderer.cam.y) < 8) {
+      const bob = Math.round(Math.sin(this.playtime * 5) * 2);
+      drawFx(ctx, 'fx:arrow', Math.floor(this.playtime * 8), tg.x * TILE, tg.y * TILE - 4 + bob);
+    }
+  }
+
+  /** the off-screen compass: a pointer at the screen edge toward the quest's villager or place */
+  private drawCompass(ui: any) {
+    const g = this.g;
+    if (this.modalOpen) return;
+    const tg = questTarget(g);
+    if (!tg) return;
+    const r = this.app.renderer;
+    if (Math.abs(tg.x - r.cam.x) < 14 && Math.abs(tg.y - r.cam.y) < 8) return;
+    const at = this.toUI(tg.x, tg.y);
+    const cx = ui.w / 2, cy = ui.h / 2;
+    const dx = at.x - cx, dy = at.y - cy;
+    const k = Math.min((ui.w / 2 - 70) / Math.max(1, Math.abs(dx)), (ui.h / 2 - 60) / Math.max(1, Math.abs(dy)));
+    const w = textWidth(tg.label) + 22;
+    let x = Math.round(cx + dx * k), y = Math.round(cy + dy * k);
+    // keep clear of the quest tracker (top left), the chronometer column (right) and the hotbar
+    if (y < 120) x = Math.max(172 + w / 2, Math.min(ui.w - 132 - w / 2, x));
+    else if (x > ui.w - 132 - w / 2 && y < 210) x = ui.w - 132 - w / 2;
+    y = Math.min(y, ui.h - 70);
+    const dir = (Math.round((Math.atan2(dx, -dy) / (Math.PI * 2)) * 8) + 8) % 8;
+    const bob = Math.round(Math.sin(this.playtime * 5) * 1.5);
+    ui.fill(x - w / 2, y - 7, w, 14, C.ink, 0.85);
+    ui.fill(x - w / 2 + 1, y - 6, w - 2, 1, C.slate);
+    drawFx(ui.ctx, 'fx:compass', dir, x - w / 2 + 8 + (dir === 1 || dir === 2 || dir === 3 ? bob : dir >= 5 ? -bob : 0), y + (dir === 3 || dir === 4 || dir === 5 ? bob : dir === 7 || dir === 0 || dir === 1 ? -bob : 0));
+    ui.text(tg.label, x - w / 2 + 16, y - 3, C.cream);
+  }
+
+  /** a countdown over the shipping crate to the next post collection (noon, 6pm) */
+  private drawPostTimer(ui: any) {
+    const g = this.g;
+    if (this.modalOpen || g.player.where !== 'world' || g.sleeping) return;
+    const bin = g.ents.get(g.shipBinId);
+    if (!bin) return;
+    const r = this.app.renderer;
+    if (Math.abs(bin.x - r.cam.x) > 14 || Math.abs(bin.y - r.cam.y) > 8) return;
+    const waiting = !!bin.inv && !bin.inv.isEmpty();
+    const q = g.sys.quests?.active as { id: string }[] | undefined;
+    if (!waiting && !q?.some((a) => a.id === 't_post')) return;
+    const next = POST_TIMES.find((t) => t > g.time.min);
+    const left = next === undefined ? -1 : next - g.time.min;
+    const label = left < 0 ? 'Post tonight' : `Post in ${left >= 60 ? Math.floor(left / 60) + 'h ' : ''}${Math.floor(left % 60)}m`;
+    // beside the crate (its values pop up above it, the key bubble sits over it)
+    const at = this.toUI(bin.x + bin.w, bin.y + 0.45);
+    const w = textWidth(label) + 18, h = 13;
+    const x = Math.round(at.x + 5), y = Math.round(at.y - h / 2);
+    ui.fill(x - 2, y + 4, 2, 5, C.ink);
+    ui.fill(x - 1, y + 5, 1, 3, C.walnut);
+    ui.fill(x, y, w, h, C.ink);
+    ui.fill(x + 1, y + 1, w - 2, h - 2, C.walnut);
+    ui.fill(x + 1, y + 1, w - 2, 1, C.oak);
+    // a little clock face
+    ui.fill(x + 3, y + 3, 7, 7, C.cream);
+    ui.fill(x + 6, y + 4, 1, 3, C.ink);
+    ui.fill(x + 6, y + 6, 2, 1, C.ink);
+    ui.text(label, x + 13, y + 3, left >= 0 && left < 30 ? C.butter : C.cream);
   }
 
   private drawGrid(cx: number, cy: number) {
@@ -1036,7 +1125,7 @@ export class PlayScreen implements Screen {
         }
         case 'quest': {
           a.sfx('quest');
-          J.banner({ title: 'Quest complete!', sub: e.title + (e.money ? `   ${ICON.coin}${e.money}` : ''), color: 29, items: e.items.map((it) => ({ id: it.item, n: it.n })) });
+          J.banner({ title: 'Quest complete!', sub: e.title + (e.money ? `   ${ICON.coin}${e.money.toLocaleString()}` : ''), color: 29, items: e.items.map((it) => ({ id: it.item, n: it.n })) });
           const top: Pt = { x: this.app.ui.w / 2, y: Math.max(72, this.app.ui.h * 0.24) + 20 };
           J.confetti(top.x, top.y, 46, true, 90);
           this.coinSrc = top;
@@ -1046,9 +1135,13 @@ export class PlayScreen implements Screen {
         case 'crated':
           // automation = coins: what the arm just shipped will fetch
           if (onScreen(e.x, e.y) && g.player.where === 'world') {
-            P.text(e.x * TILE, e.y * TILE - 6, '+' + unitPrice(g, e.k) * e.n, C.butter);
+            J.pop('+' + unitPrice(g, e.k) * e.n, e.x * TILE, e.y * TILE - 2, C.butter, 2);
             J.fx('fx:glint', e.x * TILE + 4, e.y * TILE - 2, { fps: 12 });
+            if (e.ent !== undefined) J.hop(e.ent);
           }
+          break;
+        case 'post':
+          J.bannerNext({ title: `The ${e.label} post!`, sub: `${ICON.coin}${e.total.toLocaleString()} for your crate`, color: C.copper, items: [] });
           break;
         case 'hop':
           if (e.tile !== undefined) J.hopTile(e.tile);

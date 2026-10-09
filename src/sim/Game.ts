@@ -105,18 +105,23 @@ export type GameEvent =
   /** a crop (tile index) or structure (entity id) gives a little hop */
   | { t: 'hop'; tile?: number; ent?: number }
   /** an arm dropped goods in a shipping crate (the play screen shows what they'll fetch) */
-  | { t: 'crated'; k: number; n: number; x: number; y: number };
+  | { t: 'crated'; k: number; n: number; x: number; y: number; ent?: number }
+  /** the post collected the crate at noon or 6pm */
+  | { t: 'post'; label: string; total: number };
 
 export interface DaySummary {
   day: number;
   season: Season;
   year: number;
-  sold: { k: number; n: number; price: number }[];
+  /** coins: the row's exact total (price is the rounded average per unit) */
+  sold: { k: number; n: number; price: number; coins?: number }[];
   total: number;
   passedOut: boolean;
   penalty: number;
   /** the best day's shipping total before this one (for the "best day yet" stamp) */
   best?: number;
+  /** titles of the quests completed today */
+  quests?: string[];
 }
 
 export interface Mods {

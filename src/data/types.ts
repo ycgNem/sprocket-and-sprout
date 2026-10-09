@@ -307,7 +307,10 @@ export type ObjectiveDef =
   | { t: 'ship'; item: string; n: number }
   | { t: 'talk'; npc: string }
   | { t: 'build'; struct: string; n: number }
-  | { t: 'craft'; item: string; n: number }
+  /** fresh: only items crafted after the quest started count (not ones you already own) */
+  | { t: 'craft'; item: string; n: number; fresh?: boolean }
+  /** load a machine of this kind by hand (F / right-click) */
+  | { t: 'load'; struct: string; n: number }
   | { t: 'research'; id: string }
   | { t: 'floor'; n: number }
   | { t: 'catch'; n: number; fish?: string }
@@ -334,6 +337,8 @@ export interface QuestDef {
   startDay?: number;
   /** only offered when this flag is set (e.g. the clockwork opening) */
   needFlag?: string;
+  /** on the very first day, don't start before this hour (it still starts by bedtime) */
+  firstDayFrom?: number;
   tutorial?: boolean;
   hint?: string;
 }

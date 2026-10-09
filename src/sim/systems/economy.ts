@@ -299,7 +299,8 @@ function postCollect(g: Game, label: string) {
   }
   g.emit({ t: 'sfx', id: 'chime' });
   g.emit({ t: 'sfx', id: 'coin' });
-  g.toast(`The ${label} post collected your crate: +${res.total.toLocaleString()} coins.`, undefined, 6);
+  // its own beat: the play screen shows a "The noon post!" ribbon (ahead of any quest ribbon)
+  g.emit({ t: 'post', label, total: res.total });
 }
 
 registerSystem({
@@ -325,7 +326,7 @@ registerSystem({
       e.coins += s.price * s.n;
       merged.set(s.k, e);
     }
-    summary.sold = [...merged.values()].map((e) => ({ k: e.k, n: e.n, price: Math.round(e.coins / e.n) })).sort((a, b) => b.price * b.n - a.price * a.n);
+    summary.sold = [...merged.values()].map((e) => ({ k: e.k, n: e.n, price: Math.round(e.coins / e.n), coins: Math.round(e.coins) })).sort((a, b) => b.coins - a.coins);
     summary.total = res.total + early.total;
     g.sys.postDay = { sold: [], total: 0 };
     g.sys.postLast = -1;

@@ -80,6 +80,9 @@ for (let i = 0; i < 60; i++) {
 await shot('03-summary');
 check(await page.evaluate(() => window.__game.time.day === 2), 'woke up on day 2');
 check(await page.evaluate(() => window.__game.player.where === 'house'), 'woke up inside the farmhouse');
+// the tally counts up: the first Enter finishes the count, the second closes it
+await page.keyboard.press('Enter');
+await wait(300);
 await page.keyboard.press('Enter');
 await wait(600);
 check(await page.evaluate(() => Object.keys(localStorage).some((k) => k.startsWith('sns_save_'))), 'autosaved');

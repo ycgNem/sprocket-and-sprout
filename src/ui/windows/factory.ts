@@ -116,7 +116,7 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     ui.text('Researching:', px + 6, py + 18, C.oak);
     ui.text(r.name, px + 6, py + 28, C.ink);
     ui.bar(px + 6, py + 39, pw - 12, 5, (g.research.progress[r.id] ?? 0) / researchUnits(r.id, g), C.moss);
-  } else ui.text(labs.length ? 'Nothing selected!' : 'Place a Study Desk first.', px + 6, py + 22, C.brick);
+  } else ui.text(!labs.length ? 'Place a Study Desk first.' : sel ? 'Press "Research this" below.' : 'Pick a topic to study.', px + 6, py + 22, labs.length && sel ? C.moss : C.brick);
   if (!sel) {
     ui.para('Select a node to see what it unlocks. Right-drag or scroll to move around.', px + 6, py + 56, pw - 12, C.walnut);
     return true;

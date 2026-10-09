@@ -91,7 +91,7 @@ export const SHOPS: ShopDef[] = [
     greeting: 'Ah! A fellow enthusiast of things that turn. Parts, gizmos, and grand ideas.',
     stock: [
       { item: 'copper_gear', price: 160 }, { item: 'copper_coil', price: 120 }, { item: 'rope', price: 60 }, { item: 'spring', price: 300, unlock: 'r_metallurgy' },
-      { item: 'lab', price: 1500, unlock: 'flag:lab' }, { item: 'belt_1', price: 60, unlock: 'r_belts' }, { item: 'arm_basic', price: 350, unlock: 'r_arms' },
+      { item: 'lab', price: 1500, unlock: 'flag:lab' }, { item: 'belt_1', price: 60, unlock: 'r_belts' }, { item: 'arm_basic', price: 350, unlock: 'r_arms' }, { item: 'jar', price: 400, unlock: 'r_preserves' },
       { item: 'pole_wood', price: 90, unlock: 'r_power' }, { item: 'brass_gear', price: 380, unlock: 'r_brass' }, { item: 'glass', price: 120, unlock: 'r_glass' },
       { item: 'spark_coil', price: 900, unlock: 'r_spark' }, { item: 'bumblebot', price: 3000, unlock: 'r_bots' },
     ],

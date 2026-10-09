@@ -185,7 +185,8 @@ export function updateMachines(g: Game, dt: number) {
         continue;
       }
     }
-    let sp = m.speed * speedMod;
+    // the keeper's jar runs its first few batches fast, so the opening's first pickle comes quickly
+    let sp = m.speed * speedMod * (e.st.quick > 0 ? 4 : 1);
     if (e.def.powerUse) {
       sp *= e.sat;
       if (e.sat <= 0.001) {
@@ -213,6 +214,7 @@ export function updateMachines(g: Game, dt: number) {
         g.stats.add(k, o.n);
       }
       m.made++;
+      if (e.st.quick > 0) e.st.quick--;
       m.crafting = false;
       m.progress = 0;
       g.emit({ t: 'fx', kind: 'puff', x: e.x + e.w / 2, y: e.y });

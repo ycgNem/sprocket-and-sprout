@@ -6,7 +6,8 @@
 // Everything stays on whole pixels: motion is integer offsets and frames, never fractional scaling.
 import { C, PALETTE, rgba } from '../data/palette';
 import { drawItemIcon, drawSprite, hasImage, sprite } from './atlas';
-import { drawText, textWidth } from '../ui/font';
+import { drawText, ellipsize, textWidth } from '../ui/font';
+import type { UI } from '../ui/ui';
 
 /** A pentatonic ladder: repeated sounds climb it, so streaks and coin showers play a rising tune. */
 const LADDER = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
@@ -15,7 +16,7 @@ export function ladderPitch(step: number) {
 }
 
 /** frames per effect name, used when the sheet is missing too */
-const FRAMES: Record<string, number> = { 'fx:coin': 6, 'fx:star': 4, 'fx:puff': 5, 'fx:glint': 4, 'fx:heart': 2, 'fx:streak': 3, 'fx:arrow': 4, 'fx:gust': 4, 'fx:pile': 4, 'fx:chest': 3 };
+const FRAMES: Record<string, number> = { 'fx:coin': 6, 'fx:star': 4, 'fx:puff': 5, 'fx:glint': 4, 'fx:heart': 2, 'fx:streak': 3, 'fx:arrow': 4, 'fx:gust': 4, 'fx:pile': 4, 'fx:chest': 3, 'fx:compass': 8, 'fx:ring': 9, 'fx:scroll': 4, 'fx:seal': 3 };
 export const fxFrames = (name: string) => FRAMES[name] ?? 1;
 
 const disc = (ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, c: number) => {
@@ -106,6 +107,20 @@ export function drawFx(ctx: CanvasRenderingContext2D, name: string, f: number, x
       for (let i = 0; i <= f; i++) px(-w + i * 2, -2 - i * 2, (w - i * 2) * 2, 2, i % 2 ? C.butter : C.amber);
       break;
     }
+    case 'fx:compass': {
+      // a stubby pointer: a dot with its tip pushed out toward direction f (0 up, clockwise)
+      const ux = [0, 1, 1, 1, 0, -1, -1, -1][f], uy = [-1, -1, 0, 1, 1, 1, 0, -1][f];
+      px(-2, -2, 5, 5, C.ink); px(-1, -1, 3, 3, C.amber);
+      px(ux * 3 - 1, uy * 3 - 1, 3, 3, C.ink); px(ux * 3, uy * 3, 1, 1, C.butter);
+      break;
+    }
+    case 'fx:ring': {
+      px(-4, -4, 9, 9, C.ink);
+      px(-3, -3, 7, 7, C.plum);
+      const n = Math.round((f / 8) * 7);
+      if (n) px(-3, 3, n, 1, C.lime);
+      break;
+    }
     case 'fx:chest':
       px(-6, -9, 12, 9, C.walnut); px(-6, -9, 12, 2, C.oak); px(-1, -6, 2, 2, C.brass);
       if (f > 0) px(-5, -12, 10, 3, f > 1 ? C.butter : C.amber);
@@ -119,6 +134,7 @@ interface Anim { name: string; x: number; y: number; vx: number; vy: number; g: 
 interface Icon { id: string; x: number; y: number; vy: number; t: number; life: number }
 interface Bit { x: number; y: number; vx: number; vy: number; t: number; life: number; c: number; w: number; h: number; ph: number }
 interface Ring { x: number; y: number; t: number; max: number; r0: number; r1: number; c: number }
+interface Pop { text: string; x: number; y: number; t: number; c: number; scale: number }
 export interface Pt { x: number; y: number }
 export interface Flight {
   kind: 'item' | 'coin';
@@ -141,6 +157,7 @@ export class Juice {
   icons: Icon[] = [];
   bits: Bit[] = [];
   rings: Ring[] = [];
+  pops: Pop[] = [];
   private hops = new Map<number, number>();
   private tileHops = new Map<number, number>();
   // ---- UI space ----
@@ -183,6 +200,18 @@ export class Juice {
       const s = spread * (0.5 + Math.random() * 0.8);
       list.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, life: 1 + Math.random() * 0.8, c: cols[i % cols.length], w: Math.random() < 0.5 ? 2 : 1, h: Math.random() < 0.5 ? 1 : 2, ph: Math.random() * 6 });
     }
+  }
+
+  /** a big number that pops up and hangs for a moment (world px; whole-pixel text scale) */
+  pop(text: string, x: number, y: number, c = C.butter, scale = 2) {
+    if (this.pops.length > 30) this.pops.shift();
+    this.pops.push({ text, x, y, t: 0, c, scale });
+  }
+
+  /** a ribbon that jumps the queue (it plays next, after the one already showing) */
+  bannerNext(b: Omit<Banner, 't'>) {
+    const i = this.banners.length && this.banners[0].t > 0 ? 1 : 0;
+    this.banners.splice(i, 0, { ...b, t: 0 });
   }
 
   ring(x: number, y: number, c = C.butter, r1 = 18, max = 0.45) {
@@ -261,6 +290,7 @@ export class Juice {
         if (b.t >= b.life) list.splice(i, 1);
       }
     for (let i = this.rings.length - 1; i >= 0; i--) if ((this.rings[i].t += dt) >= this.rings[i].max) this.rings.splice(i, 1);
+    for (let i = this.pops.length - 1; i >= 0; i--) if ((this.pops[i].t += dt) >= 1.3) this.pops.splice(i, 1);
     for (const m of [this.hops, this.tileHops])
       for (const [k, t] of m) {
         if (t + dt > HOP.length / 40) m.delete(k);
@@ -311,6 +341,14 @@ export class Juice {
       drawItemIcon(ctx, c.id, Math.round(c.x - 5), Math.round(c.y - 5), 10);
       ctx.globalAlpha = 1;
     }
+    for (const p of this.pops) {
+      const k = Math.min(1, p.t / 0.3);
+      const lift = Math.round(12 * (1 - (1 - k) * (1 - k)));
+      ctx.globalAlpha = p.t > 1 ? Math.max(0, (1.3 - p.t) / 0.3) : 1;
+      const sc = p.t < 0.06 ? p.scale + 1 : p.scale;
+      drawText(ctx, p.text, Math.round(p.x - (textWidth(p.text) * sc) / 2), Math.round(p.y - lift - 9 * sc), PALETTE[p.c], sc, PALETTE[C.ink]);
+      ctx.globalAlpha = 1;
+    }
     this.drawBits(ctx, this.bits);
   }
 
@@ -324,8 +362,26 @@ export class Juice {
     ctx.globalAlpha = 1;
   }
 
-  /** UI layer: flights, streak counter, banners. `head` = the player's head in UI px. */
-  drawUI(ctx: CanvasRenderingContext2D, uiW: number, uiH: number, head: Pt | null, modal: boolean, dt: number) {
+  /** where the current ribbon sits (UI px), so other overlays can keep clear of it */
+  bannerRect(uiW: number, uiH: number): { x: number; y: number; w: number; h: number } | null {
+    const b = this.banners[0];
+    if (!b) return null;
+    const w = this.bannerW(b, uiW);
+    return { x: Math.round(uiW / 2 - w / 2) - 10, y: Math.round(Math.max(72, uiH * 0.24)), w: w + 20, h: 44 };
+  }
+
+  /** ribbons stay between the quest tracker (left) and the chronometer column (right) */
+  private bannerW(b: Banner, uiW: number) {
+    const maxW = Math.max(200, uiW - 328);
+    return Math.min(maxW, Math.max(200, Math.max(textWidth(b.title) * 2, textWidth(b.sub)) + 64));
+  }
+
+  /**
+   * UI layer: flights, streak counter, banners. `head` = the player's head in UI px. Drawn
+   * through the UI kit (fill/text) so the overlap audit sees the streak and the ribbons.
+   */
+  drawUI(ui: UI, head: Pt | null, modal: boolean, dt: number) {
+    const ctx = ui.ctx;
     for (const f of this.flights) {
       if (f.delay > 0) continue;
       const to = f.to();
@@ -337,7 +393,7 @@ export class Juice {
       else if (f.id) drawItemIcon(ctx, f.id, Math.round(x - 8), Math.round(y - 8), 16);
     }
     this.drawBits(ctx, this.uiBits);
-    // harvest streak over the player's head
+    // harvest streak over the player's head (beside it while a ribbon holds the middle)
     const s = this.streak;
     if (head && s.n >= 3 && s.t < 1.8 && !modal) {
       const a = s.t > 1.4 ? (1.8 - s.t) / 0.4 : 1;
@@ -345,36 +401,43 @@ export class Juice {
       const big = s.punch < 0.08;
       const sc = big ? 3 : 2;
       const txt = 'x' + s.n;
-      const w = textWidth(txt) * sc + 12;
-      const x = Math.round(head.x - w / 2), y = Math.round(head.y - 22 - (big ? 2 : 0));
+      const w = textWidth(txt) * sc + 14;
+      const br = this.bannerRect(ui.w, ui.h);
+      let x = Math.round(head.x - w / 2), y = Math.round(head.y - 22 - (big ? 2 : 0));
+      if (br && y < br.y + br.h + 2) {
+        x = Math.round(head.x + 12);
+        y = Math.max(Math.round(head.y - 4), br.y + br.h + 4);
+      }
+      // a soft ink pill keeps the number readable over golden crops at any UI scale
+      ui.fill(x + 9, y - 2, w - 7, 9 * sc + 2, C.ink, 0.55);
       drawFx(ctx, 'fx:streak', Math.floor(this.time * 10), x + 5, y + 9 * sc - 2);
-      drawText(ctx, txt, x + 12, y, PALETTE[s.n >= 25 ? C.rose : s.n >= 10 ? C.butter : C.cream], sc, PALETTE[C.ink]);
+      ui.text(txt, x + 12, y, s.n >= 25 ? C.rose : s.n >= 10 ? C.butter : C.cream, { scale: sc, shadow: C.ink });
       ctx.globalAlpha = 1;
     }
     // banners wait for a modal window to close, like toasts
-    if (this.banners.length && !modal) this.drawBanner(ctx, uiW, uiH, this.banners[0], dt);
+    if (this.banners.length && !modal) this.drawBanner(ui, this.banners[0], dt);
   }
 
   /** the ribbon drops in below the toast and achievement lane, above the player */
-  private drawBanner(ctx: CanvasRenderingContext2D, uiW: number, uiH: number, b: Banner, dt: number) {
+  private drawBanner(ui: UI, b: Banner, dt: number) {
+    const ctx = ui.ctx;
     const HOLD = 3.2;
-    const fill = (x: number, y: number, w: number, h: number, c: number) => { ctx.fillStyle = PALETTE[c]; ctx.fillRect(x, y, w, h); };
-    const tw = Math.max(textWidth(b.title) * 2, textWidth(b.sub)) + 64;
-    const w = Math.max(200, tw), h = 44;
-    const x = Math.round(uiW / 2 - w / 2);
+    const w = this.bannerW(b, ui.w), h = 44;
+    const sub = ellipsize(b.sub, w - 48);
+    const x = Math.round(ui.w / 2 - w / 2);
     const k = b.t < 0.25 ? b.t / 0.25 : b.t > HOLD ? 1 - (b.t - HOLD) / 0.3 : 1;
-    const y = Math.round(Math.max(72, uiH * 0.24) - 16 * (1 - k) * (1 - k));
+    const y = Math.round(Math.max(72, ui.h * 0.24) - 16 * (1 - k) * (1 - k));
     ctx.globalAlpha = Math.min(1, k * 1.5);
     // ribbon: dark outline, coloured body, brass trim, folded tails
-    fill(x - 10, y + 8, 12, h - 12, C.ink); fill(x + w - 2, y + 8, 12, h - 12, C.ink);
-    fill(x - 9, y + 9, 10, h - 14, C.wine); fill(x + w - 1, y + 9, 10, h - 14, C.wine);
-    fill(x, y, w, h, C.ink);
-    fill(x + 1, y + 1, w - 2, h - 2, b.color);
-    fill(x + 1, y + 1, w - 2, 2, C.butter);
-    fill(x + 1, y + h - 3, w - 2, 2, C.copper);
-    fill(x + 3, y + 4, w - 6, 1, C.brass);
-    drawText(ctx, b.title, Math.round(uiW / 2 - textWidth(b.title)), y + 8, PALETTE[C.cream], 2, PALETTE[C.ink]);
-    drawText(ctx, b.sub, Math.round(uiW / 2 - textWidth(b.sub) / 2), y + 29, PALETTE[C.butter], 1, PALETTE[C.ink]);
+    ui.fill(x - 10, y + 8, 12, h - 12, C.ink); ui.fill(x + w - 2, y + 8, 12, h - 12, C.ink);
+    ui.fill(x - 9, y + 9, 10, h - 14, C.wine); ui.fill(x + w - 1, y + 9, 10, h - 14, C.wine);
+    ui.fill(x, y, w, h, C.ink);
+    ui.fill(x + 1, y + 1, w - 2, h - 2, b.color);
+    ui.fill(x + 1, y + 1, w - 2, 2, C.butter);
+    ui.fill(x + 1, y + h - 3, w - 2, 2, C.copper);
+    ui.fill(x + 3, y + 4, w - 6, 1, C.brass);
+    ui.text(b.title, ui.w / 2, y + 8, C.cream, { scale: 2, shadow: C.ink, align: 'center' });
+    ui.text(sub, ui.w / 2 + 8, y + 29, C.butter, { shadow: C.ink, align: 'center' });
     const chestF = b.t < 0.35 ? 0 : b.t < 0.5 ? 1 : 2;
     drawFx(ctx, 'fx:chest', chestF, x + 18, y + h - 8);
     if (chestF === 2 && Math.floor(this.time * 6) % 3 === 0) drawFx(ctx, 'fx:glint', Math.floor(this.time * 12), x + 18 + Math.round(Math.sin(this.time * 7) * 5), y + h - 22);

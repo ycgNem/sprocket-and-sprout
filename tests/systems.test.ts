@@ -146,14 +146,22 @@ describe('tutorial', () => {
     expect([...g.soil.values()].filter((s) => s.crop?.id === 'cogbean' && s.crop.ready).length).toBe(8);
     expect(g.ents.machines.some((e) => e.def.id === 'jar')).toBe(true);
     expect(g.research.done.has('r_arms')).toBe(true);
+    // the keeper's jar runs its first batches fast
+    expect(g.ents.machines.find((e) => e.def.id === 'jar')!.st.quick).toBe(3);
+    // the first quest completes the moment the jar is fed (not when the pickle comes out)
     q.notify(g, 'harvest', 8, 'cogbean');
-    g.stats.add(key('pickles_cogbean'), 1);
-    for (let i = 0; i < 60 * 70; i++) g.tick();
+    q.notify(g, 'load', 1, 'jar');
     expect(q.done.includes('t_welcome')).toBe(true);
     const active = q.active.map((a) => a.id);
     expect(active).toContain('t_arm');
     expect(active).toContain('t_plant');
-    expect(active.length).toBeLessThanOrEqual(3);
+    expect(active).toContain('t_water');
+    // bed waits for the evening on day one, so nobody is sent to sleep at 8am
+    q.notify(g, 'water', 6);
+    expect(q.active.some((a) => a.id === 't_sleep')).toBe(false);
+    g.time.min = 18 * 60 + 1;
+    for (let i = 0; i < 61; i++) g.tick();
+    expect(q.active.some((a) => a.id === 't_sleep')).toBe(true);
   });
 });
 

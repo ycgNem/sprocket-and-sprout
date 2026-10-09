@@ -457,6 +457,8 @@ export class Bot {
         sl.n -= n;
       }
       g.player.inv.slots = g.player.inv.slots.map((s) => (s && s.n > 0 ? s : null));
+      // what pressing F at the jar reports to the quests
+      g.sys.quests?.notify?.(g, 'load', 1, 'jar');
     }
     const [ax, ay] = OPENING.armTile;
     if (canPlace(g, 'arm_basic', ax, ay, 0).ok && g.player.inv.countId('arm_basic') > 0) {

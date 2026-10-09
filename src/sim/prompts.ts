@@ -3,6 +3,7 @@
 // announces itself the moment you face it. Mirrors the order of `interact` in actions.ts.
 import { CROP_BY_ID } from '../data/crops';
 import { NPC_BY_ID } from '../data/npcs';
+import { QUEST_BY_ID } from '../data/goals';
 import type { Game } from './Game';
 import { kDef } from './inventory';
 import { cartHere } from './systems/cart';
@@ -114,5 +115,36 @@ export function toolVerb(g: Game, tx: number, ty: number): string | null {
     return null;
   }
   if (d.cat === 'seed' && s && !s.crop) return 'Plant';
+  return null;
+}
+
+/**
+ * Where the current quest wants you to go, for the guide arrow and the off-screen compass:
+ * the first villager you still need to talk to (their shop door when they're indoors) or the
+ * first place you still need to visit. Null when nothing needs walking to.
+ */
+export function questTarget(g: Game): { x: number; y: number; label: string } | null {
+  if (g.player.where !== 'world') return null;
+  const q = g.sys.quests;
+  if (!q?.active) return null;
+  for (const a of q.active as { id: string; prog: number[] }[]) {
+    const def = QUEST_BY_ID.get(a.id);
+    if (!def) continue;
+    for (let i = 0; i < def.objectives.length; i++) {
+      const o = def.objectives[i];
+      if (a.prog[i] >= 1) continue;
+      if (o.t === 'talk') {
+        const n = g.sys.npcs?.byId?.get(o.npc);
+        if (!n) continue;
+        const name = first(NPC_BY_ID.get(o.npc)?.name ?? '');
+        // indoors: point at the door they went in by (where they vanished)
+        return { x: n.x, y: n.visible ? n.y - 1.6 : n.y - 0.6, label: n.visible ? name : `${name} (inside)` };
+      }
+      if (o.t === 'visit') {
+        const l = g.map.locs.get(o.loc);
+        if (l) return { x: l[0] + 0.5, y: l[1] - 0.5, label: o.loc[0].toUpperCase() + o.loc.slice(1) };
+      }
+    }
+  }
   return null;
 }
