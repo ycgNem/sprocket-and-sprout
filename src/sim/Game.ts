@@ -103,7 +103,9 @@ export type GameEvent =
   /** a quest was completed (the reward is already given) */
   | { t: 'quest'; title: string; money: number; items: { item: string; n: number }[] }
   /** a crop (tile index) or structure (entity id) gives a little hop */
-  | { t: 'hop'; tile?: number; ent?: number };
+  | { t: 'hop'; tile?: number; ent?: number }
+  /** an arm dropped goods in a shipping crate (the play screen shows what they'll fetch) */
+  | { t: 'crated'; k: number; n: number; x: number; y: number };
 
 export interface DaySummary {
   day: number;

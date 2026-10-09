@@ -81,6 +81,8 @@ export function updateArms(g: Game, dt: number) {
           break;
         }
         const n = portInsert(g, dst, a.held.k, a.held.n, e.rot);
+        // goods an arm drops in the shipping crate show what they'll fetch: automation = coins
+        if (n > 0 && dst.def.kind === 'shipbin') g.emit({ t: 'crated', k: a.held.k, n, x: dst.x + 0.5, y: dst.y - 0.1 });
         a.held.n -= n;
         if (a.held.n <= 0) {
           a.held = null;

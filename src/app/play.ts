@@ -34,6 +34,7 @@ import { PULSE_COL, machineState, pulseEnts } from '../ui/pulse';
 import { checkTips } from './tips';
 import { drawFx, ladderPitch, type Pt } from '../render/juice';
 import { promptAt, toolVerb } from '../sim/prompts';
+import { unitPrice } from '../sim/systems/economy';
 import { keyLabel } from '../engine/input';
 import { textWidth } from '../ui/font';
 
@@ -1030,6 +1031,13 @@ export class PlayScreen implements Screen {
           e.items.forEach((it, i) => J.flyItem(it.item, { x: top.x - 20 + i * 14, y: top.y + 6 }, this.slotOf(key(it.item)), 0.45 + i * 0.12));
           break;
         }
+        case 'crated':
+          // automation = coins: what the arm just shipped will fetch
+          if (onScreen(e.x, e.y) && g.player.where === 'world') {
+            P.text(e.x * TILE, e.y * TILE - 6, '+' + unitPrice(g, e.k) * e.n, C.butter);
+            J.fx('fx:glint', e.x * TILE + 4, e.y * TILE - 2, { fps: 12 });
+          }
+          break;
         case 'hop':
           if (e.tile !== undefined) J.hopTile(e.tile);
           if (e.ent !== undefined) J.hop(e.ent);
