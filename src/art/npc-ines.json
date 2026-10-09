@@ -1,0 +1,72 @@
+{
+  "name": "npc-ines",
+  "file": "npc-ines.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 33,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "label": "Ines v3",
+  "kind": "character",
+  "ids": [
+    "ines"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 36, low top-down, single color outline (character 5b2622bb-9b69-4686-812a-2c70bbeb5369); walk: walking-4-frames",
+  "notes": "up walk0 reuses frame 2: the template drew frame 0 facing the camera (twice)",
+  "colors": [
+    "#2e222f",
+    "#323353",
+    "#374e4a",
+    "#3e3546",
+    "#45293f",
+    "#484a77",
+    "#4c3e24",
+    "#4d65b4",
+    "#694f62",
+    "#6e2727",
+    "#753c54",
+    "#7a3045",
+    "#7f708a",
+    "#831c5d",
+    "#966c6c",
+    "#9babb2",
+    "#9e4539",
+    "#ae2334",
+    "#b2ba90",
+    "#c32454",
+    "#cd683d",
+    "#cf657f",
+    "#ed8099",
+    "#f04f78",
+    "#f57d4a",
+    "#f68181",
+    "#ffffff"
+  ]
+}

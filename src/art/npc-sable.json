@@ -1,0 +1,83 @@
+{
+  "name": "npc-sable",
+  "file": "npc-sable.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 30,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "keys": {
+    "cardigan": [
+      "#323353",
+      "#484a77",
+      "#4d65b4"
+    ],
+    "tone": [
+      "#7a3045",
+      "#9e4539",
+      "#cd683d"
+    ],
+    "cloth": [
+      "#ab947a",
+      "#fdcbb0",
+      "#ffffff"
+    ]
+  },
+  "label": "Sable v3",
+  "kind": "character",
+  "ids": [
+    "sable"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character cdd08326-9af1-4c0c-9cb5-af7802022f7b); walk: walking-4-frames",
+  "notes": "down walk2 reuses frame 0: the template drew frame 2 from behind",
+  "colors": [
+    "#2e222f",
+    "#323353",
+    "#3e3546",
+    "#45293f",
+    "#484a77",
+    "#4d65b4",
+    "#6b3e75",
+    "#6e2727",
+    "#753c54",
+    "#7a3045",
+    "#7f708a",
+    "#905ea9",
+    "#9e4539",
+    "#a884f3",
+    "#ab947a",
+    "#ae2334",
+    "#b33831",
+    "#cd683d",
+    "#e83b3b",
+    "#fdcbb0",
+    "#ffffff"
+  ]
+}

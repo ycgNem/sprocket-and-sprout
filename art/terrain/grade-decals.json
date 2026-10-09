@@ -1,0 +1,1257 @@
+{
+ "materials": {
+  "dgrass": {
+   "ladder": [
+    "#165a4c",
+    "#239063",
+    "#1ebc73",
+    "#91db69"
+   ],
+   "cuts": [
+    30,
+    45,
+    62
+   ]
+  },
+  "dother": {
+   "nearest": "all",
+   "except": [
+    "#165a4c",
+    "#239063",
+    "#1ebc73",
+    "#91db69",
+    "#cddf6c",
+    "#676633",
+    "#a2a947",
+    "#d5e04b",
+    "#fbff86",
+    "#313638",
+    "#374e4a",
+    "#547e64",
+    "#92a984",
+    "#b2ba90",
+    "#0b5e65",
+    "#0b8a8f",
+    "#0eaf9b",
+    "#30e1b9",
+    "#8ff8e2",
+    "#000000"
+   ]
+  },
+  "dsnow": {
+   "nearest": [
+    "#ffffff",
+    "#c7dcd0",
+    "#9babb2",
+    "#7f708a",
+    "#625565",
+    "#3e3546",
+    "#2e222f",
+    "#966c6c",
+    "#ab947a",
+    "#7a3045",
+    "#9e4539",
+    "#45293f",
+    "#8fd3ff"
+   ]
+  }
+ },
+ "jobs": [
+  {
+   "name": "sand-30",
+   "in": "raw/decals/30.png",
+   "out": "decals/sand/30.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "sand-31",
+   "in": "raw/decals/31.png",
+   "out": "decals/sand/31.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "sand-32",
+   "in": "raw/decals/32.png",
+   "out": "decals/sand/32.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "sand-36",
+   "in": "raw/decals/36.png",
+   "out": "decals/sand/36.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "sand-59",
+   "in": "raw/decals/59.png",
+   "out": "decals/sand/59.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "sand-37",
+   "in": "raw/decals/37.png",
+   "out": "decals/sand/37.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "dirt@3-17",
+   "in": "raw/decals/17.png",
+   "out": "decals/dirt_3/17.png",
+   "classify": [],
+   "fallback": "dsnow"
+  },
+  {
+   "name": "dirt@3-57",
+   "in": "raw/decals/57.png",
+   "out": "decals/dirt_3/57.png",
+   "classify": [],
+   "fallback": "dsnow"
+  },
+  {
+   "name": "dirt@3-56",
+   "in": "raw/decals/56.png",
+   "out": "decals/dirt_3/56.png",
+   "classify": [],
+   "fallback": "dsnow"
+  },
+  {
+   "name": "dirt@3-21",
+   "in": "raw/decals/21.png",
+   "out": "decals/dirt_3/21.png",
+   "classify": [],
+   "fallback": "dsnow"
+  },
+  {
+   "name": "path-26",
+   "in": "raw/decals/26.png",
+   "out": "decals/path/26.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "path-61",
+   "in": "raw/decals/61.png",
+   "out": "decals/path/61.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "path-8",
+   "in": "raw/decals/8.png",
+   "out": "decals/path/8.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "path-14",
+   "in": "raw/decals/14.png",
+   "out": "decals/path/14.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-3",
+   "in": "raw/decals/3.png",
+   "out": "decals/grass_0/3.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-4",
+   "in": "raw/decals/4.png",
+   "out": "decals/grass_0/4.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-6",
+   "in": "raw/decals/6.png",
+   "out": "decals/grass_0/6.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-15",
+   "in": "raw/decals/15.png",
+   "out": "decals/grass_0/15.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-47",
+   "in": "raw/decals/47.png",
+   "out": "decals/grass_0/47.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-48",
+   "in": "raw/decals/48.png",
+   "out": "decals/grass_0/48.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-50",
+   "in": "raw/decals/50.png",
+   "out": "decals/grass_0/50.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-5",
+   "in": "raw/decals/5.png",
+   "out": "decals/grass_0/5.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-62",
+   "in": "raw/decals/62.png",
+   "out": "decals/grass_0/62.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-10",
+   "in": "raw/decals/10.png",
+   "out": "decals/grass_0/10.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-54",
+   "in": "raw/decals/54.png",
+   "out": "decals/grass_0/54.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-0",
+   "in": "raw/decals/0.png",
+   "out": "decals/grass_0/0.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-1",
+   "in": "raw/decals/1.png",
+   "out": "decals/grass_0/1.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-2",
+   "in": "raw/decals/2.png",
+   "out": "decals/grass_0/2.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-44",
+   "in": "raw/decals/44.png",
+   "out": "decals/grass_0/44.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@0-63",
+   "in": "raw/decals/63.png",
+   "out": "decals/grass_0/63.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-0",
+   "in": "raw/decals/0.png",
+   "out": "decals/grass/0.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-1",
+   "in": "raw/decals/1.png",
+   "out": "decals/grass/1.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-14",
+   "in": "raw/decals/14.png",
+   "out": "decals/grass/14.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-44",
+   "in": "raw/decals/44.png",
+   "out": "decals/grass/44.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-45",
+   "in": "raw/decals/45.png",
+   "out": "decals/grass/45.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-11",
+   "in": "raw/decals/11.png",
+   "out": "decals/grass/11.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-2",
+   "in": "raw/decals/2.png",
+   "out": "decals/grass/2.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-63",
+   "in": "raw/decals/63.png",
+   "out": "decals/grass/63.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-9",
+   "in": "raw/decals/9.png",
+   "out": "decals/grass/9.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-13",
+   "in": "raw/decals/13.png",
+   "out": "decals/grass/13.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-52",
+   "in": "raw/decals/52.png",
+   "out": "decals/grass/52.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-53",
+   "in": "raw/decals/53.png",
+   "out": "decals/grass/53.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-3",
+   "in": "raw/decals/3.png",
+   "out": "decals/grass/3.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-48",
+   "in": "raw/decals/48.png",
+   "out": "decals/grass/48.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-47",
+   "in": "raw/decals/47.png",
+   "out": "decals/grass/47.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass-46",
+   "in": "raw/decals/46.png",
+   "out": "decals/grass/46.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@2-0",
+   "in": "raw/decals/0.png",
+   "out": "decals/grass_2/0.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@2-1",
+   "in": "raw/decals/1.png",
+   "out": "decals/grass_2/1.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@2-14",
+   "in": "raw/decals/14.png",
+   "out": "decals/grass_2/14.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@2-44",
+   "in": "raw/decals/44.png",
+   "out": "decals/grass_2/44.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@2-45",
+   "in": "raw/decals/45.png",
+   "out": "decals/grass_2/45.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@2-11",
+   "in": "raw/decals/11.png",
+   "out": "decals/grass_2/11.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@2-2",
+   "in": "raw/decals/2.png",
+   "out": "decals/grass_2/2.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@2-9",
+   "in": "raw/decals/9.png",
+   "out": "decals/grass_2/9.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@2-53",
+   "in": "raw/decals/53.png",
+   "out": "decals/grass_2/53.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "dirt-14",
+   "in": "raw/decals/14.png",
+   "out": "decals/dirt/14.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "dirt-45",
+   "in": "raw/decals/45.png",
+   "out": "decals/dirt/45.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "dirt-52",
+   "in": "raw/decals/52.png",
+   "out": "decals/dirt/52.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "dirt-1",
+   "in": "raw/decals/1.png",
+   "out": "decals/dirt/1.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@2-38f",
+   "in": {
+    "file": "raw/decals/38.png",
+    "rect": [
+     9,
+     3,
+     4,
+     3
+    ]
+   },
+   "out": "decals/grass_2/f38.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@2-39f",
+   "in": {
+    "file": "raw/decals/39.png",
+    "rect": [
+     10,
+     3,
+     3,
+     3
+    ]
+   },
+   "out": "decals/grass_2/f39.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@2-38g",
+   "in": {
+    "file": "raw/decals/38.png",
+    "rect": [
+     2,
+     7,
+     3,
+     3
+    ]
+   },
+   "out": "decals/grass_2/g38.png",
+   "classify": [
+    {
+     "material": "dgrass",
+     "hue": [
+      60,
+      180
+     ],
+     "sat": [
+      0.25,
+      1
+     ]
+    }
+   ],
+   "fallback": "dother"
+  },
+  {
+   "name": "grass@3-16",
+   "in": "raw/decals/16.png",
+   "out": "decals/grass_3/16.png",
+   "classify": [],
+   "fallback": "dsnow"
+  },
+  {
+   "name": "grass@3-17",
+   "in": "raw/decals/17.png",
+   "out": "decals/grass_3/17.png",
+   "classify": [],
+   "fallback": "dsnow"
+  },
+  {
+   "name": "grass@3-19",
+   "in": "raw/decals/19.png",
+   "out": "decals/grass_3/19.png",
+   "classify": [],
+   "fallback": "dsnow"
+  },
+  {
+   "name": "grass@3-21",
+   "in": "raw/decals/21.png",
+   "out": "decals/grass_3/21.png",
+   "classify": [],
+   "fallback": "dsnow"
+  },
+  {
+   "name": "grass@3-56",
+   "in": "raw/decals/56.png",
+   "out": "decals/grass_3/56.png",
+   "classify": [],
+   "fallback": "dsnow"
+  },
+  {
+   "name": "grass@3-57",
+   "in": "raw/decals/57.png",
+   "out": "decals/grass_3/57.png",
+   "classify": [],
+   "fallback": "dsnow"
+  }
+ ]
+}

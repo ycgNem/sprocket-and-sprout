@@ -1,0 +1,70 @@
+{
+  "name": "npc-ottoline",
+  "file": "npc-ottoline.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 24,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "label": "Ottoline v3",
+  "kind": "character",
+  "ids": [
+    "ottoline"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 28, low top-down, single color outline (character 0e62230e-434b-4fcf-87fb-efea943e0581); walk: walking-4-frames; up row: custom v3 walk (the template walked north facing the camera)",
+  "colors": [
+    "#2e222f",
+    "#323353",
+    "#3e3546",
+    "#45293f",
+    "#484a77",
+    "#4d65b4",
+    "#694f62",
+    "#6b3e75",
+    "#6e2727",
+    "#753c54",
+    "#7a3045",
+    "#7f708a",
+    "#8fd3ff",
+    "#966c6c",
+    "#9babb2",
+    "#9e4539",
+    "#ab947a",
+    "#ae2334",
+    "#b33831",
+    "#cf657f",
+    "#e6904e",
+    "#ed8099",
+    "#f04f78",
+    "#fca790",
+    "#fdcbb0",
+    "#ffffff"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+ "id": "4305deca-17ca-4c38-a92e-9ab09bb2f7e1",
+ "prompt": "big burly tall blacksmith man, broad shoulders, short black hair, thick black beard, dark brown skin, brick red shirt with rolled-up sleeves, brown leather smith apron, dark gray trousers, heavy dark boots, soot smudges on cheeks, gruff kind face, cozy farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 36,
+  "height": 36
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: east×4 south×4 north×4 west×4"
+ ]
+}

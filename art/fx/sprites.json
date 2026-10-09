@@ -1,0 +1,53 @@
+{
+  "_": "Small FX sprites: emote bubbles, ambient critters, mailbox letter and flag, festival bunting, the ember wisp's fireball. Art: hand/*.png, drawn at 1x by art/fx/hand.mjs from the PixelLab batch in raw/b16 (batches.json). Origins match the hooks in src/render/renderer.ts (drawEmote, drawTownExtras, mine bolts) and src/render/ambient.ts.",
+  "name": "fx",
+  "kind": "sprites",
+  "defaults": { "place": "none" },
+  "sprites": [
+    { "match": "emote:heart", "file": "hand/emote_heart.png", "frame": [15, 13], "origin": [7, 12] },
+    { "match": "emote:exclaim", "file": "hand/emote_exclaim.png", "frame": [15, 13], "origin": [7, 12] },
+    { "match": "emote:question", "file": "hand/emote_question.png", "frame": [15, 13], "origin": [7, 12] },
+    { "match": "emote:note", "file": "hand/emote_note.png", "frame": [15, 13], "origin": [7, 12] },
+    { "match": "emote:zzz", "file": "hand/emote_zzz.png", "frame": [15, 13], "origin": [7, 12] },
+    { "match": "emote:smile", "file": "hand/emote_smile.png", "frame": [15, 13], "origin": [7, 12] },
+
+    { "match": "amb:fly:0:0", "file": "hand/amb_fly_0_0.png", "frame": [7, 5], "origin": [3, 4] },
+    { "match": "amb:fly:0:1", "file": "hand/amb_fly_0_1.png", "frame": [7, 5], "origin": [3, 4] },
+    { "match": "amb:fly:1:0", "like": "amb:fly:0:0", "recolor": { "#fbff86": "#eaaded", "#f9c22b": "#ed8099", "#f79617": "#cf657f", "#cd683d": "#a24b6f" } },
+    { "match": "amb:fly:1:1", "like": "amb:fly:0:1", "recolor": { "#fbff86": "#eaaded", "#f9c22b": "#ed8099", "#f79617": "#cf657f", "#cd683d": "#a24b6f" } },
+    { "match": "amb:fly:2:0", "like": "amb:fly:0:0", "recolor": { "#fbff86": "#eaaded", "#f9c22b": "#a884f3", "#f79617": "#905ea9", "#cd683d": "#6b3e75" } },
+    { "match": "amb:fly:2:1", "like": "amb:fly:0:1", "recolor": { "#fbff86": "#eaaded", "#f9c22b": "#a884f3", "#f79617": "#905ea9", "#cd683d": "#6b3e75" } },
+    { "match": "amb:fly:3:0", "like": "amb:fly:0:0", "recolor": { "#fbff86": "#ffffff", "#f9c22b": "#ffffff", "#f79617": "#fdcbb0", "#cd683d": "#fca790" } },
+    { "match": "amb:fly:3:1", "like": "amb:fly:0:1", "recolor": { "#fbff86": "#ffffff", "#f9c22b": "#ffffff", "#f79617": "#fdcbb0", "#cd683d": "#fca790" } },
+    { "match": "amb:fly:4:0", "like": "amb:fly:0:0", "recolor": { "#fbff86": "#fbb954", "#f9c22b": "#f79617", "#f79617": "#cd683d", "#cd683d": "#9e4539" } },
+    { "match": "amb:fly:4:1", "like": "amb:fly:0:1", "recolor": { "#fbff86": "#fbb954", "#f9c22b": "#f79617", "#f79617": "#cd683d", "#cd683d": "#9e4539" } },
+
+    { "match": "amb:bird:0:0", "file": "hand/amb_bird_0_0.png", "frame": [9, 8], "origin": [4, 7] },
+    { "match": "amb:bird:0:1", "file": "hand/amb_bird_0_1.png", "frame": [9, 8], "origin": [4, 7] },
+    { "match": "amb:bird:0:2", "file": "hand/amb_bird_0_2.png", "frame": [9, 8], "origin": [4, 7] },
+    { "match": "amb:bird:0:3", "file": "hand/amb_bird_0_3.png", "frame": [9, 8], "origin": [4, 7] },
+    { "match": "amb:bird:1:0", "like": "amb:bird:0:0", "recolor": { "#7a3045": "#3e3546", "#9e4539": "#625565", "#cd683d": "#7f708a", "#e6904e": "#9babb2", "#ab947a": "#966c6c" } },
+    { "match": "amb:bird:1:1", "like": "amb:bird:0:1", "recolor": { "#7a3045": "#3e3546", "#9e4539": "#625565", "#cd683d": "#7f708a", "#e6904e": "#9babb2", "#ab947a": "#966c6c" } },
+    { "match": "amb:bird:1:2", "like": "amb:bird:0:2", "recolor": { "#7a3045": "#3e3546", "#9e4539": "#625565", "#cd683d": "#7f708a", "#e6904e": "#9babb2", "#ab947a": "#966c6c" } },
+    { "match": "amb:bird:1:3", "like": "amb:bird:0:3", "recolor": { "#7a3045": "#3e3546", "#9e4539": "#625565", "#cd683d": "#7f708a", "#e6904e": "#9babb2", "#ab947a": "#966c6c" } },
+
+    { "match": "amb:fish:0", "file": "hand/amb_fish_0.png", "frame": [8, 5], "origin": [4, 4] },
+    { "match": "amb:fish:1", "file": "hand/amb_fish_1.png", "frame": [8, 5], "origin": [4, 4] },
+
+    { "match": "fx:letter", "file": "hand/fx_letter.png", "frame": [10, 8], "origin": [0, 0] },
+    { "match": "fx:mailflag", "file": "hand/fx_mailflag.png", "frame": [5, 8], "origin": [0, 0] },
+
+    { "match": "fx:pennant:0", "file": "hand/fx_pennant_0.png", "frame": [6, 6], "origin": [0, 0] },
+    { "match": "fx:pennant:1", "like": "fx:pennant:0", "recolor": { "#f68181": "#fbff86", "#f04f78": "#f9c22b", "#c32454": "#f79617" } },
+    { "match": "fx:pennant:2", "like": "fx:pennant:0", "recolor": { "#f68181": "#8fd3ff", "#f04f78": "#4d9be6", "#c32454": "#4d65b4" } },
+    { "match": "fx:pennant:3", "like": "fx:pennant:0", "recolor": { "#f68181": "#cddf6c", "#f04f78": "#91db69", "#c32454": "#1ebc73" } },
+    { "match": "fx:pennant:4", "like": "fx:pennant:0", "recolor": { "#f68181": "#eaaded", "#f04f78": "#a884f3", "#c32454": "#905ea9" } },
+
+    { "match": "fx:fireball:0", "file": "hand/fx_fireball_0.png", "frame": [7, 7], "origin": [3, 6] },
+    { "match": "fx:fireball:1", "file": "hand/fx_fireball_1.png", "frame": [7, 7], "origin": [3, 6] },
+
+    { "match": "fx:twinkle:0", "file": "hand/fx_twinkle_0.png", "frame": [5, 5], "origin": [2, 2] },
+    { "match": "fx:twinkle:1", "file": "hand/fx_twinkle_1.png", "frame": [5, 5], "origin": [2, 2] },
+    { "match": "fx:twinkle:2", "file": "hand/fx_twinkle_2.png", "frame": [5, 5], "origin": [2, 2] }
+  ]
+}

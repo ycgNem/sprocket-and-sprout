@@ -1,0 +1,99 @@
+{
+ "_note": "Hand-pixeled sprites (palette colors only), rendered by tools/hand.mjs to raw/<name>.png",
+ "crate/hand": {
+  "legend": {
+   "1": "#45293f",
+   "2": "#7a3045",
+   "3": "#9e4539",
+   "4": "#cd683d",
+   "5": "#e6904e",
+   "o": "#2e222f",
+   "B": "#f79617",
+   "Y": "#f9c22b",
+   "L": "#fbff86"
+  },
+  "rows": [
+   "................",
+   ".oooooooooooooo.",
+   "oL555555555555Yo",
+   "o54444444444443o",
+   "o33333333333332o",
+   "o54444444444443o",
+   "o22222222222221o",
+   "oooooooooooooooo",
+   "oYY4424BB4244BBo",
+   "oY54424YB4244B3o",
+   "o5444244442444Bo",
+   "o54442444424443o",
+   "o22222222222222o",
+   "o54442444424443o",
+   "o54442444424443o",
+   "o54442444424433o",
+   "oY333233332333Bo",
+   "oYY1111111111BBo",
+   ".oooooooooooooo."
+  ]
+ },
+ "ghglass/intact": {
+  "legend": {
+   "W": "#7a3045",
+   "w": "#9e4539",
+   "B": "#f9c22b",
+   "b": "#cd683d",
+   "g": "#8ff8e2",
+   "a": "#8fd3ff",
+   "f": "#c7dcd0",
+   "h": "#ffffff",
+   "e": "#30e1b9"
+  },
+  "rows": [
+   "BwwwwwwwwwwwwwwB",
+   "wgggghgggggggggW",
+   "wggghggggggggggW",
+   "wgghgghggggggggW",
+   "wghgghgggggggggW",
+   "whgghggggggggggW",
+   "wgghgggggggggggW",
+   "wghggggggggggggW",
+   "wggggggggggggggW",
+   "wgggggggggggggaW",
+   "wggggggggggggaaW",
+   "wgggggggggggaaaW",
+   "wggggggggggaaaaW",
+   "wgggggggggaaaaaW",
+   "wggggggggaaaaaaW",
+   "BWWWWWWWWWWWWWWB"
+  ]
+ },
+ "ghglass/broken": {
+  "legend": {
+   "W": "#7a3045",
+   "w": "#9e4539",
+   "B": "#f9c22b",
+   "b": "#cd683d",
+   "g": "#8ff8e2",
+   "a": "#8fd3ff",
+   "f": "#c7dcd0",
+   "h": "#ffffff",
+   "e": "#30e1b9"
+  },
+  "rows": [
+   "BwwwwwwwwwwwwwwB",
+   "wgghggggga.....W",
+   "wghgggga.......W",
+   "whgggggga......W",
+   "wgggga.........W",
+   "wggggga........W",
+   "wgga...........W",
+   "wggga..........W",
+   "wga............W",
+   "wa.............W",
+   "w.............aW",
+   "w...........aggW",
+   "w............agW",
+   "w.........aggggW",
+   "w..........agggW",
+   "BWWWWWWWWWWWWWWB"
+  ]
+ }
+}

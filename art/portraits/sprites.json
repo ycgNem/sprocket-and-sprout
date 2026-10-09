@@ -1,0 +1,247 @@
+{
+ "name": "portraits",
+ "kind": "sprites",
+ "meta": {
+  "source": "PixelLab create_1_direction_object size 32 (64 busts, object 2718d67c-a856-42c2-a93c-c6fd321fb5ca, picks in moods.json); moods 1-3: edit_image on the 14 picks (happy 26d1c5d1, sad 1ec435a9, surprised 0f3d88e9), face zone composited onto the neutral bust by moods.mjs",
+  "moods": "0 neutral, 1 happy with closed eyes (also the blink), 2 sad, 3 surprised",
+  "notPlayer": "portrait:player:* stays procedural: it follows the player look"
+ },
+ "defaults": {
+  "frame": [
+   32,
+   32
+  ],
+  "place": "none",
+  "origin": [
+   0,
+   0
+  ],
+  "keepStrays": true
+ },
+ "sprites": [
+  {
+   "match": "portrait:marigold:0:*",
+   "file": "moods/marigold-0.png"
+  },
+  {
+   "match": "portrait:marigold:1:*",
+   "file": "moods/marigold-1.png"
+  },
+  {
+   "match": "portrait:marigold:2:*",
+   "file": "moods/marigold-2.png"
+  },
+  {
+   "match": "portrait:marigold:3:*",
+   "file": "moods/marigold-3.png"
+  },
+  {
+   "match": "portrait:bram:0:*",
+   "file": "moods/bram-0.png"
+  },
+  {
+   "match": "portrait:bram:1:*",
+   "file": "moods/bram-1.png"
+  },
+  {
+   "match": "portrait:bram:2:*",
+   "file": "moods/bram-2.png"
+  },
+  {
+   "match": "portrait:bram:3:*",
+   "file": "moods/bram-3.png"
+  },
+  {
+   "match": "portrait:juniper:0:*",
+   "file": "moods/juniper-0.png"
+  },
+  {
+   "match": "portrait:juniper:1:*",
+   "file": "moods/juniper-1.png"
+  },
+  {
+   "match": "portrait:juniper:2:*",
+   "file": "moods/juniper-2.png"
+  },
+  {
+   "match": "portrait:juniper:3:*",
+   "file": "moods/juniper-3.png"
+  },
+  {
+   "match": "portrait:ottoline:0:*",
+   "file": "moods/ottoline-0.png"
+  },
+  {
+   "match": "portrait:ottoline:1:*",
+   "file": "moods/ottoline-1.png"
+  },
+  {
+   "match": "portrait:ottoline:2:*",
+   "file": "moods/ottoline-2.png"
+  },
+  {
+   "match": "portrait:ottoline:3:*",
+   "file": "moods/ottoline-3.png"
+  },
+  {
+   "match": "portrait:rowan:0:*",
+   "file": "moods/rowan-0.png"
+  },
+  {
+   "match": "portrait:rowan:1:*",
+   "file": "moods/rowan-1.png"
+  },
+  {
+   "match": "portrait:rowan:2:*",
+   "file": "moods/rowan-2.png"
+  },
+  {
+   "match": "portrait:rowan:3:*",
+   "file": "moods/rowan-3.png"
+  },
+  {
+   "match": "portrait:pip:0:*",
+   "file": "moods/pip-0.png"
+  },
+  {
+   "match": "portrait:pip:1:*",
+   "file": "moods/pip-1.png"
+  },
+  {
+   "match": "portrait:pip:2:*",
+   "file": "moods/pip-2.png"
+  },
+  {
+   "match": "portrait:pip:3:*",
+   "file": "moods/pip-3.png"
+  },
+  {
+   "match": "portrait:ines:0:*",
+   "file": "moods/ines-0.png"
+  },
+  {
+   "match": "portrait:ines:1:*",
+   "file": "moods/ines-1.png"
+  },
+  {
+   "match": "portrait:ines:2:*",
+   "file": "moods/ines-2.png"
+  },
+  {
+   "match": "portrait:ines:3:*",
+   "file": "moods/ines-3.png"
+  },
+  {
+   "match": "portrait:wren:0:*",
+   "file": "moods/wren-0.png"
+  },
+  {
+   "match": "portrait:wren:1:*",
+   "file": "moods/wren-1.png"
+  },
+  {
+   "match": "portrait:wren:2:*",
+   "file": "moods/wren-2.png"
+  },
+  {
+   "match": "portrait:wren:3:*",
+   "file": "moods/wren-3.png"
+  },
+  {
+   "match": "portrait:tobias:0:*",
+   "file": "moods/tobias-0.png"
+  },
+  {
+   "match": "portrait:tobias:1:*",
+   "file": "moods/tobias-1.png"
+  },
+  {
+   "match": "portrait:tobias:2:*",
+   "file": "moods/tobias-2.png"
+  },
+  {
+   "match": "portrait:tobias:3:*",
+   "file": "moods/tobias-3.png"
+  },
+  {
+   "match": "portrait:sable:0:*",
+   "file": "moods/sable-0.png"
+  },
+  {
+   "match": "portrait:sable:1:*",
+   "file": "moods/sable-1.png"
+  },
+  {
+   "match": "portrait:sable:2:*",
+   "file": "moods/sable-2.png"
+  },
+  {
+   "match": "portrait:sable:3:*",
+   "file": "moods/sable-3.png"
+  },
+  {
+   "match": "portrait:clem:0:*",
+   "file": "moods/clem-0.png"
+  },
+  {
+   "match": "portrait:clem:1:*",
+   "file": "moods/clem-1.png"
+  },
+  {
+   "match": "portrait:clem:2:*",
+   "file": "moods/clem-2.png"
+  },
+  {
+   "match": "portrait:clem:3:*",
+   "file": "moods/clem-3.png"
+  },
+  {
+   "match": "portrait:hazel:0:*",
+   "file": "moods/hazel-0.png"
+  },
+  {
+   "match": "portrait:hazel:1:*",
+   "file": "moods/hazel-1.png"
+  },
+  {
+   "match": "portrait:hazel:2:*",
+   "file": "moods/hazel-2.png"
+  },
+  {
+   "match": "portrait:hazel:3:*",
+   "file": "moods/hazel-3.png"
+  },
+  {
+   "match": "portrait:thorne:0:*",
+   "file": "moods/thorne-0.png"
+  },
+  {
+   "match": "portrait:thorne:1:*",
+   "file": "moods/thorne-1.png"
+  },
+  {
+   "match": "portrait:thorne:2:*",
+   "file": "moods/thorne-2.png"
+  },
+  {
+   "match": "portrait:thorne:3:*",
+   "file": "moods/thorne-3.png"
+  },
+  {
+   "match": "portrait:peddler:0:*",
+   "file": "moods/peddler-0.png"
+  },
+  {
+   "match": "portrait:peddler:1:*",
+   "file": "moods/peddler-1.png"
+  },
+  {
+   "match": "portrait:peddler:2:*",
+   "file": "moods/peddler-2.png"
+  },
+  {
+   "match": "portrait:peddler:3:*",
+   "file": "moods/peddler-3.png"
+  }
+ ]
+}

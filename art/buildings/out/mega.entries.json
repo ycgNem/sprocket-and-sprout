@@ -1,0 +1,772 @@
+[
+ {
+  "match": "mega:m_beacon:0:0",
+  "file": "out/mega_m_beacon_0.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:0:1",
+  "file": "out/mega_m_beacon_0.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:1:0",
+  "file": "out/mega_m_beacon_1.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:1:1",
+  "file": "out/mega_m_beacon_1.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:2:0",
+  "file": "out/mega_m_beacon_2.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:2:1",
+  "file": "out/mega_m_beacon_2.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:3:0",
+  "file": "out/mega_m_beacon_3.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:3:1",
+  "file": "out/mega_m_beacon_3.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:4:0",
+  "file": "out/mega_m_beacon_4.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:4:1",
+  "file": "out/mega_m_beacon_4.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:5:0",
+  "file": "out/mega_m_beacon_5.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:5:1",
+  "file": "out/mega_m_beacon_5.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:6:0",
+  "file": "out/mega_m_beacon_6.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:6:1",
+  "file": "out/mega_m_beacon_6.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:7:0",
+  "file": "out/mega_m_beacon_7.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:7:1",
+  "file": "out/mega_m_beacon_7.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:8:0",
+  "file": "out/mega_m_beacon_8.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_beacon:8:1",
+  "file": "out/mega_m_beacon_8_f1.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:0:0",
+  "file": "out/mega_m_orrery_0.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:0:1",
+  "file": "out/mega_m_orrery_0.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:1:0",
+  "file": "out/mega_m_orrery_1.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:1:1",
+  "file": "out/mega_m_orrery_1.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:2:0",
+  "file": "out/mega_m_orrery_2.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:2:1",
+  "file": "out/mega_m_orrery_2.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:3:0",
+  "file": "out/mega_m_orrery_3.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:3:1",
+  "file": "out/mega_m_orrery_3.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:4:0",
+  "file": "out/mega_m_orrery_4.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:4:1",
+  "file": "out/mega_m_orrery_4.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:5:0",
+  "file": "out/mega_m_orrery_5.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:5:1",
+  "file": "out/mega_m_orrery_5.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:6:0",
+  "file": "out/mega_m_orrery_6.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:6:1",
+  "file": "out/mega_m_orrery_6.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:7:0",
+  "file": "out/mega_m_orrery_7.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:7:1",
+  "file": "out/mega_m_orrery_7.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:8:0",
+  "file": "out/mega_m_orrery_8.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_orrery:8:1",
+  "file": "out/mega_m_orrery_8_f1.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:0:0",
+  "file": "out/mega_m_skyship_0.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:0:1",
+  "file": "out/mega_m_skyship_0.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:1:0",
+  "file": "out/mega_m_skyship_1.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:1:1",
+  "file": "out/mega_m_skyship_1.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:2:0",
+  "file": "out/mega_m_skyship_2.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:2:1",
+  "file": "out/mega_m_skyship_2.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:3:0",
+  "file": "out/mega_m_skyship_3.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:3:1",
+  "file": "out/mega_m_skyship_3.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:4:0",
+  "file": "out/mega_m_skyship_4.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:4:1",
+  "file": "out/mega_m_skyship_4.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:5:0",
+  "file": "out/mega_m_skyship_5.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:5:1",
+  "file": "out/mega_m_skyship_5.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:6:0",
+  "file": "out/mega_m_skyship_6.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:6:1",
+  "file": "out/mega_m_skyship_6.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:7:0",
+  "file": "out/mega_m_skyship_7.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:7:1",
+  "file": "out/mega_m_skyship_7.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:8:0",
+  "file": "out/mega_m_skyship_8.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "mega:m_skyship:8:1",
+  "file": "out/mega_m_skyship_8_f1.png",
+  "place": "none",
+  "frame": [
+   64,
+   112
+  ],
+  "origin": [
+   0,
+   48
+  ],
+  "keepStrays": true
+ },
+ {
+  "match": "st:construction_site:**",
+  "file": "out/construction_site.png",
+  "place": "none",
+  "frame": [
+   64,
+   80
+  ],
+  "origin": [
+   0,
+   16
+  ],
+  "keepStrays": true
+ }
+]

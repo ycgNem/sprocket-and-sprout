@@ -1,0 +1,12 @@
+{
+ "id": "5b2622bb-9b69-4686-812a-2c70bbeb5369",
+ "prompt": "tall slender woman doctor, long straight black hair past her shoulders, dark brown skin, round glasses, long white doctor coat, navy blue trousers, rose pink scarf, dark shoes, calm dry expression, cozy farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 36,
+  "height": 36
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: east×4 west×4 south×4 north×4"
+ ]
+}

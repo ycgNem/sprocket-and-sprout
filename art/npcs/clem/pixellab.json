@@ -1,0 +1,12 @@
+{
+ "id": "a1432373-d49d-4d52-8565-d35b5a7d6e37",
+ "prompt": "very tall broad gentle giant rancher man, yellow amber baseball cap, short brown hair, short brown beard, fair warm skin, green plaid flannel shirt, blue denim jeans, brown work boots, shy kind face, cozy farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 36,
+  "height": 36
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: east×4 west×4 south×4 north×4"
+ ]
+}

@@ -1,0 +1,98 @@
+{
+  "name": "npc-peddler",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "input": {
+    "up": [
+      "walking-4-frames/north/0.png",
+      "walking-4-frames/north/1.png",
+      "walking-4-frames/north/2.png",
+      "walking-4-frames/north/3.png",
+      "rotations/north.png"
+    ],
+    "right": [
+      "walking-4-frames/east/0.png",
+      "walking-4-frames/east/1.png",
+      "walking-4-frames/east/2.png",
+      "walking-4-frames/east/3.png",
+      "rotations/east.png"
+    ],
+    "down": [
+      "walking-4-frames/south/0.png",
+      "walking-4-frames/south/1.png",
+      "walking-4-frames/south/2.png",
+      "walking-4-frames/south/3.png",
+      "rotations/south.png"
+    ],
+    "left": [
+      "walking-4-frames/west/0.png",
+      "walking-4-frames/west/1.png",
+      "walking-4-frames/west/2.png",
+      "walking-4-frames/west/3.png",
+      "rotations/west.png"
+    ]
+  },
+  "align": "feet-per-frame",
+  "height": [
+    22,
+    26
+  ],
+  "meta": {
+    "label": "Mags v3",
+    "kind": "character",
+    "ids": [
+      "peddler"
+    ],
+    "frames": {
+      "0": "walk0",
+      "1": "walk1",
+      "2": "walk2",
+      "3": "walk3",
+      "4": "stand",
+      "5": "stand",
+      "6": "stand"
+    },
+    "source": "PixelLab create_character v3, size 28, low top-down, single color outline (character eaf3affb-6fdb-4745-9aef-06f529817cdb); walk: walking-4-frames"
+  },
+  "parts": {
+    "cloth": {
+      "from": [
+        "#f8eacf",
+        "#f8edeb",
+        "#f2e4d2",
+        "#efe1e5",
+        "#faefe7",
+        "#ffffff",
+        "#e0ceb3",
+        "#edd5a8"
+      ],
+      "keys": [
+        "#ab947a",
+        "#fdcbb0",
+        "#ffffff"
+      ]
+    }
+  },
+  "remap": {
+    "#313638": "#2e222f"
+  }
+}

@@ -1,0 +1,12 @@
+{
+ "id": "a05d18b3-f81b-4fa9-bee4-5cf49c94c01c",
+ "prompt": "short round elderly town mayor man, tall brass-gold top hat, gray hair and bushy gray beard, fair pink skin, rosy cheeks, burgundy wine-red long coat with brass buttons, black trousers, black shoes, pompous proud smile, cozy steampunk farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 28,
+  "height": 28
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: west×4 east×4 north×4 south×4"
+ ]
+}

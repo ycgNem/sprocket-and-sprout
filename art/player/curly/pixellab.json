@@ -1,0 +1,13 @@
+{
+ "id": "0ba04f99-f891-46d5-ac2f-b06f4fa7a325",
+ "prompt": "cozy young farmer, short messy brown hair, olive green shirt under blue denim overalls, small brass buckles, dark brown boots, warm skin, friendly round face, cozy farming game sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 32,
+  "height": 32
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk_v3: north×5 south×5",
+  "walk_v3-4171a640: west×5 east×5"
+ ]
+}

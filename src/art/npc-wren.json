@@ -1,0 +1,66 @@
+{
+  "name": "npc-wren",
+  "file": "npc-wren.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 34,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "label": "Wren v3",
+  "kind": "character",
+  "ids": [
+    "wren"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 36, low top-down, single color outline (character a4d55040-b2c2-4f9b-8e6c-c0cb14f59bfd); walk: walking-4-frames",
+  "colors": [
+    "#0b5e65",
+    "#0b8a8f",
+    "#2e222f",
+    "#323353",
+    "#45293f",
+    "#484a77",
+    "#4c3e24",
+    "#4d65b4",
+    "#4d9be6",
+    "#625565",
+    "#6e2727",
+    "#8ff8e2",
+    "#966c6c",
+    "#9babb2",
+    "#9e4539",
+    "#ab947a",
+    "#b33831",
+    "#cd683d",
+    "#e6904e",
+    "#f57d4a",
+    "#fbb954",
+    "#ffffff"
+  ]
+}

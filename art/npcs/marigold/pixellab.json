@@ -1,0 +1,12 @@
+{
+ "id": "3e109edc-b8ff-409e-9102-44018fc2a575",
+ "prompt": "cheerful plump middle-aged shopkeeper woman, ginger red-orange hair in a round bun on top of her head, rose pink long-sleeve blouse, cream white apron, dark brown long skirt, brown shoes, fair warm skin, rosy cheeks, friendly round face, cozy farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 32,
+  "height": 32
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: east×4 north×4 south×4 west×4"
+ ]
+}

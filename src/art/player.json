@@ -3,14 +3,14 @@
   "file": "player.png",
   "palette": "Resurrect 64",
   "frame": [
-    40,
+    44,
     40
   ],
   "anchor": [
-    20,
+    22,
     38
   ],
-  "artHeight": 29,
+  "artHeight": 30,
   "rows": [
     "up",
     "right",
@@ -26,7 +26,19 @@
     "strike",
     "stand",
     "hoeRaise",
-    "hoeStrike"
+    "hoeStrike",
+    "axeRaise",
+    "axeStrike",
+    "pickRaise",
+    "pickStrike",
+    "canRaise",
+    "canPour",
+    "scytheRaise",
+    "scytheStrike",
+    "rodRaise",
+    "rodCast",
+    "swordRaise",
+    "swordStrike"
   ],
   "keys": {
     "skin": [
@@ -58,6 +70,14 @@
       "#7f708a",
       "#9babb2",
       "#c7dcd0"
+    ],
+    "boots": [
+      "#3e3546",
+      "#694f62"
+    ],
+    "wood": [
+      "#6e2727",
+      "#966c6c"
     ]
   },
   "label": "C32 v3",
@@ -79,18 +99,37 @@
     "5": "stand",
     "6": "stand",
     "7": "hoeRaise",
-    "8": "hoeStrike"
+    "8": "hoeStrike",
+    "hoe0": "hoeRaise",
+    "hoe1": "hoeStrike",
+    "axe0": "axeRaise",
+    "axe1": "axeStrike",
+    "pick0": "pickRaise",
+    "pick1": "pickStrike",
+    "can0": "canRaise",
+    "can1": "canPour",
+    "scythe0": "scytheRaise",
+    "scythe1": "scytheStrike",
+    "rod0": "rodRaise",
+    "rod1": "rodCast",
+    "sword0": "swordRaise",
+    "sword1": "swordStrike"
   },
-  "source": "PixelLab create_character v3, size 32, low top-down (character c3eac680-f7ae-453d-9a61-b22fdff859d1); walk: walking-4-frames; tool swing: custom v3 animation (raise frame 2, strike frame 4)",
+  "source": "PixelLab create_character v3, size 32, low top-down (character c3eac680-f7ae-453d-9a61-b22fdff859d1); walk: walking-4-frames; tool swings: custom v3 animations, 4 frames per direction (hoe: raise frame 2, strike 4; other kinds: see cols and art/player/c32/<kind>/)",
   "toolKinds": [
     "hoe",
-    "pick"
+    "axe",
+    "pick",
+    "can",
+    "scythe",
+    "rod",
+    "sword"
   ],
   "colors": [
+    "#0b8a8f",
     "#2e222f",
-    "#313638",
-    "#323353",
     "#374e4a",
+    "#3e3546",
     "#45293f",
     "#484a77",
     "#4c3e24",
@@ -99,18 +138,27 @@
     "#625565",
     "#676633",
     "#694f62",
+    "#6e2727",
+    "#753c54",
     "#7a3045",
     "#7f708a",
+    "#8fd3ff",
+    "#91db69",
+    "#92a984",
+    "#966c6c",
     "#9babb2",
     "#9e4539",
     "#a2a947",
     "#ab947a",
+    "#b2ba90",
     "#c7dcd0",
     "#cd683d",
+    "#d5e04b",
     "#e6904e",
     "#f79617",
     "#f9c22b",
     "#fbb954",
+    "#fbff86",
     "#fca790",
     "#ffffff"
   ]

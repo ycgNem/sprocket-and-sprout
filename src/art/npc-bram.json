@@ -1,0 +1,83 @@
+{
+  "name": "npc-bram",
+  "file": "npc-bram.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 34,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "keys": {
+    "tone": [
+      "#7a3045",
+      "#9e4539",
+      "#cd683d"
+    ],
+    "cloth": [
+      "#ab947a",
+      "#fdcbb0",
+      "#ffffff"
+    ],
+    "tunic": [
+      "#323353",
+      "#484a77",
+      "#4d65b4"
+    ]
+  },
+  "label": "Bram v3",
+  "kind": "character",
+  "ids": [
+    "bram"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 36, low top-down, single color outline (character 4305deca-17ca-4c38-a92e-9ab09bb2f7e1); walk: walking-4-frames",
+  "notes": "shirt recolored from brick red to a blue-slate ramp (tunic part): with his dark skin the red shirt read as one red figure",
+  "colors": [
+    "#2e222f",
+    "#323353",
+    "#3e3546",
+    "#484a77",
+    "#4c3e24",
+    "#4d65b4",
+    "#625565",
+    "#6e2727",
+    "#7a3045",
+    "#7f708a",
+    "#831c5d",
+    "#966c6c",
+    "#9babb2",
+    "#9e4539",
+    "#ab947a",
+    "#ae2334",
+    "#cd683d",
+    "#ed8099",
+    "#fbb954",
+    "#fdcbb0",
+    "#ffffff"
+  ]
+}

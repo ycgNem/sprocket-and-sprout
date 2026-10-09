@@ -1,0 +1,85 @@
+{
+  "name": "npc-ines",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "input": {
+    "up": [
+      "walking-4-frames/north/2.png",
+      "walking-4-frames/north/1.png",
+      "walking-4-frames/north/2.png",
+      "walking-4-frames/north/3.png",
+      "rotations/north.png"
+    ],
+    "right": [
+      "walking-4-frames/east/0.png",
+      "walking-4-frames/east/1.png",
+      "walking-4-frames/east/2.png",
+      "walking-4-frames/east/3.png",
+      "rotations/east.png"
+    ],
+    "down": [
+      "walking-4-frames/south/0.png",
+      "walking-4-frames/south/1.png",
+      "walking-4-frames/south/2.png",
+      "walking-4-frames/south/3.png",
+      "rotations/south.png"
+    ],
+    "left": [
+      "walking-4-frames/west/0.png",
+      "walking-4-frames/west/1.png",
+      "walking-4-frames/west/2.png",
+      "walking-4-frames/west/3.png",
+      "rotations/west.png"
+    ]
+  },
+  "align": "feet-per-frame",
+  "height": [
+    31,
+    34
+  ],
+  "meta": {
+    "label": "Ines v3",
+    "kind": "character",
+    "ids": [
+      "ines"
+    ],
+    "frames": {
+      "0": "walk0",
+      "1": "walk1",
+      "2": "walk2",
+      "3": "walk3",
+      "4": "stand",
+      "5": "stand",
+      "6": "stand"
+    },
+    "source": "PixelLab create_character v3, size 36, low top-down, single color outline (character 5b2622bb-9b69-4686-812a-2c70bbeb5369); walk: walking-4-frames",
+    "notes": "up walk0 reuses frame 2: the template drew frame 0 facing the camera (twice)"
+  },
+  "remap": {
+    "#e6904e": "#9e4539",
+    "#cd683d": "#7a3045",
+    "#fca790": "#cd683d",
+    "#fdcbb0": "#cd683d",
+    "#9e4539": "#7a3045",
+    "#313638": "#3e3546"
+  }
+}

@@ -1,0 +1,353 @@
+{
+  "_": "PixelLab create_1_direction_object batches for the farmhouse furniture (hf:*). Each batch: size, shared description, and [count, slot description, target sprite] groups in slot order. Raw downloads: raw/<batch>/<slot>.png.",
+  "style": "cozy farmhouse interior furniture for a warm rustic farming game, high top-down 3/4 view showing the top and the front face, chunky readable pixel art, 1 px dark plum outline, light from the upper left, warm reddish-brown wood, brass fittings, soft warm fabrics, Stardew Valley style, isolated object, no floor, no drop shadow",
+  "batches": {
+    "b16": {
+      "size": 16,
+      "extra": "small wall decorations and small floor items",
+      "groups": [
+        [
+          6,
+          "small round wooden wall clock, flat front view, cream clock face with no hands in the upper half, a small dark empty glass window for a pendulum below it, reddish-brown wood case",
+          "clock"
+        ],
+        [
+          5,
+          "small painting in a thin brass frame, flat front view, a pale yellow dawn sky over a green meadow with a few pink flowers, wider than tall",
+          "painting:0"
+        ],
+        [
+          5,
+          "small painting in a thin brass frame, flat front view, a stormy dark blue sea with a white wave crest under a gray-purple sky, wider than tall",
+          "painting:1"
+        ],
+        [
+          5,
+          "small painting in a thin brass frame, flat front view, a stone clock tower against a purple and orange dusk sky, wider than tall",
+          "painting:2"
+        ],
+        [
+          4,
+          "mounted fish trophy on a wooden plaque, flat front view, a fat golden-yellow fish facing left, small brass nameplate, wider than tall",
+          "trophy:0"
+        ],
+        [
+          4,
+          "mounted fish trophy on a wooden plaque, flat front view, a grumpy blue-gray armored fish with brass clockwork fins facing left, small brass nameplate, wider than tall",
+          "trophy:1"
+        ],
+        [
+          4,
+          "mounted fish trophy on a wooden plaque, flat front view, a big shimmering teal and violet fish facing left, small brass nameplate, wider than tall",
+          "trophy:2"
+        ],
+        [
+          5,
+          "small woven wall tapestry hanging from a wooden rod, flat front view, purple mountains under a lavender sky with a small yellow sun, green hills at the bottom, yellow tassels on the bottom edge",
+          "tapestry"
+        ],
+        [
+          5,
+          "narrow hanging guild banner, flat front view, wine-red cloth hanging from a brass rod, a brass gear emblem in the middle, swallowtail pointed bottom edge",
+          "banner"
+        ],
+        [
+          6,
+          "small square farmhouse window, flat front view, wooden frame with a cross-shaped mullion, light blue daytime sky and green hills seen through the glass, rose-pink curtains tied at both sides, wine-red valance on top",
+          "window:day"
+        ],
+        [
+          5,
+          "small square farmhouse window, flat front view, wooden frame with a cross-shaped mullion, dark navy night sky with a few stars and a small crescent moon seen through the glass, rose-pink curtains tied at both sides, wine-red valance on top",
+          "window:night"
+        ],
+        [
+          4,
+          "small rectangular woven straw doormat lying flat on the floor, seen from above, tan straw color with a darker brown border, wider than tall",
+          "doormat"
+        ],
+        [
+          4,
+          "small round plump pet cushion bed lying on the floor, seen from above, wine-red rim with a soft pink cushion inside",
+          "petbed"
+        ],
+        [
+          2,
+          "small wine-red wooden music box with the lid open, brass cylinder inside, brass winding key on the side, on four little feet",
+          "musicbox"
+        ]
+      ],
+      "rejected": "size 16 is below what PixelLab draws well: lineless, muddy blobs (trophies, windows, doormat, pet bed unreadable). Redone at size 20 as b20."
+    },
+    "b22": {
+      "size": 22,
+      "extra": "small furniture pieces, each fits in a 16 pixel wide floor tile",
+      "groups": [
+        [
+          8,
+          "simple wooden kitchen chair seen from the side facing right, tall slatted backrest on the left, small dusty-rose seat cushion, four legs, narrow",
+          "chair"
+        ],
+        [
+          8,
+          "plump dusty-rose velvet armchair facing the viewer, rounded backrest and arms, button tufting, short dark wooden legs, narrow",
+          "armchair:0"
+        ],
+        [
+          8,
+          "plump sage-green velvet armchair facing the viewer, rounded backrest and arms, button tufting, short dark wooden legs, narrow",
+          "armchair:1"
+        ],
+        [
+          8,
+          "small square wooden side table with a cream tablecloth with a pink checkered border hanging over the edges, a small blue vase with pink and yellow flowers in the middle",
+          "table"
+        ],
+        [
+          8,
+          "wooden lectern stand on a single post holding a big open book with cream pages and a red ribbon bookmark",
+          "almanac"
+        ],
+        [
+          8,
+          "brass desk globe on a wooden stand, blue oceans and green continents, curved brass meridian ring, narrow",
+          "globe"
+        ],
+        [
+          8,
+          "brass telescope on a wooden tripod, tube angled up to the right, copper eyepiece, narrow",
+          "telescope"
+        ],
+        [
+          8,
+          "small wine-red wooden music box with the lid open on a short wooden pedestal, brass cylinder inside, brass winding key on the side",
+          "musicbox"
+        ]
+      ]
+    },
+    "b28": {
+      "size": 28,
+      "extra": "tall narrow furniture, each fits in a 16 pixel wide floor tile",
+      "groups": [
+        [
+          7,
+          "small wooden chest of three drawers with brass knob handles, a tiny lit oil lamp and a small framed photo standing on top, narrow",
+          "dresser"
+        ],
+        [
+          7,
+          "small old cast-iron wood-burning stove, dark plum-brown iron with brass trim, a copper kettle on the cooktop, a stovepipe rising straight up from the back, closed dark oven door, narrow, unlit",
+          "stove:0"
+        ],
+        [
+          7,
+          "small cozy kitchen range stove in red enamel with brass trim, oven door with a glowing orange window, a copper kettle and a cooking pot on the cooktop, a stovepipe rising straight up from the back, narrow",
+          "stove:1"
+        ],
+        [
+          6,
+          "fiddle-leaf fig houseplant with big round green leaves on a thin trunk in a terracotta pot, tall narrow",
+          "plant:0"
+        ],
+        [
+          6,
+          "lush green potted fern with arching fronds in a terracotta pot, narrow",
+          "plant:1"
+        ],
+        [
+          6,
+          "brass lantern with warm glowing yellow glass panes on top of a short wooden post with a square foot, tall narrow",
+          "lantern"
+        ],
+        [
+          7,
+          "tall brass floor lamp with a cream fabric lampshade with an orange fringe, glowing warm, thin brass pole, round brass base, tall narrow",
+          "lamp"
+        ],
+        [
+          9,
+          "tall narrow wooden bookcase with three shelves packed with colorful book spines in red, blue, green, gold and purple",
+          "shelf:0"
+        ],
+        [
+          9,
+          "tall narrow wooden pantry shelf with three shelves holding jars of red jam and green pickles, honey jars, and a stack of cream plates",
+          "shelf:1"
+        ]
+      ]
+    },
+    "b32": {
+      "size": 36,
+      "extra": "larger furniture pieces two floor tiles wide, and tall narrow clocks",
+      "groups": [
+        [
+          11,
+          "cozy stone fireplace, warm taupe and rose stone blocks, thick dark wood mantel shelf with two candles and a copper jar on it, a large empty dark hearth opening with a few unlit logs on the grate, no fire, red brick hearthstone in front",
+          "fireplace"
+        ],
+        [
+          5,
+          "cozy red brick fireplace with a stone surround, thick dark wood mantel shelf with candles on it, a large empty dark arched hearth opening with unlit logs, no fire, brick hearthstone in front",
+          "fireplace"
+        ],
+        [
+          12,
+          "wide glass fish tank aquarium on a low wooden cabinet stand, clear blue water, golden sand and green water plants at both ends, no fish, wider than tall",
+          "tank"
+        ],
+        [
+          10,
+          "round braided rag rug lying flat on the floor seen from above, concentric rings of river blues and cream",
+          "rug2:0"
+        ],
+        [
+          10,
+          "square woven rug lying flat on the floor seen from above, meadow green with little pink, yellow and white flowers, cream fringed border",
+          "rug2:1"
+        ],
+        [
+          10,
+          "tall narrow grandfather clock, dark wood case with gilded gold trim and a gold crown on top, cream clock face with hands, glass door showing a brass pendulum",
+          "gclock"
+        ],
+        [
+          6,
+          "tall narrow ornate gilded longcase clock, polished walnut case with lots of gold trim, round cream clock face, long brass pendulum behind glass",
+          "gclock"
+        ]
+      ],
+      "note": "submitted as size 36 (art fills ~88% of the canvas, so ~32 px wide pieces)"
+    },
+    "b40": {
+      "size": 42,
+      "extra": "a long narrow single bed and a large floor rug",
+      "groups": [
+        [
+          12,
+          "single wooden bed seen from above, long and narrow, wooden headboard at the top, plump white pillow, patchwork quilt of rose, blush pink and apricot squares, wooden footboard at the bottom",
+          "bed"
+        ],
+        [
+          10,
+          "narrow single farmhouse bed seen from above, carved reddish-brown wooden headboard, cream pillow, cozy rose and peach patchwork quilt with cream stitching folded back at the top",
+          "bed"
+        ],
+        [
+          10,
+          "long narrow wooden cot bed seen from above, warm wooden frame, white pillow, red and pink checkered quilt",
+          "bed"
+        ],
+        [
+          12,
+          "large oval braided rug lying flat on the floor seen from above, concentric rings of wine red, terracotta orange, apricot and gold, cream stitching",
+          "rug"
+        ],
+        [
+          10,
+          "large round woven rug lying flat on the floor seen from above, warm red and orange with a gold flower medallion in the middle and a cream border",
+          "rug"
+        ],
+        [
+          10,
+          "large oval rag rug lying flat on the floor seen from above, rings of rust red, peach and cream with a golden center",
+          "rug"
+        ]
+      ],
+      "note": "submitted as size 42"
+    },
+    "b20": {
+      "size": 20,
+      "extra": "small wall decorations hanging flat on a wall, and small flat floor items",
+      "groups": [
+        [
+          7,
+          "small wooden pendulum wall clock, flat front view, tall and narrow: round cream clock face with no hands at the top, below it a small dark glass window showing an empty pendulum case, reddish-brown wood with a little brass trim",
+          "clock"
+        ],
+        [
+          5,
+          "small landscape painting in a gold frame, flat front view: soft yellow dawn sky over a green meadow with tiny pink flowers",
+          "painting:0"
+        ],
+        [
+          5,
+          "small seascape painting in a gold frame, flat front view: stormy dark blue sea with white wave crests under a gray-purple sky",
+          "painting:1"
+        ],
+        [
+          5,
+          "small painting in a gold frame, flat front view: a stone clock tower silhouette against a purple and orange dusk sky",
+          "painting:2"
+        ],
+        [
+          4,
+          "mounted fish trophy, flat front view: a fat golden-yellow fish with orange fins mounted on a dark oval wooden plaque, brass nameplate",
+          "trophy:0"
+        ],
+        [
+          4,
+          "mounted fish trophy, flat front view: a grumpy slate-blue armored fish with brass gear fins mounted on a dark oval wooden plaque, brass nameplate",
+          "trophy:1"
+        ],
+        [
+          4,
+          "mounted fish trophy, flat front view: a large shimmering teal fish with violet fins mounted on a dark oval wooden plaque, brass nameplate",
+          "trophy:2"
+        ],
+        [
+          5,
+          "small woven wall tapestry hanging from a wooden rod, flat front view, taller than wide: purple mountains, lavender sky, small yellow sun, green hills, golden tassels along the bottom",
+          "tapestry"
+        ],
+        [
+          5,
+          "narrow hanging guild banner, flat front view, tall and thin: wine-red cloth on a brass rod with a brass gear emblem, swallowtail bottom",
+          "banner"
+        ],
+        [
+          6,
+          "small farmhouse window, flat front view: wooden frame with cross mullions, light blue sky and green hills through the glass, rose curtains gathered at both sides, wine-red valance",
+          "window:day"
+        ],
+        [
+          5,
+          "small farmhouse window, flat front view: wooden frame with cross mullions, dark navy night sky with tiny stars and a crescent moon through the glass, rose curtains gathered at both sides, wine-red valance",
+          "window:night"
+        ],
+        [
+          4,
+          "small woven straw doormat lying flat on the floor, seen from above, tan with a brown border, wider than tall, thin",
+          "doormat"
+        ],
+        [
+          5,
+          "small round plump pet cushion bed on the floor, seen from above at an angle, wine-red raised rim and a soft pink cushion in the middle",
+          "petbed"
+        ]
+      ]
+    }
+  },
+  "ids": {
+    "b16": "0e07364b-98ab-491c-b347-b361873a75f9",
+    "b22": "bea915cd-abe2-48c2-92d2-bbbb282741d6",
+    "b28": "cb2e2895-e7e1-4877-b356-2ce281623ef8",
+    "b20": "04841af6-6593-4cb4-b324-1466f552b932",
+    "b36": "cb391236-4a9a-402a-bb71-8280a5c1d11f",
+    "pf/bookcase": "eadae034-db9e-4353-bd07-c1dc26f25b4e",
+    "pf/pantry": "1fc50921-6410-460f-a66c-4131d983c41d",
+    "pf/stove": "9bfbc89b-8ef6-4a9a-b638-bf0463153542",
+    "pf/bed2": "22f9a279-8e6e-45eb-9b70-e410aa2d01b2",
+    "fire animate_image": "2b3eb4cf-d85d-4120-8b37-788f9e1742d5",
+    "px/window (pixen)": "69987f98-c92f-48f8-ad77-274973f07953",
+    "px/trophy (pixen)": "75c8d3e0-78f9-4989-96c8-3a89b7670aaa",
+    "px/musicbox2 (pixflux img2img)": "f1ecb13c-07a3-447c-be53-c6ff45fd65a5"
+  },
+  "lessons": [
+    "Art fills ~85-90% of the canvas height; width follows the object (b22 armchairs 18 wide at size 22). Asking for \"narrow\" does not narrow it (b28 dressers 24 wide, stoves 20).",
+    "Size 16 is below what the batch model draws well (lineless mush): use 20-22 for small items, Pixen 16x16/20x20 (1 generation) for single small sprites.",
+    "Sizes above 32 cost 15 per 64-slot batch (b36), not 10.",
+    "Pro Flash (5 per image) gives an exact canvas such as 16x32: good for narrow wall-run pieces (bookcase, pantry, stove); busy patterns (patchwork) turn to noise at 16 px wide.",
+    "Cream (#fde2b4 and the like) has no Resurrect 64 match and lands on taupe or sage: map it per sprite in fixups.json.",
+    "Flame animation: paint seed flames into the empty hearth, animate_image (1 generation, 6 frames), then keep only fire-colored pixels over the dark interior (fire.mjs)."
+  ]
+}

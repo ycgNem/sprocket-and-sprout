@@ -1,0 +1,89 @@
+{
+  "name": "npc-hazel",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "input": {
+    "up": [
+      "walking-4-frames/north/0.png",
+      "walking-4-frames/north/1.png",
+      "walking-4-frames/north/2.png",
+      "walking-4-frames/north/3.png",
+      "rotations/north.png"
+    ],
+    "right": [
+      "walking-4-frames/east/0.png",
+      "walking-4-frames/east/1.png",
+      "walking-4-frames/east/2.png",
+      "walking-4-frames/east/3.png",
+      "rotations/east.png"
+    ],
+    "down": [
+      "walking-4-frames/south/0.png",
+      "walking-4-frames/south/1.png",
+      "walking-4-frames/south/2.png",
+      "walking-4-frames/south/3.png",
+      "rotations/south.png"
+    ],
+    "left": [
+      "walking-4-frames/west/0.png",
+      "walking-4-frames/west/1.png",
+      "walking-4-frames/west/2.png",
+      "walking-4-frames/west/3.png",
+      "rotations/west.png"
+    ]
+  },
+  "align": "feet-per-frame",
+  "height": [
+    28,
+    31
+  ],
+  "meta": {
+    "label": "Hazel v3",
+    "kind": "character",
+    "ids": [
+      "hazel"
+    ],
+    "frames": {
+      "0": "walk0",
+      "1": "walk1",
+      "2": "walk2",
+      "3": "walk3",
+      "4": "stand",
+      "5": "stand",
+      "6": "stand"
+    },
+    "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character 955db650-c070-4187-b9ba-f5b1cffe56ff); walk: walking-4-frames",
+    "notes": "the east walk came out redder (crimson hair shadows, yellow skin light): remapped onto the other directions' colors"
+  },
+  "remap": {
+    "#ae2334": "#9e4539",
+    "#831c5d": "#6e2727",
+    "#fbb954": "#fdcbb0",
+    "#eaaded": "#7f708a",
+    "#f57d4a": "#e6904e",
+    "#f68181": "#fca790",
+    "#a24b6f": "#753c54",
+    "#ab947a": "#fdcbb0",
+    "#e83b3b": "#b33831",
+    "#313638": "#3e3546"
+  }
+}

@@ -1,0 +1,12 @@
+{
+ "id": "692adb5e-b93e-437e-9fcd-8263424db53f",
+ "prompt": "friendly sunny cook man, curly golden blonde hair, warm brown skin, white cook shirt with rolled sleeves, cream apron, copper orange neckerchief, slate gray trousers, brown shoes, big warm smile, cozy farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 32,
+  "height": 32
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: east×4 north×4 west×4 south×4"
+ ]
+}

@@ -1,0 +1,12 @@
+{
+ "id": "76078dd0-90ca-404b-aa4b-318a3f00c81f",
+ "prompt": "small cheerful young child, spiky golden blonde hair, warm brown skin, sky blue t-shirt, dark brown shorts, little green satchel, brown shoes, big curious eyes, bouncy kid, cozy farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 24,
+  "height": 24
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: west×4 east×4 north×4 south×4"
+ ]
+}

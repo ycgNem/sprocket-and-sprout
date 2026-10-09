@@ -1,0 +1,142 @@
+{
+  "name": "npc-bram",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "input": {
+    "up": [
+      "walking-4-frames/north/0.png",
+      "walking-4-frames/north/1.png",
+      "walking-4-frames/north/2.png",
+      "walking-4-frames/north/3.png",
+      "rotations/north.png"
+    ],
+    "right": [
+      "walking-4-frames/east/0.png",
+      "walking-4-frames/east/1.png",
+      "walking-4-frames/east/2.png",
+      "walking-4-frames/east/3.png",
+      "rotations/east.png"
+    ],
+    "down": [
+      "walking-4-frames/south/0.png",
+      "walking-4-frames/south/1.png",
+      "walking-4-frames/south/2.png",
+      "walking-4-frames/south/3.png",
+      "rotations/south.png"
+    ],
+    "left": [
+      "walking-4-frames/west/0.png",
+      "walking-4-frames/west/1.png",
+      "walking-4-frames/west/2.png",
+      "walking-4-frames/west/3.png",
+      "rotations/west.png"
+    ]
+  },
+  "align": "feet-per-frame",
+  "height": [
+    31,
+    34
+  ],
+  "meta": {
+    "label": "Bram v3",
+    "kind": "character",
+    "ids": [
+      "bram"
+    ],
+    "frames": {
+      "0": "walk0",
+      "1": "walk1",
+      "2": "walk2",
+      "3": "walk3",
+      "4": "stand",
+      "5": "stand",
+      "6": "stand"
+    },
+    "source": "PixelLab create_character v3, size 36, low top-down, single color outline (character 4305deca-17ca-4c38-a92e-9ab09bb2f7e1); walk: walking-4-frames",
+    "notes": "shirt recolored from brick red to a blue-slate ramp (tunic part): with his dark skin the red shirt read as one red figure"
+  },
+  "parts": {
+    "tone": {
+      "from": [
+        "#fbc491",
+        "#fbd5aa",
+        "#f6c59c",
+        "#edb998",
+        "#f2bc92",
+        "#e19574",
+        "#e49a78",
+        "#d97c59",
+        "#cd6e4f",
+        "#cf7757",
+        "#b26d56"
+      ],
+      "keys": [
+        "#7a3045",
+        "#9e4539",
+        "#cd683d"
+      ]
+    },
+    "cloth": {
+      "from": [
+        "#dbcfb7",
+        "#e0cbba",
+        "#f4f5ef",
+        "#e5e5e1",
+        "#cbc2bc"
+      ],
+      "keys": [
+        "#ab947a",
+        "#fdcbb0",
+        "#ffffff"
+      ]
+    },
+    "tunic": {
+      "from": [
+        "#420b19",
+        "#4a131e",
+        "#5c111d",
+        "#6a1626",
+        "#810e23",
+        "#860f21",
+        "#88202e",
+        "#9c232e",
+        "#ac3124",
+        "#b12929",
+        "#b8342a",
+        "#b73c2a",
+        "#cb381d",
+        "#d84d1e",
+        "#e5451f",
+        "#e45d23",
+        "#ea6f28"
+      ],
+      "keys": [
+        "#323353",
+        "#484a77",
+        "#4d65b4"
+      ]
+    }
+  },
+  "remap": {
+    "#313638": "#3e3546"
+  }
+}

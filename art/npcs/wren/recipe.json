@@ -1,0 +1,76 @@
+{
+  "name": "npc-wren",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "input": {
+    "up": [
+      "walking-4-frames/north/0.png",
+      "walking-4-frames/north/1.png",
+      "walking-4-frames/north/2.png",
+      "walking-4-frames/north/3.png",
+      "rotations/north.png"
+    ],
+    "right": [
+      "walking-4-frames/east/0.png",
+      "walking-4-frames/east/1.png",
+      "walking-4-frames/east/2.png",
+      "walking-4-frames/east/3.png",
+      "rotations/east.png"
+    ],
+    "down": [
+      "walking-4-frames/south/0.png",
+      "walking-4-frames/south/1.png",
+      "walking-4-frames/south/2.png",
+      "walking-4-frames/south/3.png",
+      "rotations/south.png"
+    ],
+    "left": [
+      "walking-4-frames/west/0.png",
+      "walking-4-frames/west/1.png",
+      "walking-4-frames/west/2.png",
+      "walking-4-frames/west/3.png",
+      "rotations/west.png"
+    ]
+  },
+  "align": "feet-per-frame",
+  "height": [
+    31,
+    34
+  ],
+  "meta": {
+    "label": "Wren v3",
+    "kind": "character",
+    "ids": [
+      "wren"
+    ],
+    "frames": {
+      "0": "walk0",
+      "1": "walk1",
+      "2": "walk2",
+      "3": "walk3",
+      "4": "stand",
+      "5": "stand",
+      "6": "stand"
+    },
+    "source": "PixelLab create_character v3, size 36, low top-down, single color outline (character a4d55040-b2c2-4f9b-8e6c-c0cb14f59bfd); walk: walking-4-frames"
+  }
+}

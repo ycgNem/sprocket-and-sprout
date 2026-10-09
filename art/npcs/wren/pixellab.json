@@ -1,0 +1,12 @@
+{
+ "id": "a4d55040-b2c2-4f9b-8e6c-c0cb14f59bfd",
+ "prompt": "tall weathered fisher woman, ash gray hair in two long braids hanging forward over her shoulders, face clearly visible, warm tan brown skin, navy blue knitted fisherman sweater, sky blue scarf, brown trousers, dark boots, calm quiet face, cozy farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 36,
+  "height": 36
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: south×4 west×4 north×4 east×4"
+ ]
+}

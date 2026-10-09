@@ -1,0 +1,12 @@
+{
+ "id": "0e62230e-434b-4fcf-87fb-efea943e0581",
+ "prompt": "tiny elderly woman inventor, big round puff of fluffy curly snow-white hair, round glasses, brass goggles resting on her forehead, pale skin, blue-gray lab coat, red skirt, small brown boots, delighted grin, cozy steampunk farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 28,
+  "height": 28
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: south×4 west×4 north×4 east×4"
+ ]
+}

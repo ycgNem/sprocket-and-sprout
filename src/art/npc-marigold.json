@@ -1,0 +1,78 @@
+{
+  "name": "npc-marigold",
+  "file": "npc-marigold.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 29,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "keys": {
+    "cloth": [
+      "#ab947a",
+      "#fdcbb0",
+      "#ffffff"
+    ]
+  },
+  "label": "Marigold v3",
+  "kind": "character",
+  "ids": [
+    "marigold"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character 3e109edc-b8ff-409e-9102-44018fc2a575); walk: walking-4-frames",
+  "colors": [
+    "#0b5e65",
+    "#2e222f",
+    "#313638",
+    "#45293f",
+    "#6e2727",
+    "#7a3045",
+    "#8fd3ff",
+    "#966c6c",
+    "#9e4539",
+    "#a24b6f",
+    "#ab947a",
+    "#b33831",
+    "#c32454",
+    "#c7dcd0",
+    "#cd683d",
+    "#cf657f",
+    "#e6904e",
+    "#ea4f36",
+    "#eaaded",
+    "#ed8099",
+    "#f57d4a",
+    "#f79617",
+    "#fb6b1d",
+    "#fbb954",
+    "#fca790",
+    "#fdcbb0",
+    "#ffffff"
+  ]
+}

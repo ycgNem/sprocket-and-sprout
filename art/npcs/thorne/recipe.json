@@ -1,0 +1,110 @@
+{
+  "name": "npc-thorne",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "input": {
+    "up": [
+      "walking-4-frames/north/0.png",
+      "walking-4-frames/north/1.png",
+      "walking-4-frames/north/2.png",
+      "walking-4-frames/north/3.png",
+      "rotations/north.png"
+    ],
+    "right": [
+      "walking-4-frames/east/0.png",
+      "walking-4-frames/east/1.png",
+      "walking-4-frames/east/2.png",
+      "walking-4-frames/east/3.png",
+      "rotations/east.png"
+    ],
+    "down": [
+      "walking-4-frames/south/0.png",
+      "walking-4-frames/south/1.png",
+      "walking-4-frames/south/2.png",
+      "walking-4-frames/south/3.png",
+      "rotations/south.png"
+    ],
+    "left": [
+      "walking-4-frames/west/0.png",
+      "walking-4-frames/west/1.png",
+      "walking-4-frames/west/2.png",
+      "walking-4-frames/west/3.png",
+      "rotations/west.png"
+    ]
+  },
+  "align": "feet-per-frame",
+  "height": [
+    31,
+    34
+  ],
+  "meta": {
+    "label": "Thorne v3",
+    "kind": "character",
+    "ids": [
+      "thorne"
+    ],
+    "frames": {
+      "0": "walk0",
+      "1": "walk1",
+      "2": "walk2",
+      "3": "walk3",
+      "4": "stand",
+      "5": "stand",
+      "6": "stand"
+    },
+    "source": "PixelLab create_character v3, size 36, low top-down, single color outline (character f076a475-22d6-428a-8cc9-c46826943434); walk: walking-4-frames",
+    "notes": "hood and robe recolored from olive to a plum-brown cloak (cloak part): olive head to toe read as one blob and vanished on grass; the green sash stays"
+  },
+  "parts": {
+    "cloak": {
+      "from": [
+        "#2b291b",
+        "#353314",
+        "#383825",
+        "#433b2b",
+        "#3d3e13",
+        "#4e4b30",
+        "#434425",
+        "#4c5118",
+        "#4f511c",
+        "#59651d",
+        "#586c2a",
+        "#675c1d",
+        "#7b6e22",
+        "#7d7625",
+        "#8c892d",
+        "#938020",
+        "#909424",
+        "#a08a29",
+        "#a8971e"
+      ],
+      "keys": [
+        "#45293f",
+        "#753c54",
+        "#966c6c"
+      ]
+    }
+  },
+  "remap": {
+    "#313638": "#3e3546"
+  }
+}

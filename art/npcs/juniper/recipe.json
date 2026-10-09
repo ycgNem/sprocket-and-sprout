@@ -1,0 +1,95 @@
+{
+  "name": "npc-juniper",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "input": {
+    "up": [
+      "walking-4-frames/north/0.png",
+      "walking-4-frames/north/1.png",
+      "walking-4-frames/north/2.png",
+      "walking-4-frames/north/3.png",
+      "rotations/north.png"
+    ],
+    "right": [
+      "walking-4-frames/east/0.png",
+      "walking-4-frames/east/1.png",
+      "walking-4-frames/east/2.png",
+      "walking-4-frames/east/3.png",
+      "rotations/east.png"
+    ],
+    "down": [
+      "walking-4-frames/south/0.png",
+      "walking-4-frames/south/1.png",
+      "walking-4-frames/south/2.png",
+      "walking-4-frames/south/3.png",
+      "rotations/south.png"
+    ],
+    "left": [
+      "walking-4-frames/west/0.png",
+      "walking-4-frames/west/1.png",
+      "walking-4-frames/west/2.png",
+      "walking-4-frames/west/3.png",
+      "rotations/west.png"
+    ]
+  },
+  "align": "feet-per-frame",
+  "height": [
+    28,
+    31
+  ],
+  "meta": {
+    "label": "Juniper v3",
+    "kind": "character",
+    "ids": [
+      "juniper"
+    ],
+    "frames": {
+      "0": "walk0",
+      "1": "walk1",
+      "2": "walk2",
+      "3": "walk3",
+      "4": "stand",
+      "5": "stand",
+      "6": "stand"
+    },
+    "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character 34b75c17-e755-4533-af61-7507836b2041); walk: walking-4-frames"
+  },
+  "parts": {
+    "cloth": {
+      "from": [
+        "#e3d5bb",
+        "#dfd7c3",
+        "#e2d8d9",
+        "#f3e9e1",
+        "#f7e7bc"
+      ],
+      "keys": [
+        "#ab947a",
+        "#fdcbb0",
+        "#ffffff"
+      ]
+    }
+  },
+  "remap": {
+    "#313638": "#3e3546"
+  }
+}

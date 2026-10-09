@@ -1,0 +1,28 @@
+// Quality stars q:1 (silver), q:2 (gold), q:3 (starmetal): 7x7, hand-pixeled (too small to
+// generate). First line of each block: legend, then 7 rows; '.' is transparent.
+k=#2e222f L=#c7dcd0 B=#9babb2 D=#7f708a
+...k...
+..kLk..
+kkkLBkk
+kLLBBDk
+.kBBDk.
+kBDkBDk
+kkk.kkk
+
+k=#2e222f L=#fbff86 B=#f9c22b D=#f79617
+...k...
+..kLk..
+kkkLBkk
+kLLBBDk
+.kBBDk.
+kBDkBDk
+kkk.kkk
+
+k=#2e222f L=#eaaded B=#a884f3 D=#905ea9
+...k...
+..kLk..
+kkkLBkk
+kLLBBDk
+.kBBDk.
+kBDkBDk
+kkk.kkk

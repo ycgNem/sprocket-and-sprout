@@ -1,0 +1,533 @@
+hoe_0	Rusty Hoe	tool	hoe		#7f708a	
+hoe_1	Copper Hoe	tool	hoe		#cd683d	
+hoe_2	Iron Hoe	tool	hoe		#9babb2	
+hoe_3	Gold Hoe	tool	hoe		#f79617	
+hoe_4	Starmetal Hoe	tool	hoe		#905ea9	
+can_0	Rusty Watering Can	tool	can		#7f708a	
+can_1	Copper Watering Can	tool	can		#cd683d	
+can_2	Iron Watering Can	tool	can		#9babb2	
+can_3	Gold Watering Can	tool	can		#f79617	
+can_4	Starmetal Watering Can	tool	can		#905ea9	
+axe_0	Rusty Axe	tool	axe		#7f708a	
+axe_1	Copper Axe	tool	axe		#cd683d	
+axe_2	Iron Axe	tool	axe		#9babb2	
+axe_3	Gold Axe	tool	axe		#f79617	
+axe_4	Starmetal Axe	tool	axe		#905ea9	
+pick_0	Rusty Pickaxe	tool	pick		#7f708a	
+pick_1	Copper Pickaxe	tool	pick		#cd683d	
+pick_2	Iron Pickaxe	tool	pick		#9babb2	
+pick_3	Gold Pickaxe	tool	pick		#f79617	
+pick_4	Starmetal Pickaxe	tool	pick		#905ea9	
+scythe_0	Rusty Scythe	tool	scythe		#7f708a	
+scythe_1	Copper Scythe	tool	scythe		#cd683d	
+scythe_2	Iron Scythe	tool	scythe		#9babb2	
+scythe_3	Gold Scythe	tool	scythe		#f79617	
+scythe_4	Starmetal Scythe	tool	scythe		#905ea9	
+rod_0	Rusty Fishing Rod	tool	rod		#7f708a	
+rod_1	Copper Fishing Rod	tool	rod		#cd683d	
+rod_2	Iron Fishing Rod	tool	rod		#9babb2	
+rod_3	Gold Fishing Rod	tool	rod		#f79617	
+rod_4	Starmetal Fishing Rod	tool	rod		#905ea9	
+sword_0	Driftwood Club	weapon	sword		#966c6c	
+sword_1	Copper Blade	weapon	sword		#cd683d	
+sword_2	Iron Sabre	weapon	sword		#9babb2	
+sword_3	Brass Cutlass	weapon	sword		#f79617	
+sword_4	Starmetal Edge	weapon	sword		#905ea9	
+radish	Radish	crop	root		#cf657f,#ffffff,-,#91db69	
+radish_seed	Radish Seeds	seed	seeds		#cf657f,#91db69	
+spinach	Spinach	crop	leafy		#239063,-,-,#676633	
+spinach_seed	Spinach Seeds	seed	seeds		#239063,#676633	
+pea	Sweet Pea	crop	pod		#cddf6c,-,-,#91db69	
+pea_seed	Sweet Pea Seeds	seed	seeds		#cddf6c,#91db69	
+strawberry	Strawberry	fruit	berry		#cf657f,#fdcbb0,-,#239063	
+strawberry_seed	Strawberry Seeds	seed	seeds		#cf657f,#239063	
+tulip	Tulip	flower	flower		#cf657f,#fbb954,-,#239063	
+tulip_seed	Tulip Seeds	seed	seeds		#cf657f,#239063	
+potato	Potato	crop	tuber		#ab947a,-,-,#676633	
+potato_seed	Potato Seeds	seed	seeds		#ab947a,#676633	
+cabbage	Cabbage	crop	round		#cddf6c,-,-,#91db69	
+cabbage_seed	Cabbage Seeds	seed	seeds		#cddf6c,#91db69	
+rhubarb	Rhubarb	crop	stalk		#cf657f,-,-,#239063	
+rhubarb_seed	Rhubarb Seeds	seed	seeds		#cf657f,#239063	
+flax	Flax	crop	grain		#4d9be6,-,-,#239063	
+flax_seed	Flax Seeds	seed	seeds		#4d9be6,#239063	
+cogbean	Cogbean	crop	cogbean		#f79617,-,-,#676633	
+cogbean_seed	Cogbean Seeds	seed	seeds		#f79617,#676633	
+tomato	Tomato	crop	round		#ea4f36,-,-,#239063	
+tomato_seed	Tomato Seeds	seed	seeds		#ea4f36,#239063	
+corn	Corn	crop	corn		#fbb954,-,-,#91db69	
+corn_seed	Corn Seeds	seed	seeds		#fbb954,#91db69	
+melon	Melon	fruit	melon		#91db69,#676633,-,#239063	
+melon_seed	Melon Seeds	seed	seeds		#91db69,#239063	
+blueberry	Blueberry	fruit	berries		#4d9be6,#6b3e75,-,#676633	
+blueberry_seed	Blueberry Seeds	seed	seeds		#4d9be6,#676633	
+emberpepper	Ember Pepper	fruit	pepper		#ea4f36,#fbb954,-,#239063	
+emberpepper_seed	Ember Pepper Seeds	seed	seeds		#ea4f36,#239063	
+sunflower	Sunflower	flower	sunflower		#fbb954,#4c3e24,-,#239063	
+sunflower_seed	Sunflower Seeds	seed	seeds		#fbb954,#239063	
+wheat	Wheat	crop	grain		#fbb954,-,-,#cddf6c	
+wheat_seed	Wheat Seeds	seed	seeds		#fbb954,#cddf6c	
+hops	Hops	crop	hops		#cddf6c,-,-,#239063	
+hops_seed	Hops Seeds	seed	seeds		#cddf6c,#239063	
+sweetcane	Sweetcane	crop	cane		#cddf6c,-,-,#91db69	
+sweetcane_seed	Sweetcane Seeds	seed	seeds		#cddf6c,#91db69	
+cotton	Cotton	crop	cotton		#ffffff,-,-,#676633	
+cotton_seed	Cotton Seeds	seed	seeds		#ffffff,#676633	
+coffee	Coffee Cherry	crop	beans		#b33831,-,-,#313638	
+coffee_seed	Coffee Cherry Seeds	seed	seeds		#b33831,#313638	
+sunbell	Sunbell	flower	bell		#fdcbb0,#fbb954,-,#91db69	
+sunbell_seed	Sunbell Seeds	seed	seeds		#fdcbb0,#91db69	
+pumpkin	Pumpkin	crop	pumpkin		#e6904e,#ea4f36,-,#239063	
+pumpkin_seed	Pumpkin Seeds	seed	seeds		#e6904e,#239063	
+cranberry	Cranberry	fruit	berries		#cf657f,#753c54,-,#676633	
+cranberry_seed	Cranberry Seeds	seed	seeds		#cf657f,#676633	
+eggplant	Eggplant	crop	eggplant		#6b3e75,-,-,#676633	
+eggplant_seed	Eggplant Seeds	seed	seeds		#6b3e75,#676633	
+grape	Grape	fruit	grapes		#6b3e75,#905ea9,-,#239063	
+grape_seed	Grape Seeds	seed	seeds		#6b3e75,#239063	
+beet	Beet	crop	root		#753c54,#cf657f,-,#676633	
+beet_seed	Beet Seeds	seed	seeds		#753c54,#676633	
+yam	Yam	crop	tuber		#b33831,-,-,#239063	
+yam_seed	Yam Seeds	seed	seeds		#b33831,#239063	
+artichoke	Thistlechoke	crop	choke		#239063,#905ea9,-,#676633	
+artichoke_seed	Thistlechoke Seeds	seed	seeds		#239063,#676633	
+barley	Barley	crop	grain		#ab947a,-,-,#cddf6c	
+barley_seed	Barley Seeds	seed	seeds		#ab947a,#cddf6c	
+glowmelon	Glowmelon	fruit	melon		#8fd3ff,#c7dcd0,-,#676633	
+glowmelon_seed	Glowmelon Seeds	seed	seeds		#8fd3ff,#676633	
+mooncap	Mooncap	crop	mushroom		#905ea9,#ffffff,-,#625565	
+mooncap_seed	Mooncap Seeds	seed	seeds		#905ea9,#625565	
+frostmint	Frostmint	crop	leafy		#c7dcd0,-,-,#8fd3ff	
+frostmint_seed	Frostmint Seeds	seed	seeds		#c7dcd0,#8fd3ff	
+kale	Snow Kale	crop	leafy		#6b3e75,-,-,#676633	
+kale_seed	Snow Kale Seeds	seed	seeds		#6b3e75,#676633	
+snowroot	Snowroot	crop	root		#c7dcd0,#ffffff,-,#239063	
+snowroot_seed	Snowroot Seeds	seed	seeds		#c7dcd0,#239063	
+starpetal	Starpetal	flower	starflower		#905ea9,#fdcbb0,-,#313638	
+starpetal_seed	Starpetal Seeds	seed	seeds		#905ea9,#313638	
+tealeaf	Tea Leaf	crop	leaf		#91db69,-,-,#676633	
+tealeaf_seed	Tea Leaf Seeds	seed	seeds		#91db69,#676633	
+coconut	Coconut	fruit	coconut		#4c3e24,-,-,#91db69	
+apple_sapling	Apple Sapling	seed	sapling		#239063,#4c3e24,-,#cf657f	
+apple	Apple	fruit	fruit		#cf657f,-,-,#91db69	
+pear_sapling	Pear Sapling	seed	sapling		#91db69,#4c3e24,-,#cddf6c	
+pear	Pear	fruit	pear		#cddf6c,-,-,#91db69	
+cherry_sapling	Cherry Sapling	seed	sapling		#ed8099,#753c54,-,#cf657f	
+cherry	Cherry	fruit	cherry		#cf657f,-,-,#91db69	
+apricot_sapling	Apricot Sapling	seed	sapling		#91db69,#966c6c,-,#e6904e	
+apricot	Apricot	fruit	fruit		#e6904e,-,-,#91db69	
+peach_sapling	Peach Sapling	seed	sapling		#239063,#4c3e24,-,#ed8099	
+peach	Peach	fruit	fruit		#ed8099,-,-,#91db69	
+plum_sapling	Plum Sapling	seed	sapling		#676633,#45293f,-,#6b3e75	
+plum	Plum	fruit	fruit		#6b3e75,-,-,#91db69	
+orange_sapling	Sunorange Sapling	seed	sapling		#91db69,#966c6c,-,#fbb954	
+orange	Sunorange	fruit	fruit		#fbb954,-,-,#91db69	
+snowberry_sapling	Snowberry Sapling	seed	sapling		#8fd3ff,#625565,-,#ffffff	
+snowberry	Snowberry	fruit	fruit		#ffffff,-,-,#91db69	
+acorn	Acorn	seed	nut		#966c6c,#4c3e24	
+maple_seed	Maple Seed	seed	wing		#ea4f36,#966c6c	
+pine_cone	Pine Cone	seed	cone		#4c3e24,#45293f	
+birch_seed	Birch Catkin	seed	wing		#ab947a,#9babb2	
+willow_twig	Willow Twig	seed	twig		#91db69,#4c3e24	
+wild_garlic	Wild Garlic	forage	stalk		#ffffff,-,-,#91db69	
+morel	Morel	forage	mushroom		#ab947a,#4c3e24	
+meadow_daisy	Meadow Daisy	forage	flower		#ffffff,#fbb954,-,#239063	
+raspberry	Wild Raspberry	forage	berry		#cf657f,#753c54	
+elderflower	Elderflower	forage	flower		#ffffff,#fdcbb0,-,#676633	
+sea_fennel	Sea Fennel	forage	leafy		#cddf6c,-,-,#239063	
+chestnut	Chestnut	forage	nut		#4c3e24,#45293f	
+chanterelle	Chanterelle	forage	mushroom		#fbb954,#e6904e	
+rosehip	Rosehip	forage	berry		#ea4f36,#b33831	
+holly	Holly Sprig	forage	leaf		#676633,#cf657f	
+snow_lichen	Snow Lichen	forage	leafy		#c7dcd0,-,-,#8fd3ff	
+ice_crocus	Ice Crocus	forage	flower		#905ea9,#c7dcd0,-,#8fd3ff	
+seashell	Seashell	forage	shell		#ed8099,#ffffff	
+coral	Coral	forage	coral		#cf657f,#ed8099	
+sea_glass	Sea Glass	forage	gem		#8fd3ff,#91db69	
+kelp	Kelp	forage	kelp		#676633,#313638	
+field_mushroom	Field Mushroom	forage	mushroom		#ab947a,#ffffff	
+wood	Wood	resource	log		#966c6c,#4c3e24	
+hardwood	Hardwood	resource	log		#4c3e24,#45293f	
+stone	Stone	resource	stone		#7f708a,#625565	
+fiber	Plant Fiber	resource	fiber		#91db69,#239063	
+sap	Sap	resource	drop		#fbb954,#f79617	
+clay	Clay	resource	clay		#ea4f36,#b33831	
+sand	Sand	resource	pile		#fdcbb0,#ab947a	
+gravel	Gravel	resource	pile		#7f708a,#625565	
+coal	Coal	resource	coal		#2e222f,#625565	
+hay	Hay	resource	hay		#fbb954,#ab947a	
+sawdust	Sawdust	resource	pile		#ab947a,#966c6c	
+copper_ore	Copper Ore	ore	ore		#cd683d,#b33831,#7f708a	
+tin_ore	Tin Ore	ore	ore		#9babb2,#7f708a,#7f708a	
+iron_ore	Iron Ore	ore	ore		#7f708a,#625565,#7f708a	
+gold_ore	Gold Ore	ore	ore		#f79617,#fbb954,#7f708a	
+starmetal_ore	Starmetal Ore	ore	ore		#905ea9,#6b3e75,#7f708a	
+copper_bar	Copper Bar	bar	bar		#cd683d,-,#e6904e	
+tin_bar	Tin Bar	bar	bar		#9babb2,-,#ffffff	
+iron_bar	Iron Bar	bar	bar		#7f708a,-,#9babb2	
+brass_bar	Brass Bar	bar	bar		#f79617,-,#fdcbb0	
+gold_bar	Gold Bar	bar	bar		#fbb954,-,#fdcbb0	
+starmetal_bar	Starmetal Bar	bar	bar		#905ea9,-,#c7dcd0	
+quartz	Quartz	gem	gem		#c7dcd0	
+amethyst	Amethyst	gem	gem		#6b3e75	
+topaz	Topaz	gem	gem		#fbb954	
+jade	Jade	gem	gem		#91db69	
+ruby	Ruby	gem	gem		#cf657f	
+sapphire	Sapphire	gem	gem		#4d9be6	
+opal	Fire Opal	gem	gem		#ed8099	
+starstone	Starstone	gem	gem		#905ea9	
+prism_shard	Prism Shard	gem	gem		#ffffff	
+frost_shard	Frost Shard	gem	gem		#8fd3ff	
+mica	Mica	mineral	mineral		#9babb2,#fdcbb0	
+obsidian	Obsidian	mineral	mineral		#2e222f,#6b3e75	
+jasper	Jasper	mineral	mineral		#ea4f36,#b33831	
+fluorite	Fluorite	mineral	mineral		#905ea9,#8fd3ff	
+calcite	Calcite	mineral	mineral		#ffffff,#fdcbb0	
+geode	Geode	mineral	geode		#7f708a,#625565	
+old_cog	Ancient Cog	misc	relic		#f79617,#cd683d	
+clay_whistle	Clay Whistle	misc	relic		#f79617,#cd683d	
+fossil_shell	Fossil Shell	misc	relic		#f79617,#cd683d	
+rusted_key	Rusted Key	misc	relic		#f79617,#cd683d	
+tin_soldier	Tin Soldier	misc	relic		#f79617,#cd683d	
+star_chart	Star Chart Scrap	misc	relic		#f79617,#cd683d	
+brass_compass	Brass Compass	misc	relic		#f79617,#cd683d	
+painted_tile	Painted Tile	misc	relic		#f79617,#cd683d	
+slime_gel	Dew Gel	monster	gel		#91db69,#cddf6c	
+moth_dust	Moth Dust	monster	dust		#ab947a,#ffffff	
+crab_shell	Crab Shell	monster	shell		#7f708a,#9babb2	
+wisp_essence	Wisp Essence	monster	essence		#fbb954,#fdcbb0	
+plank	Plank	component	plank		#ab947a,#966c6c	
+beam	Hardwood Beam	component	plank		#4c3e24,#45293f	
+copper_gear	Copper Gear	component	gear		#cd683d,#b33831	
+brass_gear	Brass Gear	component	gear		#f79617,#cd683d	
+iron_plate	Iron Plate	component	plate		#7f708a,#625565	
+copper_coil	Copper Coil	component	coil		#cd683d,#e6904e	
+spring	Mainspring	component	spring		#9babb2,#7f708a	
+spark_coil	Spark Coil	component	sparkcoil		#8fd3ff,#f79617	
+clockwork_core	Clockwork Core	component	core		#f79617,#8fd3ff	
+lens	Brass Lens	component	lens		#c7dcd0,#f79617	
+glass	Glass	component	glass		#c7dcd0,#8fd3ff	
+brick	Brick	component	brick		#b33831,#ea4f36	
+rope	Rope	component	rope		#ab947a,#966c6c	
+cloth	Cloth	component	cloth		#ffffff,#9babb2	
+linen	Linen	component	cloth		#fdcbb0,#ab947a	
+fine_cloth	Fleece Weave	component	cloth		#ab947a,#966c6c	
+quilt	Patchwork Quilt	component	quilt		#cf657f,#4d9be6	
+trellis	Trellis Stakes	component	twig		#966c6c,#4c3e24	
+bumblebot	Bumblebot	component	bot		#f79617,#fbb954	
+concrete	Cobblecrete	component	brick		#7f708a,#9babb2	
+bundle_green	Sprout Bundle	research	bundle		#91db69	
+bundle_copper	Tinker Bundle	research	bundle		#cd683d	
+bundle_rose	Harvest Bundle	research	bundle		#cf657f	
+bundle_brass	Brass Bundle	research	bundle		#f79617	
+bundle_star	Starlight Bundle	research	bundle		#905ea9	
+compost	Compost	fertilizer	pouch		#4c3e24,#45293f	
+rich_compost	Rich Compost	fertilizer	pouch		#45293f,#fbb954	
+grow_tonic	Grow Tonic	fertilizer	flask		#91db69,#cddf6c	
+super_tonic	Super Tonic	fertilizer	flask		#8fd3ff,#4d9be6	
+damp_mulch	Damp Mulch	fertilizer	pouch		#676633,#4d65b4	
+deep_mulch	Deep Mulch	fertilizer	pouch		#4d65b4,#323353	
+bait	Bait	bait	bait		#ed8099,#4c3e24	
+deluxe_bait	Glow Bait	bait	bait		#8fd3ff,#4c3e24	
+old_boot	Waterlogged Boot	trash	boot		#4c3e24,#45293f	
+tin_can	Rusty Tin Can	trash	tincan		#7f708a,#cd683d	
+driftwood	Driftwood	trash	log		#9babb2,#7f708a	
+tangled_line	Tangled Line	trash	fiber		#9babb2,#7f708a	
+egg	Egg	animal	egg		#ffffff,#9babb2	
+large_egg	Large Egg	animal	egg		#fdcbb0,#ab947a	
+duck_egg	Duck Egg	animal	egg		#8fd3ff,#4d9be6	
+duck_feather	Duck Feather	animal	feather		#ffffff,#4d9be6	
+rabbit_fluff	Rabbit Fluff	animal	wool		#ffffff,#ab947a	
+lucky_foot	Lucky Clover	animal	leaf		#91db69,#cddf6c	
+milk	Milk	animal	milk		#ffffff,#9babb2	
+large_milk	Large Milk	animal	milk		#fdcbb0,#ab947a	
+goat_milk	Goat Milk	animal	milk		#c7dcd0,#9babb2	
+large_goat_milk	Large Goat Milk	animal	milk		#fdcbb0,#9babb2	
+wool	Wool	animal	wool		#ffffff,#9babb2	
+truffle	Truffle	animal	truffle		#4c3e24,#45293f	
+alpaca_fleece	Alpaca Fleece	animal	wool		#ab947a,#966c6c	
+cheese	Cheese	artisan	cheese		#fdcbb0,#fbb954	
+goat_cheese	Goat Cheese	artisan	cheese		#ffffff,#9babb2	
+butter	Butter	artisan	butter		#fdcbb0,#fbb954	
+mayo	Egg Custard	artisan	jar		#fdcbb0,#ffffff	
+honey	Wildflower Honey	artisan	jar		#fbb954,#f79617	
+honey_tulip	Tulip Honey	artisan	jar		#fbb954,#f79617,-,#cf657f	
+honey_sunflower	Sunflower Honey	artisan	jar		#fbb954,#f79617,-,#cf657f	
+honey_sunbell	Sunbell Honey	artisan	jar		#fbb954,#f79617,-,#cf657f	
+honey_starpetal	Starpetal Honey	artisan	jar		#fbb954,#f79617,-,#cf657f	
+honey_meadow_daisy	Daisy Honey	artisan	jar		#fbb954,#f79617,-,#cf657f	
+honey_elderflower	Elderflower Honey	artisan	jar		#fbb954,#f79617,-,#cf657f	
+honey_ice_crocus	Crocus Honey	artisan	jar		#fbb954,#f79617,-,#cf657f	
+mead	Mead	artisan	bottle		#fbb954,#f79617	
+ale	Wheat Ale	artisan	mug		#fbb954,#ffffff	
+stout	Barley Stout	artisan	mug		#45293f,#ab947a	
+pale_ale	Hop Ale	artisan	mug		#fdcbb0,#ffffff	
+roasted_beans	Roasted Beans	artisan	beans		#45293f,#4c3e24	
+dried_tea	Dried Tea	artisan	leaf		#676633,#313638	
+coffee_drink	Coffee	artisan	cup		#45293f,#ffffff	
+tea	Green Tea	artisan	cup		#91db69,#ffffff	
+flour	Flour	artisan	sack		#ffffff,#ab947a	
+barley_flour	Barley Meal	artisan	sack		#ab947a,#966c6c	
+cornmeal	Cornmeal	artisan	sack		#fbb954,#ab947a	
+sugar	Sugar	artisan	sack		#ffffff,#9babb2	
+oil	Sunflower Oil	artisan	bottle		#fdcbb0,#fbb954	
+truffle_oil	Truffle Oil	artisan	bottle		#ab947a,#4c3e24	
+maple_syrup	Maple Syrup	artisan	jar		#ea4f36,#b33831	
+oak_resin	Oak Resin	artisan	jar		#fbb954,#4c3e24	
+pine_tar	Pine Tar	artisan	jar		#45293f,#2e222f	
+birch_sap	Birch Water	artisan	bottle		#c7dcd0,#9babb2	
+roe	Fish Roe	animal	berries		#e6904e,#ea4f36	
+caviar	Roe Jar	artisan	jar		#e6904e,#ea4f36	
+smoked_fish	Smoked Fish	artisan	fish_slim		#4c3e24,#ab947a,#45293f	
+wine_strawberry	Strawberry Wine	artisan	bottle		#cf657f,-,-,#753c54	
+jam_strawberry	Strawberry Jam	artisan	jar		#cf657f,-,-,#ffffff	
+wine_melon	Melon Wine	artisan	bottle		#91db69,-,-,#753c54	
+jam_melon	Melon Jam	artisan	jar		#91db69,-,-,#ffffff	
+wine_blueberry	Blueberry Wine	artisan	bottle		#4d9be6,-,-,#753c54	
+jam_blueberry	Blueberry Jam	artisan	jar		#4d9be6,-,-,#ffffff	
+wine_emberpepper	Ember Pepper Wine	artisan	bottle		#ea4f36,-,-,#753c54	
+jam_emberpepper	Ember Pepper Jam	artisan	jar		#ea4f36,-,-,#ffffff	
+wine_cranberry	Cranberry Wine	artisan	bottle		#cf657f,-,-,#753c54	
+jam_cranberry	Cranberry Jam	artisan	jar		#cf657f,-,-,#ffffff	
+wine_grape	Grape Wine	artisan	bottle		#6b3e75,-,-,#753c54	
+jam_grape	Grape Jam	artisan	jar		#6b3e75,-,-,#ffffff	
+wine_glowmelon	Glowmelon Wine	artisan	bottle		#8fd3ff,-,-,#753c54	
+jam_glowmelon	Glowmelon Jam	artisan	jar		#8fd3ff,-,-,#ffffff	
+wine_coconut	Coconut Wine	artisan	bottle		#4c3e24,-,-,#753c54	
+jam_coconut	Coconut Jam	artisan	jar		#4c3e24,-,-,#ffffff	
+wine_apple	Apple Wine	artisan	bottle		#cf657f,-,-,#753c54	
+jam_apple	Apple Jam	artisan	jar		#cf657f,-,-,#ffffff	
+wine_pear	Pear Wine	artisan	bottle		#cddf6c,-,-,#753c54	
+jam_pear	Pear Jam	artisan	jar		#cddf6c,-,-,#ffffff	
+wine_cherry	Cherry Wine	artisan	bottle		#cf657f,-,-,#753c54	
+jam_cherry	Cherry Jam	artisan	jar		#cf657f,-,-,#ffffff	
+wine_apricot	Apricot Wine	artisan	bottle		#e6904e,-,-,#753c54	
+jam_apricot	Apricot Jam	artisan	jar		#e6904e,-,-,#ffffff	
+wine_peach	Peach Wine	artisan	bottle		#ed8099,-,-,#753c54	
+jam_peach	Peach Jam	artisan	jar		#ed8099,-,-,#ffffff	
+wine_plum	Plum Wine	artisan	bottle		#6b3e75,-,-,#753c54	
+jam_plum	Plum Jam	artisan	jar		#6b3e75,-,-,#ffffff	
+wine_orange	Sunorange Wine	artisan	bottle		#fbb954,-,-,#753c54	
+jam_orange	Sunorange Jam	artisan	jar		#fbb954,-,-,#ffffff	
+wine_snowberry	Snowberry Wine	artisan	bottle		#ffffff,-,-,#753c54	
+jam_snowberry	Snowberry Jam	artisan	jar		#ffffff,-,-,#ffffff	
+wine_raspberry	Raspberry Wine	artisan	bottle		#cf657f,-,-,#753c54	
+jam_raspberry	Raspberry Jam	artisan	jar		#cf657f,-,-,#ffffff	
+wine_rosehip	Rosehip Wine	artisan	bottle		#ea4f36,-,-,#753c54	
+jam_rosehip	Rosehip Jam	artisan	jar		#ea4f36,-,-,#ffffff	
+pickles_radish	Pickled Radish	artisan	jar		#cf657f,-,-,#cddf6c	
+juice_radish	Radish Juice	artisan	bottle		#cf657f,-,-,#cddf6c	
+pickles_spinach	Pickled Spinach	artisan	jar		#239063,-,-,#cddf6c	
+juice_spinach	Spinach Juice	artisan	bottle		#239063,-,-,#cddf6c	
+pickles_pea	Pickled Sweet Pea	artisan	jar		#cddf6c,-,-,#cddf6c	
+juice_pea	Sweet Pea Juice	artisan	bottle		#cddf6c,-,-,#cddf6c	
+pickles_potato	Pickled Potato	artisan	jar		#ab947a,-,-,#cddf6c	
+juice_potato	Potato Juice	artisan	bottle		#ab947a,-,-,#cddf6c	
+pickles_cabbage	Pickled Cabbage	artisan	jar		#cddf6c,-,-,#cddf6c	
+juice_cabbage	Cabbage Juice	artisan	bottle		#cddf6c,-,-,#cddf6c	
+pickles_rhubarb	Pickled Rhubarb	artisan	jar		#cf657f,-,-,#cddf6c	
+juice_rhubarb	Rhubarb Juice	artisan	bottle		#cf657f,-,-,#cddf6c	
+pickles_cogbean	Pickled Cogbean	artisan	jar		#f79617,-,-,#cddf6c	
+juice_cogbean	Cogbean Juice	artisan	bottle		#f79617,-,-,#cddf6c	
+pickles_tomato	Pickled Tomato	artisan	jar		#ea4f36,-,-,#cddf6c	
+juice_tomato	Tomato Juice	artisan	bottle		#ea4f36,-,-,#cddf6c	
+pickles_corn	Pickled Corn	artisan	jar		#fbb954,-,-,#cddf6c	
+juice_corn	Corn Juice	artisan	bottle		#fbb954,-,-,#cddf6c	
+pickles_pumpkin	Pickled Pumpkin	artisan	jar		#e6904e,-,-,#cddf6c	
+juice_pumpkin	Pumpkin Juice	artisan	bottle		#e6904e,-,-,#cddf6c	
+pickles_eggplant	Pickled Eggplant	artisan	jar		#6b3e75,-,-,#cddf6c	
+juice_eggplant	Eggplant Juice	artisan	bottle		#6b3e75,-,-,#cddf6c	
+pickles_beet	Pickled Beet	artisan	jar		#753c54,-,-,#cddf6c	
+juice_beet	Beet Juice	artisan	bottle		#753c54,-,-,#cddf6c	
+pickles_yam	Pickled Yam	artisan	jar		#b33831,-,-,#cddf6c	
+juice_yam	Yam Juice	artisan	bottle		#b33831,-,-,#cddf6c	
+pickles_artichoke	Pickled Thistlechoke	artisan	jar		#239063,-,-,#cddf6c	
+juice_artichoke	Thistlechoke Juice	artisan	bottle		#239063,-,-,#cddf6c	
+pickles_mooncap	Pickled Mooncap	artisan	jar		#905ea9,-,-,#cddf6c	
+juice_mooncap	Mooncap Juice	artisan	bottle		#905ea9,-,-,#cddf6c	
+pickles_frostmint	Pickled Frostmint	artisan	jar		#c7dcd0,-,-,#cddf6c	
+juice_frostmint	Frostmint Juice	artisan	bottle		#c7dcd0,-,-,#cddf6c	
+pickles_kale	Pickled Snow Kale	artisan	jar		#6b3e75,-,-,#cddf6c	
+juice_kale	Snow Kale Juice	artisan	bottle		#6b3e75,-,-,#cddf6c	
+pickles_snowroot	Pickled Snowroot	artisan	jar		#c7dcd0,-,-,#cddf6c	
+juice_snowroot	Snowroot Juice	artisan	bottle		#c7dcd0,-,-,#cddf6c	
+silver_dart	Silver Dart	fish	fish_slim		#9babb2,#ffffff,#7f708a	
+brook_trout	Brook Trout	fish	fish_slim		#676633,#ed8099,#239063	
+rosy_perch	Rosy Perch	fish	fish_round		#ed8099,#fdcbb0,#cf657f	
+mud_catfish	Mud Catfish	fish	fish_long		#4c3e24,#ab947a,#45293f	
+frost_char	Frost Char	fish	fish_slim		#8fd3ff,#c7dcd0,#4d9be6	
+river_sculpin	Stone Sculpin	fish	fish_flat		#7f708a,#9babb2,#625565	
+copper_carp	Copperscale Carp	fish	fish_round		#cd683d,#fbb954,#ea4f36	
+lantern_pike	Lantern Pike	fish	fish_long		#676633,#fdcbb0,#fbb954	
+reed_bream	Reed Bream	fish	fish_flat		#ab947a,#fdcbb0,#966c6c	
+bluegill	Bluegill	fish	fish_round		#4d9be6,#fbb954,#4d65b4	
+ice_whitefish	Ice Whitefish	fish	fish_slim		#c7dcd0,#ffffff,#8fd3ff	
+sardine	Sardine	fish	fish_slim		#4d9be6,#c7dcd0,#4d65b4	
+saltjack	Saltjack	fish	fish_slim		#4d65b4,#9babb2,#fbb954	
+flounder	Harbor Flounder	fish	fish_flat		#ab947a,#ffffff,#4c3e24	
+tidal_eel	Tidal Eel	fish	fish_eel		#625565,#7f708a,#6b3e75	
+driftbass	Driftbass	fish	fish_round		#7f708a,#9babb2,#625565	
+coral_snapper	Coral Snapper	fish	fish_round		#ea4f36,#e6904e,#cf657f	
+moon_squid	Moon Squid	fish	fish_long		#905ea9,#c7dcd0,#6b3e75	
+puffer	Bloatfish	fish	fish_spiny		#fdcbb0,#ffffff,#fbb954	
+pond_goby	Pond Goby	fish	fish_slim		#239063,#cddf6c,#676633	
+woodland_koi	Woodland Koi	fish	fish_round		#ffffff,#ffffff,#ea4f36	
+blindfish	Cave Blindfish	fish	fish_slim		#9babb2,#ffffff,#ed8099	
+glimmer_guppy	Glimmer Guppy	fish	fish_slim		#8fd3ff,#905ea9,#6b3e75	
+magma_minnow	Magma Minnow	fish	fish_spiny		#ea4f36,#fbb954,#b33831	
+thistlefin	Golden Thistlefin	fish	fish_spiny		#f79617,#fdcbb0,#fbb954	
+clockjaw	Old Clockjaw	fish	fish_long		#625565,#f79617,#cd683d	
+tidemother	Tidemother	fish	fish_round		#323353,#8fd3ff,#4d9be6	
+crayfish	Crayfish	fish	fish_spiny		#b33831,#ea4f36,#753c54	
+periwinkle	Periwinkle	fish	fish_round		#625565,#905ea9,#7f708a	
+mussel	Mussel	fish	fish_flat		#323353,#625565,#6b3e75	
+shrimp	Shrimp	fish	fish_eel		#ed8099,#e6904e,#cf657f	
+lobster	Lobster	fish	fish_spiny		#cf657f,#ea4f36,#753c54	
+shore_crab	Shore Crab	fish	fish_flat		#ea4f36,#fbb954,#b33831	
+bread	Country Loaf	food	bread		#ab947a,#966c6c	
+salad	Garden Salad	food	bowl		#91db69,#cf657f	
+veggie_soup	Hearty Soup	food	bowl		#ea4f36,#e6904e	
+fish_stew	Fisher's Stew	food	bowl		#e6904e,#ffffff	
+pumpkin_pie	Pumpkin Pie	food	pie		#e6904e,#ab947a	
+berry_tart	Berry Tart	food	pie		#cf657f,#ab947a	
+omelet	Omelet	food	dish		#fdcbb0,#fbb954	
+pancakes	Pancake Stack	food	dish		#ab947a,#ea4f36	
+cake	Celebration Cake	food	cake		#ed8099,#ffffff	
+cookies	Oat Cookies	food	cookie		#ab947a,#4c3e24	
+pizza	Hearth Pizza	food	pie		#ea4f36,#fdcbb0	
+baked_potato	Baked Potato	food	tuber		#ab947a,#966c6c	
+corn_chowder	Corn Chowder	food	bowl		#fdcbb0,#fbb954	
+fried_fish	Crispy Fish	food	fish_slim		#fbb954,#fdcbb0,#ab947a	
+stuffed_peppers	Ember Peppers	food	pepper		#ea4f36,#fbb954,-,#239063	
+honey_bun	Honey Bun	food	bread		#fbb954,#f79617	
+fruit_salad	Fruit Salad	food	bowl		#cf657f,#fbb954	
+roast_yam	Roast Yam	food	tuber		#b33831,#ea4f36	
+mushroom_risotto	Mushroom Risotto	food	bowl		#ffffff,#ab947a	
+miners_pie	Miner's Pie	food	pie		#4c3e24,#ab947a	
+glow_sorbet	Glowmelon Sorbet	food	bowl		#8fd3ff,#c7dcd0	
+chestnut_soup	Chestnut Soup	food	bowl		#4c3e24,#ab947a	
+ticket	Festival Token	misc	ticket		#cf657f,#fdcbb0	
+heart_charm	Brass Locket	misc	locket		#f79617,#cf657f	
+elevator_key	Lift Token	misc	ticket		#625565,#f79617	
+belt_1	Woven Belt	placeable	struct			belt_1
+belt_2	Brass Belt	placeable	struct			belt_2
+belt_3	Gilded Express Belt	placeable	struct			belt_3
+under_1	Burrow Belt	placeable	struct			under_1
+under_2	Brass Burrow Belt	placeable	struct			under_2
+under_3	Gilded Burrow Belt	placeable	struct			under_3
+splitter_1	Belt Splitter	placeable	struct			splitter_1
+splitter_2	Brass Splitter	placeable	struct			splitter_2
+splitter_3	Gilded Splitter	placeable	struct			splitter_3
+arm_basic	Clockwork Arm	placeable	struct			arm_basic
+arm_fast	Brass Arm	placeable	struct			arm_fast
+arm_long	Reaching Arm	placeable	struct			arm_long
+arm_filter	Sorting Arm	placeable	struct			arm_filter
+arm_bulk	Bulk Arm	placeable	struct			arm_bulk
+chest_wood	Wooden Chest	placeable	struct			chest_wood
+chest_iron	Iron Chest	placeable	struct			chest_iron
+chest_brass	Brass Vault	placeable	struct			chest_brass
+crate_out	Bee Crate: Outbox	placeable	struct			crate_out
+crate_req	Bee Crate: Request	placeable	struct			crate_req
+crate_store	Bee Crate: Storage	placeable	struct			crate_store
+hive	Bumblebot Hive	placeable	struct			hive
+shipping_crate	Shipping Crate	placeable	struct			shipping_crate
+pole_wood	Wooden Pole	placeable	struct			pole_wood
+pole_iron	Iron Pylon	placeable	struct			pole_iron
+pole_tower	Copper Tower	placeable	struct			pole_tower
+waterwheel	Water Wheel	placeable	struct			waterwheel
+windmill	Windmill	placeable	struct			windmill
+steam_engine	Steam Engine	placeable	struct			steam_engine
+sunlens	Sun Lens Array	placeable	struct			sunlens
+spring_battery	Spring Coil Battery	placeable	struct			spring_battery
+keg	Keg	placeable	struct			keg
+jar	Preserves Jar	placeable	struct			jar
+furnace	Stone Furnace	placeable	struct			furnace
+oven	Brick Oven	placeable	struct			oven
+cheese_press	Cheese Press	placeable	struct			cheese_press
+hand_loom	Hand Loom	placeable	struct			hand_loom
+seed_sifter	Seed Sifter	placeable	struct			seed_sifter
+compost_bin	Compost Bin	placeable	struct			compost_bin
+charcoal_kiln	Charcoal Kiln	placeable	struct			charcoal_kiln
+brick_kiln	Brick Kiln	placeable	struct			brick_kiln
+bee_skep	Bee Skep	placeable	struct			bee_skep
+tapper	Sap Spigot	placeable	struct			tapper
+fish_trap	Wicker Fish Trap	placeable	struct			fish_trap
+fish_pond	Fish Pond	placeable	struct			fish_pond
+lab	Study Desk	placeable	struct			lab
+mill	Grist Mill	placeable	struct			mill
+sawmill	Sawmill	placeable	struct			sawmill
+steam_loom	Steam Loom	placeable	struct			steam_loom
+bottler	Bottler	placeable	struct			bottler
+assembler	Tinker's Bench	placeable	struct			assembler
+assembler_2	Clockwork Assembler	placeable	struct			assembler_2
+blast_furnace	Blast Furnace	placeable	struct			blast_furnace
+crusher	Rock Crusher	placeable	struct			crusher
+roaster	Bean Roaster	placeable	struct			roaster
+kitchen	Steam Kitchen	placeable	struct			kitchen
+harvester	Harvest Crane	placeable	struct			harvester
+planter	Seed Sower	placeable	struct			planter
+drill_steam	Steam Drill	placeable	struct			drill_steam
+drill_brass	Brass Drill	placeable	struct			drill_brass
+sprinkler_1	Tin Sprinkler	placeable	struct			sprinkler_1
+sprinkler_2	Brass Sprinkler	placeable	struct			sprinkler_2
+sprinkler_3	Gilded Sprinkler	placeable	struct			sprinkler_3
+mist_tower	Mist Tower	placeable	struct			mist_tower
+scarecrow	Scarecrow	placeable	struct			scarecrow
+lamp	Lantern Post	placeable	struct			lamp
+fence_wood	Wood Fence	placeable	struct			fence_wood
+fence_stone	Stone Wall	placeable	struct			fence_stone
+gate	Garden Gate	placeable	struct			gate
+path_stone	Cobble Path	placeable	struct			path_stone
+path_brick	Brick Path	placeable	struct			path_brick
+path_wood	Plank Walk	placeable	struct			path_wood
+sign	Wooden Sign	placeable	struct			sign
+flower_pot	Flower Planter	placeable	struct			flower_pot
+coop_1	Coop	placeable	struct			coop_1
+coop_2	Big Coop	placeable	struct			coop_2
+coop_3	Grand Coop	placeable	struct			coop_3
+barn_1	Barn	placeable	struct			barn_1
+barn_2	Big Barn	placeable	struct			barn_2
+barn_3	Grand Barn	placeable	struct			barn_3
+silo	Silo	placeable	struct			silo
+well	Stone Well	placeable	struct			well
+construction_site	Grand Works Site	placeable	struct			construction_site
+freight_depot	Guild Freight Depot	placeable	struct			freight_depot
+f_armchair_rose	Rose Armchair	furniture	furn	armchair:0		
+f_armchair_sage	Sage Armchair	furniture	furn	armchair:1		
+f_lamp	Reading Lamp	furniture	furn	lamp:0		
+f_bookcase	Tall Bookcase	furniture	furn	shelf:0		
+f_pantry_shelf	Pantry Shelf	furniture	furn	shelf:1		
+f_rug_blue	Braided Rug	furniture	furn	rug2:0		
+f_rug_green	Meadow Rug	furniture	furn	rug2:1		
+f_tank	Fish Tank	furniture	furn	tank:0		
+f_fig	Fiddle Fig	furniture	furn	plant:0		
+f_fern	Potted Fern	furniture	furn	plant:1		
+f_petbed	Pet Bed	furniture	furn	petbed:0		
+f_paint_meadow	Painting: Meadow at Dawn	furniture	furn	painting:0		
+f_paint_sea	Painting: Stormy Sea	furniture	furn	painting:1		
+f_paint_tower	Painting: Clocktower at Dusk	furniture	furn	painting:2		
+f_trophy_thistlefin	Mounted Thistlefin	furniture	furn	trophy:0		
+f_trophy_clockjaw	Mounted Clockjaw	furniture	furn	trophy:1		
+f_trophy_tidemother	Mounted Tidemother	furniture	furn	trophy:2		
+f_lantern	Founder's Lantern	furniture	furn	lantern:0		
+f_gilded_clock	Gilded Clock	furniture	furn	gclock:0		
+f_globe	Brass Globe	furniture	furn	globe:0		
+f_telescope	Telescope	furniture	furn	telescope:0		
+f_musicbox	Music Box	furniture	furn	musicbox:0		
+f_tapestry	Faraway Tapestry	furniture	furn	tapestry:0		
+f_banner	Guild Banner	furniture	furn	banner:0		
+card_pancakes	Recipe Card: Pancake Stack	misc	scroll		#ffffff,#cf657f	
+card_pizza	Recipe Card: Hearth Pizza	misc	scroll		#ffffff,#cf657f	
+card_mushroom_risotto	Recipe Card: Mushroom Risotto	misc	scroll		#ffffff,#cf657f	
+card_berry_tart	Recipe Card: Berry Tart	misc	scroll		#ffffff,#cf657f	
+card_cake	Recipe Card: Celebration Cake	misc	scroll		#ffffff,#cf657f	
+card_fried_fish	Recipe Card: Crispy Fish	misc	scroll		#ffffff,#cf657f	
+card_fish_stew	Recipe Card: Fisher's Stew	misc	scroll		#ffffff,#cf657f	
+card_corn_chowder	Recipe Card: Corn Chowder	misc	scroll		#ffffff,#cf657f	
+card_miners_pie	Recipe Card: Miner's Pie	misc	scroll		#ffffff,#cf657f	
+card_chestnut_soup	Recipe Card: Chestnut Soup	misc	scroll		#ffffff,#cf657f	
+card_glow_sorbet	Recipe Card: Glowmelon Sorbet	misc	scroll		#ffffff,#cf657f	
+card_stuffed_peppers	Recipe Card: Ember Peppers	misc	scroll		#ffffff,#cf657f	
+card_roast_yam	Recipe Card: Roast Yam	misc	scroll		#ffffff,#cf657f	
+card_pumpkin_pie	Recipe Card: Pumpkin Pie	misc	scroll		#ffffff,#cf657f	
+card_honey_bun	Recipe Card: Honey Bun	misc	scroll		#ffffff,#cf657f	

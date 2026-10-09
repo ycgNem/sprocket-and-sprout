@@ -1,0 +1,75 @@
+{
+  "name": "npc-rowan",
+  "file": "npc-rowan.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 29,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "keys": {
+    "cloth": [
+      "#ab947a",
+      "#fdcbb0",
+      "#ffffff"
+    ]
+  },
+  "label": "Rowan v3",
+  "kind": "character",
+  "ids": [
+    "rowan"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character 692adb5e-b93e-437e-9fcd-8263424db53f); walk: walking-4-frames",
+  "colors": [
+    "#2e222f",
+    "#374e4a",
+    "#3e3546",
+    "#45293f",
+    "#4c3e24",
+    "#625565",
+    "#6e2727",
+    "#753c54",
+    "#7f708a",
+    "#966c6c",
+    "#9babb2",
+    "#9e4539",
+    "#ab947a",
+    "#b33831",
+    "#cd683d",
+    "#cf657f",
+    "#e6904e",
+    "#ea4f36",
+    "#f57d4a",
+    "#f79617",
+    "#f9c22b",
+    "#fbb954",
+    "#fdcbb0",
+    "#ffffff"
+  ]
+}

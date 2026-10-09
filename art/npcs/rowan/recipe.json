@@ -1,0 +1,104 @@
+{
+  "name": "npc-rowan",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "input": {
+    "up": [
+      "walking-4-frames/north/0.png",
+      "walking-4-frames/north/1.png",
+      "walking-4-frames/north/2.png",
+      "walking-4-frames/north/3.png",
+      "rotations/north.png"
+    ],
+    "right": [
+      "walking-4-frames/east/0.png",
+      "walking-4-frames/east/1.png",
+      "walking-4-frames/east/2.png",
+      "walking-4-frames/east/3.png",
+      "rotations/east.png"
+    ],
+    "down": [
+      "walking-4-frames/south/0.png",
+      "walking-4-frames/south/1.png",
+      "walking-4-frames/south/2.png",
+      "walking-4-frames/south/3.png",
+      "rotations/south.png"
+    ],
+    "left": [
+      "walking-4-frames/west/0.png",
+      "walking-4-frames/west/1.png",
+      "walking-4-frames/west/2.png",
+      "walking-4-frames/west/3.png",
+      "rotations/west.png"
+    ]
+  },
+  "align": "feet-per-frame",
+  "height": [
+    28,
+    31
+  ],
+  "meta": {
+    "label": "Rowan v3",
+    "kind": "character",
+    "ids": [
+      "rowan"
+    ],
+    "frames": {
+      "0": "walk0",
+      "1": "walk1",
+      "2": "walk2",
+      "3": "walk3",
+      "4": "stand",
+      "5": "stand",
+      "6": "stand"
+    },
+    "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character 692adb5e-b93e-437e-9fcd-8263424db53f); walk: walking-4-frames"
+  },
+  "remap": {
+    "#313638": "#3e3546"
+  },
+  "parts": {
+    "cloth": {
+      "from": [
+        "#f3eed5",
+        "#e3dbc1",
+        "#d8cdac",
+        "#f8f7f4",
+        "#f7f5f1",
+        "#fbfaf7",
+        "#e7e5e8",
+        "#d7dbd4",
+        "#c9cdcb",
+        "#c6b795",
+        "#baab8b",
+        "#bbb5ac",
+        "#9c8a69",
+        "#938c83"
+      ],
+      "keys": [
+        "#ab947a",
+        "#fdcbb0",
+        "#ffffff"
+      ]
+    }
+  }
+}

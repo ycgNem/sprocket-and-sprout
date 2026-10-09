@@ -1,0 +1,80 @@
+{
+  "name": "npc-pip",
+  "file": "npc-pip.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 21,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "label": "Pip v3",
+  "kind": "character",
+  "ids": [
+    "pip"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 24, low top-down, single color outline (character 76078dd0-90ca-404b-aa4b-318a3f00c81f); walk: walking-4-frames",
+  "colors": [
+    "#239063",
+    "#2e222f",
+    "#323353",
+    "#3e3546",
+    "#45293f",
+    "#484a77",
+    "#4c3e24",
+    "#4d65b4",
+    "#4d9be6",
+    "#547e64",
+    "#676633",
+    "#694f62",
+    "#6e2727",
+    "#7a3045",
+    "#7f708a",
+    "#8fd3ff",
+    "#905ea9",
+    "#966c6c",
+    "#9babb2",
+    "#9e4539",
+    "#ae2334",
+    "#b2ba90",
+    "#b33831",
+    "#c7dcd0",
+    "#cd683d",
+    "#e6904e",
+    "#ea4f36",
+    "#f57d4a",
+    "#f68181",
+    "#f79617",
+    "#f9c22b",
+    "#fbb954",
+    "#fbff86",
+    "#fca790",
+    "#fdcbb0",
+    "#ffffff"
+  ]
+}

@@ -1,0 +1,220 @@
+{
+  "name": "player-bald",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "input": {
+    "up": [
+      "clean/bald/walk-v3/north/1.png",
+      "clean/bald/walk-v3/north/2.png",
+      "clean/bald/walk-v3/north/3.png",
+      "clean/bald/walk-v3/north/4.png",
+      "clean/bald/rotations/north.png"
+    ],
+    "right": [
+      "clean/bald/walk-v3/east/1.png",
+      "clean/bald/walk-v3/east/2.png",
+      "clean/bald/walk-v3/east/3.png",
+      "clean/bald/walk-v3/east/4.png",
+      "clean/bald/rotations/east.png"
+    ],
+    "down": [
+      "clean/bald/walk-v3/south/1.png",
+      "clean/bald/walk-v3/south/2.png",
+      "clean/bald/walk-v3/south/3.png",
+      "clean/bald/walk-v3/south/4.png",
+      "clean/bald/rotations/south.png"
+    ],
+    "left": [
+      "clean/bald/walk-v3/west/1.png",
+      "clean/bald/walk-v3/west/2.png",
+      "clean/bald/walk-v3/west/3.png",
+      "clean/bald/walk-v3/west/4.png",
+      "clean/bald/rotations/west.png"
+    ]
+  },
+  "align": "feet-per-frame",
+  "height": [
+    28,
+    33
+  ],
+  "parts": {
+    "skin": {
+      "from": [
+        "#e59162",
+        "#eb9a6a",
+        "#d3794e",
+        "#f47044",
+        "#fa936e",
+        "#d05e32",
+        "#e55d44",
+        "#f5ad77",
+        "#da7144",
+        "#e48457",
+        "#f8a951",
+        "#d3492c",
+        "#e89f87",
+        "#bf603e",
+        "#c25a33",
+        "#a63e23",
+        "#f9c69a",
+        "#ed8d60",
+        "#f58266",
+        "#db332d",
+        "#c75b1e",
+        "#b85b2c",
+        "#f0a06a",
+        "#e7522d",
+        "#8f360e",
+        "#b74a28",
+        "#8c2a09",
+        "#b64f27",
+        "#f29258",
+        "#ba4e2a"
+      ],
+      "keys": [
+        "#cd683d",
+        "#e6904e",
+        "#fca790"
+      ]
+    },
+    "hair": {
+      "from": [
+        "#955022",
+        "#552b19",
+        "#3e1a18",
+        "#84431e",
+        "#6f3017",
+        "#4f150e"
+      ],
+      "keys": [
+        "#45293f",
+        "#4c3e24",
+        "#9e4539"
+      ]
+    },
+    "shirt": {
+      "from": [
+        "#726e38",
+        "#b99f43",
+        "#aaa13b",
+        "#908935",
+        "#999239",
+        "#75752f",
+        "#514f37",
+        "#858234",
+        "#666b2a",
+        "#bdae46",
+        "#c9b146",
+        "#a38d46",
+        "#b4924c",
+        "#71724f",
+        "#4b5024",
+        "#5d4f24",
+        "#505953",
+        "#30311b",
+        "#4e531f",
+        "#595c22",
+        "#2e2e0f",
+        "#4c5320",
+        "#5c5c24",
+        "#2d371f",
+        "#595c24",
+        "#2a2e11",
+        "#4e5021",
+        "#545725"
+      ],
+      "keys": [
+        "#374e4a",
+        "#676633",
+        "#a2a947"
+      ]
+    },
+    "pants": {
+      "from": [
+        "#7097b8",
+        "#577a9d",
+        "#4e678a",
+        "#4d7295",
+        "#39517e",
+        "#79a8cd",
+        "#3c597f",
+        "#5a83a7",
+        "#416488",
+        "#6c8cb7",
+        "#364c73",
+        "#2f3f67",
+        "#80a8c5",
+        "#80c0e4",
+        "#6096da",
+        "#446ca9",
+        "#1c425c",
+        "#3c505e",
+        "#263457",
+        "#476c6e",
+        "#6a94b4",
+        "#264f59",
+        "#213244",
+        "#749bbb",
+        "#253155"
+      ],
+      "keys": [
+        "#484a77",
+        "#4d65b4",
+        "#4d9be6"
+      ]
+    },
+    "boots": {
+      "from": [
+        "#400040",
+        "#900090"
+      ],
+      "keys": [
+        "#3e3546",
+        "#694f62"
+      ]
+    }
+  },
+  "remap": {
+    "#313638": "#2e222f"
+  },
+  "meta": {
+    "label": "C32 bald",
+    "kind": "character",
+    "ids": [
+      "player",
+      "preview_*"
+    ],
+    "styles": [
+      "bald"
+    ],
+    "frames": {
+      "0": "walk0",
+      "1": "walk1",
+      "2": "walk2",
+      "3": "walk3",
+      "4": "stand",
+      "5": "stand",
+      "6": "stand"
+    },
+    "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 5b437b16-c8aa-4021-bd75-7c88d5f302f4; walk: v3 custom walk (south, east, north, west), walking-4-frames unused. Walk and stand only: tool swings use the renderer's own swing for this style"
+  }
+}

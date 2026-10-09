@@ -1,0 +1,46 @@
+{
+  "_": "PixelLab create_1_direction_object batches for the small FX sprites (emote:*, amb:*, fx:*). Each batch: size, shared description, and [count, slot description, target sprite] groups in slot order. Raw downloads: raw/<batch>/<slot>.png.",
+  "style": "tiny pixel art sprite for a warm cozy top-down farming game, Stardew Valley style, crisp 1 px dark plum outline, light from the upper left, flat 2 to 3 shade shading, no anti-aliasing, small and centered with empty transparent space around it, no shadow",
+  "batches": {
+    "b16": {
+      "size": 16,
+      "groups": [
+        [3, "speech bubble emote: small rounded cream-white bubble with a dark plum outline and a short pointed tail at the bottom center, a plump red heart inside, about 14 px wide and 13 px tall", "emote:heart"],
+        [3, "speech bubble emote: small rounded cream-white bubble with a dark plum outline and a short pointed tail at the bottom center, a bold dark exclamation mark inside, about 14 px wide and 13 px tall", "emote:exclaim"],
+        [3, "speech bubble emote: small rounded cream-white bubble with a dark plum outline and a short pointed tail at the bottom center, a bold blue question mark inside, about 14 px wide and 13 px tall", "emote:question"],
+        [3, "speech bubble emote: small rounded cream-white bubble with a dark plum outline and a short pointed tail at the bottom center, a purple eighth music note inside, about 14 px wide and 13 px tall", "emote:note"],
+        [3, "speech bubble emote: small rounded cream-white bubble with a dark plum outline and a short pointed tail at the bottom center, small blue letters Zzz inside for sleeping, about 14 px wide and 13 px tall", "emote:zzz"],
+        [3, "speech bubble emote: small rounded cream-white bubble with a dark plum outline and a short pointed tail at the bottom center, a happy smiling face with two dot eyes, a curved smile and pink cheeks inside, about 14 px wide and 13 px tall", "emote:smile"],
+        [2, "tiny butter-yellow butterfly seen from above with both wings spread wide open, dark body line, only 5 px wide and 4 px tall in the middle of the empty canvas", "amb:fly:0:0"],
+        [2, "tiny butter-yellow butterfly seen from the side with its wings folded shut straight up above its body, narrow, only 3 px wide and 4 px tall in the middle of the empty canvas", "amb:fly:0:1"],
+        [1, "tiny blush-pink butterfly seen from above with both wings spread wide open, dark body line, only 5 px wide and 4 px tall in the middle of the empty canvas", "amb:fly:1:0"],
+        [1, "tiny blush-pink butterfly seen from the side with its wings folded shut straight up above its body, narrow, only 3 px wide and 4 px tall in the middle of the empty canvas", "amb:fly:1:1"],
+        [1, "tiny lavender-purple butterfly seen from above with both wings spread wide open, dark body line, only 5 px wide and 4 px tall in the middle of the empty canvas", "amb:fly:2:0"],
+        [1, "tiny lavender-purple butterfly seen from the side with its wings folded shut straight up above its body, narrow, only 3 px wide and 4 px tall in the middle of the empty canvas", "amb:fly:2:1"],
+        [1, "tiny cream-white cabbage butterfly seen from above with both wings spread wide open, dark body line, only 5 px wide and 4 px tall in the middle of the empty canvas", "amb:fly:3:0"],
+        [1, "tiny cream-white cabbage butterfly seen from the side with its wings folded shut straight up above its body, narrow, only 3 px wide and 4 px tall in the middle of the empty canvas", "amb:fly:3:1"],
+        [1, "tiny amber-orange butterfly seen from above with both wings spread wide open, dark body line, only 5 px wide and 4 px tall in the middle of the empty canvas", "amb:fly:4:0"],
+        [1, "tiny amber-orange butterfly seen from the side with its wings folded shut straight up above its body, narrow, only 3 px wide and 4 px tall in the middle of the empty canvas", "amb:fly:4:1"],
+        [2, "tiny round brown sparrow sitting on the ground, side view facing right, warm brown back, cream belly, small orange beak, only 7 px wide and 6 px tall in the middle of the empty canvas", "amb:bird:0:0"],
+        [2, "tiny round brown sparrow mid-hop with its feet off the ground and tail raised, side view facing right, warm brown back, cream belly, small orange beak, only 7 px wide and 6 px tall in the middle of the empty canvas", "amb:bird:0:1"],
+        [2, "tiny round brown sparrow flying, side view facing right, both wings raised high above its back in a V, warm brown, cream belly, only 7 px wide and 6 px tall in the middle of the empty canvas", "amb:bird:0:2"],
+        [2, "tiny round brown sparrow flying, side view facing right, both wings swept down below its body, warm brown, cream belly, only 7 px wide and 6 px tall in the middle of the empty canvas", "amb:bird:0:3"],
+        [1, "tiny round soft gray finch sitting on the ground, side view facing right, warm gray back, pale belly, small orange beak, only 7 px wide and 6 px tall in the middle of the empty canvas", "amb:bird:1:0"],
+        [1, "tiny round soft gray finch mid-hop with its feet off the ground and tail raised, side view facing right, warm gray back, pale belly, small orange beak, only 7 px wide and 6 px tall in the middle of the empty canvas", "amb:bird:1:1"],
+        [1, "tiny round soft gray finch flying, side view facing right, both wings raised high above its back in a V, warm gray, pale belly, only 7 px wide and 6 px tall in the middle of the empty canvas", "amb:bird:1:2"],
+        [1, "tiny round soft gray finch flying, side view facing right, both wings swept down below its body, warm gray, pale belly, only 7 px wide and 6 px tall in the middle of the empty canvas", "amb:bird:1:3"],
+        [3, "tiny silvery fish leaping up out of the water, side view, head tilted up to the upper right, curved body, pale blue-silver with a peach belly and a forked tail, only 6 px wide and 4 px tall in the middle of the empty canvas", "amb:fish:0"],
+        [3, "tiny silvery fish diving back down into the water, side view, head tilted down to the lower right, curved body, pale blue-silver with a peach belly and a forked tail, only 6 px wide and 4 px tall in the middle of the empty canvas", "amb:fish:1"],
+        [3, "tiny closed paper envelope letter, front view, cream paper, folded flap lines in the shape of a V, a round red wax seal in the middle, only 10 px wide and 8 px tall", "fx:letter"],
+        [3, "tiny red mailbox flag raised up on a thin dark post, side view, the rectangular flag sticks out to the right at the top of the post, only 5 px wide and 8 px tall", "fx:mailflag"],
+        [2, "tiny triangular festival bunting pennant pointing down, hanging from a thin brown string along its top edge, rose-red cloth, only 6 px wide and 6 px tall", "fx:pennant:0"],
+        [1, "tiny triangular festival bunting pennant pointing down, hanging from a thin brown string along its top edge, amber-yellow cloth, only 6 px wide and 6 px tall", "fx:pennant:1"],
+        [1, "tiny triangular festival bunting pennant pointing down, hanging from a thin brown string along its top edge, sky-blue cloth, only 6 px wide and 6 px tall", "fx:pennant:2"],
+        [1, "tiny triangular festival bunting pennant pointing down, hanging from a thin brown string along its top edge, leaf-green cloth, only 6 px wide and 6 px tall", "fx:pennant:3"],
+        [1, "tiny triangular festival bunting pennant pointing down, hanging from a thin brown string along its top edge, lavender-purple cloth, only 6 px wide and 6 px tall", "fx:pennant:4"],
+        [2, "tiny round magic fireball, a flickering ember wisp, bright butter-yellow core inside amber and orange flames, small flame tips licking upward, only 7 px wide and 7 px tall", "fx:fireball:0"],
+        [2, "tiny round magic fireball, a flickering ember wisp, small butter-yellow core inside orange and red-orange flames, flame tips leaning to the left, only 7 px wide and 7 px tall", "fx:fireball:1"]
+      ]
+    }
+  }
+}

@@ -1,48 +1,385 @@
 {
   "name": "player",
-  "frame": [40, 40],
-  "anchor": [20, 38],
-  "rows": ["up", "right", "down", "left"],
-  "cols": ["walk0", "walk1", "walk2", "walk3", "raise", "strike", "stand", "hoeRaise", "hoeStrike"],
+  "frame": [
+    44,
+    40
+  ],
+  "anchor": [
+    22,
+    38
+  ],
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "raise",
+    "strike",
+    "stand",
+    "hoeRaise",
+    "hoeStrike",
+    "axeRaise",
+    "axeStrike",
+    "pickRaise",
+    "pickStrike",
+    "canRaise",
+    "canPour",
+    "scytheRaise",
+    "scytheStrike",
+    "rodRaise",
+    "rodCast",
+    "swordRaise",
+    "swordStrike"
+  ],
   "input": {
-    "up": ["c32/walking-4-frames/north/0.png", "c32/walking-4-frames/north/1.png", "c32/walking-4-frames/north/2.png", "c32/walking-4-frames/north/3.png", null, null, "c32/rotations/north.png", "c32/tool_swing/north/2.png", "c32/tool_swing/north/4.png"],
-    "right": ["c32/walking-4-frames/east/0.png", "c32/walking-4-frames/east/1.png", "c32/walking-4-frames/east/2.png", "c32/walking-4-frames/east/3.png", null, null, "c32/rotations/east.png", "c32/tool_swing/east/2.png", "c32/tool_swing/east/4.png"],
-    "down": ["c32/walking-4-frames/south/0.png", "c32/walking-4-frames/south/1.png", "c32/walking-4-frames/south/2.png", "c32/walking-4-frames/south/3.png", null, null, "c32/rotations/south.png", "c32/tool_swing/south/2.png", "c32/tool_swing/south/4.png"],
-    "left": ["c32/walking-4-frames/west/0.png", "c32/walking-4-frames/west/1.png", "c32/walking-4-frames/west/2.png", "c32/walking-4-frames/west/3.png", null, null, "c32/rotations/west.png", "c32/tool_swing/west/2.png", "c32/tool_swing/west/4.png"]
+    "up": [
+      "clean/c32/walking-4-frames/north/0.png",
+      "clean/c32/walking-4-frames/north/1.png",
+      "clean/c32/walking-4-frames/north/2.png",
+      "clean/c32/walking-4-frames/north/3.png",
+      null,
+      null,
+      "clean/c32/rotations/north.png",
+      "clean/c32/tool_swing/north/2.png",
+      "clean/c32/tool_swing/north/4.png",
+      "clean/c32/axe/north/2.png",
+      "clean/c32/axe/north/4.png",
+      "clean/c32/pick/north/2.png",
+      "clean/c32/pick/north/4.png",
+      "clean/c32/can/north/3.png",
+      "clean/c32/can/north/4.png",
+      "clean/c32/scythe/north/1.png",
+      "clean/c32/scythe/north/4.png",
+      "clean/c32/rod/north/2.png",
+      "clean/c32/rod/north/3.png",
+      "clean/c32/sword/north/2.png",
+      "clean/c32/sword/north/4.png"
+    ],
+    "right": [
+      "clean/c32/walking-4-frames/east/0.png",
+      "clean/c32/walking-4-frames/east/1.png",
+      "clean/c32/walking-4-frames/east/2.png",
+      "clean/c32/walking-4-frames/east/3.png",
+      null,
+      null,
+      "clean/c32/rotations/east.png",
+      "clean/c32/tool_swing/east/2.png",
+      "clean/c32/tool_swing/east/4.png",
+      "clean/c32/axe/east/2.png",
+      "clean/c32/axe/east/4.png",
+      "clean/c32/pick/east/2.png",
+      "clean/c32/pick/east/4.png",
+      "clean/c32/can/east/2.png",
+      "clean/c32/can/east/4.png",
+      "clean/c32/scythe/east/1.png",
+      "clean/c32/scythe/east/3.png",
+      "clean/c32/rod/east/3.png",
+      "clean/c32/rod/east/4.png",
+      "clean/c32/sword/east/1.png",
+      "clean/c32/sword/east/4.png"
+    ],
+    "down": [
+      "clean/c32/walking-4-frames/south/0.png",
+      "clean/c32/walking-4-frames/south/1.png",
+      "clean/c32/walking-4-frames/south/2.png",
+      "clean/c32/walking-4-frames/south/3.png",
+      null,
+      null,
+      "clean/c32/rotations/south.png",
+      "clean/c32/tool_swing/south/2.png",
+      "clean/c32/tool_swing/south/4.png",
+      "clean/c32/axe/south/2.png",
+      "clean/c32/axe/south/4.png",
+      "clean/c32/pick/south/2.png",
+      "clean/c32/pick/south/4.png",
+      "clean/c32/can/south/2.png",
+      "clean/c32/can/south/4.png",
+      "clean/c32/scythe/south/2.png",
+      "clean/c32/scythe/south/4.png",
+      "clean/c32/rod/south/2.png",
+      "clean/c32/rod/south/4.png",
+      "clean/c32/sword/south/2.png",
+      "clean/c32/sword/south/4.png"
+    ],
+    "left": [
+      "clean/c32/walking-4-frames/west/0.png",
+      "clean/c32/walking-4-frames/west/1.png",
+      "clean/c32/walking-4-frames/west/2.png",
+      "clean/c32/walking-4-frames/west/3.png",
+      null,
+      null,
+      "clean/c32/rotations/west.png",
+      "clean/c32/tool_swing/west/2.png",
+      "clean/c32/tool_swing/west/4.png",
+      "clean/c32/axe/west/2.png",
+      "clean/c32/axe/west/4.png",
+      "clean/c32/pick/west/1.png",
+      "clean/c32/pick/west/4.png",
+      "clean/c32/can/west/2.png",
+      "clean/c32/can/west/4.png",
+      "clean/c32/scythe/west/2.png",
+      "clean/c32/scythe/west/4.png",
+      "clean/c32/rod/west/2.png",
+      "clean/c32/rod/west/4.png",
+      "clean/c32/sword/west/1.png",
+      "clean/c32/sword/west/4.png"
+    ]
   },
   "align": "feet-per-frame",
-  "height": [28, 32],
+  "height": [
+    28,
+    32
+  ],
   "parts": {
     "skin": {
-      "from": ["#e59162", "#eb9a6a", "#d3794e", "#f47044", "#fa936e", "#d05e32", "#e55d44", "#f5ad77", "#da7144", "#e48457", "#f8a951", "#d3492c", "#e89f87", "#bf603e", "#c25a33", "#a63e23", "#f9c69a", "#ed8d60", "#f58266", "#db332d"],
-      "keys": ["#cd683d", "#e6904e", "#fca790"]
+      "from": [
+        "#e59162",
+        "#eb9a6a",
+        "#d3794e",
+        "#f47044",
+        "#fa936e",
+        "#d05e32",
+        "#e55d44",
+        "#f5ad77",
+        "#da7144",
+        "#e48457",
+        "#f8a951",
+        "#d3492c",
+        "#e89f87",
+        "#bf603e",
+        "#c25a33",
+        "#a63e23",
+        "#f9c69a",
+        "#ed8d60",
+        "#f58266",
+        "#db332d",
+        "#c75b1e",
+        "#b85b2c",
+        "#f0a06a",
+        "#e7522d",
+        "#8f360e",
+        "#b74a28",
+        "#8c2a09",
+        "#b64f27",
+        "#f29258",
+        "#ba4e2a"
+      ],
+      "keys": [
+        "#cd683d",
+        "#e6904e",
+        "#fca790"
+      ]
     },
     "hair": {
-      "from": ["#6f3017", "#882e1d", "#dca052", "#84431e", "#5f2314", "#4f150e", "#440d0a", "#9a512e", "#955022", "#b26347", "#914733", "#783023", "#894b24", "#ba8756", "#9c712b", "#b87634", "#401e16"],
-      "keys": ["#45293f", "#4c3e24", "#9e4539"]
+      "from": [
+        "#6f3017",
+        "#882e1d",
+        "#dca052",
+        "#84431e",
+        "#5f2314",
+        "#4f150e",
+        "#440d0a",
+        "#9a512e",
+        "#955022",
+        "#b26347",
+        "#914733",
+        "#783023",
+        "#894b24",
+        "#ba8756",
+        "#9c712b",
+        "#b87634",
+        "#733016",
+        "#a45a23",
+        "#721e04",
+        "#872e0a",
+        "#7c2107",
+        "#8c291b",
+        "#a16528",
+        "#974c1b",
+        "#9c5a24",
+        "#cd8d48",
+        "#cb893f"
+      ],
+      "keys": [
+        "#45293f",
+        "#4c3e24",
+        "#9e4539"
+      ]
     },
     "shirt": {
-      "from": ["#726e38", "#b99f43", "#aaa13b", "#908935", "#999239", "#75752f", "#514f37", "#858234", "#666b2a", "#bdae46", "#c9b146", "#a38d46", "#b4924c", "#71724f", "#4b5024", "#5d4f24", "#505953", "#30311b"],
-      "keys": ["#374e4a", "#676633", "#a2a947"]
+      "from": [
+        "#726e38",
+        "#b99f43",
+        "#aaa13b",
+        "#908935",
+        "#999239",
+        "#75752f",
+        "#514f37",
+        "#858234",
+        "#666b2a",
+        "#bdae46",
+        "#c9b146",
+        "#a38d46",
+        "#b4924c",
+        "#71724f",
+        "#4b5024",
+        "#5d4f24",
+        "#505953",
+        "#30311b",
+        "#4e531f",
+        "#595c22",
+        "#2e2e0f",
+        "#4c5320",
+        "#5c5c24",
+        "#2d371f",
+        "#595c24",
+        "#2a2e11",
+        "#4e5021",
+        "#545725"
+      ],
+      "keys": [
+        "#374e4a",
+        "#676633",
+        "#a2a947"
+      ]
     },
     "pants": {
-      "from": ["#7097b8", "#577a9d", "#4e678a", "#4d7295", "#39517e", "#79a8cd", "#3c597f", "#5a83a7", "#416488", "#6c8cb7", "#364c73", "#2f3f67", "#80a8c5", "#80c0e4", "#6096da", "#446ca9", "#1c425c", "#3c505e", "#263457", "#476c6e"],
-      "keys": ["#484a77", "#4d65b4", "#4d9be6"]
+      "from": [
+        "#7097b8",
+        "#577a9d",
+        "#4e678a",
+        "#4d7295",
+        "#39517e",
+        "#79a8cd",
+        "#3c597f",
+        "#5a83a7",
+        "#416488",
+        "#6c8cb7",
+        "#364c73",
+        "#2f3f67",
+        "#80a8c5",
+        "#80c0e4",
+        "#6096da",
+        "#446ca9",
+        "#1c425c",
+        "#3c505e",
+        "#263457",
+        "#476c6e",
+        "#6a94b4",
+        "#264f59",
+        "#213244",
+        "#749bbb",
+        "#253155"
+      ],
+      "keys": [
+        "#484a77",
+        "#4d65b4",
+        "#4d9be6"
+      ]
     },
     "tool": {
-      "from": ["#d7882b", "#ca720d", "#cb7d27", "#e59426", "#f5c282", "#fcf1c5", "#fceab6", "#fcfbdc", "#e4b377"],
-      "keys": ["#7a3045", "#f79617", "#f9c22b"]
+      "from": [
+        "#d7882b",
+        "#ca720d",
+        "#cb7d27",
+        "#e59426",
+        "#f5c282",
+        "#fcf1c5",
+        "#fceab6",
+        "#fcfbdc",
+        "#e4b377",
+        "#eeffd8",
+        "#d86b0f",
+        "#e6fce6",
+        "#fdffdf",
+        "#ebf0e0",
+        "#fbebcd",
+        "#f8e2bf",
+        "#f8d8a5",
+        "#f2f9ea",
+        "#c66818",
+        "#d6821e",
+        "#d27616",
+        "#da890b",
+        "#f2f8e2",
+        "#e88b10",
+        "#f29515",
+        "#ffe4c5",
+        "#d9ba85"
+      ],
+      "keys": [
+        "#7a3045",
+        "#f79617",
+        "#f9c22b"
+      ]
     },
     "metal": {
-      "from": ["#9ebfce", "#acc9d4", "#d6ece9", "#c4dfe2", "#778790", "#6a7985", "#81969f"],
-      "keys": ["#7f708a", "#9babb2", "#c7dcd0"]
+      "from": [
+        "#9ebfce",
+        "#acc9d4",
+        "#d6ece9",
+        "#c4dfe2",
+        "#778790",
+        "#6a7985",
+        "#81969f",
+        "#ace3e6",
+        "#82878d",
+        "#737a85",
+        "#787d7d",
+        "#5b747a",
+        "#eaf2ec",
+        "#edeef0",
+        "#c1ccd3",
+        "#d2e7ec",
+        "#e5f8fb",
+        "#c0d6e2",
+        "#a0b9c8",
+        "#95aebd"
+      ],
+      "keys": [
+        "#7f708a",
+        "#9babb2",
+        "#c7dcd0"
+      ]
+    },
+    "boots": {
+      "from": [
+        "#400040",
+        "#900090"
+      ],
+      "keys": [
+        "#3e3546",
+        "#694f62"
+      ]
+    },
+    "wood": {
+      "from": [
+        "#701060",
+        "#c040a0"
+      ],
+      "keys": [
+        "#6e2727",
+        "#966c6c"
+      ]
     }
   },
   "meta": {
     "label": "C32 v3",
     "kind": "character",
-    "ids": ["player", "preview_*"],
-    "styles": ["short", "spiky"],
+    "ids": [
+      "player",
+      "preview_*"
+    ],
+    "styles": [
+      "short",
+      "spiky"
+    ],
     "frames": {
       "0": "walk0",
       "1": "walk1",
@@ -52,9 +389,34 @@
       "5": "stand",
       "6": "stand",
       "7": "hoeRaise",
-      "8": "hoeStrike"
+      "8": "hoeStrike",
+      "hoe0": "hoeRaise",
+      "hoe1": "hoeStrike",
+      "axe0": "axeRaise",
+      "axe1": "axeStrike",
+      "pick0": "pickRaise",
+      "pick1": "pickStrike",
+      "can0": "canRaise",
+      "can1": "canPour",
+      "scythe0": "scytheRaise",
+      "scythe1": "scytheStrike",
+      "rod0": "rodRaise",
+      "rod1": "rodCast",
+      "sword0": "swordRaise",
+      "sword1": "swordStrike"
     },
-    "source": "PixelLab create_character v3, size 32, low top-down (character c3eac680-f7ae-453d-9a61-b22fdff859d1); walk: walking-4-frames; tool swing: custom v3 animation (raise frame 2, strike frame 4)",
-    "toolKinds": ["hoe", "pick"]
+    "source": "PixelLab create_character v3, size 32, low top-down (character c3eac680-f7ae-453d-9a61-b22fdff859d1); walk: walking-4-frames; tool swings: custom v3 animations, 4 frames per direction (hoe: raise frame 2, strike 4; other kinds: see cols and art/player/c32/<kind>/)",
+    "toolKinds": [
+      "hoe",
+      "axe",
+      "pick",
+      "can",
+      "scythe",
+      "rod",
+      "sword"
+    ]
+  },
+  "remap": {
+    "#313638": "#2e222f"
   }
 }

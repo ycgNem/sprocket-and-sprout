@@ -1,0 +1,30 @@
+{
+  "_note": "PixelLab object ids for the factory art (review batches and the candidates promoted to objects for v3 animation).",
+  "batches": {
+    "A": { "id": "d212d0a2-050d-4ac9-9e6e-6cb03f987efd", "size": 18, "what": "1x1 small objects, bumblebots" },
+    "B": { "id": "55e8e753-ef33-426c-90a7-3f523c176cdf", "size": 42, "what": "2x2 machines (mostly too wide)" },
+    "D": { "id": "e4ecb7fe-860f-431c-acc7-8b375f7b3357", "size": 24, "what": "1x1 medium machines, tall props, bots" },
+    "E": { "id": "130b2876-a854-4562-830a-05a3abb043e6", "size": 42, "what": "2x2 machines, tall and narrow, style refs B6 B9 B16" },
+    "mill-test": { "id": "3cdd0c9c-5e25-405d-8108-3f08e114e587", "what": "create_map_object 32x48 test, rejected (muddy, baked grass)" }
+  },
+  "objects": {
+    "mill": "e612c416-d767-41bb-849c-777321c5207f (E0)",
+    "sawmill": "aef30fc0-fe06-4331-936c-06dccd0fc0bf (E15)",
+    "steam_loom": "9b15b6b5-4306-4e7c-9fda-0cbc3e5b2624 (E16)",
+    "bottler": "52d05a56-533c-47ad-aaf8-063387c3274b (E17)",
+    "assembler": "db245f45-8c61-4ec9-bfcc-bb83d4324a56 (E4)",
+    "crusher": "6ee9c6a7-3690-4cb3-8ebc-ce26471d51a8 (E47)",
+    "drill_steam": "cee7c85c-0762-418b-be42-9783b95597d1 (E21)",
+    "steam_engine": "1d692b8f-14de-4dc2-808e-a62700fed571 (E36)",
+    "waterwheel": "b2f505d9-550e-45b1-a44d-c5e76dc0fd25 (E37)",
+    "assembler_2": "dfd18ec5-3f2c-41e9-bf56-1d74f7a0be76 (E27)",
+    "sunlens": "87270237-9f39-4144-b645-c7ca114c49e8 (E24)",
+    "kitchen_narrow": "a11017fd-29e7-4e5b-afc4-7901b96ee5e6 (E12)",
+    "brick_kiln": "44484be2-bedb-4db5-87e3-5eb109591385 (B9)",
+    "blast_furnace": "87d71945-2308-4983-921a-0a6c78d02492 (B6)",
+    "hive": "c75771cf-6f79-49ff-951f-bb44f13792e2 (B16)",
+    "assembler_2_alt": "910c0767-004b-4cdc-9df1-448e00887553 (B5)",
+    "kitchen": "562e4d53-480f-4dc1-b2f9-80d0615a8931 (B8)",
+    "drill_brass": "ce41d321-17d0-46a1-844b-3bf55ac908d3 (B12)"
+  }
+}

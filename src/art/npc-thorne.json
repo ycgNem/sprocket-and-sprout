@@ -1,0 +1,77 @@
+{
+  "name": "npc-thorne",
+  "file": "npc-thorne.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 32,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "keys": {
+    "cloak": [
+      "#45293f",
+      "#753c54",
+      "#966c6c"
+    ]
+  },
+  "label": "Thorne v3",
+  "kind": "character",
+  "ids": [
+    "thorne"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 36, low top-down, single color outline (character f076a475-22d6-428a-8cc9-c46826943434); walk: walking-4-frames",
+  "notes": "hood and robe recolored from olive to a plum-brown cloak (cloak part): olive head to toe read as one blob and vanished on grass; the green sash stays",
+  "colors": [
+    "#165a4c",
+    "#239063",
+    "#2e222f",
+    "#374e4a",
+    "#3e3546",
+    "#45293f",
+    "#484a77",
+    "#4c3e24",
+    "#4d65b4",
+    "#547e64",
+    "#625565",
+    "#6e2727",
+    "#753c54",
+    "#91db69",
+    "#966c6c",
+    "#9babb2",
+    "#9e4539",
+    "#ab947a",
+    "#ae2334",
+    "#cd683d",
+    "#e6904e",
+    "#f57d4a",
+    "#fca790",
+    "#fdcbb0",
+    "#ffffff"
+  ]
+}

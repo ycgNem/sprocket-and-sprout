@@ -1,0 +1,93 @@
+{
+  "name": "player-curly",
+  "file": "player-curly.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 30,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "keys": {
+    "skin": [
+      "#cd683d",
+      "#e6904e",
+      "#fca790"
+    ],
+    "hair": [
+      "#45293f",
+      "#4c3e24",
+      "#9e4539"
+    ],
+    "shirt": [
+      "#374e4a",
+      "#676633",
+      "#a2a947"
+    ],
+    "pants": [
+      "#484a77",
+      "#4d65b4",
+      "#4d9be6"
+    ],
+    "boots": [
+      "#3e3546",
+      "#694f62"
+    ]
+  },
+  "label": "C32 curly",
+  "kind": "character",
+  "ids": [
+    "player",
+    "preview_*"
+  ],
+  "styles": [
+    "curly"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 0ba04f99-f891-46d5-ac2f-b06f4fa7a325; walk: v3 custom walk (south, east, north, west), walking-4-frames unused. Walk and stand only: tool swings use the renderer's own swing for this style",
+  "colors": [
+    "#2e222f",
+    "#374e4a",
+    "#3e3546",
+    "#45293f",
+    "#484a77",
+    "#4c3e24",
+    "#4d65b4",
+    "#4d9be6",
+    "#676633",
+    "#694f62",
+    "#966c6c",
+    "#9babb2",
+    "#9e4539",
+    "#a2a947",
+    "#ab947a",
+    "#cd683d",
+    "#e6904e",
+    "#fca790",
+    "#ffffff"
+  ]
+}

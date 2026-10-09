@@ -1,0 +1,13 @@
+{
+  "t16": { "object": "eb1f09fb-e851-43ac-83b1-f1707a78f91d", "size": 16, "descriptions": "t16.json" },
+  "t20": { "object": "42d31e1a-3da8-4d62-8dcc-04a7ce6303ae", "size": 20, "descriptions": "t20.json", "note": "rejected: art fills the 20 px canvas; raw files not kept" },
+  "B": { "object": "51bf415c-a48c-49d4-ad25-ba325f8b0c9f", "size": 16, "descriptions": "B.json" },
+  "C": { "object": "2f2543b9-af13-47d9-88a1-6cbe3b979a5b", "size": 16, "descriptions": "C.json" },
+  "D": { "object": "af9b6845-bfda-47ff-9f8d-2d6d9619538d", "size": 16, "descriptions": "D.json" },
+  "E": { "object": "45484893-ee8a-4355-974d-bb3f73379d36", "size": 16, "descriptions": "E.json" },
+  "F": { "object": "8cf39d44-f1a3-431d-ba1c-bec0fc375002", "size": 16, "descriptions": "F.json" },
+  "G": { "object": "a6f6f4cc-b2ce-4e22-9afe-6e6a59a630e1", "size": 16, "descriptions": "G.json" },
+  "H": { "object": "e6432eb9-96c5-450a-9ccb-bea8c19f16db", "size": 16, "descriptions": "H.json" },
+  "I": { "object": "e11c558e-fa76-4da0-aff9-1f603c7aaca3", "size": 16, "descriptions": "I.json" },
+  "J": { "object": "e8e23629-9e5a-4f39-b9fc-018b9e7fd9e9", "size": 16, "descriptions": "J.json", "note": "follow-up: match the new world sprites" }
+}

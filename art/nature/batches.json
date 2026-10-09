@@ -1,0 +1,13 @@
+{
+ "note": "PixelLab create_1_direction_object batches behind art/nature/raw/<batch>/<slot>.png (slot = item_descriptions index). 10 generations each. Download again with: node scripts/pl-fetch.mjs frames <frame_0 url> <count> art/nature/raw/<batch>",
+ "a16": { "id": "2178bcd1-a5e5-4a71-a2c8-3f507f3bd86d", "size": 16, "count": 64, "what": "overworld objects, first try (no outlines; only a few slots used)" },
+ "a2": { "id": "dc39edf4-2191-4275-b808-da8e24857040", "size": 16, "count": 64, "what": "overworld objects with 'bold dark outline' in the style prompt" },
+ "b16": { "id": "c16a30aa-c61d-4876-bacf-61345ab3563f", "size": 16, "count": 64, "what": "ores, gems, mine fixtures, chests, flowerbeds, props, seed/sprouts/saplings, hedges" },
+ "t1": { "id": "f15c6962-52f7-49de-9948-0da28dbe9354", "size": 56, "count": 16, "what": "mature oak, maple, birch, willow, pine" },
+ "t2": { "id": "97885b93-b998-4ef8-873d-878ae2d1a63e", "size": 48, "count": 16, "what": "mature oak, maple, orchard (fruit) trees, willow" },
+ "t3": { "id": "ec484c35-a62f-44f7-b0e0-4d863900d00a", "size": 56, "count": 16, "what": "palms, snowberry (frosty fir), winter birches, birch, pine" },
+ "t4": { "id": "ac38b0e9-873c-447f-b6c3-b0a7e1cdcb8b", "size": 48, "count": 16, "what": "winter bare oak, maple, orchard, willow" },
+ "t5": { "id": "e1fa38f1-7d75-40f6-9e4d-28176fb3719c", "size": 48, "count": 16, "what": "clean orchard canopies (no fruit) for the fruit trees" },
+ "y32": { "id": "3a86db2a-6589-4ca6-9412-c518503fbe6d", "size": 32, "count": 64, "what": "young trees (summer and winter), lamp posts, notice boards" },
+ "frame_url": "https://backblaze.pixellab.ai/file/pixellab-characters/objects/859e3c7d-c1c3-4eee-9e06-c95bf333277b/<id>/rotations/frame_0.png"
+}

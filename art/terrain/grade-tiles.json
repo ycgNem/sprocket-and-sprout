@@ -1,0 +1,634 @@
+{
+ "materials": {
+  "rock": {
+   "ladder": [
+    "#3e3546",
+    "#625565",
+    "#966c6c",
+    "#ab947a"
+   ],
+   "fractions": [
+    0.12,
+    0.3,
+    0.4,
+    0.18
+   ],
+   "ref": "raw/misc1/0.png"
+  },
+  "nug0": {
+   "ladder": [
+    "#b33831",
+    "#ea4f36",
+    "#f57d4a"
+   ],
+   "cuts": [
+    50,
+    62
+   ]
+  },
+  "nug1": {
+   "ladder": [
+    "#7f708a",
+    "#9babb2",
+    "#c7dcd0"
+   ],
+   "cuts": [
+    50,
+    62
+   ]
+  },
+  "nug2": {
+   "ladder": [
+    "#6e2727",
+    "#ae2334",
+    "#e83b3b"
+   ],
+   "cuts": [
+    50,
+    62
+   ]
+  },
+  "nug3": {
+   "ladder": [
+    "#cd683d",
+    "#f79617",
+    "#fbff86"
+   ],
+   "cuts": [
+    50,
+    62
+   ]
+  },
+  "nug4": {
+   "ladder": [
+    "#2e222f",
+    "#2e222f",
+    "#3e3546"
+   ],
+   "cuts": [
+    50,
+    62
+   ]
+  },
+  "nug5": {
+   "ladder": [
+    "#6b3e75",
+    "#905ea9",
+    "#a884f3"
+   ],
+   "cuts": [
+    50,
+    62
+   ]
+  },
+  "nug6": {
+   "ladder": [
+    "#625565",
+    "#ab947a",
+    "#fdcbb0"
+   ],
+   "cuts": [
+    50,
+    62
+   ]
+  },
+  "nug7": {
+   "ladder": [
+    "#9e4539",
+    "#cd683d",
+    "#e6904e"
+   ],
+   "cuts": [
+    50,
+    62
+   ]
+  },
+  "mf0": {
+   "ladder": [
+    "#7a3045",
+    "#9e4539",
+    "#9e4539",
+    "#cd683d"
+   ],
+   "fractions": [
+    0.15,
+    0.35,
+    0.4,
+    0.1
+   ],
+   "ref": "raw/misc1/3.png"
+  },
+  "mf1": {
+   "ladder": [
+    "#3e3546",
+    "#625565",
+    "#7f708a",
+    "#9babb2",
+    "#c7dcd0"
+   ],
+   "fractions": [
+    0.12,
+    0.35,
+    0.35,
+    0.13,
+    0.05
+   ],
+   "ref": "raw/misc1/4.png"
+  },
+  "mf2dark": {
+   "ladder": [
+    "#2e222f",
+    "#45293f",
+    "#6e2727"
+   ],
+   "cuts": [
+    8,
+    12
+   ]
+  },
+  "glow": {
+   "ladder": [
+    "#6e2727",
+    "#7a3045",
+    "#b33831",
+    "#fb6b1d"
+   ],
+   "cuts": [
+    45,
+    58,
+    68
+   ]
+  },
+  "lava": {
+   "ladder": [
+    "#45293f",
+    "#6e2727",
+    "#b33831",
+    "#ea4f36",
+    "#fb6b1d",
+    "#f79617",
+    "#fbb954"
+   ],
+   "cuts": [
+    15,
+    25,
+    45,
+    55,
+    65,
+    78
+   ]
+  },
+  "timber": {
+   "ladder": [
+    "#2e222f",
+    "#45293f",
+    "#7a3045"
+   ],
+   "fractions": [
+    0.3,
+    0.45,
+    0.25
+   ],
+   "ref": "raw/misc1/9.png"
+  },
+  "mw0": {
+   "ladder": [
+    "#2e222f",
+    "#45293f",
+    "#7a3045",
+    "#9e4539"
+   ],
+   "fractions": [
+    0.25,
+    0.35,
+    0.3,
+    0.1
+   ],
+   "ref": "raw/misc1/10.png"
+  },
+  "mw1": {
+   "ladder": [
+    "#2e222f",
+    "#3e3546",
+    "#625565",
+    "#7f708a"
+   ],
+   "fractions": [
+    0.25,
+    0.35,
+    0.3,
+    0.1
+   ],
+   "ref": "raw/misc1/10.png"
+  },
+  "mw2": {
+   "ladder": [
+    "#2e222f",
+    "#45293f",
+    "#6e2727",
+    "#7a3045"
+   ],
+   "fractions": [
+    0.25,
+    0.35,
+    0.3,
+    0.1
+   ],
+   "ref": "raw/misc1/10.png"
+  },
+  "cliffrock": {
+   "ladder": [
+    "#2e222f",
+    "#45293f",
+    "#625565",
+    "#966c6c",
+    "#ab947a"
+   ],
+   "cuts": [
+    16,
+    30,
+    50,
+    75
+   ]
+  },
+  "cliffgrass": {
+   "ladder": [
+    "#165a4c",
+    "#239063",
+    "#1ebc73",
+    "#1ebc73"
+   ],
+   "cuts": [
+    34,
+    50,
+    60
+   ]
+  },
+  "wainscot": {
+   "ladder": [
+    "#45293f",
+    "#7a3045",
+    "#9e4539"
+   ],
+   "cuts": [
+    35,
+    47
+   ]
+  },
+  "paper": {
+   "ladder": [
+    "#f68181",
+    "#fca790",
+    "#fdcbb0"
+   ],
+   "cuts": [
+    80,
+    86
+   ]
+  },
+  "moulding": {
+   "ladder": [
+    "#2e222f",
+    "#45293f",
+    "#7a3045"
+   ],
+   "cuts": [
+    15,
+    25
+   ]
+  },
+  "honey2": {
+   "ladder": [
+    "#7a3045",
+    "#9e4539",
+    "#cd683d",
+    "#e6904e"
+   ],
+   "fractions": [
+    0.12,
+    0.3,
+    0.4,
+    0.18
+   ],
+   "ref": "raw/misc2/6.png"
+  },
+  "planks2": {
+   "ladder": [
+    "#45293f",
+    "#7a3045",
+    "#9e4539",
+    "#cd683d"
+   ],
+   "cuts": [
+    30,
+    45,
+    52
+   ]
+  },
+  "nugonly": {
+   "ladder": [
+    "none"
+   ],
+   "cuts": []
+  }
+ },
+ "jobs": [
+  {
+   "name": "rock",
+   "in": "raw/misc1/0.png",
+   "out": "tiles/rock/0.png",
+   "fallback": "rock"
+  },
+  {
+   "name": "minefloor0a",
+   "in": "raw/misc1/3.png",
+   "out": "tiles/minefloor0/0.png",
+   "fallback": "mf0"
+  },
+  {
+   "name": "minefloor0b",
+   "in": "raw/misc1/15.png",
+   "out": "tiles/minefloor0/1.png",
+   "fallback": "mf0"
+  },
+  {
+   "name": "minefloor1",
+   "in": "raw/misc1/4.png",
+   "out": "tiles/minefloor1/0.png",
+   "fallback": "mf1"
+  },
+  {
+   "name": "minefloor2",
+   "in": "raw/misc1/5.png",
+   "out": "tiles/minefloor2/0.png",
+   "classify": [
+    {
+     "material": "mf2dark",
+     "L": [
+      0,
+      20
+     ]
+    }
+   ],
+   "fallback": "glow"
+  },
+  {
+   "name": "lava0",
+   "in": "raw/misc1/6.png",
+   "out": "tiles/lava/0.png",
+   "fallback": "lava"
+  },
+  {
+   "name": "lava1",
+   "in": "raw/misc1/12.png",
+   "out": "tiles/lava/1.png",
+   "fallback": "lava"
+  },
+  {
+   "name": "wall_top",
+   "in": "raw/misc1/9.png",
+   "out": "tiles/wall_top/0.png",
+   "fallback": "timber"
+  },
+  {
+   "name": "minewall0",
+   "in": "raw/misc1/10.png",
+   "out": "tiles/minewall0/0.png",
+   "fallback": "mw0"
+  },
+  {
+   "name": "minewall1",
+   "in": "raw/misc1/10.png",
+   "out": "tiles/minewall1/0.png",
+   "fallback": "mw1"
+  },
+  {
+   "name": "minewall2",
+   "in": "raw/misc1/10.png",
+   "out": "tiles/minewall2/0.png",
+   "fallback": "mw2"
+  },
+  {
+   "name": "cliff2-0",
+   "in": "raw/cliff2/tiles/0.png",
+   "out": "try/cliff/c2-0.png",
+   "classify": [
+    {
+     "material": "cliffgrass",
+     "hue": [
+      60,
+      200
+     ],
+     "sat": [
+      0.25,
+      1
+     ],
+     "L": [
+      22,
+      100
+     ]
+    }
+   ],
+   "fallback": "cliffrock"
+  },
+  {
+   "name": "cliff2-12",
+   "in": "raw/cliff2/tiles/12.png",
+   "out": "try/cliff/c2-12.png",
+   "classify": [
+    {
+     "material": "cliffgrass",
+     "hue": [
+      60,
+      200
+     ],
+     "sat": [
+      0.25,
+      1
+     ],
+     "L": [
+      22,
+      100
+     ]
+    }
+   ],
+   "fallback": "cliffrock"
+  },
+  {
+   "name": "wall",
+   "in": "raw/misc2/0.png",
+   "out": "tiles/wall/0.png",
+   "classify": [
+    {
+     "material": "paper",
+     "L": [
+      70,
+      101
+     ],
+     "sat": [
+      0,
+      0.3
+     ]
+    }
+   ],
+   "fallback": "wainscot"
+  },
+  {
+   "name": "wall_upper",
+   "in": "raw/misc2/3.png",
+   "out": "tiles/wall_upper/0.png",
+   "classify": [
+    {
+     "material": "paper",
+     "L": [
+      70,
+      101
+     ],
+     "sat": [
+      0,
+      0.3
+     ]
+    }
+   ],
+   "fallback": "moulding"
+  },
+  {
+   "name": "woodfloor-m2-6",
+   "in": "raw/misc2/6.png",
+   "out": "try/woodfloor/6.png",
+   "fallback": "honey2"
+  },
+  {
+   "name": "planks-m2-9",
+   "in": "raw/misc2/9.png",
+   "out": "try/planks/9.png",
+   "fallback": "planks2"
+  },
+  {
+   "name": "planks-m2-10",
+   "in": "raw/misc2/10.png",
+   "out": "try/planks/10.png",
+   "fallback": "planks2"
+  },
+  {
+   "name": "nugget0",
+   "in": "raw/misc1/1.png",
+   "out": "try/nuggets/0.png",
+   "classify": [
+    {
+     "material": "nug0",
+     "sat": [
+      0.45,
+      1
+     ]
+    }
+   ],
+   "fallback": "nugonly"
+  },
+  {
+   "name": "nugget1",
+   "in": "raw/misc1/1.png",
+   "out": "try/nuggets/1.png",
+   "classify": [
+    {
+     "material": "nug1",
+     "sat": [
+      0.45,
+      1
+     ]
+    }
+   ],
+   "fallback": "nugonly"
+  },
+  {
+   "name": "nugget2",
+   "in": "raw/misc1/1.png",
+   "out": "try/nuggets/2.png",
+   "classify": [
+    {
+     "material": "nug2",
+     "sat": [
+      0.45,
+      1
+     ]
+    }
+   ],
+   "fallback": "nugonly"
+  },
+  {
+   "name": "nugget3",
+   "in": "raw/misc1/1.png",
+   "out": "try/nuggets/3.png",
+   "classify": [
+    {
+     "material": "nug3",
+     "sat": [
+      0.45,
+      1
+     ]
+    }
+   ],
+   "fallback": "nugonly"
+  },
+  {
+   "name": "nugget4",
+   "in": "raw/misc1/1.png",
+   "out": "try/nuggets/4.png",
+   "classify": [
+    {
+     "material": "nug4",
+     "sat": [
+      0.45,
+      1
+     ]
+    }
+   ],
+   "fallback": "nugonly"
+  },
+  {
+   "name": "nugget5",
+   "in": "raw/misc1/1.png",
+   "out": "try/nuggets/5.png",
+   "classify": [
+    {
+     "material": "nug5",
+     "sat": [
+      0.45,
+      1
+     ]
+    }
+   ],
+   "fallback": "nugonly"
+  },
+  {
+   "name": "nugget6",
+   "in": "raw/misc1/1.png",
+   "out": "try/nuggets/6.png",
+   "classify": [
+    {
+     "material": "nug6",
+     "sat": [
+      0.45,
+      1
+     ]
+    }
+   ],
+   "fallback": "nugonly"
+  },
+  {
+   "name": "nugget7",
+   "in": "raw/misc1/1.png",
+   "out": "try/nuggets/7.png",
+   "classify": [
+    {
+     "material": "nug7",
+     "sat": [
+      0.45,
+      1
+     ]
+    }
+   ],
+   "fallback": "nugonly"
+  }
+ ]
+}

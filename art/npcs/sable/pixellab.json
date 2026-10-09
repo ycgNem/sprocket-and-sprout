@@ -1,0 +1,12 @@
+{
+ "id": "cdd08326-9af1-4c0c-9cb5-af7802022f7b",
+ "prompt": "gentle bookish librarian, short tousled purple hair, dark brown skin, round glasses, slate gray cardigan over a shirt, lavender scarf, dark plum trousers, brown shoes, androgynous, soft amused smile, cozy farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 32,
+  "height": 32
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: north×4 west×4 east×4 south×4"
+ ]
+}

@@ -1,0 +1,1597 @@
+{
+ "farmhouse": {
+  "kind": "bld",
+  "W": 112,
+  "H": 98,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 56,
+  "src": "raw/farmhouse/g.png",
+  "remap": {
+   "#c32454": "#b33831",
+   "#e83b3b": "#ea4f36",
+   "#f68181": "#f57d4a",
+   "#ae2334": "#6e2727",
+   "#753c54": "#7a3045"
+  },
+  "remapIn": [
+   [
+    [
+     48,
+     92,
+     22,
+     15
+    ],
+    {
+     "#f57d4a": "#e6904e",
+     "#ea4f36": "#cd683d",
+     "#b33831": "#9e4539",
+     "#6e2727": "#7a3045"
+    }
+   ]
+  ],
+  "doorX": 58,
+  "glass": [
+   [
+    16,
+    66,
+    18,
+    18
+   ],
+   [
+    82,
+    66,
+    18,
+    18
+   ],
+   [
+    50,
+    46,
+    16,
+    14
+   ]
+  ],
+  "glassMap": {
+   "#313638": 1,
+   "#9babb2": 2
+  },
+  "glassKey": [
+   "#323353",
+   "#484a77",
+   "#8fd3ff"
+  ],
+  "roof": [
+   [
+    0,
+    0,
+    116,
+    62
+   ]
+  ],
+  "roofExclude": [
+   [
+    78,
+    0,
+    14,
+    22
+   ]
+  ],
+  "decor": {
+   "0": [
+    [
+     "tulips_red",
+     36,
+     97
+    ],
+    [
+     "tulips_yellow",
+     77,
+     97
+    ]
+   ],
+   "2": [
+    [
+     "pumpkins",
+     36,
+     97
+    ],
+    [
+     "pumpkins2",
+     78,
+     97
+    ]
+   ],
+   "3": [
+    [
+     "wreath",
+     56,
+     79
+    ]
+   ]
+  }
+ },
+ "greenhouse": {
+  "kind": "bld",
+  "W": 176,
+  "H": 50,
+  "ox": 0,
+  "oy": 18,
+  "seasons": [
+   1
+  ],
+  "src": "raw/greenhouse/a.png",
+  "erase": [
+   [
+    0,
+    54,
+    252,
+    4
+   ],
+   [
+    0,
+    53,
+    12,
+    1
+   ],
+   [
+    245,
+    53,
+    7,
+    1
+   ]
+  ],
+  "remapPre": [
+   [
+    [
+     12,
+     53,
+     233,
+     1
+    ],
+    {
+     "#676633": "#9e4539",
+     "#a2a947": "#9e4539",
+     "#91db69": "#9e4539",
+     "#4c3e24": "#9e4539",
+     "#cd683d": "#9e4539"
+    }
+   ]
+  ],
+  "fill": [
+   [
+    12,
+    54,
+    233,
+    1,
+    "#2e222f"
+   ]
+  ],
+  "cutX": [
+   [
+    141,
+    202
+   ]
+  ],
+  "states": {
+   "0": {
+    "src": "raw/greenhouse/broken1.png",
+    "erase": [],
+    "remapPre": [],
+    "fill": [],
+    "cutX": null
+   },
+   "1": {}
+  }
+ },
+ "store": {
+  "kind": "bld",
+  "W": 128,
+  "H": 114,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 72,
+  "roof": "auto",
+  "roofCover": 0.99,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/store/e1.png",
+  "doorX": 65,
+  "remapIn": [
+   [
+    [
+     0,
+     0,
+     122,
+     31
+    ],
+    {
+     "#f57d4a": "#ed8099",
+     "#ea4f36": "#cf657f",
+     "#b33831": "#a24b6f",
+     "#9e4539": "#a24b6f",
+     "#6e2727": "#753c54",
+     "#7a3045": "#753c54",
+     "#ae2334": "#a24b6f",
+     "#cd683d": "#cf657f"
+    }
+   ]
+  ],
+  "glass": [
+   [
+    26,
+    35,
+    11,
+    11
+   ],
+   [
+    86,
+    35,
+    10,
+    11
+   ],
+   [
+    15,
+    68,
+    35,
+    19
+   ],
+   [
+    60,
+    68,
+    14,
+    18
+   ]
+  ]
+ },
+ "inn": {
+  "kind": "bld",
+  "W": 144,
+  "H": 114,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 72,
+  "roof": "auto",
+  "roofCover": 0.99,
+  "src": "raw/inn/e1.png",
+  "doorX": 71,
+  "roofExclude": [
+   [
+    114,
+    0,
+    18,
+    26
+   ]
+  ],
+  "glass": [
+   [
+    27,
+    48,
+    12,
+    12
+   ],
+   [
+    104,
+    48,
+    11,
+    12
+   ],
+   [
+    24,
+    83,
+    13,
+    12
+   ],
+   [
+    105,
+    83,
+    13,
+    13
+   ]
+  ],
+  "glassMap": {
+   "#f79617": 1,
+   "#f9c22b": 2,
+   "#4d9be6": 0
+  }
+ },
+ "smithy": {
+  "kind": "bld",
+  "W": 112,
+  "H": 114,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 56,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/smithy/e1.png",
+  "doorX": 56,
+  "roofExclude": [
+   [
+    78,
+    0,
+    18,
+    30
+   ]
+  ],
+  "glass": [
+   [
+    53,
+    49,
+    6,
+    7
+   ],
+   [
+    18,
+    72,
+    10,
+    11
+   ]
+  ]
+ },
+ "carpenter": {
+  "kind": "bld",
+  "W": 128,
+  "H": 114,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 72,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/carpenter/e2.png",
+  "doorX": 64,
+  "dx": -4,
+  "glass": [
+   [
+    61,
+    47,
+    6,
+    8
+   ],
+   [
+    21,
+    74,
+    11,
+    11
+   ],
+   [
+    96,
+    74,
+    11,
+    12
+   ]
+  ]
+ },
+ "workshop": {
+  "kind": "bld",
+  "W": 128,
+  "H": 114,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 72,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/workshop/e1.png",
+  "doorX": 66,
+  "dx": -2,
+  "paint": [
+   [
+    13,
+    67,
+    42,
+    4,
+    "#6e2727"
+   ]
+  ],
+  "glass": [
+   [
+    26,
+    40,
+    11,
+    11
+   ],
+   [
+    89,
+    40,
+    11,
+    11
+   ],
+   [
+    16,
+    76,
+    36,
+    21
+   ]
+  ]
+ },
+ "clinic": {
+  "kind": "bld",
+  "W": 112,
+  "H": 98,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 56,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/clinic/e1.png",
+  "doorX": 56,
+  "glass": [
+   [
+    17,
+    56,
+    12,
+    12
+   ],
+   [
+    83,
+    56,
+    13,
+    12
+   ]
+  ]
+ },
+ "library": {
+  "kind": "bld",
+  "W": 128,
+  "H": 114,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 72,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/library/e2.png",
+  "doorX": 64,
+  "dx": -3,
+  "glass": [
+   [
+    23,
+    40,
+    9,
+    16
+   ],
+   [
+    59,
+    40,
+    9,
+    16
+   ],
+   [
+    95,
+    40,
+    9,
+    16
+   ],
+   [
+    23,
+    75,
+    9,
+    17
+   ],
+   [
+    95,
+    75,
+    9,
+    17
+   ],
+   [
+    60,
+    78,
+    11,
+    16
+   ]
+  ]
+ },
+ "mayor_house": {
+  "kind": "bld",
+  "W": 128,
+  "H": 114,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 72,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/mayor/e1.png",
+  "doorX": 63,
+  "dx": -5,
+  "roofY": 27,
+  "glass": [
+   [
+    22,
+    35,
+    11,
+    16
+   ],
+   [
+    59,
+    35,
+    10,
+    13
+   ],
+   [
+    95,
+    35,
+    11,
+    16
+   ],
+   [
+    22,
+    67,
+    10,
+    18
+   ],
+   [
+    95,
+    67,
+    11,
+    18
+   ],
+   [
+    59,
+    70,
+    9,
+    13
+   ]
+  ]
+ },
+ "ranch": {
+  "kind": "bld",
+  "W": 144,
+  "H": 114,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 72,
+  "roof": "auto",
+  "roofCover": 0.995,
+  "src": "raw/ranch/e2.png",
+  "doorX": 69,
+  "remapIn": [
+   [
+    [
+     0,
+     0,
+     114,
+     44
+    ],
+    {
+     "#f57d4a": "#ea4f36",
+     "#ea4f36": "#b33831",
+     "#b33831": "#6e2727",
+     "#6e2727": "#45293f"
+    }
+   ],
+   [
+    [
+     132,
+     0,
+     10,
+     44
+    ],
+    {
+     "#f57d4a": "#ea4f36",
+     "#ea4f36": "#b33831",
+     "#b33831": "#6e2727",
+     "#6e2727": "#45293f"
+    }
+   ]
+  ],
+  "roofY": 46,
+  "roofExclude": [
+   [
+    114,
+    0,
+    18,
+    26
+   ]
+  ],
+  "paint": [
+   [
+    46,
+    53,
+    50,
+    5,
+    "#6e2727"
+   ]
+  ],
+  "glass": [
+   [
+    27,
+    48,
+    12,
+    12
+   ],
+   [
+    104,
+    48,
+    11,
+    12
+   ],
+   [
+    24,
+    82,
+    13,
+    13
+   ],
+   [
+    105,
+    82,
+    13,
+    10
+   ]
+  ],
+  "glassMap": {
+   "#f79617": 1,
+   "#f9c22b": 2,
+   "#4d9be6": 0
+  }
+ },
+ "home_ines": {
+  "kind": "bld",
+  "W": 96,
+  "H": 98,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 56,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/cottage/c.png",
+  "doorX": 65,
+  "dx": 4,
+  "roofExclude": [
+   [
+    0,
+    0,
+    18,
+    24
+   ]
+  ],
+  "glass": [
+   [
+    17,
+    72,
+    15,
+    6
+   ]
+  ],
+  "decor": {
+   "0": [
+    [
+     "bush",
+     89,
+     97
+    ],
+    [
+     "tulips_red",
+     43,
+     97
+    ]
+   ],
+   "1": [
+    [
+     "bush",
+     89,
+     97
+    ]
+   ],
+   "2": [
+    [
+     "bush",
+     89,
+     97
+    ],
+    [
+     "pumpkins",
+     43,
+     97
+    ]
+   ],
+   "3": [
+    [
+     "snowshrub",
+     89,
+     97
+    ],
+    [
+     "wreath",
+     60,
+     77
+    ]
+   ]
+  }
+ },
+ "home_sable": {
+  "kind": "bld",
+  "W": 96,
+  "H": 98,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 56,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/sable/e1.png",
+  "doorX": 67,
+  "dx": 4,
+  "roofExclude": [
+   [
+    0,
+    0,
+    18,
+    24
+   ]
+  ],
+  "glass": [
+   [
+    19,
+    71,
+    15,
+    6
+   ]
+  ],
+  "decor": {
+   "0": [
+    [
+     "barrel",
+     90,
+     97
+    ],
+    [
+     "tulips_red",
+     43,
+     97
+    ]
+   ],
+   "1": [
+    [
+     "barrel",
+     90,
+     97
+    ]
+   ],
+   "2": [
+    [
+     "barrel",
+     90,
+     97
+    ],
+    [
+     "pumpkins",
+     43,
+     97
+    ]
+   ],
+   "3": [
+    [
+     "barrel",
+     90,
+     97
+    ],
+    [
+     "wreath",
+     60,
+     77
+    ]
+   ]
+  }
+ },
+ "home_hazel": {
+  "kind": "bld",
+  "W": 96,
+  "H": 98,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 56,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/hazel/e1.png",
+  "doorX": 68,
+  "dx": 4,
+  "snowSplit": [
+   0.15,
+   0.45
+  ],
+  "erase": [
+   [
+    74,
+    0,
+    22,
+    12
+   ]
+  ],
+  "roofExclude": [
+   [
+    0,
+    0,
+    18,
+    24
+   ]
+  ],
+  "glass": [
+   [
+    18,
+    73,
+    15,
+    6
+   ]
+  ],
+  "decor": {
+   "0": [
+    [
+     "rosebush",
+     89,
+     97
+    ],
+    [
+     "tulips_red",
+     43,
+     97
+    ]
+   ],
+   "1": [
+    [
+     "rosebush",
+     89,
+     97
+    ]
+   ],
+   "2": [
+    [
+     "rosebush",
+     89,
+     97
+    ],
+    [
+     "pumpkins",
+     43,
+     97
+    ]
+   ],
+   "3": [
+    [
+     "snowshrub",
+     89,
+     97
+    ],
+    [
+     "wreath",
+     60,
+     77
+    ]
+   ]
+  }
+ },
+ "house_a": {
+  "kind": "bld",
+  "W": 96,
+  "H": 98,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 56,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/house_a/e1.png",
+  "doorX": 67,
+  "dx": 4,
+  "roofExclude": [
+   [
+    0,
+    0,
+    18,
+    24
+   ]
+  ],
+  "glass": [
+   [
+    18,
+    64,
+    15,
+    6
+   ]
+  ],
+  "decor": {
+   "0": [
+    [
+     "woodpile",
+     88,
+     97
+    ],
+    [
+     "tulips_red",
+     41,
+     97
+    ]
+   ],
+   "1": [
+    [
+     "woodpile",
+     88,
+     97
+    ]
+   ],
+   "2": [
+    [
+     "woodpile",
+     88,
+     97
+    ],
+    [
+     "pumpkins",
+     41,
+     97
+    ]
+   ],
+   "3": [
+    [
+     "woodpile",
+     88,
+     97
+    ],
+    [
+     "wreath",
+     60,
+     79
+    ]
+   ]
+  }
+ },
+ "house_b": {
+  "kind": "bld",
+  "W": 96,
+  "H": 98,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 56,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/house_b/e1.png",
+  "doorX": 68,
+  "dx": 4,
+  "roofExclude": [
+   [
+    0,
+    0,
+    18,
+    24
+   ]
+  ],
+  "glass": [
+   [
+    18,
+    72,
+    15,
+    6
+   ]
+  ],
+  "glassKey": [
+   "#0b5e65",
+   "#0b8a8f",
+   "#8ff8e2"
+  ],
+  "decor": {
+   "0": [
+    [
+     "bush",
+     89,
+     97
+    ],
+    [
+     "tulips_red",
+     43,
+     97
+    ]
+   ],
+   "1": [
+    [
+     "bush",
+     89,
+     97
+    ]
+   ],
+   "2": [
+    [
+     "bush",
+     89,
+     97
+    ],
+    [
+     "pumpkins",
+     43,
+     97
+    ]
+   ],
+   "3": [
+    [
+     "snowshrub",
+     89,
+     97
+    ],
+    [
+     "wreath",
+     60,
+     77
+    ]
+   ]
+  }
+ },
+ "fisher_hut": {
+  "kind": "bld",
+  "W": 96,
+  "H": 98,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 56,
+  "roof": null,
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/fisher/e1.png",
+  "doorX": 63,
+  "dx": 4,
+  "snowCap": 3,
+  "glass": [
+   [
+    20,
+    65,
+    16,
+    15
+   ]
+  ],
+  "props": [
+   [
+    "oars",
+    89,
+    97
+   ]
+  ]
+ },
+ "hermit_hut": {
+  "kind": "bld",
+  "W": 96,
+  "H": 98,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 56,
+  "roof": null,
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/hermit/e1.png",
+  "doorX": 66,
+  "dx": 4,
+  "remapIn": [
+   [
+    [
+     12,
+     0,
+     14,
+     32
+    ],
+    {
+     "#4d65b4": "#966c6c",
+     "#484a77": "#625565",
+     "#323353": "#3e3546"
+    }
+   ]
+  ],
+  "glass": [
+   [
+    16,
+    56,
+    12,
+    14
+   ]
+  ],
+  "snowCap": 4,
+  "decor": {
+   "0": [
+    [
+     "fern",
+     86,
+     97
+    ],
+    [
+     "tulips_red",
+     43,
+     97
+    ]
+   ],
+   "1": [
+    [
+     "fern",
+     86,
+     97
+    ]
+   ],
+   "2": [
+    [
+     "fern",
+     86,
+     97
+    ],
+    [
+     "pumpkins",
+     43,
+     97
+    ]
+   ],
+   "3": [
+    [
+     "snowshrub",
+     86,
+     97
+    ],
+    [
+     "wreath",
+     60,
+     80
+    ]
+   ]
+  }
+ },
+ "clocktower": {
+  "kind": "bld",
+  "W": 80,
+  "H": 114,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 40,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "glassColors": [
+   "#323353",
+   "#484a77",
+   "#4d65b4",
+   "#4d9be6",
+   "#8fd3ff"
+  ],
+  "src": "raw/clocktower/e3.png",
+  "doorX": 39,
+  "roofExclude": [
+   [
+    30,
+    0,
+    18,
+    14
+   ]
+  ],
+  "states": {
+   "0": {
+    "src": "raw/clocktower/broken1.png"
+   },
+   "1": {}
+  }
+ },
+ "mine": {
+  "kind": "bld",
+  "W": 80,
+  "H": 82,
+  "ox": 0,
+  "oy": 18,
+  "doorTile": 40,
+  "roof": null,
+  "roofCover": 0.97,
+  "src": "raw/mine/e1.png",
+  "doorX": 40,
+  "snowCap": 2
+ },
+ "coop_1": {
+  "kind": "st",
+  "id": "coop_1",
+  "W": 64,
+  "H": 66,
+  "ox": 0,
+  "oy": 18,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "src": "raw/coop/e1.png",
+  "glass": [
+   [
+    9,
+    28,
+    9,
+    9
+   ],
+   [
+    42,
+    28,
+    9,
+    9
+   ]
+  ],
+  "glassMap": {
+   "#2e222f": 1
+  },
+  "glassKey": [
+   "#323353",
+   "#484a77",
+   "#8fd3ff"
+  ],
+  "glint": true
+ },
+ "coop_2": {
+  "kind": "st",
+  "id": "coop_2",
+  "W": 64,
+  "H": 68,
+  "ox": 0,
+  "oy": 20,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "src": "raw/coop/e2.png",
+  "glass": [
+   [
+    8,
+    28,
+    8,
+    9
+   ],
+   [
+    21,
+    28,
+    10,
+    8
+   ],
+   [
+    35,
+    28,
+    9,
+    8
+   ],
+   [
+    8,
+    43,
+    8,
+    7
+   ],
+   [
+    35,
+    43,
+    9,
+    9
+   ]
+  ],
+  "glassMap": {
+   "#2e222f": 1
+  },
+  "glassKey": [
+   "#323353",
+   "#484a77",
+   "#8fd3ff"
+  ],
+  "glint": true
+ },
+ "coop_3": {
+  "kind": "st",
+  "id": "coop_3",
+  "W": 64,
+  "H": 70,
+  "ox": 0,
+  "oy": 22,
+  "roof": null,
+  "roofCover": 0.97,
+  "src": "raw/coop/e3.png",
+  "snowCap": 3,
+  "glass": [
+   [
+    8,
+    46,
+    8,
+    9
+   ],
+   [
+    31,
+    46,
+    7,
+    9
+   ]
+  ],
+  "glassMap": {
+   "#2e222f": 1
+  },
+  "glassKey": [
+   "#323353",
+   "#484a77",
+   "#8fd3ff"
+  ],
+  "glint": true
+ },
+ "barn_1": {
+  "kind": "st",
+  "id": "barn_1",
+  "W": 80,
+  "H": 70,
+  "ox": 0,
+  "oy": 22,
+  "roof": null,
+  "roofCover": 0.97,
+  "src": "raw/barn/e1.png",
+  "snowCap": 3,
+  "glass": [
+   [
+    35,
+    17,
+    8,
+    7
+   ],
+   [
+    11,
+    50,
+    5,
+    6
+   ],
+   [
+    62,
+    50,
+    5,
+    6
+   ]
+  ],
+  "glassMap": {
+   "#2e222f": 1
+  },
+  "glassKey": [
+   "#323353",
+   "#484a77",
+   "#8fd3ff"
+  ],
+  "glint": true
+ },
+ "barn_2": {
+  "kind": "st",
+  "id": "barn_2",
+  "W": 80,
+  "H": 72,
+  "ox": 0,
+  "oy": 24,
+  "roof": null,
+  "roofCover": 0.97,
+  "src": "raw/barn/e2.png",
+  "snowCap": 3,
+  "glass": [
+   [
+    33,
+    23,
+    8,
+    7
+   ],
+   [
+    10,
+    56,
+    5,
+    5
+   ]
+  ],
+  "glassMap": {
+   "#2e222f": 1
+  },
+  "glassKey": [
+   "#323353",
+   "#484a77",
+   "#8fd3ff"
+  ],
+  "glint": true
+ },
+ "barn_3": {
+  "kind": "st",
+  "id": "barn_3",
+  "W": 80,
+  "H": 74,
+  "ox": 0,
+  "oy": 26,
+  "roof": null,
+  "roofCover": 0.97,
+  "src": "raw/barn/e3.png",
+  "snowCap": 3,
+  "glass": [
+   [
+    11,
+    56,
+    6,
+    6
+   ],
+   [
+    61,
+    56,
+    6,
+    6
+   ]
+  ],
+  "glassMap": {
+   "#2e222f": 1
+  },
+  "glassKey": [
+   "#323353",
+   "#484a77",
+   "#8fd3ff"
+  ],
+  "glint": true
+ },
+ "silo": {
+  "kind": "st",
+  "id": "silo",
+  "W": 32,
+  "H": 60,
+  "ox": 0,
+  "oy": 28,
+  "roof": null,
+  "roofCover": 0.97,
+  "src": "raw/silo/a.png",
+  "erase": [
+   [
+    22,
+    58,
+    8,
+    8
+   ]
+  ],
+  "snowCap": 3
+ },
+ "well": {
+  "kind": "st",
+  "id": "well",
+  "W": 32,
+  "H": 40,
+  "ox": 0,
+  "oy": 8,
+  "roof": null,
+  "roofCover": 0.97,
+  "src": "raw/well/e1.png",
+  "snowCap": 2
+ },
+ "freight_depot": {
+  "kind": "st",
+  "id": "freight_depot",
+  "W": 48,
+  "H": 52,
+  "ox": 0,
+  "oy": 20,
+  "roof": "auto",
+  "roofCover": 0.97,
+  "src": "raw/depot/e1.png"
+ },
+ "shipping_crate": {
+  "kind": "st",
+  "id": "shipping_crate",
+  "W": 16,
+  "H": 19,
+  "ox": 0,
+  "oy": 3,
+  "roof": null,
+  "roofCover": 0.97,
+  "src": "raw/crate/hand.png",
+  "seasons": [
+   1
+  ]
+ },
+ "_extra": [
+  {
+   "match": "gh:glass:1",
+   "file": "raw/ghglass/intact.png",
+   "place": "none",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ],
+   "keepStrays": true
+  },
+  {
+   "match": "gh:glass:0",
+   "file": "raw/ghglass/broken.png",
+   "place": "none",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ],
+   "keepStrays": true
+  }
+ ],
+ "cart": {
+  "kind": "cart",
+  "W": 48,
+  "H": 40,
+  "ox": 0,
+  "oy": 24,
+  "src": "raw/cart/e1.png",
+  "seasons": [
+   1
+  ],
+  "roof": null
+ }
+}

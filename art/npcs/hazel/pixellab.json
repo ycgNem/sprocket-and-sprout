@@ -1,0 +1,12 @@
+{
+ "id": "955db650-c070-4187-b9ba-f5b1cffe56ff",
+ "prompt": "teenage girl painter, long straight copper-orange hair past her shoulders, fair warm skin, freckles, lavender purple long-sleeve shirt, rose pink scarf, black trousers, brown boots, paint smudge on her cheek, sharp restless expression, cozy farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 32,
+  "height": 32
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: east×4 north×4 south×4 west×4"
+ ]
+}

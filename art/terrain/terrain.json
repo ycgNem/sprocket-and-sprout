@@ -1,0 +1,358 @@
+{
+ "name": "terrain",
+ "kind": "terrain",
+ "tile": 16,
+ "scale": 1,
+ "sets": [
+  {
+   "lower": "dirt",
+   "upper": "grass",
+   "dir": "sets/dirt-grass"
+  },
+  {
+   "lower": "path",
+   "upper": "grass",
+   "dir": "sets/path-grass"
+  },
+  {
+   "lower": "water",
+   "upper": "grass",
+   "dir": "sets/water-grass"
+  },
+  {
+   "lower": "sand",
+   "upper": "grass",
+   "dir": "sets/sand-grass"
+  },
+  {
+   "lower": "water",
+   "upper": "sand",
+   "dir": "sets/water-sand"
+  },
+  {
+   "lower": "deep",
+   "upper": "water",
+   "dir": "sets/deep-water"
+  },
+  {
+   "lower": "soil",
+   "upper": "grass",
+   "dir": "sets/soil-grass"
+  },
+  {
+   "lower": "soil",
+   "upper": "dirt",
+   "dir": "sets/soil-dirt"
+  },
+  {
+   "lower": "wet",
+   "upper": "soil",
+   "dir": "sets/wet-soil"
+  },
+  {
+   "lower": "wet",
+   "upper": "grass",
+   "dir": "sets/wet-grass"
+  },
+  {
+   "lower": "wet",
+   "upper": "dirt",
+   "dir": "sets/wet-dirt"
+  },
+  {
+   "lower": "path",
+   "upper": "dirt",
+   "dir": "sets/path-dirt"
+  },
+  {
+   "lower": "water",
+   "upper": "dirt",
+   "dir": "sets/water-dirt"
+  },
+  {
+   "lower": "path",
+   "upper": "sand",
+   "dir": "sets/path-sand"
+  }
+ ],
+ "baseFromSets": false,
+ "bases": {
+  "deep": [
+   "bases/deep/0.png",
+   "bases/deep/1.png",
+   "bases/deep/2.png",
+   "bases/deep/3.png",
+   "bases/deep/v1.png",
+   "bases/deep/v4.png",
+   "bases/deep/v5.png",
+   "bases/deep/v7.png",
+   "bases/deep/v12.png",
+   "bases/deep/v13.png"
+  ],
+  "dirt": [
+   "bases/dirt/0.png",
+   "bases/dirt/1.png",
+   "bases/dirt/2.png",
+   "bases/dirt/3.png"
+  ],
+  "grass": [
+   "bases/grass/0.png",
+   "bases/grass/1.png",
+   "bases/grass/v0.png",
+   "bases/grass/v1.png",
+   "bases/grass/v2.png",
+   "bases/grass/v3.png",
+   "bases/grass/v4.png",
+   "bases/grass/v6.png",
+   "bases/grass/v7.png",
+   "bases/grass/v8.png",
+   "bases/grass/v9.png",
+   "bases/grass/v11.png",
+   "bases/grass/v12.png",
+   "bases/grass/v14.png",
+   "bases/grass/v15.png"
+  ],
+  "path": [
+   "bases/path/0.png",
+   "bases/path/v1.png",
+   "bases/path/v2.png",
+   "bases/path/v3.png",
+   "bases/path/v4.png",
+   "bases/path/v5.png",
+   "bases/path/v6.png"
+  ],
+  "sand": [
+   "bases/sand/0.png",
+   "bases/sand/1.png",
+   "bases/sand/2.png",
+   "bases/sand/3.png"
+  ],
+  "soil": [
+   "bases/soil/0.png",
+   "bases/soil/1.png",
+   "bases/soil/2.png",
+   "bases/soil/3.png"
+  ],
+  "water": [
+   "bases/water/0.png",
+   "bases/water/v0.png",
+   "bases/water/v1.png",
+   "bases/water/v2.png",
+   "bases/water/v3.png",
+   "bases/water/v4.png",
+   "bases/water/v5.png",
+   "bases/water/v6.png",
+   "bases/water/v9.png",
+   "bases/water/v10.png",
+   "bases/water/v12.png",
+   "bases/water/v13.png",
+   "bases/water/v14.png"
+  ],
+  "wet": [
+   "bases/wet/0.png",
+   "bases/wet/1.png",
+   "bases/wet/2.png",
+   "bases/wet/3.png"
+  ]
+ },
+ "tiles": {
+  "cliff": [
+   "tiles/cliff/0.png"
+  ],
+  "cliff_base": [
+   "tiles/cliff_base/0.png"
+  ],
+  "cliff_top": [
+   "tiles/cliff_top/0.png"
+  ],
+  "lava": [
+   "tiles/lava/0.png",
+   "tiles/lava/1.png",
+   "tiles/lava/2.png"
+  ],
+  "minefloor0": [
+   "tiles/minefloor0/0.png",
+   "tiles/minefloor0/1.png",
+   "tiles/minefloor0/2.png"
+  ],
+  "minefloor1": [
+   "tiles/minefloor1/0.png",
+   "tiles/minefloor1/1.png"
+  ],
+  "minefloor2": [
+   "tiles/minefloor2/0.png",
+   "tiles/minefloor2/1.png",
+   "tiles/minefloor2/2.png"
+  ],
+  "minewall0": [
+   "tiles/minewall0/0.png"
+  ],
+  "minewall1": [
+   "tiles/minewall1/0.png"
+  ],
+  "minewall2": [
+   "tiles/minewall2/0.png"
+  ],
+  "ore0": [
+   "tiles/ore0/0.png",
+   "tiles/ore0/1.png"
+  ],
+  "ore1": [
+   "tiles/ore1/0.png",
+   "tiles/ore1/1.png"
+  ],
+  "ore2": [
+   "tiles/ore2/0.png",
+   "tiles/ore2/1.png"
+  ],
+  "ore3": [
+   "tiles/ore3/0.png",
+   "tiles/ore3/1.png"
+  ],
+  "ore4": [
+   "tiles/ore4/0.png",
+   "tiles/ore4/1.png"
+  ],
+  "ore5": [
+   "tiles/ore5/0.png",
+   "tiles/ore5/1.png"
+  ],
+  "ore6": [
+   "tiles/ore6/0.png",
+   "tiles/ore6/1.png"
+  ],
+  "ore7": [
+   "tiles/ore7/0.png",
+   "tiles/ore7/1.png"
+  ],
+  "planks": [
+   "tiles/planks/9.png",
+   "tiles/planks/10.png"
+  ],
+  "rock": [
+   "tiles/rock/0.png",
+   "tiles/rock/1.png",
+   "tiles/rock/2.png"
+  ],
+  "wall": [
+   "tiles/wall/0.png"
+  ],
+  "wall_top": [
+   "tiles/wall_top/0.png"
+  ],
+  "wall_upper": [
+   "tiles/wall_upper/0.png"
+  ],
+  "woodfloor": [
+   "tiles/woodfloor/0.png",
+   "tiles/woodfloor/1.png"
+  ]
+ },
+ "decals": {
+  "dirt": [
+   "decals/dirt/1.png",
+   "decals/dirt/14.png",
+   "decals/dirt/45.png",
+   "decals/dirt/52.png"
+  ],
+  "dirt@3": [
+   "decals/dirt_3/17.png",
+   "decals/dirt_3/21.png",
+   "decals/dirt_3/56.png",
+   "decals/dirt_3/57.png"
+  ],
+  "grass": [
+   "decals/grass/0.png",
+   "decals/grass/1.png",
+   "decals/grass/2.png",
+   "decals/grass/3.png",
+   "decals/grass/9.png",
+   "decals/grass/11.png",
+   "decals/grass/13.png",
+   "decals/grass/14.png",
+   "decals/grass/44.png",
+   "decals/grass/45.png",
+   "decals/grass/46.png",
+   "decals/grass/47.png",
+   "decals/grass/48.png",
+   "decals/grass/52.png",
+   "decals/grass/53.png",
+   "decals/grass/63.png"
+  ],
+  "grass@0": [
+   "decals/grass_0/0.png",
+   "decals/grass_0/1.png",
+   "decals/grass_0/2.png",
+   "decals/grass_0/3.png",
+   "decals/grass_0/4.png",
+   "decals/grass_0/5.png",
+   "decals/grass_0/6.png",
+   "decals/grass_0/10.png",
+   "decals/grass_0/15.png",
+   "decals/grass_0/44.png",
+   "decals/grass_0/47.png",
+   "decals/grass_0/48.png",
+   "decals/grass_0/50.png",
+   "decals/grass_0/54.png",
+   "decals/grass_0/62.png",
+   "decals/grass_0/63.png"
+  ],
+  "grass@2": [
+   "decals/grass_2/0.png",
+   "decals/grass_2/1.png",
+   "decals/grass_2/2.png",
+   "decals/grass_2/9.png",
+   "decals/grass_2/11.png",
+   "decals/grass_2/14.png",
+   "decals/grass_2/44.png",
+   "decals/grass_2/45.png",
+   "decals/grass_2/53.png",
+   "decals/grass_2/f38.png",
+   "decals/grass_2/f39.png",
+   "decals/grass_2/g38.png"
+  ],
+  "grass@3": [
+   "decals/grass_3/16.png",
+   "decals/grass_3/17.png",
+   "decals/grass_3/19.png",
+   "decals/grass_3/21.png",
+   "decals/grass_3/56.png",
+   "decals/grass_3/57.png"
+  ],
+  "path": [
+   "decals/path/8.png",
+   "decals/path/14.png",
+   "decals/path/26.png",
+   "decals/path/61.png"
+  ],
+  "sand": [
+   "decals/sand/30.png",
+   "decals/sand/31.png",
+   "decals/sand/32.png",
+   "decals/sand/36.png",
+   "decals/sand/37.png",
+   "decals/sand/59.png"
+  ]
+ },
+ "seasons": {
+  "2": {
+   "#165a4c": "#4c3e24",
+   "#239063": "#676633",
+   "#1ebc73": "#a2a947",
+   "#91db69": "#fbb954",
+   "#676633": "#cd683d",
+   "#a2a947": "#cd683d",
+   "#cddf6c": "#fbb954"
+  },
+  "3": {
+   "#165a4c": "#9babb2",
+   "#239063": "#ffffff",
+   "#1ebc73": "#c7dcd0",
+   "#91db69": "#c7dcd0",
+   "#676633": "#c7dcd0",
+   "#a2a947": "#c7dcd0",
+   "#cddf6c": "#ffffff",
+   "#f9c22b": "#ffffff"
+  }
+ }
+}

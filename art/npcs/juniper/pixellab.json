@@ -1,0 +1,12 @@
+{
+ "id": "34b75c17-e755-4533-af61-7507836b2041",
+ "prompt": "calm young carpenter, olive green hair tied in a ponytail, medium tan brown skin, green work shirt, pale lime neckerchief, muted brown work trousers with a leather tool belt, brown boots, androgynous, gentle focused face, cozy farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 32,
+  "height": 32
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: east×4 south×4 north×4 west×4"
+ ]
+}

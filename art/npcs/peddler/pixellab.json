@@ -1,0 +1,12 @@
+{
+ "id": "eaf3affb-6fdb-4745-9aef-06f529817cdb",
+ "prompt": "short cheerful traveling merchant woman, wide-brimmed cream felt hat, short purple hair, round glasses, tan skin, violet purple coat, dark brown trousers, big leather satchel bag, brown boots, sly friendly smile, cozy farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 28,
+  "height": 28
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: west×4 north×4 south×4 east×4"
+ ]
+}

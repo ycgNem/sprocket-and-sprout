@@ -1,0 +1,258 @@
+[
+ {
+  "out": "tiles/cliff/0.png",
+  "base": "try/cliff/c2-0.png"
+ },
+ {
+  "out": "tiles/cliff_top/0.png",
+  "base": "try/bases/grass-dirt-grass.png",
+  "over": [
+   {
+    "file": "try/cliff/c2-12.png"
+   }
+  ]
+ },
+ {
+  "out": "tiles/rock/1.png",
+  "base": "tiles/rock/0.png",
+  "flipX": true
+ },
+ {
+  "out": "tiles/rock/2.png",
+  "base": "tiles/rock/0.png",
+  "flipY": true
+ },
+ {
+  "out": "tiles/ore0/0.png",
+  "base": "tiles/rock/0.png",
+  "over": [
+   {
+    "file": "try/nuggets/0.png"
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore0/1.png",
+  "base": "tiles/rock/0.png",
+  "flipY": true,
+  "over": [
+   {
+    "file": "try/nuggets/0.png",
+    "flipX": true
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore1/0.png",
+  "base": "tiles/rock/0.png",
+  "over": [
+   {
+    "file": "try/nuggets/1.png"
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore1/1.png",
+  "base": "tiles/rock/0.png",
+  "flipY": true,
+  "over": [
+   {
+    "file": "try/nuggets/1.png",
+    "flipX": true
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore2/0.png",
+  "base": "tiles/rock/0.png",
+  "over": [
+   {
+    "file": "try/nuggets/2.png"
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore2/1.png",
+  "base": "tiles/rock/0.png",
+  "flipY": true,
+  "over": [
+   {
+    "file": "try/nuggets/2.png",
+    "flipX": true
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore3/0.png",
+  "base": "tiles/rock/0.png",
+  "over": [
+   {
+    "file": "try/nuggets/3.png"
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore3/1.png",
+  "base": "tiles/rock/0.png",
+  "flipY": true,
+  "over": [
+   {
+    "file": "try/nuggets/3.png",
+    "flipX": true
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore4/0.png",
+  "base": "tiles/rock/0.png",
+  "over": [
+   {
+    "file": "try/nuggets/4.png"
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore4/1.png",
+  "base": "tiles/rock/0.png",
+  "flipY": true,
+  "over": [
+   {
+    "file": "try/nuggets/4.png",
+    "flipX": true
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore5/0.png",
+  "base": "tiles/rock/0.png",
+  "over": [
+   {
+    "file": "try/nuggets/5.png"
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore5/1.png",
+  "base": "tiles/rock/0.png",
+  "flipY": true,
+  "over": [
+   {
+    "file": "try/nuggets/5.png",
+    "flipX": true
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore6/0.png",
+  "base": "tiles/rock/0.png",
+  "over": [
+   {
+    "file": "try/nuggets/6.png"
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore6/1.png",
+  "base": "tiles/rock/0.png",
+  "flipY": true,
+  "over": [
+   {
+    "file": "try/nuggets/6.png",
+    "flipX": true
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore7/0.png",
+  "base": "tiles/rock/0.png",
+  "over": [
+   {
+    "file": "try/nuggets/7.png"
+   }
+  ]
+ },
+ {
+  "out": "tiles/ore7/1.png",
+  "base": "tiles/rock/0.png",
+  "flipY": true,
+  "over": [
+   {
+    "file": "try/nuggets/7.png",
+    "flipX": true
+   }
+  ]
+ },
+ {
+  "out": "tiles/minefloor0/2.png",
+  "base": "tiles/minefloor0/0.png",
+  "flipX": true
+ },
+ {
+  "out": "tiles/minefloor1/1.png",
+  "base": "tiles/minefloor1/0.png",
+  "flipX": true
+ },
+ {
+  "out": "tiles/minefloor2/1.png",
+  "base": "tiles/minefloor2/0.png",
+  "flipX": true
+ },
+ {
+  "out": "tiles/minefloor2/2.png",
+  "base": "tiles/minefloor2/0.png",
+  "flipY": true
+ },
+ {
+  "out": "tiles/lava/2.png",
+  "base": "tiles/lava/0.png",
+  "flipX": true,
+  "flipY": true
+ },
+ {
+  "out": "tiles/planks/9.png",
+  "base": "try/planks/9.png"
+ },
+ {
+  "out": "tiles/planks/10.png",
+  "base": "try/planks/10.png"
+ },
+ {
+  "out": "tiles/woodfloor/0.png",
+  "base": "try/woodfloor/6.png"
+ },
+ {
+  "out": "tiles/woodfloor/1.png",
+  "base": "try/woodfloor/6.png",
+  "flipX": true
+ },
+ {
+  "out": "tiles/cliff_base/0.png",
+  "base": "try/cliff/c2-0.png",
+  "shade": [
+   {
+    "y0": 12,
+    "y1": 14,
+    "steps": 1,
+    "ladder": [
+     "#2e222f",
+     "#45293f",
+     "#625565",
+     "#966c6c",
+     "#ab947a"
+    ]
+   },
+   {
+    "y0": 14,
+    "y1": 16,
+    "steps": 2,
+    "ladder": [
+     "#2e222f",
+     "#45293f",
+     "#625565",
+     "#966c6c",
+     "#ab947a"
+    ]
+   }
+  ]
+ }
+]

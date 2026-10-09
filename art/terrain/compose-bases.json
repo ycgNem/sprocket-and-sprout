@@ -1,0 +1,284 @@
+[
+ {
+  "out": "bases/grass/0.png",
+  "base": "try/bases/grass-dirt-grass.png"
+ },
+ {
+  "out": "bases/grass/1.png",
+  "base": "try/bases/grass-dirt-grass.png",
+  "flipX": true
+ },
+ {
+  "out": "bases/grass/v0.png",
+  "base": "try/grassv1/0.png"
+ },
+ {
+  "out": "bases/grass/v1.png",
+  "base": "try/grassv1/1.png"
+ },
+ {
+  "out": "bases/grass/v2.png",
+  "base": "try/grassv1/2.png"
+ },
+ {
+  "out": "bases/grass/v3.png",
+  "base": "try/grassv1/3.png"
+ },
+ {
+  "out": "bases/grass/v4.png",
+  "base": "try/grassv1/4.png"
+ },
+ {
+  "out": "bases/grass/v6.png",
+  "base": "try/grassv1/6.png"
+ },
+ {
+  "out": "bases/grass/v7.png",
+  "base": "try/grassv1/7.png"
+ },
+ {
+  "out": "bases/grass/v8.png",
+  "base": "try/grassv1/8.png"
+ },
+ {
+  "out": "bases/grass/v9.png",
+  "base": "try/grassv1/9.png"
+ },
+ {
+  "out": "bases/grass/v11.png",
+  "base": "try/grassv1/11.png"
+ },
+ {
+  "out": "bases/grass/v12.png",
+  "base": "try/grassv1/12.png"
+ },
+ {
+  "out": "bases/grass/v14.png",
+  "base": "try/grassv1/14.png"
+ },
+ {
+  "out": "bases/grass/v15.png",
+  "base": "try/grassv1/15.png"
+ },
+ {
+  "out": "bases/dirt/0.png",
+  "base": "try/bases/dirt-dirt-grass.png"
+ },
+ {
+  "out": "bases/dirt/1.png",
+  "base": "try/bases/dirt-dirt-grass.png",
+  "flipX": true
+ },
+ {
+  "out": "bases/dirt/2.png",
+  "base": "try/bases/dirt-dirt-grass.png",
+  "flipY": true
+ },
+ {
+  "out": "bases/dirt/3.png",
+  "base": "try/bases/dirt-dirt-grass.png",
+  "flipX": true,
+  "flipY": true
+ },
+ {
+  "out": "bases/sand/0.png",
+  "base": "try/bases/sand-sand-grass.png"
+ },
+ {
+  "out": "bases/sand/1.png",
+  "base": "try/bases/sand-sand-grass.png",
+  "flipX": true
+ },
+ {
+  "out": "bases/sand/2.png",
+  "base": "try/bases/sand-sand-grass.png",
+  "flipY": true
+ },
+ {
+  "out": "bases/sand/3.png",
+  "base": "try/bases/sand-sand-grass.png",
+  "flipX": true,
+  "flipY": true
+ },
+ {
+  "out": "bases/soil/0.png",
+  "base": "try/bases/soil-soil-grass.png"
+ },
+ {
+  "out": "bases/soil/1.png",
+  "base": "try/bases/soil-soil-grass.png",
+  "flipX": true
+ },
+ {
+  "out": "bases/soil/2.png",
+  "base": "try/bases/soil-soil-grass.png",
+  "flipY": true
+ },
+ {
+  "out": "bases/soil/3.png",
+  "base": "try/bases/soil-soil-grass.png",
+  "flipX": true,
+  "flipY": true
+ },
+ {
+  "out": "bases/wet/0.png",
+  "base": "try/bases/wet-wet-soil.png"
+ },
+ {
+  "out": "bases/wet/1.png",
+  "base": "try/bases/wet-wet-soil.png",
+  "flipX": true
+ },
+ {
+  "out": "bases/wet/2.png",
+  "base": "try/bases/wet-wet-soil.png",
+  "flipY": true
+ },
+ {
+  "out": "bases/wet/3.png",
+  "base": "try/bases/wet-wet-soil.png",
+  "flipX": true,
+  "flipY": true
+ },
+ {
+  "out": "bases/path/0.png",
+  "base": "try/bases/path-path-grass.png"
+ },
+ {
+  "out": "bases/water/0.png",
+  "base": "try/bases/water-water-grass.png",
+  "set": [
+   [
+    3,
+    0,
+    "#4d9be6"
+   ],
+   [
+    3,
+    2,
+    "#4d9be6"
+   ],
+   [
+    8,
+    8,
+    "#4d9be6"
+   ]
+  ]
+ },
+ {
+  "out": "bases/water/v0.png",
+  "base": "try/waterv/0.png"
+ },
+ {
+  "out": "bases/water/v1.png",
+  "base": "try/waterv/1.png"
+ },
+ {
+  "out": "bases/water/v2.png",
+  "base": "try/waterv/2.png"
+ },
+ {
+  "out": "bases/water/v3.png",
+  "base": "try/waterv/3.png"
+ },
+ {
+  "out": "bases/water/v4.png",
+  "base": "try/waterv/4.png"
+ },
+ {
+  "out": "bases/water/v5.png",
+  "base": "try/waterv/5.png"
+ },
+ {
+  "out": "bases/water/v6.png",
+  "base": "try/waterv/6.png"
+ },
+ {
+  "out": "bases/water/v9.png",
+  "base": "try/waterv/9.png"
+ },
+ {
+  "out": "bases/water/v10.png",
+  "base": "try/waterv/10.png"
+ },
+ {
+  "out": "bases/water/v12.png",
+  "base": "try/waterv/12.png"
+ },
+ {
+  "out": "bases/water/v13.png",
+  "base": "try/waterv/13.png"
+ },
+ {
+  "out": "bases/water/v14.png",
+  "base": "try/waterv/14.png"
+ },
+ {
+  "out": "bases/deep/0.png",
+  "base": "try/bases/deep-deep-water.png"
+ },
+ {
+  "out": "bases/deep/1.png",
+  "base": "try/bases/deep-deep-water.png",
+  "flipX": true
+ },
+ {
+  "out": "bases/deep/2.png",
+  "base": "try/bases/deep-deep-water.png",
+  "flipY": true
+ },
+ {
+  "out": "bases/deep/3.png",
+  "base": "try/bases/deep-deep-water.png",
+  "flipX": true,
+  "flipY": true
+ },
+ {
+  "out": "bases/deep/v1.png",
+  "base": "try/deepv/1.png"
+ },
+ {
+  "out": "bases/deep/v4.png",
+  "base": "try/deepv/4.png"
+ },
+ {
+  "out": "bases/deep/v5.png",
+  "base": "try/deepv/5.png"
+ },
+ {
+  "out": "bases/deep/v12.png",
+  "base": "try/deepv/12.png"
+ },
+ {
+  "out": "bases/deep/v13.png",
+  "base": "try/deepv/13.png"
+ },
+ {
+  "out": "bases/deep/v7.png",
+  "base": "try/deepv/7.png"
+ },
+ {
+  "out": "bases/path/v1.png",
+  "base": "try/pathvar/v1.png"
+ },
+ {
+  "out": "bases/path/v2.png",
+  "base": "try/pathvar/v2.png"
+ },
+ {
+  "out": "bases/path/v3.png",
+  "base": "try/pathvar/v3.png"
+ },
+ {
+  "out": "bases/path/v4.png",
+  "base": "try/pathvar/v4.png"
+ },
+ {
+  "out": "bases/path/v5.png",
+  "base": "try/pathvar/v5.png"
+ },
+ {
+  "out": "bases/path/v6.png",
+  "base": "try/pathvar/v6.png"
+ }
+]

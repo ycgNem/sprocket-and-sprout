@@ -1,0 +1,74 @@
+{
+  "name": "npc-juniper",
+  "file": "npc-juniper.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 30,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "keys": {
+    "cloth": [
+      "#ab947a",
+      "#fdcbb0",
+      "#ffffff"
+    ]
+  },
+  "label": "Juniper v3",
+  "kind": "character",
+  "ids": [
+    "juniper"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character 34b75c17-e755-4533-af61-7507836b2041); walk: walking-4-frames",
+  "colors": [
+    "#2e222f",
+    "#374e4a",
+    "#3e3546",
+    "#45293f",
+    "#4d65b4",
+    "#547e64",
+    "#676633",
+    "#6e2727",
+    "#7f708a",
+    "#92a984",
+    "#9babb2",
+    "#9e4539",
+    "#a2a947",
+    "#ab947a",
+    "#b2ba90",
+    "#b33831",
+    "#cd683d",
+    "#cddf6c",
+    "#e6904e",
+    "#fbb954",
+    "#fca790",
+    "#fdcbb0",
+    "#ffffff"
+  ]
+}

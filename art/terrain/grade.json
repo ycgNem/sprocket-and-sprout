@@ -1,0 +1,714 @@
+{
+ "materials": {
+  "grass": {
+   "ladder": [
+    "#165a4c",
+    "#239063",
+    "#1ebc73",
+    "#91db69"
+   ],
+   "cuts": [
+    34,
+    47,
+    64
+   ],
+   "map": {
+    "#29302f": "#165a4c",
+    "#1e3936": "#165a4c",
+    "#0e3827": "#165a4c",
+    "#0e4029": "#165a4c",
+    "#204734": "#165a4c",
+    "#174f32": "#165a4c",
+    "#304b3d": "#165a4c",
+    "#1b5643": "#165a4c",
+    "#176140": "#239063",
+    "#146740": "#239063",
+    "#146939": "#239063",
+    "#156d3f": "#239063",
+    "#186d43": "#239063",
+    "#14743b": "#239063",
+    "#3d8f39": "#1ebc73",
+    "#469b36": "#1ebc73",
+    "#5b863b": "#676633",
+    "#7c6c45": "#676633",
+    "#7abe55": "#91db69",
+    "#87b041": "#91db69",
+    "#b1a453": "#a2a947",
+    "#bec548": "#cddf6c",
+    "#d3ce46": "#cddf6c"
+   },
+   "rules": [
+    {
+     "hue": [
+      40,
+      95
+     ],
+     "sat": [
+      0.3,
+      1
+     ],
+     "L": [
+      30,
+      75
+     ],
+     "to": "#676633"
+    },
+    {
+     "hue": [
+      40,
+      95
+     ],
+     "sat": [
+      0.3,
+      1
+     ],
+     "L": [
+      75,
+      101
+     ],
+     "to": "#cddf6c"
+    }
+   ]
+  },
+  "flower": {
+   "ladder": [
+    "#f9c22b"
+   ],
+   "cuts": [],
+   "rules": [
+    {
+     "sat": [
+      0,
+      0.15
+     ],
+     "L": [
+      85,
+      101
+     ],
+     "to": "#ffffff"
+    }
+   ]
+  },
+  "pebble": {
+   "ladder": [
+    "#3e3546",
+    "#625565",
+    "#966c6c",
+    "#ab947a"
+   ],
+   "cuts": [
+    40,
+    54,
+    60
+   ]
+  },
+  "rim": {
+   "ladder": [
+    "#2e222f",
+    "#45293f"
+   ],
+   "cuts": [
+    11
+   ]
+  },
+  "earth": {
+   "ladder": [
+    "#45293f",
+    "#7a3045",
+    "#9e4539",
+    "#cd683d",
+    "#e6904e"
+   ],
+   "cuts": [
+    25,
+    45,
+    58,
+    62.6
+   ]
+  },
+  "soil": {
+   "ladder": [
+    "#2e222f",
+    "#45293f",
+    "#45293f",
+    "#7a3045",
+    "#9e4539"
+   ],
+   "cuts": [
+    12,
+    22,
+    29,
+    37
+   ]
+  },
+  "wet": {
+   "ladder": [
+    "#2e222f",
+    "#45293f",
+    "#7a3045"
+   ],
+   "cuts": [
+    12,
+    19.5
+   ],
+   "map": {
+    "#382025": "#45293f",
+    "#432427": "#45293f",
+    "#4c2524": "#7a3045",
+    "#692e1f": "#7a3045",
+    "#7d2617": "#7a3045"
+   }
+  },
+  "sand": {
+   "ladder": [
+    "#ab947a",
+    "#e6904e",
+    "#fdcbb0",
+    "#fbb954"
+   ],
+   "cuts": [
+    72,
+    86,
+    92.5
+   ]
+  },
+  "foam": {
+   "ladder": [
+    "#ffffff"
+   ],
+   "cuts": []
+  },
+  "water": {
+   "ladder": [
+    "#484a77",
+    "#4d65b4",
+    "#4d9be6",
+    "#8fd3ff",
+    "#ffffff"
+   ],
+   "cuts": [
+    38,
+    58,
+    80,
+    96
+   ],
+   "map": {
+    "#61f0f9": "#4d9be6",
+    "#52dff3": "#4d9be6"
+   }
+  },
+  "deep": {
+   "ladder": [
+    "#484a77",
+    "#4d65b4"
+   ],
+   "cuts": [
+    12
+   ]
+  },
+  "stone": {
+   "ladder": [
+    "#2e222f",
+    "#3e3546",
+    "#625565",
+    "#966c6c",
+    "#ab947a"
+   ],
+   "cuts": [
+    15,
+    30,
+    45,
+    58
+   ]
+  },
+  "deepv": {
+   "ladder": [
+    "#323353",
+    "#484a77",
+    "#4d65b4"
+   ],
+   "cuts": [
+    52,
+    70
+   ]
+  }
+ },
+ "jobs": [
+  {
+   "name": "dirt-grass",
+   "in": "raw/dg-a/tileset.png",
+   "out": "sets/dirt-grass/tileset.png",
+   "copy": [
+    "raw/dg-a/tileset.json"
+   ],
+   "classify": [
+    {
+     "material": "rim",
+     "L": [
+      0,
+      20
+     ]
+    },
+    {
+     "material": "grass",
+     "hue": [
+      60,
+      200
+     ]
+    }
+   ],
+   "fallback": "earth"
+  },
+  {
+   "name": "grassv1",
+   "in": "raw/grassv1",
+   "out": "try/grassv1",
+   "classify": [
+    {
+     "material": "flower",
+     "sat": [
+      0.7,
+      1
+     ],
+     "L": [
+      80,
+      101
+     ]
+    },
+    {
+     "material": "flower",
+     "sat": [
+      0,
+      0.1
+     ],
+     "L": [
+      90,
+      101
+     ]
+    },
+    {
+     "material": "pebble",
+     "sat": [
+      0,
+      0.12
+     ]
+    },
+    {
+     "material": "grass",
+     "hue": [
+      40,
+      200
+     ]
+    }
+   ],
+   "fallback": "earth"
+  },
+  {
+   "name": "sand-grass",
+   "in": "raw/sand-grass/tileset.png",
+   "out": "sets/sand-grass/tileset.png",
+   "copy": [
+    "raw/sand-grass/tileset.json"
+   ],
+   "classify": [
+    {
+     "material": "rim",
+     "L": [
+      0,
+      20
+     ]
+    },
+    {
+     "material": "rim",
+     "hue": [
+      170,
+      260
+     ],
+     "L": [
+      0,
+      30
+     ]
+    },
+    {
+     "material": "grass",
+     "hue": [
+      60,
+      200
+     ],
+     "L": [
+      0,
+      70
+     ]
+    }
+   ],
+   "fallback": "sand"
+  },
+  {
+   "name": "soil-grass",
+   "in": "raw/soil-grass/tileset.png",
+   "out": "sets/soil-grass/tileset.png",
+   "copy": [
+    "raw/soil-grass/tileset.json"
+   ],
+   "classify": [
+    {
+     "material": "rim",
+     "hue": [
+      170,
+      260
+     ],
+     "L": [
+      0,
+      20
+     ]
+    },
+    {
+     "material": "rim",
+     "sat": [
+      0,
+      0.3
+     ],
+     "L": [
+      0,
+      20
+     ]
+    },
+    {
+     "material": "grass",
+     "hue": [
+      60,
+      200
+     ]
+    }
+   ],
+   "fallback": "soil"
+  },
+  {
+   "name": "water-grass",
+   "in": "raw/water-grass/tileset.png",
+   "out": "sets/water-grass/tileset.png",
+   "copy": [
+    "raw/water-grass/tileset.json"
+   ],
+   "classify": [
+    {
+     "material": "rim",
+     "L": [
+      0,
+      20
+     ]
+    },
+    {
+     "material": "water",
+     "hue": [
+      180,
+      260
+     ],
+     "sat": [
+      0.5,
+      1
+     ],
+     "L": [
+      35,
+      101
+     ]
+    },
+    {
+     "material": "grass",
+     "hue": [
+      60,
+      200
+     ]
+    }
+   ],
+   "fallback": "earth"
+  },
+  {
+   "name": "wet-soil",
+   "in": "raw/wet-soil/tileset.png",
+   "out": "sets/wet-soil/tileset.png",
+   "copy": [
+    "raw/wet-soil/tileset.json"
+   ],
+   "assign": {
+    "#382025": "wet",
+    "#432427": "wet",
+    "#4c2524": "wet",
+    "#692e1f": "wet",
+    "#7d2617": "wet"
+   },
+   "map": {
+    "#eaad68": "#7a3045",
+    "#f5ba69": "#7a3045",
+    "#f9c771": "#7a3045",
+    "#fdda80": "#7a3045",
+    "#c67b53": "#7a3045"
+   },
+   "fallback": "soil"
+  },
+  {
+   "name": "wet-grass",
+   "in": "raw/wet-grass/tileset.png",
+   "out": "sets/wet-grass/tileset.png",
+   "copy": [
+    "raw/wet-grass/tileset.json"
+   ],
+   "classify": [
+    {
+     "material": "grass",
+     "hue": [
+      100,
+      200
+     ],
+     "sat": [
+      0.4,
+      1
+     ],
+     "L": [
+      14,
+      101
+     ]
+    },
+    {
+     "material": "rim",
+     "L": [
+      0,
+      14
+     ]
+    }
+   ],
+   "fallback": "wet"
+  },
+  {
+   "name": "wet-dirt",
+   "in": "raw/wet-dirt/tileset.png",
+   "out": "sets/wet-dirt/tileset.png",
+   "copy": [
+    "raw/wet-dirt/tileset.json"
+   ],
+   "classify": [
+    {
+     "material": "rim",
+     "L": [
+      0,
+      12
+     ]
+    },
+    {
+     "material": "wet",
+     "L": [
+      12,
+      25
+     ]
+    }
+   ],
+   "fallback": "earth"
+  },
+  {
+   "name": "soil-dirt",
+   "in": "raw/soil-dirt/tileset.png",
+   "out": "sets/soil-dirt/tileset.png",
+   "copy": [
+    "raw/soil-dirt/tileset.json"
+   ],
+   "classify": [
+    {
+     "material": "soil",
+     "L": [
+      0,
+      40
+     ]
+    }
+   ],
+   "fallback": "earth"
+  },
+  {
+   "name": "water-sand",
+   "in": "raw/water-sand/tileset.png",
+   "out": "sets/water-sand/tileset.png",
+   "copy": [
+    "raw/water-sand/tileset.json"
+   ],
+   "classify": [
+    {
+     "material": "foam",
+     "sat": [
+      0,
+      0.2
+     ],
+     "L": [
+      90,
+      101
+     ],
+     "hue": [
+      60,
+      250
+     ]
+    },
+    {
+     "material": "water",
+     "hue": [
+      180,
+      260
+     ],
+     "sat": [
+      0.4,
+      1
+     ]
+    }
+   ],
+   "fallback": "sand"
+  },
+  {
+   "name": "deep-water",
+   "in": "raw/deep-water/tileset.png",
+   "out": "sets/deep-water/tileset.png",
+   "copy": [
+    "raw/deep-water/tileset.json"
+   ],
+   "classify": [
+    {
+     "material": "water",
+     "L": [
+      45,
+      101
+     ]
+    }
+   ],
+   "fallback": "deep"
+  },
+  {
+   "name": "path-grass",
+   "in": "raw/path-grass2/tileset.png",
+   "out": "sets/path-grass/tileset.png",
+   "copy": [
+    "raw/path-grass2/tileset.json"
+   ],
+   "classify": [
+    {
+     "material": "rim",
+     "hue": [
+      170,
+      260
+     ],
+     "L": [
+      0,
+      22
+     ]
+    },
+    {
+     "material": "grass",
+     "hue": [
+      100,
+      200
+     ],
+     "sat": [
+      0.5,
+      1
+     ]
+    }
+   ],
+   "fallback": "stone"
+  },
+  {
+   "name": "waterv",
+   "in": "raw/waterv1",
+   "out": "try/waterv",
+   "fallback": "water"
+  },
+  {
+   "name": "deepv",
+   "in": "raw/waterv1",
+   "out": "try/deepv",
+   "fallback": "deepv"
+  },
+  {
+   "name": "path-dirt",
+   "in": "raw/path-dirt/tileset.png",
+   "out": "sets/path-dirt/tileset.png",
+   "copy": [
+    "raw/path-dirt/tileset.json"
+   ],
+   "classify": [
+    {
+     "material": "stone",
+     "hue": [
+      280,
+      350
+     ]
+    },
+    {
+     "material": "stone",
+     "sat": [
+      0,
+      0.5
+     ]
+    }
+   ],
+   "fallback": "earth",
+   "assign": {
+    "#c26c76": "earth",
+    "#ce6d65": "earth"
+   }
+  },
+  {
+   "name": "water-dirt",
+   "in": "raw/water-dirt/tileset.png",
+   "out": "sets/water-dirt/tileset.png",
+   "copy": [
+    "raw/water-dirt/tileset.json"
+   ],
+   "map": {
+    "#7ddcf8": "#4d9be6",
+    "#85e2f7": "#4d9be6",
+    "#81a8b1": "#4d9be6"
+   },
+   "classify": [
+    {
+     "material": "water",
+     "hue": [
+      180,
+      260
+     ],
+     "sat": [
+      0.4,
+      1
+     ]
+    }
+   ],
+   "fallback": "earth"
+  },
+  {
+   "name": "path-sand",
+   "in": "raw/path-sand/tileset.png",
+   "out": "sets/path-sand/tileset.png",
+   "copy": [
+    "raw/path-sand/tileset.json"
+   ],
+   "classify": [
+    {
+     "material": "stone",
+     "hue": [
+      280,
+      350
+     ]
+    },
+    {
+     "material": "sand",
+     "L": [
+      84,
+      101
+     ]
+    },
+    {
+     "material": "sand",
+     "hue": [
+      35,
+      60
+     ]
+    }
+   ],
+   "fallback": "stone"
+  }
+ ]
+}

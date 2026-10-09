@@ -1,0 +1,132 @@
+{
+  "name": "npc-sable",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "input": {
+    "up": [
+      "walking-4-frames/north/0.png",
+      "walking-4-frames/north/1.png",
+      "walking-4-frames/north/2.png",
+      "walking-4-frames/north/3.png",
+      "rotations/north.png"
+    ],
+    "right": [
+      "walking-4-frames/east/0.png",
+      "walking-4-frames/east/1.png",
+      "walking-4-frames/east/2.png",
+      "walking-4-frames/east/3.png",
+      "rotations/east.png"
+    ],
+    "down": [
+      "walking-4-frames/south/0.png",
+      "walking-4-frames/south/1.png",
+      "walking-4-frames/south/0.png",
+      "walking-4-frames/south/3.png",
+      "rotations/south.png"
+    ],
+    "left": [
+      "walking-4-frames/west/0.png",
+      "walking-4-frames/west/1.png",
+      "walking-4-frames/west/2.png",
+      "walking-4-frames/west/3.png",
+      "rotations/west.png"
+    ]
+  },
+  "align": "feet-per-frame",
+  "height": [
+    28,
+    31
+  ],
+  "meta": {
+    "label": "Sable v3",
+    "kind": "character",
+    "ids": [
+      "sable"
+    ],
+    "frames": {
+      "0": "walk0",
+      "1": "walk1",
+      "2": "walk2",
+      "3": "walk3",
+      "4": "stand",
+      "5": "stand",
+      "6": "stand"
+    },
+    "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character cdd08326-9af1-4c0c-9cb5-af7802022f7b); walk: walking-4-frames",
+    "notes": "down walk2 reuses frame 0: the template drew frame 2 from behind"
+  },
+  "remap": {
+    "#313638": "#3e3546"
+  },
+  "parts": {
+    "cardigan": {
+      "from": [
+        "#324d62",
+        "#3e5a6d",
+        "#4f6878",
+        "#59758a",
+        "#637b78",
+        "#7894a7",
+        "#516270",
+        "#2c3b4e",
+        "#273a4a",
+        "#2b4a5e",
+        "#292f3a"
+      ],
+      "keys": [
+        "#323353",
+        "#484a77",
+        "#4d65b4"
+      ]
+    },
+    "tone": {
+      "from": [
+        "#eea173",
+        "#e09264",
+        "#cf7a4d",
+        "#b75e3f",
+        "#b25825",
+        "#d77259",
+        "#f0a88b",
+        "#eccca8"
+      ],
+      "keys": [
+        "#7a3045",
+        "#9e4539",
+        "#cd683d"
+      ]
+    },
+    "cloth": {
+      "from": [
+        "#fcf7d8",
+        "#e5e3ec",
+        "#e9e0db",
+        "#a8a1bd"
+      ],
+      "keys": [
+        "#ab947a",
+        "#fdcbb0",
+        "#ffffff"
+      ]
+    }
+  }
+}

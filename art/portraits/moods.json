@@ -1,0 +1,255 @@
+{
+ "zone": [
+  7,
+  11,
+  24,
+  26
+ ],
+ "portraits": {
+  "marigold": {
+   "base": "batch1/0.png",
+   "moods": {
+    "1": "mood1/0.png",
+    "2": "mood2/0.png",
+    "3": "mood3/0.png"
+   }
+  },
+  "bram": {
+   "base": "batch1/4.png",
+   "moods": {
+    "1": "mood1/1.png",
+    "2": "mood2/1.png",
+    "3": "mood3/1.png"
+   },
+   "map": {
+    "1": {
+     "#313638": "#2e222f"
+    },
+    "2": {
+     "#313638": "#2e222f"
+    },
+    "3": {
+     "#313638": "#2e222f"
+    }
+   },
+   "recolor": [
+    {
+     "region": [
+      0,
+      22,
+      31,
+      31
+     ],
+     "map": {
+      "#9e4539": "#4d65b4",
+      "#6e2727": "#484a77",
+      "#7a3045": "#484a77"
+     }
+    }
+   ]
+  },
+  "juniper": {
+   "base": "batch1/8.png",
+   "moods": {
+    "1": "mood1/2.png",
+    "2": "mood2/2.png",
+    "3": "mood3/2.png"
+   },
+   "map": {
+    "1": {
+     "#e6904e": "#fca790",
+     "#cd683d": "#e6904e",
+     "#9e4539": "#cd683d"
+    },
+    "2": {
+     "#e6904e": "#fca790",
+     "#cd683d": "#e6904e",
+     "#9e4539": "#cd683d"
+    },
+    "3": {
+     "#e6904e": "#fca790",
+     "#cd683d": "#e6904e",
+     "#9e4539": "#cd683d"
+    }
+   }
+  },
+  "ottoline": {
+   "base": "batch1/12.png",
+   "moods": {
+    "1": "mood1/3.png",
+    "2": "mood2/3.png",
+    "3": "mood3/3.png"
+   }
+  },
+  "rowan": {
+   "base": "batch1/16.png",
+   "moods": {
+    "1": "mood1/4.png",
+    "2": "mood2/4.png",
+    "3": "mood3/4.png"
+   },
+   "map": {
+    "1": {
+     "#cd683d": "#e6904e"
+    },
+    "2": {
+     "#cd683d": "#e6904e"
+    },
+    "3": {
+     "#cd683d": "#e6904e"
+    }
+   }
+  },
+  "pip": {
+   "base": "batch1/20.png",
+   "moods": {
+    "1": "mood1/5.png",
+    "2": "mood2/5.png",
+    "3": "mood3/5.png"
+   },
+   "map": {
+    "1": {
+     "#cd683d": "#e6904e"
+    },
+    "2": {
+     "#cd683d": "#e6904e"
+    },
+    "3": {
+     "#cd683d": "#e6904e"
+    }
+   }
+  },
+  "ines": {
+   "base": "batch1/24.png",
+   "moods": {
+    "1": "mood1/6.png",
+    "2": "mood2/6.png",
+    "3": "mood3/6.png"
+   },
+   "map": {
+    "2": {
+     "#9e4539": "#cd683d"
+    },
+    "3": {
+     "#9e4539": "#cd683d"
+    }
+   }
+  },
+  "wren": {
+   "base": "batch1/29.png",
+   "moods": {
+    "1": "mood1/7.png",
+    "2": "mood2/7.png",
+    "3": "mood3/7.png"
+   },
+   "map": {
+    "1": {
+     "#9e4539": "#cd683d"
+    },
+    "2": {
+     "#9e4539": "#cd683d"
+    },
+    "3": {
+     "#9e4539": "#cd683d"
+    }
+   },
+   "baseMap": {
+    "#fca790": "#cd683d"
+   }
+  },
+  "tobias": {
+   "base": "batch1/35.png",
+   "moods": {
+    "1": "mood1/8.png",
+    "2": "mood2/8.png",
+    "3": "mood3/8.png"
+   }
+  },
+  "sable": {
+   "base": "batch1/37.png",
+   "moods": {
+    "1": "mood1/9.png",
+    "2": "mood2/9.png",
+    "3": "mood3/9.png"
+   }
+  },
+  "clem": {
+   "base": "batch1/40.png",
+   "moods": {
+    "1": "mood1/10.png",
+    "2": "mood2/10.png",
+    "3": "mood3/10.png"
+   }
+  },
+  "hazel": {
+   "base": "batch1/44.png",
+   "moods": {
+    "1": "mood1/11.png",
+    "2": "mood2/11.png",
+    "3": "mood3/11.png"
+   }
+  },
+  "thorne": {
+   "base": "batch1/48.png",
+   "moods": {
+    "1": "mood1/12.png",
+    "2": "mood2/12.png",
+    "3": "mood3/12.png"
+   },
+   "recolor": [
+    {
+     "region": [
+      0,
+      0,
+      31,
+      31
+     ],
+     "map": {
+      "#676633": "#753c54"
+     }
+    },
+    {
+     "region": [
+      0,
+      0,
+      31,
+      10
+     ],
+     "map": {
+      "#4c3e24": "#45293f"
+     }
+    },
+    {
+     "region": [
+      0,
+      11,
+      6,
+      31
+     ],
+     "map": {
+      "#4c3e24": "#45293f"
+     }
+    },
+    {
+     "region": [
+      25,
+      11,
+      31,
+      31
+     ],
+     "map": {
+      "#4c3e24": "#45293f"
+     }
+    }
+   ]
+  },
+  "peddler": {
+   "base": "batch1/53.png",
+   "moods": {
+    "1": "mood1/13.png",
+    "2": "mood2/13.png",
+    "3": "mood3/13.png"
+   }
+  }
+ }
+}

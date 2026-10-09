@@ -1,0 +1,80 @@
+{
+  "name": "npc-clem",
+  "file": "npc-clem.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 33,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "keys": {
+    "cloth": [
+      "#ab947a",
+      "#fdcbb0",
+      "#ffffff"
+    ]
+  },
+  "label": "Clem v3",
+  "kind": "character",
+  "ids": [
+    "clem"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 36, low top-down, single color outline (character a1432373-d49d-4d52-8565-d35b5a7d6e37); walk: walking-4-frames",
+  "colors": [
+    "#165a4c",
+    "#2e222f",
+    "#323353",
+    "#374e4a",
+    "#484a77",
+    "#4c3e24",
+    "#4d65b4",
+    "#4d9be6",
+    "#547e64",
+    "#676633",
+    "#6e2727",
+    "#8fd3ff",
+    "#92a984",
+    "#966c6c",
+    "#9babb2",
+    "#9e4539",
+    "#a2a947",
+    "#ab947a",
+    "#b33831",
+    "#cd683d",
+    "#cddf6c",
+    "#e6904e",
+    "#f79617",
+    "#f9c22b",
+    "#fbb954",
+    "#fbff86",
+    "#fca790",
+    "#fdcbb0",
+    "#ffffff"
+  ]
+}

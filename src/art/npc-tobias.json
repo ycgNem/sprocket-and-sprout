@@ -1,0 +1,74 @@
+{
+  "name": "npc-tobias",
+  "file": "npc-tobias.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 25,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "label": "Tobias v3",
+  "kind": "character",
+  "ids": [
+    "tobias"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 28, low top-down, single color outline (character a05d18b3-f81b-4fa9-bee4-5cf49c94c01c); walk: walking-4-frames",
+  "colors": [
+    "#2e222f",
+    "#3e3546",
+    "#45293f",
+    "#625565",
+    "#694f62",
+    "#6e2727",
+    "#7a3045",
+    "#7f708a",
+    "#8fd3ff",
+    "#966c6c",
+    "#9babb2",
+    "#9e4539",
+    "#ae2334",
+    "#b2ba90",
+    "#b33831",
+    "#c32454",
+    "#cd683d",
+    "#d5e04b",
+    "#e6904e",
+    "#ea4f36",
+    "#ed8099",
+    "#f57d4a",
+    "#f68181",
+    "#f79617",
+    "#f9c22b",
+    "#fbb954",
+    "#fbff86",
+    "#fca790",
+    "#fdcbb0",
+    "#ffffff"
+  ]
+}

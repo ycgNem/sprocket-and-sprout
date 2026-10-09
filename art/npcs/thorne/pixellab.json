@@ -1,0 +1,12 @@
+{
+ "id": "f076a475-22d6-428a-8cc9-c46826943434",
+ "prompt": "tall old forest hermit man, long gray hair and long gray beard, tan brown weathered skin, olive moss green hooded robe coat, leaf green sash, dark brown trousers, brown boots, kind wise face, cozy farming game villager sprite, warm colors, readable silhouette",
+ "size": {
+  "width": 36,
+  "height": 36
+ },
+ "view": "low top-down",
+ "animations": [
+  "walk: east×4 north×4 south×4 west×4"
+ ]
+}

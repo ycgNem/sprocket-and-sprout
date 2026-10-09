@@ -1,0 +1,67 @@
+{
+  "name": "npc-hazel",
+  "file": "npc-hazel.png",
+  "palette": "Resurrect 64",
+  "frame": [
+    40,
+    40
+  ],
+  "anchor": [
+    20,
+    38
+  ],
+  "artHeight": 30,
+  "rows": [
+    "up",
+    "right",
+    "down",
+    "left"
+  ],
+  "cols": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "stand"
+  ],
+  "label": "Hazel v3",
+  "kind": "character",
+  "ids": [
+    "hazel"
+  ],
+  "frames": {
+    "0": "walk0",
+    "1": "walk1",
+    "2": "walk2",
+    "3": "walk3",
+    "4": "stand",
+    "5": "stand",
+    "6": "stand"
+  },
+  "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character 955db650-c070-4187-b9ba-f5b1cffe56ff); walk: walking-4-frames",
+  "notes": "the east walk came out redder (crimson hair shadows, yellow skin light): remapped onto the other directions' colors",
+  "colors": [
+    "#2e222f",
+    "#3e3546",
+    "#45293f",
+    "#484a77",
+    "#4c3e24",
+    "#676633",
+    "#6b3e75",
+    "#6e2727",
+    "#753c54",
+    "#7a3045",
+    "#7f708a",
+    "#905ea9",
+    "#966c6c",
+    "#9e4539",
+    "#b33831",
+    "#cd683d",
+    "#cf657f",
+    "#e6904e",
+    "#ed8099",
+    "#fca790",
+    "#fdcbb0",
+    "#ffffff"
+  ]
+}
