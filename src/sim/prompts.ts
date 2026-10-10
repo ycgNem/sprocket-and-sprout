@@ -192,7 +192,7 @@ export function questTarget(g: Game): { x: number; y: number; label: string; npc
         consider(n.x, n.y - 0.6, shop && !open ? `${name} (opens ${clock(shop.open)})` : `${name} (inside)`, d + (open || !shop ? 4 : 500));
       } else if (o.t === 'visit') {
         const l = g.map.locs.get(o.loc);
-        if (l) consider(l[0] + 0.5, l[1] - 0.5, o.loc[0].toUpperCase() + o.loc.slice(1), Math.hypot(l[0] - p.x, l[1] - p.y) + 2);
+        if (l) consider(l[0] + 0.5, l[1] - 0.5, LOC_LABEL[o.loc] ?? o.loc[0].toUpperCase() + o.loc.slice(1), Math.hypot(l[0] - p.x, l[1] - p.y) + 2);
       }
     });
   }

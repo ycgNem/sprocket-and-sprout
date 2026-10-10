@@ -119,7 +119,7 @@ export const QUESTS: QuestDef[] = [
   { id: 'k10_mill', title: 'The Town Mill', giver: 'tobias', tutorial: true, main: true, after: ['k9_power'], needFlag: 'keepers_line', keystone: 'r_milling',
     why: "A keystone is the town's: look at it, try it small, keep it running, study it, then build it.",
     desc: "The town's old mill stands silent on the river at the west end of Main Street. Mayor Thistle would give a great deal to hear it turn again: the Kettle has had no flour of its own in thirty years. Milling is the keystone: your mill is the town's in miniature. The Town Mill's order is already up on the Works tab (40 meal, 40 planks, 8 copper gears), so start a store of meal now.",
-    hint: 'Milling is studied with copper bundles. A mill on full power grinds 15 a minute: two dozen barley tipped into its bin at once keep it at 3 a minute for 2 minutes. The Works tab is on the Orders board (the square, or the clocktower door).',
+    hint: 'Milling is studied with copper bundles. A mill on full power grinds 15 a minute: two dozen barley tipped into its bin at once keep it at 3 a minute for 2 minutes. The Works tab is on the Orders board (the square, or the clocktower door). A seed sower (Seed Sowers) plants a 7x7 field of barley for you, and gleaners or a crane pick it.',
     objectives: [
       { t: 'stage', id: 'r_milling', stage: 'observe', label: "Look at the town's silent mill", why: 'On the river at the west end of Main Street. Look: stage 1 of the keystone.', goto: 'town_mill' },
       { t: 'stage', id: 'r_milling', stage: 'experiment', label: 'Grind 20 meal or flour on your grid', why: 'Try: stage 2. Your mill is the town mill in miniature. Keep the meal: the Town Mill wants 40.' },
@@ -137,8 +137,8 @@ export const QUESTS: QuestDef[] = [
     objectives: [
       { t: 'research', id: 'r_sawmill', label: 'Study Sawmilling at the desk', why: 'A sawmill cuts two beams from each piece of hardwood. 20 sprout and 20 copper bundles.' },
       { t: 'made', struct: 'sawmill', n: 10, label: 'Saw 10 loads in a sawmill', why: 'Hardwood makes beams, wood makes planks. The Joinery sells hardwood, or fell the big trees.' },
-      { t: 'flag', flag: 'gallery_shored', label: 'Shore up the caved-in gallery on level 6', why: '20 beams, F at the collapse. It stays open for good.' },
-      { t: 'stage', id: 'r_steam', stage: 'observe', label: 'Look at the seized boiler on level 10', why: 'Look: stage 1 of Steam Power. Walk up to it in the works chamber.' },
+      { t: 'flag', flag: 'gallery_shored', label: 'Shore up the caved-in gallery on level 6', why: '20 beams, F at the collapse. It stays open for good.', goto: 'mine_entrance' },
+      { t: 'stage', id: 'r_steam', stage: 'observe', label: 'Look at the seized boiler on level 10', why: 'Look: stage 1 of Steam Power. Walk up to it in the works chamber.', goto: 'mine_entrance' },
     ],
     reward: { money: 1500, items: [{ item: 'charcoal_kiln', n: 1 }] } },
   { id: 'k12_steam', title: 'Steam Power', giver: 'bram', tutorial: true, main: true, after: ['k11_boiler'], needFlag: 'keepers_line',
@@ -170,7 +170,7 @@ export const QUESTS: QuestDef[] = [
     objectives: [
       { t: 'research', id: 'r_glass', label: 'Study Glassblowing at the desk', why: 'Glass for the coils. Masonry first.' },
       { t: 'research', id: 'r_assembly', label: 'Study Assembly at the desk', why: "A tinker's bench that makes parts by itself. Spark Coils builds on it." },
-      { t: 'stage', id: 'r_spark', stage: 'observe', label: 'Study the old lamp works on level 20', why: 'Look: stage 1 of Spark Coils. The lift rides to every works chamber you have reached.' },
+      { t: 'stage', id: 'r_spark', stage: 'observe', label: 'Study the old lamp works on level 20', why: 'Look: stage 1 of Spark Coils. The lift rides to every works chamber you have reached.', goto: 'mine_entrance' },
       { t: 'stage', id: 'r_spark', stage: 'experiment', label: 'Wind 6 copper coils (C)', why: 'Try: stage 2. A copper bar winds 2 coils.' },
       { t: 'stage', id: 'r_spark', stage: 'validate', label: 'Keep a kiln making a glass a minute for 2 minutes', why: 'Keep it running: stage 3. An arm feeding sand from a chest keeps a kiln going.' },
       { t: 'research', id: 'r_spark', label: 'Study Spark Coils at the desk', why: 'Apply: 25 sprout, 25 copper and 25 Harvest Bundles.' },
@@ -191,8 +191,8 @@ export const QUESTS: QuestDef[] = [
     desc: "The old works ran ore up to town on a rail cart. It still stands in the Crystal galleries on level 25, beside the engineers' lockers. Mend the cart, study Clockwork Assembly from their blueprints, and the Tram can run again.",
     hint: 'The Crystal galleries are dark: carry lamps and set them down. The rail cart takes 20 planks, 10 iron bars and 4 brass gears. An assembler finishes jobs by itself once it is fed.',
     objectives: [
-      { t: 'stage', id: 'r_assembly2', stage: 'observe', label: "Open the old works' lockers on level 25", why: "Look: stage 1 of Clockwork Assembly. The engineers' blueprints are still legible." },
-      { t: 'flag', flag: 'chamber:cart', label: 'Restore the rail cart on level 25', why: '20 planks, 10 iron bars and 4 brass gears: F at the cart.' },
+      { t: 'stage', id: 'r_assembly2', stage: 'observe', label: "Open the old works' lockers on level 25", why: "Look: stage 1 of Clockwork Assembly. The engineers' blueprints are still legible.", goto: 'mine_entrance' },
+      { t: 'flag', flag: 'chamber:cart', label: 'Restore the rail cart on level 25', why: '20 planks, 10 iron bars and 4 brass gears: F at the cart.', goto: 'mine_entrance' },
       { t: 'stage', id: 'r_assembly2', stage: 'experiment', label: 'Have an assembler finish 10 jobs', why: 'Try: stage 2.' },
       { t: 'stage', id: 'r_assembly2', stage: 'validate', label: 'Keep a line making 2 brass gears a minute for 3 minutes', why: 'Keep it running: stage 3.' },
       { t: 'research', id: 'r_assembly2', label: 'Study Clockwork Assembly at the desk', why: 'Apply: 40 each of sprout, copper, Harvest and brass bundles.' },

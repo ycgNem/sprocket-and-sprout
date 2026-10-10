@@ -415,3 +415,62 @@ recommendations are the decisions.
     is up; the welcome is spoken, without a letter's sign-off; the Lines tab uses one unit per table;
     the day summary keeps an order's deliveries apart from market sales; the crock is first at the
     Mercantile; the title screen's demo is the 2.0 works (gleaner beds, belts, crocks, a field gantry).
+93. **The one path past the Mill: k11-k17 (the critic's Phase 3+4 review, C1; 2026-10-10).** The
+    review failed the two phases narrowly: after k10 the Now strip fell back to side quests ("Build a
+    Coop") and the Works tab hid the next keystone until its research was done, the 1.1 "players get
+    lost" moved to day 20. Section 8 already said each era ends by handing over the next town
+    keystone; now it does, as main quests in one order (DECISIONS #72): k11 "Down to the Boiler"
+    (Sawmilling, 20 beams for level 6's gallery, the boiler on level 10), k12 "Steam Power" (a
+    charcoal kiln, Weaving and a hand loom, Brass Working, the topic), k13 "The Waterworks" (the pump
+    house, Dyes & Pastes, the order), k14 "Spark Coils" (Glassblowing, Assembly, the lamp works on
+    level 20, coils, a glass a minute), k15 "Lamplighting" (the order, the square lit on your power),
+    k16 "The Tram" (the lockers and the rail cart on level 25, an assembler, brass gears, Clockwork
+    Assembly, the order) and k17 "The Clock" (the clocktower, after the Tram). Harvest Bundles (the
+    Steam colour) gain a works recipe, a jar of preserves, a length of canvas and a copper coil, so
+    the next era needs a crock, a loom and the smelter, not a coop; the old preserve + cloth + animal
+    product recipe stays. Seed Sowers move to the Water era (25 sprout and copper bundles): a field
+    that sows itself before the Town Mill, so its meal can come from a works and not only your hands
+    (M2).
+94. **A keystone's stages count from its main quest; its order goes up with it (M1, M2).** On a
+    Keeper's Line save a keystone walked by a main quest (Milling: k10, Steam Power: k11, Spark Coils:
+    k14, Clockwork Assembly: k16) opens when its quest starts: looking counts only then (the town's
+    mill stands by the Mercantile you visit on day 2), and its experiment counts from then (made:mill
+    was 60 by day 5). `stages_open:<id>` marks it and `research.base` keeps the counters' starting
+    points; a save from before keeps its lifetime counts. Keystones with no quest (Conveyance, Water
+    Power, Bumblebots, Grand Works) count as before. Validate shows its rate and clock in the Now strip
+    ("2.4 a minute now, 0:40 of 2:00"), a ring fills over each machine making the item, and a run that
+    breaks after 10 seconds says the clock starts again. A keystone's Works order is posted when its
+    quest starts and takes goods at once; the works start when its research (and the Tram's rail
+    cart) is done, with a toast if everything was in before. The Town Mill asks 40 meal (80 in
+    DECISIONS #87): with the order visible from k10's first step, the bot reaches the Mill on days
+    16-17. Its finish is a scene (ROADMAP.md 7.5): the camera goes to the wheel as it starts turning,
+    then the keystone's card, then the era's card (a window queue, so one doesn't replace the other).
+95. **The Works tab without the Community Center (M5).** The crop, fish, forage and gem baskets of the
+    1.x restoration board (spring, summer and fall produce, river, harbour and lake fish, forage,
+    gems) were Stardew's Community Center and are cut (DECISIONS #61 allowed it); a 1.x save's goods in
+    a cut basket are paid back at market price by the v5 migration. What's left waits for its era:
+    Clockwork Restock and the Winter Pantry after the Town Mill, Dairy Day after Dairy, the Bakery
+    Window after the Mill and Hearth Cooking (its reward is now an assembler, not a second mill), the
+    greenhouse and the Smelter's Pride after the Waterworks, Quarry Road after Rock Crushing, and the
+    Clock after the Tram. Standing orders wait for the know-how that makes their goods (cheese for
+    Dairy, soup and feasts for Hearth Cooking, cloth for Weaving, wine for Brewing, smoked fish for
+    Bottling, beams for Sawmilling, coils for Metalwork); the board lists the orders your bag can fill
+    first, and the rank is drawn in ink.
+96. **Goods only a line makes, and money for machines (M1, M3, M4).** Bread bakes from any flour or
+    meal (the farmhouse kitchen or an oven), so Rowan's weekly loaves can come from your works; shop
+    bread costs 240, above the order's 170. The Mercantile no longer sells oil (the Waterworks' 50 come
+    from a mill's press), the Joinery cuts 30 planks a day and sells beams only at Master Purveyor, the
+    Workshop sells 4 brass gears a day and now sells machines for coins (gleaner, water wheel, mill,
+    sawmill, assembler, steam engine). Beams come only from a sawmill (the level-6 gallery teaches it;
+    there was a hand recipe). Starch paste and pigment are worth at least what goes in (a yam or a corn
+    makes 2 or 1 pot, a beet 1, a mooncap 2, a starpetal 5), Juniper orders paste every week, and the
+    Waterworks asks 20 for its joints. The tram carries bars and gems as well as ore, so a smelting
+    line feeding its bin beats tipping ore in; it shuttles every two hours from 6am to 6pm. The
+    Joinery sells sand once you know glass (the crusher is a Steam topic). Stardew's profession names
+    are replaced (Market Gardener, Stockkeeper, Preserver, Seedwright, Woodcutter, Forager,
+    Wildcrafter, Prospector, Gemcutter, Smelter, Delver, Fishmonger, Trap-setter, Fly-tier,
+    Crab-cracker, Hard Hat); their ids, and so saves, are unchanged.
+97. **Rush medals 40k / 75k / 110k (revises decision 90).** After the fixes the pace bot earns 66.0k
+    in a 28-day Rush (Story 65.7k) on 8 seeds and reaches the Town Mill on days 16-17. At 65k it took
+    silver on every seed, though its works stop growing after day 5 (the critic). Silver now asks
+    about 1.15x the bot, gold about 1.65x, bronze about 0.6x.

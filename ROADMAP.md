@@ -862,8 +862,8 @@ in Phase 6.
 | Era | Capabilities (research columns) | Keystone | Target day (Story, bot) |
 |---|---|---|---|
 | **1 Spring** | Conveyance, Clockwork Arms, Preserving, Soil, **Gleaning**, Woodcraft, Metalwork, Brewing, Apiary, Tapping, Trapcraft | Keeper's Line | 1-5 |
-| **2 Water** | Water Power, Logistics (splitter, burrow), Reaching Arms, Sorting Arms, Milling, Sawmilling, **Harvest Cranes**, Seed Sifting, Dairy, Weaving, Masonry, Glass, Brass, Storage, Irrigation | The Mill | 6-20 |
-| **3 Steam** | Steam Power, Wind, Brass Arms, Assembly, Drills, Crushing, **Seed Sowers**, **Field Gantry**, **Threshing**, Bottling, Hearth Cooking, Steam Loom, Spark Coils, Towers, Batteries | Waterworks, Lamplighting | 20-45 |
+| **2 Water** | Water Power, Logistics (splitter, burrow), Reaching Arms, Sorting Arms, Milling, Sawmilling, **Harvest Cranes**, Seed Sifting, **Seed Sowers** (moved from Steam, DECISIONS #93), Dairy, Weaving, Masonry, Glass, Brass, Storage, Irrigation | The Mill | 6-20 |
+| **3 Steam** | Steam Power, Wind, Brass Arms, Assembly, Drills, Crushing, **Field Gantry**, **Threshing**, Bottling, Hearth Cooking, Steam Loom, Spark Coils, Towers, Batteries | Waterworks, Lamplighting | 20-45 |
 | **4 Clockwork** | Clockwork Assembly, Bulk Arms, **Long Rails**, **Dawn Shift**, Blast Furnace, Steam Kitchen, Gilded Sprinklers, Sun Lenses, Brass Drills, Brass Belts | The Tram | 45-80 |
 | **5 Starlight** | Bumblebots, Gilded Belts, Mist Towers, Starmetal, Grand Works | The Clock, the Orrery | 80+ |
 
@@ -1054,7 +1054,7 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
   2.0.0-beta.1; `main` fast-forwards in `C:\Users\jacks\Documents\sns-p0check`; the owner pushes;
   the installers stay 1.1.1).
 
-### Phase 3 — Orders, research stages, the Mill (2 sessions)
+### Phase 3 — Orders, research stages, the Mill (2 sessions) — BUILT 2026-10-10 on `works` with Phase 4; the critic's end review failed narrowly (the path ended at k10), its fixes are in (DECISIONS #93-#97); not merged
 - 7.4 the Orders board (unifying requests, contracts, projects; consignment; per-business
   reputation); 7.3 research stages, era columns, era rewards, the 12 nodes pruned; 7.1 crop
   numbers and rapeseed; **4.10 the crop intermediates and the thresher** (moved here from Phase 1 by
@@ -1065,7 +1065,7 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
 - Done when: a bot run reaches the Mill by day 20 on 6 of 8 seeds; `data.test.ts` validates
   every order's items and every keystone's stages; sweep.
 
-### Phase 4 — The Deepworks (2 sessions)
+### Phase 4 — The Deepworks (2 sessions) — BUILT 2026-10-10 on `works` with Phase 3 (see Phase 3's line)
 - 7.2: strata, the three chambers (lift, pump, rail cart), pests, hazards, the flooded Frost
   stratum tied to the Waterworks keystone, the Tram keystone's cart (sim + a moving sprite on
   the quarry road), Lamplighting (the farm-gate pole links the square's lamps).
@@ -1198,7 +1198,7 @@ hay or by hand to fiber.
 Main Street, its wheel still. After More Power the chain's next step is **k10 "The Town Mill"**:
 look at the silent mill (Milling's observation), grind meal on your own grid (experiment), keep a
 mill making 3 a minute for 2 minutes (validate), study Milling, then fill the Works order: 80
-flour or barley meal (`#flour`; 120 as first written, DECISIONS #87), 40 planks and 8 copper gears, by hand or by a crate tagged for the
+flour or barley meal (`#flour`; 120 as first written, 80 in DECISIONS #87, 40 since #94), 40 planks and 8 copper gears, by hand or by a crate tagged for the
 Town Council. Then the flag `town_mill`: the mill's wheel turns (and the town's bread comes from
 it), the Copper Kettle and the Mercantile sell bread and flour, the Bakery Window project opens,
 Rowan posts a weekly bread order, and the Water era's reward card shows.

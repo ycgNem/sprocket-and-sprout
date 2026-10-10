@@ -51,6 +51,9 @@ export const RESEARCH: ResearchDef[] = [
   { id: 'r_sprinklers', name: 'Irrigation', desc: 'Sprinklers that water crops every morning.', icon: 'sprinkler_1', cost: cost(10, ...E2), unitTime: 8, prereq: ['r_fertilizer'], era: 2, row: 6 },
   { id: 'r_harvester', name: 'Harvest Cranes', desc: 'Powered cranes that pick ripe crops in a 7x7 around them.', icon: 'harvester', cost: cost(20, ...E2), unitTime: 12, prereq: ['r_power', 'r_sprinklers'], era: 2, row: 6 },
   { id: 'r_seed_sifting', name: 'Seed Sifting', desc: 'Turn a crop back into seeds.', icon: 'seed_sifter', cost: cost(10, ...E2), unitTime: 8, prereq: ['r_fertilizer'], era: 2, row: 7 },
+  // a field that sows itself in the Water era, so the Town Mill's meal can come from a works and not
+  // only from your hands (the critic's Phase 3+4 M2; ROADMAP.md 8 had it in Steam)
+  { id: 'r_planter', name: 'Seed Sowers', desc: 'Machines that till and plant seeds around them.', icon: 'planter', cost: cost(25, ...E2), unitTime: 12, prereq: ['r_harvester', 'r_seed_sifting'], era: 2, row: 7 },
   { id: 'r_weaving', name: 'Weaving', desc: 'A hand loom for cotton, flax and wool, and canvas for belts.', icon: 'hand_loom', cost: cost(12, ...E2), unitTime: 10, prereq: ['r_preserves', 'r_metallurgy'], era: 2, row: 8 },
   { id: 'r_dairy', name: 'Dairy', desc: 'Cheese presses for milk and eggs.', icon: 'cheese_press', cost: cost(10, ...E2), unitTime: 10, prereq: ['r_brewing'], era: 2, row: 9 },
   { id: 'r_pastes', name: 'Dyes & Pastes', desc: 'Starch paste and pigment from the crock: glue for the works, colour for the town.', icon: 'pigment', cost: cost(10, ...E2), unitTime: 10, prereq: ['r_preserves'], era: 2, row: 10 },
@@ -78,7 +81,6 @@ export const RESEARCH: ResearchDef[] = [
   { id: 'r_drills', name: 'Ore Drilling', desc: 'Steam drills that dig ore veins in the quarry.', icon: 'drill_steam', cost: cost(25, ...E3), unitTime: 12, prereq: ['r_logistics', 'r_brass'], era: 3, row: 6 },
   { id: 'r_crusher', name: 'Rock Crushing', desc: 'Rock crushers make gravel, sand and stray ore.', icon: 'crusher', cost: cost(25, ...E3), unitTime: 15, prereq: ['r_drills'], era: 3, row: 6 },
   { id: 'r_sprinkler2', name: 'Brass Sprinklers', desc: 'Sprinklers that water a 3x3 square.', icon: 'sprinkler_2', cost: cost(20, ...E3), unitTime: 15, prereq: ['r_sprinklers', 'r_brass'], era: 3, row: 7 },
-  { id: 'r_planter', name: 'Seed Sowers', desc: 'Machines that till and plant seeds around them.', icon: 'planter', cost: cost(30, ...E3), unitTime: 15, prereq: ['r_harvester', 'r_seed_sifting'], era: 3, row: 8 },
   { id: 'r_gantry', name: 'Field Gantry', desc: 'A brass gantry on rails that waters, picks and resows a whole strip.', icon: 'field_gantry', cost: cost(30, ...E3), unitTime: 15, prereq: ['r_planter', 'r_assembly'], era: 3, row: 8 },
   { id: 'r_threshing', name: 'Threshing', desc: 'A powered thresher: a sheaf of wheat, barley or corn becomes two grain and some straw.', icon: 'thresher', cost: cost(25, ...E3), unitTime: 15, prereq: ['r_milling', 'r_assembly'], era: 3, row: 9 },
   { id: 'r_cooking', name: 'Hearth Cooking', desc: 'A brick oven for bread, pies and hearty meals.', icon: 'oven', cost: cost(20, ...E3), unitTime: 12, prereq: ['r_masonry'], era: 3, row: 10 },

@@ -139,7 +139,7 @@ describe('modes', () => {
   it('clockwork rush ends after 28 days with a medal', () => {
     const g = new Game({ seed: 4, mode: 'rush' });
     expect(g.player.inv.countId('belt_1')).toBeGreaterThanOrEqual(40);
-    g.earned = 70000;
+    g.earned = 80000;
     for (let d = 0; d < 28; d++) {
       g.time.min = DAY_END - 0.001;
       g.tick();

@@ -4,6 +4,7 @@ import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { ERA_KEYSTONE, ERA_NAMES, RESEARCH, RESEARCH_BY_ID, eraCol } from '../../data/research';
 import { key } from '../../sim/inventory';
 import { canResearch, researchUnits, setResearch, stageNext, stageObjMet, stageObjText, stages, unlocksOf } from '../../sim/systems/research';
+import { keystoneOpen, keystoneQuest } from '../../sim/keystones';
 import { powerState } from '../../sim/systems/power';
 import { RES } from '../../sim/systems/stats';
 import type { PlayScreen } from '../../app/play';
@@ -260,13 +261,16 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     const s = stages(g, sel.id), k = sel.keystone;
     ui.text('Keystone: before the study', px + 6, yy, C.oak);
     yy += 10;
+    // a keystone walked by a main quest counts from that quest (looking early isn't the look)
+    const kq = keystoneQuest(sel.id);
+    if (kq && g.flags.has('keepers_line') && !keystoneOpen(g, sel.id)) yy += ui.para(`Its stages count from the quest "${kq.title}".`, px + 6, yy, pw - 12, C.pebble) + 1;
     const line = (ok: boolean | null, text: string) => {
       if (ok === null) return;
       ui.text(ok ? ICON.star : '-', px + 6, yy, ok ? C.moss : C.brick);
       yy += ui.para(text, px + 14, yy, pw - 20, ok ? C.moss : C.ink) + 1;
     };
     line(s.observe, k.observe?.label ?? '');
-    if (k.experiment) for (const o of k.experiment) line(stageObjMet(g, o), stageObjText(g, o));
+    if (k.experiment) for (const o of k.experiment) line(stageObjMet(g, o, sel.id), stageObjText(g, o, sel.id));
     if (k.validate) line(s.validate, `${k.validate.label} (${Math.floor(s.held / 60)}:${String(Math.floor(s.held % 60)).padStart(2, '0')})`);
     yy += 2;
   }

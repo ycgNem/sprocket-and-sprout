@@ -47,7 +47,8 @@ export const FARMS: FarmDef[] = [
 export const FARM_BY_ID = new Map(FARMS.map((f) => [f.id, f]));
 
 /** Clockwork Rush medal thresholds (coins earned during the season) */
-// bronze / silver / gold: about 0.5x / 1x / 1.5x the pace bot's 28-day Rush average (65.5k on 8 seeds,
-// 2026-10-10: it plays the Keeper's Line and reaches the Town Mill), DECISIONS #83
-export const RUSH_MEDALS = [35000, 65000, 100000];
+// bronze / silver / gold: about 0.6x / 1.15x / 1.65x the pace bot's 28-day Rush average (66k on 8
+// seeds, 2026-10-10: it plays the Keeper's Line and reaches the Town Mill): silver asks for more than
+// a script whose works stop growing after day 5 (DECISIONS #90, #97)
+export const RUSH_MEDALS = [40000, 75000, 110000];
 export const RUSH_DAYS = 28;
