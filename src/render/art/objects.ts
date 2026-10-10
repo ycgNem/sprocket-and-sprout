@@ -601,10 +601,34 @@ function drawBuilding(d: BldDesc, season: number, state: number): PixBuf {
   return pb;
 }
 
+/**
+ * The map's fence joined to its neighbours (fence:map:<mask>:<v>:<season>, src/render/fences.ts), the
+ * procedural fallback of art/fences/build.mjs: the O.FENCE post with rails to each side that joins; a
+ * north-south run shows the post's top and, below it, the rail to the next post. 16x16, baked flat.
+ */
+function drawMapFence(mask: number, season: number): PixBuf {
+  const pb = new PixBuf(16, 16);
+  const n = mask & 1, e = mask & 2, s = mask & 4, w = mask & 8;
+  // a north-south run shows whole posts, its rails between one post's foot and the next one's cap
+  if (n) pb.rect(8, 0, 1, 2, C.walnut);
+  if (s) pb.rect(8, 14, 1, 2, C.walnut);
+  if (w) { pb.rect(0, 6, 7, 2, C.walnut); pb.rect(0, 10, 7, 2, C.walnut); }
+  if (e) { pb.rect(10, 6, 6, 2, C.walnut); pb.rect(10, 10, 6, 2, C.walnut); }
+  pb.rect(7, 3, 3, 10, C.oak);
+  pb.rect(7, 3, 3, 1, C.tan);
+  if (season === 3) pb.rect(7, 2, 3, 1, C.cream);
+  pb.outline(C.ink);
+  return pb;
+}
+
 export function registerObjectSprites() {
   defSpriteFamily('o:', (name) => {
     const [, os, vs, ss] = name.split(':');
     return { w: 16, h: 16, draw: (ctx) => drawObj(+os as O, +vs, +ss).drawTo(ctx) };
+  });
+  defSpriteFamily('fence:map:', (name) => {
+    const [, , ms, , ss] = name.split(':');
+    return { w: 16, h: 16, draw: (ctx) => drawMapFence(+ms, +ss).drawTo(ctx) };
   });
   defSpriteFamily('tree:', (name) => {
     const [, sp, st, ss, fr, vs] = name.split(':');

@@ -249,7 +249,13 @@
   "planks_h": [
    "tiles/planks_h/0.png",
    "tiles/planks_h/1.png",
-   "tiles/planks_h/2.png"
+   "tiles/planks_h/2.png",
+   "tiles/planks_h/3.png",
+   "tiles/planks_h/4.png",
+   "tiles/planks_h/5.png",
+   "tiles/planks_h/6.png",
+   "tiles/planks_h/7.png",
+   "tiles/planks_h/8.png"
   ],
   "planks_post_ne": [
    "tiles/planks_post_ne/0.png"
@@ -290,7 +296,13 @@
   "planks_v": [
    "tiles/planks_v/0.png",
    "tiles/planks_v/1.png",
-   "tiles/planks_v/2.png"
+   "tiles/planks_v/2.png",
+   "tiles/planks_v/3.png",
+   "tiles/planks_v/4.png",
+   "tiles/planks_v/5.png",
+   "tiles/planks_v/6.png",
+   "tiles/planks_v/7.png",
+   "tiles/planks_v/8.png"
   ],
   "rock": [
    "tiles/rock/0.png",
