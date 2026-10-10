@@ -88,8 +88,8 @@ function drawAuction(ui: UI, play: PlayScreen, st: WinState): boolean {
     const bx = x + 14 + i * colW;
     portrait(ui, b.id, bx, y + 92, 16, 0);
     const last = [...a.log].reverse().find((l) => l.who === b.id);
-    ui.text(ellipsize(Name(b.id), colW - 26), bx + 20, y + 95, a.high === b.id ? C.amber : C.ink);
-    ui.text(last ? n0(last.amt) : '-', bx + 20, y + 105, C.walnut);
+    ui.text(ellipsize(Name(b.id), colW - 32), bx + 28, y + 95, a.high === b.id ? C.amber : C.ink);
+    ui.text(last ? n0(last.amt) : '-', bx + 28, y + 105, C.walnut);
   });
   const mx = x + 14 + a.bidders.length * colW;
   const mine = [...a.log].reverse().find((l) => l.who === 'you');
