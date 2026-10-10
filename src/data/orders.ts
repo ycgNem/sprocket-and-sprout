@@ -313,7 +313,7 @@ export const KEYSTONE_WORKS: KeystoneWorksDef[] = [
   {
     id: 'w_town_mill', name: 'The Town Mill', era: 2, after: ['r_milling'], flag: 'town_mill',
     desc: "The town's old mill on the river at the west end of Main Street: new paddles, a mended gear train and its first sacks to grind.",
-    items: [{ item: '#flour', n: 120 }, { item: 'plank', n: 40 }, { item: 'copper_gear', n: 8 }],
+    items: [{ item: '#flour', n: 80 }, { item: 'plank', n: 40 }, { item: 'copper_gear', n: 8 }],
     done: "The Town Mill's wheel turns again! The Kettle and the Mercantile sell bread and flour from it, and Rowan wants loaves every week.",
   },
   {

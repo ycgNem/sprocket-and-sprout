@@ -15,8 +15,10 @@ import { machInsert, setRecipe } from '../src/sim/systems/machines';
 import { npcSys } from '../src/sim/systems/npcs';
 import { mine } from '../src/sim/systems/mine';
 import { O, T, Z } from '../src/sim/world/tilemap';
-import { setResearch, canResearch } from '../src/sim/systems/research';
-import { RESEARCH } from '../src/data/research';
+import { setResearch, canResearch, stages, researchUnits } from '../src/sim/systems/research';
+import { RESEARCH, RESEARCH_BY_ID } from '../src/data/research';
+import { boardHandIn, openOrder, worksDone } from '../src/sim/systems/orders';
+import { powerState, rebuildPower } from '../src/sim/systems/power';
 import { questSys } from '../src/sim/systems/quests';
 import { shopOpen } from '../src/sim/systems/town';
 import { OPENING } from '../src/sim/systems/modes';
@@ -40,7 +42,7 @@ const SECOND = 60; // ticks
 const inRect = (r: { x: number; y: number; w: number; h: number }, x: number, y: number) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
 const inYard = (x: number, y: number) => inRect(OPENING.yard, x, y) || inRect(RIVER.rect, x, y);
 /** what the bot keeps in its bag for the works (tests/bot.ts works()) */
-const WORKS_PARTS = new Set(['jar', 'arm_basic', 'chest_wood', 'gleaner', 'splitter_1', 'belt_1', 'plank', 'rope', 'copper_gear']);
+const WORKS_PARTS = new Set(['jar', 'arm_basic', 'chest_wood', 'gleaner', 'splitter_1', 'belt_1', 'plank', 'rope', 'copper_gear', 'copper_coil', 'bundle_copper', 'waterwheel', 'pole_wood']);
 
 export class Bot {
   g: Game;
@@ -184,22 +186,50 @@ export class Bot {
     const g = this.g;
     if (!g.flags.has('keepers_line') || !questSys(g).done.includes('k4_grow')) return 0;
     const crocks = this.crockFeeds().filter((f) => !(f.chest.x === OPENING.chest[0] && f.chest.y === OPENING.chest[1])).length;
-    return Math.min(Math.floor(this.plot.length * 0.75), 12 * Math.max(1, crocks) + 4);
+    // the gleaner beds grow beans for the crocks too: the plot grows the rest
+    const beds = this.beds.reduce((a, b) => a + b.tiles.length, 0);
+    return Math.min(Math.floor(this.plot.length * 0.75), Math.max(8, 12 * Math.max(1, crocks) + 4 - beds));
   }
 
   /** plot tiles that grow barley for the keeper's mill once it turns (B8): it grinds what you sow */
   grainTarget(): number {
     const g = this.g;
     if (!questSys(g).done.includes('k8_river') || ![0, 2].includes(g.time.season)) return 0;
-    return Math.min(16, Math.max(0, this.plot.length - this.beanTarget() - 4));
+    // the chain heads for the Town Mill (80 sacks of meal, and a batch to keep the mill busy): from the
+    // river works on, barley takes much of what the beans leave
+    const q = questSys(g);
+    const cap = worksDone(g).includes('w_town_mill') ? 16 : q.done.includes('k9_bed') ? 56 : 32;
+    return Math.min(cap, Math.max(0, this.plot.length - this.beanTarget() - 4));
   }
 
-  /** what a plot tile is for: 'bean' (the works' cogbeans), 'grain' (the mill's barley) or 'cash' */
-  tileRole(i: number): 'bean' | 'grain' | 'cash' {
-    const b = this.beanTarget();
-    if (i < b) return 'bean';
-    if (i < b + this.grainTarget()) return 'grain';
-    return 'cash';
+  /** k10's validate stage is next: barley waits in the bag for a batch big enough to keep the mill busy */
+  holdBarley(): boolean {
+    const g = this.g;
+    return questSys(g).active.some((a) => a.id === 'k10_mill') && g.research.done.has('r_power') && g.flags.has('observed:town_mill') && !g.flags.has('validated:r_milling');
+  }
+
+  /** k10: meal is kept for the Town Mill's order from More Power on, until the order is filled */
+  hoardMeal(): boolean {
+    const g = this.g;
+    return questSys(g).done.includes('k9_power') && !worksDone(g).includes('w_town_mill');
+  }
+
+  /** plot tiles growing a crop now */
+  private growing(crop: string): number {
+    const g = this.g;
+    return this.plot.filter(([x, y]) => g.soil.get(g.map.idx(x, y))?.crop?.id === crop).length;
+  }
+
+  /**
+   * What the plot's empty tiles are for, in order: the works' cogbeans, the mill's barley, then cash
+   * crops. By count, not by place: a strawberry patch regrows all season, so the works take
+   * whichever tiles come free.
+   */
+  plan(): { bean: number; grain: number; cash: number } {
+    const empty = this.emptyTiles();
+    const bean = Math.min(empty, Math.max(0, this.beanTarget() - this.growing('cogbean')));
+    const grain = Math.min(empty - bean, Math.max(0, this.grainTarget() - this.growing('barley')));
+    return { bean, grain, cash: empty - bean - grain };
   }
 
   /** buy seeds for empty tiles of a role (cogbeans, barley) at the Mercantile */
@@ -208,7 +238,7 @@ export class Bot {
     const e = shopStock(g, 'general').find((s) => s.item === seed);
     if (!e) return;
     const bare = ([x, y]: [number, number]) => !!g.soil.get(g.map.idx(x, y)) && !g.soil.get(g.map.idx(x, y))!.crop;
-    const empty = this.plot.filter((t, i) => this.tileRole(i) === role && bare(t)).length + (role === 'bean' ? this.beds.flatMap((b) => b.tiles).filter(bare).length : 0);
+    const empty = this.plan()[role] + (role === 'bean' ? this.beds.flatMap((b) => b.tiles).filter(bare).length : 0);
     const want = Math.max(0, Math.min(empty + 2 - g.player.inv.countId(seed), Math.floor((g.player.money - 150) / entryPrice(g, e))));
     if (want > 0) {
       const got = buy(g, e, want);
@@ -226,7 +256,7 @@ export class Bot {
     if (!seed) { this.notes.push('no seed'); return; }
     const e = shopStock(g, 'general').find((s) => s.item === seed);
     if (!e) { this.notes.push('not stocked ' + seed); return; }
-    const empty = this.plot.filter(([x, y], i) => this.tileRole(i) === 'cash' && g.soil.get(g.map.idx(x, y)) && !g.soil.get(g.map.idx(x, y))!.crop).length;
+    const empty = this.plan().cash;
     const have = g.player.inv.countId(seed);
     const want = Math.max(0, Math.min(empty + 6 - have, Math.floor((g.player.money - 150) / entryPrice(g, e))));
     if (want > 0) {
@@ -259,8 +289,20 @@ export class Bot {
     // barley goes to the keeper's grain bin once the mill turns (it grinds what you sow)
     const grainBin = questSys(g).done.includes('k8_river') ? g.ents.at(RIVER.bin[0], RIVER.bin[1]) : null;
     if (grainBin?.inv && !grainBin.st.rust) {
+      // Milling's validate stage wants 3 a minute for 2 minutes: a batch of 30 tipped in at once
+      // (the mill grinds 15 a minute), so the bag holds the barley until it has one
       const n = g.player.inv.countId('barley');
-      if (n) g.player.inv.removeSpec('barley', n - grainBin.inv.add(key('barley'), n));
+      if (n && (!this.holdBarley() || n >= 30)) g.player.inv.removeSpec('barley', n - grainBin.inv.add(key('barley'), n));
+      // and the meal chest emptied, so the mill never backs up (the meal is sold, or kept for the Town Mill)
+      const meal = g.ents.at(RIVER.meal[0], RIVER.meal[1]);
+      if (meal?.inv) {
+        for (let i = 0; i < meal.inv.slots.length; i++) {
+          const sl = meal.inv.slots[i];
+          if (!sl) continue;
+          const left = g.player.inv.add(sl.k, sl.n);
+          meal.inv.slots[i] = left ? { k: sl.k, n: left } : null;
+        }
+      }
     }
     // keep a few crops for bundles/quests, ship the rest
     const feeds = this.crockFeeds();
@@ -283,6 +325,8 @@ export class Bot {
       if (!sl) continue;
       const d = kDef(sl.k);
       if ((d.cat === 'crop' || d.cat === 'fruit' || d.cat === 'flower' || d.cat === 'forage' || d.cat === 'fish' || d.cat === 'artisan') && d.price > 0) {
+        if (this.hoardMeal() && d.tags?.includes('flour')) continue;
+        if (d.id === 'barley' && this.holdBarley()) continue;
         const researching = g.flags.has('lab') && !!g.research.current;
         const keep = d.cat === 'crop' || d.cat === 'fruit' ? (researching ? 8 : 3) : 0;
         // the works first: every crock's chest takes up to two days' worth of vegetables and fruit (beds ripen
@@ -308,17 +352,19 @@ export class Bot {
     const grows = (s: { k: number } | null) => !!s && !!kDef(s.k).plant?.crop && CROP_BY_ID.get(kDef(s.k).plant!.crop!)!.seasons.includes(g.time.season);
     const slotOf = (id: string) => g.player.inv.slots.find((s) => s && s.n > 0 && kDef(s.k).id === id && grows(s)) ?? null;
     const cash = () => g.player.inv.slots.find((s) => s && s.n > 0 && grows(s) && !['cogbean_seed', 'barley_seed'].includes(kDef(s.k).id)) ?? slotOf('cogbean_seed');
-    this.plot.forEach(([x, y], idx) => {
+    const want = this.plan();
+    this.plot.forEach(([x, y]) => {
       const i = g.map.idx(x, y);
       const s = g.soil.get(i);
       if (!s || s.crop) return;
-      const role = this.tileRole(idx);
-      const seed = role === 'bean' ? slotOf('cogbean_seed') : role === 'grain' ? slotOf('barley_seed') ?? cash() : cash();
+      // a works tile with no seed for it waits for tomorrow's shopping (a cash crop would hold it all season)
+      const role = want.bean > 0 ? 'bean' : want.grain > 0 ? 'grain' : 'cash';
+      want[role]--;
+      const seed = role === 'bean' ? slotOf('cogbean_seed') : role === 'grain' ? slotOf('barley_seed') : cash();
       if (!seed || seed.n <= 0) return;
       const cr = CROP_BY_ID.get(kDef(seed.k).plant!.crop!)!;
       if (plant(g, cr, i)) {
         g.player.inv.remove(seed.k, 1);
-        g.sys.quests?.notify?.(g, 'plant', 1);
         this.wait(0.25);
       }
     });
@@ -520,24 +566,45 @@ export class Bot {
     // research bundles
     if (g.flags.has('lab')) {
       // while Bram's oil order is open (k8) the beans are the oil's: keep them out of the bundles
+      // (and barley is the mill's: it never goes in a bundle)
       const hold = questSys(g).active.some((a) => a.id === 'k8_river') ? g.player.inv.countId('cogbean') : 0;
+      const grain = g.player.inv.countId('barley');
       if (hold) g.player.inv.removeSpec('cogbean', hold);
-      for (let i = 0; i < 12; i++) if (!tryCraft('bundle_green')) break;
+      if (grain) g.player.inv.removeSpec('barley', grain);
+      for (let i = 0; i < 20; i++) if (!tryCraft('bundle_green')) break;
       if (hold) g.player.inv.add(key('cogbean'), hold);
+      if (grain) g.player.inv.add(key('barley'), grain);
       const lab = g.ents.others.find((e) => e.def.kind === 'lab');
       if (lab) {
         const n = g.player.inv.countId('bundle_green');
         if (n) {
-          const got = Math.min(n, 10 - lab.inv!.countId('bundle_green'));
+          const got = Math.min(n, 20 - lab.inv!.countId('bundle_green'));
           g.player.inv.remove(key('bundle_green'), got);
           lab.inv!.add(key('bundle_green'), got);
         }
-        if (!g.research.current) {
-          const order = ['r_belts', 'r_arms', 'r_preserves', 'r_gleaning', 'r_metallurgy', 'r_brewing', 'r_fertilizer', 'r_sprinklers', 'r_woodworking'];
-          const next = order.find((id) => canResearch(g, id)) ?? RESEARCH.find((r) => canResearch(g, r.id) && r.cost.every((c) => c.item === 'bundle_green'))?.id;
-          if (next) {
-            setResearch(g, next);
-            this.notes.push(`researching ${next}`);
+        // the main chain's topics first (More Power, the Town Mill), each once its keystone stages are
+        // done; sprout-only topics fill the gaps (copper bundles come from bought gears and planks)
+        const chain = ['r_belts', 'r_arms', 'r_preserves', 'r_gleaning', 'r_metallurgy', 'r_power', 'r_milling'];
+        const side = ['r_brewing', 'r_fertilizer', 'r_woodworking'];
+        const payable = (id: string) => RESEARCH_BY_ID.get(id)!.cost.every((c) => c.item === 'bundle_green' || (c.item === 'bundle_copper' && g.research.done.has('r_metallurgy')));
+        const ready = (id: string) => canResearch(g, id) && stages(g, id).ready && payable(id);
+        const next = chain.find(ready) ?? side.find(ready) ?? RESEARCH.find((r) => ready(r.id) && r.cost.every((c) => c.item === 'bundle_green'))?.id;
+        const cur = g.research.current;
+        if (next && next !== cur && (!cur || (chain.includes(next) && !chain.includes(cur)))) {
+          setResearch(g, next);
+          this.notes.push(`researching ${next}`);
+        }
+        // copper bundles for a Water topic: a gear and two planks each, up to twenty on the desk
+        const wanted = this.copperWanted();
+        if (wanted > 0) {
+          while (lab.inv!.countId('bundle_copper') + g.player.inv.countId('bundle_copper') < wanted && g.player.inv.countId('copper_gear') > this.gearReserve()) {
+            if (g.player.inv.countId('plank') < 2 && g.player.inv.countId('wood') >= 2) tryCraft('plank');
+            if (!tryCraft('bundle_copper')) break;
+          }
+          const got = Math.min(g.player.inv.countId('bundle_copper'), 20 - lab.inv!.countId('bundle_copper'));
+          if (got > 0) {
+            g.player.inv.remove(key('bundle_copper'), got);
+            lab.inv!.add(key('bundle_copper'), got);
           }
         }
       }
@@ -754,6 +821,191 @@ export class Bot {
     if (e && buy(g, e, need - g.player.inv.countId('copper_gear'))) this.notes.push('bought copper gears');
   }
 
+  /** wheels on the river that turn (the keeper's, restored, and any built) */
+  private wheels(): number {
+    return this.g.ents.all().filter((e) => e.def.id === 'waterwheel' && !e.ghost && !e.st.rust).length;
+  }
+
+  private craftHand(id: string): boolean {
+    const r = RECIPES.find((r) => r.station === 'hand' && r.out[0].item === id);
+    if (!r || !canCraft(this.g, r, 1)) return false;
+    craft(this.g, r, 1);
+    return true;
+  }
+
+  /**
+   * More Power and the Town Mill (k9_power, k10): what the chain still wants from town. Copper
+   * bundles for the topic on the desk (a gear and two planks each), the second wheel (6 gears, 4
+   * coils, 20 planks) and a pole's coil, and the Town Mill order's planks and gears.
+   */
+  /** gears the bag keeps for other parts of the chain: k9's gleaners, the second wheel, the Town Mill's order */
+  private gearReserve(): number {
+    const g = this.g;
+    const q = questSys(g);
+    let n = 0;
+    if (q.active.some((a) => a.id === 'k9_bed')) n += 2 * Math.max(0, 2 - this.beds.length - g.player.inv.countId('gleaner'));
+    if (g.research.done.has('r_power') && this.wheels() < 2 && !g.player.inv.countId('waterwheel')) n += 6;
+    const o = openOrder(g, 'w_town_mill');
+    if (o) for (const l of o.lines) if (l.spec === 'copper_gear') n += l.n - l.have;
+    return n;
+  }
+
+  /**
+   * Copper bundles the desk should hold: the Water topic on it, or Milling's 20 ahead of time while
+   * its keystone stages run (so the desk starts the moment the mill is validated)
+   */
+  private copperWanted(): number {
+    const g = this.g;
+    const topic = g.research.current ? RESEARCH_BY_ID.get(g.research.current) : undefined;
+    if (topic?.cost.some((c) => c.item === 'bundle_copper')) return Math.min(20, researchUnits(topic.id, g) - (g.research.progress[topic.id] ?? 0));
+    if (g.research.done.has('r_power') && !g.research.done.has('r_milling')) return researchUnits('r_milling', g) - (g.research.progress.r_milling ?? 0);
+    return 0;
+  }
+
+  private powerNeeds(): { gear: number; coil: number; plank: number } {
+    const g = this.g;
+    const inv = g.player.inv;
+    let gear = 0, coil = 0, plank = 0;
+    const lab = g.ents.others.find((e) => e.def.kind === 'lab');
+    const n = Math.max(0, this.copperWanted() - (lab?.inv?.countId('bundle_copper') ?? 0) - inv.countId('bundle_copper'));
+    gear += n;
+    plank += 2 * n;
+    if (g.research.done.has('r_power') && this.wheels() < 2 && !inv.countId('waterwheel')) {
+      gear += 6;
+      coil += 5;
+      plank += 20;
+    }
+    const o = openOrder(g, 'w_town_mill');
+    if (o) for (const l of o.lines) {
+      if (l.spec === 'plank') plank += l.n - l.have;
+      if (l.spec === 'copper_gear') gear += l.n - l.have;
+    }
+    // wood the bag can saw into planks first
+    plank -= Math.floor(Math.max(0, inv.countId('wood') - 20) / 2);
+    return { gear: Math.max(0, gear - inv.countId('copper_gear')), coil: Math.max(0, coil - inv.countId('copper_coil')), plank: Math.max(0, plank - inv.countId('plank')) };
+  }
+
+  buyPowerParts() {
+    const g = this.g;
+    const q = questSys(g);
+    if (!q.active.some((a) => a.id === 'k9_power' || a.id === 'k10_mill')) return;
+    const need = this.powerNeeds();
+    if (!need.gear && !need.coil && !need.plank) return;
+    const get = (shopId: string, id: string, n: number) => {
+      if (n <= 0 || !shopOpen(g, shopId).open) return;
+      const e = shopStock(g, shopId).find((x) => x.item === id);
+      if (!e) return;
+      const afford = Math.floor((g.player.money - 800) / entryPrice(g, e));
+      const got = afford > 0 ? buy(g, e, Math.min(n, afford)) : 0;
+      if (got) this.notes.push(`bought ${got} ${ITEM_BY_ID.get(id)!.name}`);
+    };
+    get('carpenter', 'plank', need.plank);
+    if ((need.gear || need.coil) && g.time.min < 600) this.wait((600 - g.time.min) * 0.7 + 1);
+    get('workshop', 'copper_gear', need.gear);
+    get('workshop', 'copper_coil', need.coil);
+  }
+
+  /**
+   * More Power's second wheel: on the river beside the keeper's, its land half on the farm, in reach
+   * of the keeper's poles (or with a pole of its own that wires into them).
+   */
+  secondWheel() {
+    const g = this.g;
+    if (!g.research.done.has('r_power') || this.wheels() >= 2) return;
+    const inv = g.player.inv;
+    while (inv.countId('plank') < 20 && inv.countId('wood') >= 2 && this.craftHand('plank'));
+    if (!inv.countId('waterwheel')) this.craftHand('waterwheel');
+    if (!inv.countId('waterwheel')) return;
+    if (g.ents.powerDirty) rebuildPower(g);
+    const ps = powerState(g);
+    const pole = g.ents.at(RIVER.poles[0][0], RIVER.poles[0][1]);
+    const net = pole?.net ?? 0;
+    // stand on the farm side while placing (never on the footprint)
+    this.walkTo(RIVER.spot[0], RIVER.spot[1]);
+    let best: { x: number; y: number; covered: boolean; score: number } | null = null;
+    for (let y = RIVER.wheel[1] - 10; y <= RIVER.wheel[1] + 10; y++)
+      for (let x = RIVER.wheel[0] - 6; x <= RIVER.wheel[0] + 6; x++) {
+        if (!canPlace(g, 'waterwheel', x, y, 0).ok) continue;
+        const covered = !!net && [[0, 0], [1, 0], [0, 1], [1, 1]].some(([dx, dy]) => ps.cover[g.map.idx(x + dx, y + dy)] === net);
+        const score = Math.hypot(x - RIVER.wheel[0], y - RIVER.wheel[1]) + (covered ? 0 : 6);
+        if (!best || score < best.score) best = { x, y, covered, score };
+      }
+    if (!best) {
+      this.notes.push('no spot for a second wheel');
+      return;
+    }
+    if (!best.covered) {
+      // a pole beside the wheel whose wires reach a pole of the keeper's grid
+      if (!inv.countId('pole_wood')) this.craftHand('pole_wood');
+      if (!inv.countId('pole_wood')) return;
+      const poles = g.ents.poles.filter((p) => !p.st.rust && p.net === net);
+      let spot: [number, number] | null = null;
+      for (let y = best.y - 2; y <= best.y + 3 && !spot; y++)
+        for (let x = best.x - 2; x <= best.x + 3 && !spot; x++) {
+          if (x >= best.x && x <= best.x + 1 && y >= best.y && y <= best.y + 1) continue;
+          if (!canPlace(g, 'pole_wood', x, y, 0).ok) continue;
+          if (poles.some((p) => Math.hypot(p.x - x, p.y - y) <= Math.min(7, p.def.reach ?? 7))) spot = [x, y];
+        }
+      if (!spot) {
+        this.notes.push('no pole spot for the second wheel');
+        return;
+      }
+      this.placeAt('pole_wood', spot[0], spot[1]);
+    }
+    if (this.placeAt('waterwheel', best.x, best.y, 0)) this.notes.push(`placed a second water wheel at ${best.x},${best.y}`);
+  }
+
+  /** k10: look at the town's silent mill (walking up to it counts), and fill the Town Mill's order at the board */
+  townMill() {
+    const g = this.g;
+    const q = questSys(g);
+    if (!q.active.some((a) => a.id === 'k10_mill')) return;
+    if (!g.flags.has('observed:town_mill')) {
+      const [x, y] = g.map.loc('town_mill');
+      this.walkTo(x, y);
+      this.wait(0.5);
+      if (g.flags.has('observed:town_mill')) this.notes.push('looked at the town mill');
+    }
+    const o = openOrder(g, 'w_town_mill');
+    if (o && g.player.inv.slots.some((s) => s && o.lines.some((l) => l.have < l.n && matchesSpec(kDef(s.k), l.spec)))) {
+      const [bx, by] = g.map.loc('board');
+      this.walkTo(bx, by + 1);
+      const n = boardHandIn(g, o);
+      if (n) this.notes.push(`handed in ${n} for the Town Mill`);
+    }
+  }
+
+  /**
+   * The Town Mill's order by the post: the crate tagged for the Town Council with the meal, planks and
+   * gears in it (the overnight post carries them to the order); back to the Copper Kettle once it's filled
+   */
+  consignTownMill() {
+    const g = this.g;
+    const bin = g.ents.get(g.shipBinId);
+    if (!bin?.inv) return;
+    const o = openOrder(g, 'w_town_mill');
+    if (!o) {
+      if (bin.st.tag === 'council') bin.st.tag = 'rowan';
+      return;
+    }
+    let moved = 0;
+    for (let i = 0; i < g.player.inv.slots.length; i++) {
+      const sl = g.player.inv.slots[i];
+      if (!sl) continue;
+      const l = o.lines.find((l) => l.have < l.n && matchesSpec(kDef(sl.k), l.spec));
+      if (!l) continue;
+      const n = Math.min(sl.n, l.n - l.have);
+      const left = bin.inv.add(sl.k, n);
+      moved += n - left;
+      sl.n -= n - left;
+      if (sl.n <= 0) g.player.inv.slots[i] = null;
+    }
+    if (moved) {
+      bin.st.tag = 'council';
+      this.notes.push(`crated ${moved} for the Town Mill`);
+    }
+  }
+
   /** once the Keeper's Line has its second crock, buy the parts of the bot's own L1 line in town */
   buyLineParts() {
     const g = this.g;
@@ -807,6 +1059,8 @@ export class Bot {
       if (!sl) continue;
       const d = kDef(sl.k);
       if (d.tool || d.weapon || d.plant || WORKS_PARTS.has(d.id)) continue;
+      if (this.hoardMeal() && d.tags?.includes('flour')) continue;
+      if (d.id === 'barley' && this.holdBarley()) continue;
       const cap = essentials.has(d.id) ? 120 : 0;
       const n = sl.n - cap;
       if (n <= 0) continue;
@@ -949,7 +1203,6 @@ export class Bot {
           for (const [x, y] of OPENING.bed)
             if (g.player.inv.countId('cogbean_seed') > 0 && plant(g, cr, g.map.idx(x, y))) {
               g.player.inv.removeSpec('cogbean_seed', 1);
-              g.sys.quests?.notify?.(g, 'plant', 1);
               this.wait(0.25);
             }
           break;
@@ -1125,7 +1378,8 @@ export class Bot {
     this.keeperLine();
     this.farmMorning();
     // the works first (ROADMAP.md 3.2 rule 5): the plot grows slowly until the bot's own line is up
-    this.expandPlot(Math.min(80, day < 5 ? 12 + day * 3 : 12 + day * 6));
+    // more ground once the chain heads for the Town Mill: its barley comes on top of the beans and the cash crops
+    this.expandPlot(Math.min(questSys(g).done.includes('k9_bed') ? 104 : 80, day < 5 ? 12 + day * 3 : 12 + day * 6));
     this.farmMorning();
     // afternoon in town
     if (g.time.min < 9 * 60) this.wait(Math.max(0, (9 * 60 - g.time.min) * 0.7));
@@ -1134,6 +1388,8 @@ export class Bot {
     this.shop();
     this.buyLineParts();
     this.buyGleanerParts();
+    this.buyPowerParts();
+    this.townMill();
     this.keeperLine(true);
     this.walkTo(56, 30);
     this.keeperLine();
@@ -1143,6 +1399,8 @@ export class Bot {
     else this.gather();
     this.crafting();
     this.works();
+    this.secondWheel();
+    this.consignTownMill();
     this.stash();
     // goods in a tagged crate go to their order at the next post: stay up for it, then carry on
     if (this.waitForPost()) this.keeperLine();

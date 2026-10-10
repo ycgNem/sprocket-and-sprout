@@ -74,7 +74,7 @@ function startAvailable(g: Game, bedtime = false) {
   }
 }
 
-function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
+export function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
   switch (o.t) {
     case 'have': return g.player.inv.countSpec(o.item) >= o.n;
     case 'money': return g.earned >= o.n;

@@ -148,7 +148,7 @@ const clock = (min: number) => `${((Math.floor(min / 60) + 11) % 12) + 1}${min %
  * a place you still need to visit. Null when nothing needs walking to.
  */
 /** what the guide arrow and the compass call a quest's places */
-const LOC_LABEL: Record<string, string> = { board: 'Orders board', river_works: "The keeper's wheel", mine_entrance: 'The Deepworks' };
+const LOC_LABEL: Record<string, string> = { board: 'Orders board', river_works: "The keeper's wheel", mine_entrance: 'The Deepworks', town_mill: 'The Town Mill', pump_house: 'The Waterworks' };
 
 export function questTarget(g: Game): { x: number; y: number; label: string; npc?: string } | null {
   if (g.player.where !== 'world') return null;

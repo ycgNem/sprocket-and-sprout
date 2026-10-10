@@ -107,7 +107,20 @@ function locTile(g: Game, loc: string): [number, number] | null {
   return g.map.locs.get(loc) ?? null;
 }
 
-const walkCache = new Map<string, [number, number][] | null>();
+/**
+ * Paths the villagers walk, per world: a new game or a loaded save starts its own (a path from
+ * another seed's map walks through its trees, and made the sim differ by what ran before it), and
+ * a placed or removed structure starts it again.
+ */
+const walkCaches = new WeakMap<object, { ver: number; paths: Map<string, [number, number][] | null> }>();
+function walkCache(g: Game) {
+  let c = walkCaches.get(g.map);
+  if (!c || c.ver !== g.ents.version) {
+    c = { ver: g.ents.version, paths: new Map() };
+    walkCaches.set(g.map, c);
+  }
+  return c.paths;
+}
 
 function npcWalkable(g: Game) {
   return (x: number, y: number) => {
@@ -129,11 +142,12 @@ function planPath(g: Game, n: NPCState, loc: string) {
   }
   const sx = Math.floor(n.x), sy = Math.floor(n.y);
   const key = `${sx},${sy}>${gx},${gy}`;
-  let path = walkCache.get(key);
+  const cache = walkCache(g);
+  let path = cache.get(key);
   if (path === undefined) {
     path = findPath(g.map, sx, sy, gx, gy, npcWalkable(g), 40000);
-    if (walkCache.size > 600) walkCache.clear();
-    walkCache.set(key, path);
+    if (cache.size > 600) cache.clear();
+    cache.set(key, path);
   }
   n.path = path ? [...path] : [];
   if (!path) {

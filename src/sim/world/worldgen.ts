@@ -255,7 +255,11 @@ export function generateWorld(seed: number, farm: FarmKind = 'classic'): TileMap
   m.locs.set('farmhouse', [house.door[0], house.y + house.h]);
   bld('greenhouse', 'greenhouse', 'Greenhouse', GREENHOUSE.x, GREENHOUSE.y, GREENHOUSE.w, 2, C.frost, C.walnut);
   // the town keystones' buildings: the Town Mill on the river, the Waterworks' pump house (./townworks.ts)
-  for (const b of townworksBuildings()) m.addBuilding(b);
+  // (their doorsteps are places a quest step can point at: k10's "look at the town's silent mill")
+  for (const b of townworksBuildings()) {
+    m.addBuilding(b);
+    m.locs.set(b.id, [b.door[0], b.door[1] + 1]);
+  }
 
   // greenhouse interior (zone + soil floor) under the glass roof
   rect(GREENHOUSE.x, GREENHOUSE.y + 2, GREENHOUSE.x + GREENHOUSE.w - 1, GREENHOUSE.y + GREENHOUSE.h - 1, (x, y) => {
