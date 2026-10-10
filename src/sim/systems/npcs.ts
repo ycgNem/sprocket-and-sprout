@@ -289,7 +289,12 @@ export function giftTaste(d: NPCDef, itemId: string): Taste {
   return 'neutral';
 }
 
-const TASTE_POINTS: Record<Taste, number> = { love: 80, like: 45, neutral: 20, dislike: -20, hate: -40 };
+/**
+ * Trust a gift moves (points; 250 a Trust level). A third of 1.x's: Trust is built mostly by orders
+ * and discoveries (ROADMAP.md 7.6): a filled Today ask is 120, a standing order 100 (150 a big one),
+ * a main quest 100 to its giver, Sable's filing and Pip's echoes 60, the day's first chat 20.
+ */
+export const TASTE_POINTS: Record<Taste, number> = { love: 27, like: 15, neutral: 7, dislike: -7, hate: -13 };
 
 export function isBirthday(g: Game, d: NPCDef) {
   return d.birthday.season === g.time.season && d.birthday.day === g.time.day;
@@ -301,7 +306,8 @@ export function addPoints(g: Game, n: NPCState, pts: number) {
   const after = hearts(n);
   if (after > before) {
     g.emit({ t: 'sfx', id: 'heart' });
-    g.toast(`${shortName(NPC_BY_ID.get(n.id)!.name)}: ${after} heart${after > 1 ? 's' : ''}!`, undefined, 28);
+    // the UI's word for hearts is Trust (ROADMAP.md 7.6); romance keeps its hearts
+    g.toast(`${shortName(NPC_BY_ID.get(n.id)!.name)} trusts you more: Trust ${after}`, undefined, 28);
     g.sys.quests?.notify?.(g, 'friend', after, n.id);
   }
 }

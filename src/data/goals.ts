@@ -241,7 +241,7 @@ export const QUESTS: QuestDef[] = [
     objectives: [{ t: 'research', id: 'r_grandworks' }, { t: 'build', struct: 'construction_site', n: 1 }],
     reward: { money: 10000 } },
   { id: 's_friends', title: 'Part of the Town', giver: 'marigold', after: ['k9_bed'],
-    desc: 'Reach 4 hearts with three different villagers.',
+    desc: 'Reach Trust 4 with three different villagers.',
     objectives: [{ t: 'friend', npc: '*', hearts: 4 }],
     reward: { money: 1000, items: [{ item: 'cake', n: 2 }] } },
   { id: 's_rich', title: 'A Prosperous Farm', giver: 'tobias', after: ['k9_power'],
