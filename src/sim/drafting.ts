@@ -2,6 +2,7 @@
 // name, to load back into the blueprint tool and paste outside, or to bring to the Sprocket Fair's
 // test bed. Thorne's old works drawings arrive here too. A pure module: house.ts saves and loads
 // it (sys.house.lib), so any system can add to it without moving the tick order.
+import { CROP_BY_ID } from '../data/crops';
 import { ITEM_INDEX } from '../data/items';
 import { RECIPE_BY_ID } from '../data/recipes';
 import { STRUCT_BY_ID } from '../data/structures';
@@ -60,9 +61,10 @@ const jk = (j: unknown): number | null => (Array.isArray(j) && ITEM_INDEX.has(j[
 const saveItem = (it: BlueprintItem) => ({ ...it, filter: it.filter?.map(kj), sf: it.sf === undefined ? undefined : kj(it.sf) });
 function loadItem(it: any): BlueprintItem {
   const out: BlueprintItem = { def: it.def, dx: it.dx, dy: it.dy, rot: it.rot };
-  // (a locked recipe, and the one an unlocked machine last ran, for the Sprocket Fair's bed)
+  // (a locked recipe, the one an unlocked machine last ran and a gleaner's crop, for the Sprocket Fair's bed)
   if (RECIPE_BY_ID.has(it.recipe)) out.recipe = it.recipe;
   if (RECIPE_BY_ID.has(it.last)) out.last = it.last;
+  if (CROP_BY_ID.has(it.crop)) out.crop = it.crop;
   if (it.limit) out.limit = it.limit;
   if (it.sp) out.sp = it.sp;
   if (Array.isArray(it.filter)) out.filter = it.filter.map(jk).filter((k: number | null): k is number => k !== null);

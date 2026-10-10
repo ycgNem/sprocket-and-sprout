@@ -2,9 +2,10 @@
 // Missing items become ghost structures that get built when items are available.
 import { STRUCT_BY_ID } from '../data/structures';
 import { RECIPE_BY_ID } from '../data/recipes';
+import { CROPS } from '../data/crops';
 import type { Game } from './Game';
-import { Dir } from './ents';
-import { key } from './inventory';
+import { Dir, type Ent } from './ents';
+import { key, kId } from './inventory';
 import { canPlace, place, structFootprint } from './build';
 
 export interface BlueprintItem {
@@ -20,6 +21,8 @@ export interface BlueprintItem {
   sp?: number;
   /** the recipe an unlocked machine last ran: a paste ignores it; the Sprocket Fair's bed feeds it that */
   last?: string;
+  /** the crop a gleaner or harvest crane last picked: the Sprocket Fair's bed gives it a basket of it */
+  crop?: string;
 }
 
 export interface Blueprint {
@@ -34,12 +37,15 @@ export function copyBlueprint(g: Game, x0: number, y0: number, x1: number, y1: n
   for (let y = y0; y <= y1; y++)
     for (let x = x0; x <= x1; x++) {
       const e = g.ents.rootAt(x, y);
-      if (!e || seen.has(e.id) || e.st.fixed) continue;
+      // fixed pieces stay (the tram's bin), but the farm's own crate copies as a crate: a line's end
+      if (!e || seen.has(e.id) || (e.st.fixed && !e.st.mainBin)) continue;
       seen.add(e.id);
       if (e.def.kind === 'building' || e.def.kind === 'megaproject') continue;
       const it: BlueprintItem = { def: e.def.id, dx: e.x - x0, dy: e.y - y0, rot: e.rot };
       if (e.mach?.locked && e.mach.recipe) it.recipe = e.mach.recipe.id;
       else if (e.mach?.recipe) it.last = e.mach.recipe.id;
+      const crop = pickedCrop(e);
+      if (crop) it.crop = crop;
       if (e.arm?.filter.length) it.filter = [...e.arm.filter];
       if (e.arm?.limit) it.limit = e.arm.limit;
       if (e.belt && (e.belt.sFilter ?? -1) >= 0) it.sf = e.belt.sFilter;
@@ -47,6 +53,17 @@ export function copyBlueprint(g: Game, x0: number, y0: number, x1: number, y1: n
       items.push(it);
     }
   return { items, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+
+/** the crop a gleaner or crane last picked (on a save from before that was kept, the one in its basket) */
+function pickedCrop(e: Ent): string | undefined {
+  if (e.def.kind !== 'gleaner' && e.def.kind !== 'harvester') return undefined;
+  if (e.st.lastCrop) return e.st.lastCrop;
+  for (const s of e.inv?.slots ?? []) {
+    const c = s && CROPS.find((cr) => cr.produce === kId(s.k));
+    if (c) return c.id;
+  }
+  return undefined;
 }
 
 /** Rotate 90 degrees clockwise around the blueprint origin. */
