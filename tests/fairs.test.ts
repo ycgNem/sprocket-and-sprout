@@ -206,7 +206,8 @@ describe('the four festivals', () => {
     expect(by.f_haul).toMatchObject({ name: 'Harvest Haul', season: 2, day: 16, start: 540, end: 1080, host: 'tobias', activity: 'haul' });
     expect(by.f_skate).toMatchObject({ name: 'Frostlight Skate', season: 3, day: 24, host: 'marigold', activity: 'skate' });
     // the game's voice: no em dashes
-    for (const f of FESTIVALS) expect(f.desc + f.intro).not.toMatch(/—/);
+    const emDash = String.fromCharCode(0x2014);
+    for (const f of FESTIVALS) expect((f.desc + f.intro).includes(emDash)).toBe(false);
     const g = new Game({ seed: 3 });
     g.time.season = 0;
     g.time.day = 13;
