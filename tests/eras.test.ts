@@ -310,6 +310,29 @@ describe("the critic's re-check of Phases 3+4", () => {
     expect(asked.has('c_bread')).toBe(true);
   });
 
+  it("a crate tagged for the Council keeps its tag when a business posts a new order (the Mill's bread)", () => {
+    const g = new Game({ seed: 19 });
+    secs(g, 1.1);
+    const crate = g.ents.get(g.shipBinId)!;
+    crate.st.tag = 'council';
+    expect(orders(g).open.some((o) => o.cust === 'council')).toBe(false);
+    // the Town Mill turns: Rowan's bread goes up
+    g.flags.add('town_mill');
+    secs(g, 1.1);
+    expect(orders(g).open.some((o) => o.def === 'rowan_bread')).toBe(true);
+    expect(crate.st.tag).toBe('council');
+    // and with nothing at all open for the Council, a new business order still leaves it be
+    const g2 = new Game({ seed: 20 });
+    secs(g2, 1.1);
+    const c2 = g2.ents.get(g2.shipBinId)!;
+    c2.st.tag = 'council';
+    begin(g2, 'k9_bed');
+    secs(g2, 1.1);
+    expect(orders(g2).open.some((o) => o.def === 'rowan_meal')).toBe(true);
+    expect(orders(g2).open.some((o) => o.cust === 'council')).toBe(false);
+    expect(c2.st.tag).toBe('council');
+  });
+
   it('a saved quest whose steps changed since loads with its progress sized to the steps it has now', () => {
     const g = new Game({ seed: 17 });
     const look = { skin: 1, hair: 2, hairStyle: 'short' as const, shirt: 3, pants: 4 };

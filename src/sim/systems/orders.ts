@@ -232,11 +232,13 @@ function postStanding(g: Game, def: StandingDef) {
     due: def.weekly ? nextFriday(g) : NEVER, unit: def.unit, silver: def.silver, rep: def.big ? 2 : 1,
   });
   lesson(g, 'consign');
-  // a crate still tagged for a customer with nothing open follows the new order, or its goods would
-  // go to market unasked
+  // a crate still tagged for a business with nothing open follows the new order, or its goods would
+  // go to market unasked. Not one tagged for the Council or the Guild: their works and contracts
+  // come and go (the Mill's finish posted Rowan's bread a moment before the Waterworks, and a
+  // Council crate's brass went to market: the critic's re-check)
   for (const b of g.ents.all()) {
     const t = b.st.tag as string | undefined;
-    if (b.def.kind !== 'shipbin' || !t || t === def.biz || ordersFor(g, t).length) continue;
+    if (b.def.kind !== 'shipbin' || !t || t === 'council' || t === 'guild' || t === def.biz || ordersFor(g, t).length) continue;
     b.st.tag = def.biz;
     g.toast(`Your crate ships to ${custName(def.biz)} now, for the new order.`, 'i:' + def.spec);
   }
@@ -650,8 +652,9 @@ registerSystem({
   name: 'orders',
   tick(g) {
     if (g.tickN % 60 === 0) {
-      postDue(g, false);
+      // the works first, so the Council has its next order before a business's new one looks round
       postWorks(g);
+      postDue(g, false);
       for (const o of [...orders(g).open]) if (o.kind === 'works' && KEYSTONE_WORKS_BY_ID.has(o.def) && orderFull(o) && !keystoneWait(g, o.def)) complete(g, o, 'board');
     }
   },
@@ -666,9 +669,9 @@ registerSystem({
         g.toast(`${custName(o.cust)}'s order lapsed (${o.lines[0].have}/${o.lines[0].n}). A new one comes on Monday.`);
       }
     }
+    postWorks(g, true);
     postDue(g, g.weekday === 0);
     postToday(g);
-    postWorks(g, true);
     // the Guild writes once you have arms and a few days behind you (from day 1 in Clockwork Rush)
     if (!os.guild.unlocked) {
       if (g.map.w >= 100 && g.mode !== 'sandbox' && (g.mode === 'rush' || (g.research.done.has('r_arms') && g.dayIndex >= 2))) unlockGuild(g);
