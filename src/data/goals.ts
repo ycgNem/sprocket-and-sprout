@@ -132,9 +132,10 @@ export const QUESTS: QuestDef[] = [
   // Each era ends by handing the player the next town keystone (DECISIONS #72: one path for everyone).
   { id: 'k11_boiler', title: 'Down to the Boiler', giver: 'bram', tutorial: true, main: true, after: ['k10_mill'], needFlag: 'keepers_line', keystone: 'r_steam',
     why: 'Pumps want steam, and the old works left a boiler down below.',
-    desc: "The Mayor's next wish is the Waterworks: the pump house by the square, its pumps seized since the old works closed. Pumps want steam. Bram says the old works left a boiler on level 10 of the Deepworks, past a gallery that caved in on level 6. Steam Power is the keystone, and the boiler is its look.",
+    desc: "The Mayor's next wish is the Waterworks: the pump house by the square, its pumps seized since the old works closed. Its order is already up on the Works tab, so its brass, coils, oil, plates and paste can go in as you make them. Pumps want steam. Bram says the old works left a boiler on level 10 of the Deepworks, past a gallery that caved in on level 6. Steam Power is the keystone, and the boiler is its look.",
     hint: "Sawmilling builds a sawmill: hardwood in, two beams out (the Joinery sells hardwood). 20 beams shore up the gallery on level 6: F at the collapse. Mend the old lift on level 5 and it rides to every works chamber you've reached.",
     objectives: [
+      { t: 'visit', loc: 'pump_house', label: 'Look at the shuttered pump house by the square', why: "The town's next keystone, the Waterworks: its order is on the Works tab, and its pumps want steam.", goto: 'pump_house' },
       { t: 'research', id: 'r_sawmill', label: 'Study Sawmilling at the desk', why: 'A sawmill cuts two beams from each piece of hardwood. 20 sprout and 20 copper bundles.' },
       { t: 'made', struct: 'sawmill', n: 10, label: 'Saw 10 loads in a sawmill', why: 'Hardwood makes beams, wood makes planks. The Joinery sells hardwood, or fell the big trees.' },
       { t: 'flag', flag: 'gallery_shored', label: 'Shore up the caved-in gallery on level 6', why: '20 beams, F at the collapse. It stays open for good.', goto: 'mine_entrance' },
@@ -155,17 +156,16 @@ export const QUESTS: QuestDef[] = [
     reward: { money: 2000, items: [{ item: 'steam_engine', n: 1 }] } },
   { id: 'k13_waterworks', title: 'The Waterworks', giver: 'tobias', tutorial: true, main: true, after: ['k12_steam'], needFlag: 'keepers_line',
     why: "The square's fountain has been dry for thirty years.",
-    desc: 'With steam the pump house can run again. The Waterworks order is up on the Works tab: brass for the pumps, coils for their motors, oil for the bearings, plates for the tank and starch paste to seal the joints. When it runs, the fountain plays and the flooded galleries under the Clayworks drain.',
-    hint: 'Oil is pressed from sunflower or rapeseed at a mill (summer crops). Starch paste comes from the crock (Dyes & Pastes): potatoes, yams or corn. A furnace alloys copper and tin bars into brass.',
+    desc: 'With steam the pump house can run again. The Waterworks order has been on the Works tab since the boiler: brass for the pumps, coils for their motors, oil for the bearings, plates for the tank and starch paste to seal the joints. When it runs, the fountain plays and the flooded galleries under the Clayworks drain.',
+    hint: 'Any oil will do: cogbean oil from a crock, or sunflower and rapeseed oil from a mill in summer. Starch paste comes from the crock (Dyes & Pastes): potatoes, yams or corn. A furnace alloys copper and tin bars into brass.',
     objectives: [
-      { t: 'visit', loc: 'pump_house', label: 'Look at the shuttered pump house by the square', why: 'Its pumps have been seized since the old works closed.', goto: 'pump_house' },
       { t: 'research', id: 'r_pastes', label: 'Study Dyes & Pastes at the desk', why: "Starch paste from the crock seals the pipes' joints." },
-      { t: 'order', id: 'w_waterworks', label: 'Fill the Waterworks on the Works tab', why: '20 brass bars, 10 copper coils, 50 oil, 4 iron plates and 20 starch paste. A crate tagged for the Town Council carries them at each post.' },
+      { t: 'order', id: 'w_waterworks', label: 'Fill the Waterworks on the Works tab', why: '20 brass bars, 10 copper coils, 50 oil (cogbean oil counts), 4 iron plates and 20 starch paste. A crate tagged for the Town Council carries them at each post.' },
     ],
     reward: { money: 3000 } },
   { id: 'k14_spark', title: 'Spark Coils', giver: 'ottoline', tutorial: true, main: true, after: ['k13_waterworks'], needFlag: 'keepers_line', keystone: 'r_spark',
     why: 'A light that never needs oil, and the heart of every machine after it.',
-    desc: 'The square wants lamps that light themselves, and the Professor wants spark coils for everything. The old works made both: their lamp works stands on level 20 of the Deepworks, down in the Ember where the firedamp vents. Spark Coils is the keystone.',
+    desc: "The square wants lamps that light themselves, and the Professor wants spark coils for everything. The old works made both: their lamp works stands on level 20 of the Deepworks, down in the Ember where the firedamp vents. Spark Coils is the keystone, and the Lamplighting order (12 lamps, 6 coils) is up on the Works tab.",
     hint: 'Glassblowing needs Masonry; Assembly needs Brass Working. A kiln melts 2 sand into a glass (the Joinery sells sand once you know glass). The firedamp vents in turns: cross while it is quiet.',
     objectives: [
       { t: 'research', id: 'r_glass', label: 'Study Glassblowing at the desk', why: 'Glass for the coils. Masonry first.' },
@@ -178,7 +178,7 @@ export const QUESTS: QuestDef[] = [
     reward: { money: 3000, items: [{ item: 'spark_coil', n: 2 }] } },
   { id: 'k15_lamps', title: 'Lamplighting', giver: 'sable', tutorial: true, main: true, after: ['k14_spark'], needFlag: 'keepers_line',
     why: 'The square lit at night, on your power.',
-    desc: "Twelve lamps for the square and the coils to wire them: the Lamplighting order is up on the Works tab. Once they're hung they light after dark on your own grid, through the keeper's old pole at the farm gate, and they draw 12 sparks all night.",
+    desc: "Twelve lamps for the square and the coils to wire them: the Lamplighting order has been up on the Works tab since Spark Coils. Once they're hung they light after dark on your own grid, through the keeper's old pole at the farm gate, and they draw 12 sparks all night.",
     hint: 'Lamps are crafted from wood and coal (C), or bought at the Joinery. After 6pm your grid needs 12 sparks to spare for the square.',
     objectives: [
       { t: 'order', id: 'w_lamps', label: 'Fill Lamplighting on the Works tab', why: '12 lamps and 6 copper coils.' },
@@ -296,29 +296,27 @@ export const REQUEST_POOL: { npc: string; item: string; n: number; seasons?: num
 
 // The town works besides the keystones (the Orders board's Works tab, ROADMAP.md 7.4). The 1.x
 // restoration board's crop, fish, forage and gem baskets were Stardew's Community Center and went
-// in 2.0 (DECISIONS #93); what's left asks for what lines make, and each waits for its era.
+// in 2.0 (DECISIONS #93); what's left asks for what lines make, and each waits for its era. Each is
+// listed under the place it serves (not a Community Center room), and finishing every work at one
+// place is not a "room" of its own.
 export const PROJECTS: ProjectDef[] = [
-  // Fields
-  { id: 'p_greenhouse', name: 'Repair the Greenhouse', area: 'Fields', desc: 'Glass, beams and brass to fix the old greenhouse on your farm.', items: [{ item: 'glass', n: 40 }, { item: 'beam', n: 20 }, { item: 'brass_bar', n: 10 }], money: 5000, after: ['flag:waterworks'],
+  { id: 'p_greenhouse', name: 'Repair the Greenhouse', area: 'Your farm', desc: 'Glass, beams and brass to fix the old greenhouse on your farm.', items: [{ item: 'glass', n: 40 }, { item: 'beam', n: 20 }, { item: 'brass_bar', n: 10 }], money: 5000, after: ['flag:waterworks'],
     reward: { flag: 'greenhouse_fixed', text: 'Your greenhouse is restored: crops grow in any season!' } },
-  // Workshop
-  { id: 'p_gears', name: 'Clockwork Restock', area: 'Workshop', desc: 'Parts for the clocktower mechanism.', items: [{ item: 'copper_gear', n: 30 }, { item: 'spring', n: 10 }, { item: 'iron_plate', n: 10 }], after: ['flag:town_mill'],
+  { id: 'p_gears', name: 'Clockwork Restock', area: 'The clocktower', desc: 'Parts for the clocktower mechanism.', items: [{ item: 'copper_gear', n: 30 }, { item: 'spring', n: 10 }, { item: 'iron_plate', n: 10 }], after: ['flag:town_mill'],
     reward: { items: [{ item: 'arm_fast', n: 4 }], text: 'Four brass arms' } },
-  { id: 'p_metals', name: 'The Smelter\'s Pride', area: 'Workshop', desc: 'Bars of every metal in the valley.', items: [{ item: 'copper_bar', n: 20 }, { item: 'tin_bar', n: 10 }, { item: 'iron_bar', n: 20 }, { item: 'gold_bar', n: 5 }], after: ['flag:waterworks'],
+  { id: 'p_metals', name: 'The Smelter\'s Pride', area: 'The smithy', desc: 'Bars of every metal in the valley.', items: [{ item: 'copper_bar', n: 20 }, { item: 'tin_bar', n: 10 }, { item: 'iron_bar', n: 20 }, { item: 'gold_bar', n: 5 }], after: ['flag:waterworks'],
     reward: { items: [{ item: 'blast_furnace', n: 1 }], text: 'A blast furnace' } },
   // the Clock is the Starlight era's town keystone: it waits for the Tram
-  { id: 'p_clock', name: 'Restart the Clock', area: 'Workshop', desc: 'The great mechanism needs brass, coils and a heart.', items: [{ item: 'brass_gear', n: 40 }, { item: 'spark_coil', n: 10 }, { item: 'clockwork_core', n: 1 }], money: 10000, after: ['flag:tram'],
+  { id: 'p_clock', name: 'Restart the Clock', area: 'The clocktower', desc: 'The great mechanism needs brass, coils and a heart.', items: [{ item: 'brass_gear', n: 40 }, { item: 'spark_coil', n: 10 }, { item: 'clockwork_core', n: 1 }], money: 10000, after: ['flag:tram'],
     reward: { flag: 'clock_fixed', text: 'The clocktower ticks again! The whole town celebrates.' } },
-  // Pantry
-  { id: 'p_preserves', name: 'Winter Pantry', area: 'Pantry', desc: 'Jars and bottles for the long winter.', items: [{ item: '#preserve', n: 10 }, { item: '#wine', n: 3 }, { item: 'honey', n: 3 }], after: ['flag:town_mill'],
+  { id: 'p_preserves', name: "The Kettle's Cellar", area: 'The Copper Kettle', desc: "Rowan's cellar, stocked from your crocks and kegs for the winter.", items: [{ item: '#preserve', n: 10 }, { item: '#wine', n: 3 }, { item: 'honey', n: 3 }], after: ['flag:town_mill'],
     reward: { items: [{ item: 'keg', n: 4 }], text: 'Four kegs' } },
-  { id: 'p_dairy', name: 'Dairy Day', area: 'Pantry', desc: 'Cheese, butter and eggs for the inn.', items: [{ item: 'cheese', n: 5 }, { item: 'butter', n: 5 }, { item: 'egg', n: 10 }, { item: 'goat_milk', n: 2 }], after: ['r_dairy'],
+  { id: 'p_dairy', name: 'Dairy Day', area: 'The Copper Kettle', desc: 'Cheese, butter and eggs for the inn.', items: [{ item: 'cheese', n: 5 }, { item: 'butter', n: 5 }, { item: 'egg', n: 10 }, { item: 'goat_milk', n: 2 }], after: ['r_dairy'],
     reward: { items: [{ item: 'kitchen', n: 1 }], text: 'A steam kitchen' } },
   // the Bakery Window opens once the town has flour of its own (the Town Mill) and you have an oven
-  { id: 'p_bakery', name: 'Bakery Window', area: 'Pantry', desc: 'Baked goods for the bakery window.', items: [{ item: 'bread', n: 5 }, { item: 'cake', n: 1 }, { item: 'cookies', n: 6 }, { item: 'pumpkin_pie', n: 2 }], after: ['flag:bread_town', 'r_cooking'],
+  { id: 'p_bakery', name: 'Bakery Window', area: 'The Mercantile', desc: "Baked goods for the Mercantile's window, from the Town Mill's flour.", items: [{ item: 'bread', n: 5 }, { item: 'cake', n: 1 }, { item: 'cookies', n: 6 }, { item: 'pumpkin_pie', n: 2 }], after: ['flag:bread_town', 'r_cooking'],
     reward: { items: [{ item: 'assembler', n: 1 }], text: "A tinker's bench (assembler)" } },
-  // Wilds
-  { id: 'p_quarry', name: 'Quarry Road', area: 'Wilds', desc: 'Stone and gravel to pave the quarry road.', items: [{ item: 'stone', n: 200 }, { item: 'gravel', n: 50 }, { item: 'concrete', n: 20 }], after: ['r_crusher'],
+  { id: 'p_quarry', name: 'Quarry Road', area: 'The quarry', desc: 'Stone and gravel to pave the quarry road.', items: [{ item: 'stone', n: 200 }, { item: 'gravel', n: 50 }, { item: 'concrete', n: 20 }], after: ['r_crusher'],
     reward: { items: [{ item: 'drill_brass', n: 2 }], text: 'Two brass drills' } },
 ];
 

@@ -318,6 +318,8 @@ export interface NowLine {
   why: string;
   /** the objective's index in its quest */
   index: number;
+  /** how many steps its quest has */
+  steps: number;
 }
 
 /**
@@ -337,7 +339,7 @@ export function nowLines(g: Game, max = 1): NowLine[] {
     const i = def.objectives.findIndex((o, j) => !objDone(g, o, a.prog[j]));
     if (i < 0) continue;
     const o = def.objectives[i];
-    out.push({ id: a.id, title: def.title, text: objText(g, o, a.prog[i]), why: o.why ?? def.why ?? '', index: i });
+    out.push({ id: a.id, title: def.title, text: objText(g, o, a.prog[i]), why: o.why ?? def.why ?? '', index: i, steps: def.objectives.length });
     if (out.length >= max) break;
   }
   return out;
@@ -421,7 +423,11 @@ registerSystem({
   },
   load(g, d) {
     const q = questSys(g);
-    q.active = (d.active ?? []).filter((a: ActiveQuest) => QUEST_BY_ID.has(a.id));
+    // progress sized to the quest as it is now (a step added since the save counts from 0, not NaN)
+    q.active = (d.active ?? []).filter((a: ActiveQuest) => QUEST_BY_ID.has(a.id)).map((a: ActiveQuest) => {
+      const n = QUEST_BY_ID.get(a.id)!.objectives.length;
+      return { ...a, prog: Array.from({ length: n }, (_, i) => a.prog?.[i] ?? 0) };
+    });
     q.done = d.done ?? [];
   },
 });

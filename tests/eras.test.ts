@@ -22,6 +22,7 @@ import { Bot } from './bot';
 const secs = (g: Game, s: number) => { for (let i = 0; i < s * 60; i++) g.tick(); };
 const toasts = (g: Game) => g.events.filter((e) => e.t === 'toast').map((e) => (e as { text: string }).text);
 /** put a main quest on, as the chain would (its objectives start from nothing) */
+const q11 = (g: Game) => questSys(g).now(g, 9).find((l) => l.id === 'k11_boiler')!;
 const begin = (g: Game, id: string) => questSys(g).active.push({ id, prog: QUEST_BY_ID.get(id)!.objectives.map(() => 0), day: g.dayIndex });
 
 describe('a keystone counts from its quest', () => {
@@ -259,4 +260,46 @@ describe("the critic's re-check of Phases 3+4", () => {
     expect(news).toEqual([]);
     expect(questSys(g2).active.map((a) => a.id)).toEqual(questSys(g).active.map((a) => a.id));
   }, 120000);
+
+  it("the next town keystone is on the Works tab from the era's first quest: the Waterworks with k11, Lamplighting with k14", () => {
+    const g = new Game({ seed: 15 });
+    secs(g, 1.1);
+    expect(openOrder(g, 'w_waterworks')).toBeNull();
+    begin(g, 'k11_boiler');
+    secs(g, 1.1);
+    expect(openOrder(g, 'w_waterworks')).toBeTruthy();
+    // and k11's first step is to go and look at it
+    const now = q11(g);
+    expect(now.text).toMatch(/pump house/);
+    expect(now.title).toBe('Down to the Boiler');
+    expect(now.steps).toBe(QUEST_BY_ID.get('k11_boiler')!.objectives.length);
+    expect(openOrder(g, 'w_lamps')).toBeNull();
+    begin(g, 'k14_spark');
+    secs(g, 1.1);
+    expect(openOrder(g, 'w_lamps')).toBeTruthy();
+  });
+
+  it("any oil fills the Waterworks: the crock's cogbean oil counts, so it needn't wait for summer's sunflowers", () => {
+    const g = new Game({ seed: 16 });
+    begin(g, 'k11_boiler');
+    secs(g, 1.1);
+    const o = openOrder(g, 'w_waterworks')!;
+    const oil = o.lines.find((l) => l.spec === '#oil')!;
+    expect(oil.n).toBe(50);
+    g.player.inv.add(key('cogbean_oil'), 30);
+    g.player.inv.add(key('oil'), 20);
+    boardHandIn(g, o);
+    expect(oil.have).toBe(50);
+  });
+
+  it('a saved quest whose steps changed since loads with its progress sized to the steps it has now', () => {
+    const g = new Game({ seed: 17 });
+    const look = { skin: 1, hair: 2, hairStyle: 'short' as const, shirt: 3, pants: 4 };
+    const d = JSON.parse(JSON.stringify(serialize(g, look)));
+    d.sys.quests.active.push({ id: 'k11_boiler', prog: [0, 4, 0, 0], day: 3 });
+    const g2 = deserialize(d).game;
+    const a = questSys(g2).active.find((x) => x.id === 'k11_boiler')!;
+    expect(a.prog).toHaveLength(QUEST_BY_ID.get('k11_boiler')!.objectives.length);
+    expect(a.prog.every((n) => Number.isFinite(n))).toBe(true);
+  });
 });

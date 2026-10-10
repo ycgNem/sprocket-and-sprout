@@ -326,13 +326,13 @@ export const KEYSTONE_WORKS: KeystoneWorksDef[] = [
     done: "The Town Mill's wheel turns again! The Kettle and the Mercantile sell bread and flour from it, and Rowan wants loaves every week.",
   },
   {
-    id: 'w_waterworks', name: 'The Waterworks', era: 3, quest: 'k13_waterworks', after: ['r_steam'], flag: 'waterworks',
+    id: 'w_waterworks', name: 'The Waterworks', era: 3, quest: 'k11_boiler', after: ['r_steam'], flag: 'waterworks',
     desc: 'The pump house by the square: brass for the pumps, coils for their motors, oil for the bearings, plates for the tank and starch paste to seal the joints.',
-    items: [{ item: 'brass_bar', n: 20 }, { item: 'copper_coil', n: 10 }, { item: 'oil', n: 50 }, { item: 'iron_plate', n: 4 }, { item: 'starch_paste', n: 20 }],
+    items: [{ item: 'brass_bar', n: 20 }, { item: 'copper_coil', n: 10 }, { item: '#oil', n: 50 }, { item: 'iron_plate', n: 4 }, { item: 'starch_paste', n: 20 }],
     done: "The Waterworks run! The fountain plays, the deep galleries drain, and the pressure in the pipes will drive mist towers.",
   },
   {
-    id: 'w_lamps', name: 'Lamplighting', era: 3, quest: 'k15_lamps', after: ['r_spark'], flag: 'lamps_hung',
+    id: 'w_lamps', name: 'Lamplighting', era: 3, quest: 'k14_spark', after: ['r_spark'], flag: 'lamps_hung',
     desc: "Twelve lamps for the square, and the coils to wire them. They'll light on your power, through the keeper's old pole at the farm gate.",
     items: [{ item: 'lamp', n: 12 }, { item: 'copper_coil', n: 6 }],
     done: "The square's lamps are hung. They light at dusk on your power, while your grid reaches the farm gate with 12 sparks to spare.",

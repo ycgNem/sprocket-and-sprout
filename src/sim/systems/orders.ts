@@ -142,7 +142,7 @@ export function orderTitle(o: Order): string {
 }
 
 /** a tag's words on an order line ("4 honey (any kind)", not "4 any honey") */
-const TAG_LABEL: Record<string, string> = { flour: 'flour or meal', cooking: 'dishes (any)', preserve: 'preserves (any)', animal: 'animal goods (any)' };
+const TAG_LABEL: Record<string, string> = { flour: 'flour or meal', oil: 'oil (cogbean or sunflower)', cooking: 'dishes (any)', preserve: 'preserves (any)', animal: 'animal goods (any)' };
 export function specLabel(spec: string): string {
   if (spec[0] !== '#') return ITEM_BY_ID.get(spec)?.name ?? spec;
   const t = spec.slice(1);
@@ -478,16 +478,10 @@ function finishWorks(g: Game, id: string) {
   if (!p) return;
   for (const it of p.reward.items ?? []) g.give(key(it.item), it.n);
   if (p.reward.flag) g.flags.add(p.reward.flag);
-  g.toast(`Restoration complete: ${p.name}! ${p.reward.text}`, undefined, 6);
+  g.toast(`Works done: ${p.name}! ${p.reward.text}`, undefined, 6);
   g.emit({ t: 'sfx', id: 'chime' });
   g.emit({ t: 'fx', kind: 'magic', x: g.player.x, y: g.player.y - 1, n: 30 });
   g.count('projects');
-  const area = PROJECTS.filter((x) => x.area === p.area);
-  if (area.every((x) => os.worksDone.includes(x.id))) {
-    g.toast(`The ${p.area} restoration is finished! The town feels brighter.`, undefined, 6);
-    g.flags.add('area_' + p.area.toLowerCase());
-    if (p.area === 'Fields') g.player.maxEnergy += 30;
-  }
   if (id === 'p_clock') {
     send(g, 'clock', { from: 'tobias', title: 'The Clock Strikes!', text: 'For the first time in thirty years, the clocktower struck the hour this morning. The whole town gathered in the square. Thank you, from all of Thistlewick. Come see us. - Mayor Tobias Thistle' });
   }
