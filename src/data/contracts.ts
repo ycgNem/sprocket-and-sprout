@@ -8,6 +8,9 @@ export interface ContractDef {
   label: string;
   /** a typical unit value used for the payout when the spec is a tag */
   unit?: number;
+  /** unlock words (research ids, flag:x) that must hold before the Guild asks: no bread before
+   *  the town has flour and you have an oven (the critic's Phases 3+4 re-check), as standing orders */
+  after?: string[];
 }
 
 export const CONTRACT_POOL: ContractDef[] = [
@@ -19,28 +22,28 @@ export const CONTRACT_POOL: ContractDef[] = [
   { id: 'c_crop', spec: '#crop', n: 250, tier: 0, label: 'Fresh produce for the canal towns', unit: 45 },
   { id: 'c_egg', spec: '#egg', n: 60, tier: 0, label: 'Eggs for the hotel kitchens', unit: 50 },
   { id: 'c_coal', spec: 'coal', n: 80, tier: 0, label: 'Coal for the riverboats' },
-  { id: 'c_bread', spec: 'bread', n: 25, tier: 0, label: 'Loaves for the railway crews' },
+  { id: 'c_bread', spec: 'bread', n: 25, tier: 0, label: 'Loaves for the railway crews', after: ['flag:town_mill', 'r_cooking'] },
   { id: 'c_gear', spec: 'copper_gear', n: 30, tier: 0, label: 'Gears for the clockmakers' },
   { id: 'c_rope', spec: 'rope', n: 40, tier: 0, label: 'Rope for the shipyards' },
   // tier 1: mid game
-  { id: 'c_wine', spec: '#wine', n: 30, tier: 1, label: 'Wine for the capital cellars', unit: 300 },
-  { id: 'c_cheese', spec: 'cheese', n: 30, tier: 1, label: 'Cheese wheels for the fair' },
-  { id: 'c_brass', spec: 'brass_gear', n: 25, tier: 1, label: 'Brass gears for the observatory' },
-  { id: 'c_glass', spec: 'glass', n: 50, tier: 1, label: 'Glass for the conservatory' },
-  { id: 'c_cooking', spec: '#cooking', n: 40, tier: 1, label: 'Meals for the mountain inns', unit: 250 },
+  { id: 'c_wine', spec: '#wine', n: 30, tier: 1, label: 'Wine for the capital cellars', unit: 300, after: ['r_brewing'] },
+  { id: 'c_cheese', spec: 'cheese', n: 30, tier: 1, label: 'Cheese wheels for the fair', after: ['r_dairy'] },
+  { id: 'c_brass', spec: 'brass_gear', n: 25, tier: 1, label: 'Brass gears for the observatory', after: ['r_brass'] },
+  { id: 'c_glass', spec: 'glass', n: 50, tier: 1, label: 'Glass for the conservatory', after: ['r_glass'] },
+  { id: 'c_cooking', spec: '#cooking', n: 40, tier: 1, label: 'Meals for the mountain inns', unit: 250, after: ['r_cooking'] },
   { id: 'c_iron', spec: 'iron_bar', n: 60, tier: 1, label: 'Iron for the bridge builders' },
-  { id: 'c_honey', spec: '#honey', n: 40, tier: 1, label: 'Honey for the apothecaries', unit: 120 },
-  { id: 'c_brick', spec: 'brick', n: 100, tier: 1, label: 'Bricks for the new library' },
-  { id: 'c_cloth', spec: 'cloth', n: 30, tier: 1, label: 'Cloth for the tailors\' guild' },
-  { id: 'c_coil', spec: 'copper_coil', n: 40, tier: 1, label: 'Coils for the telegraph line' },
+  { id: 'c_honey', spec: '#honey', n: 40, tier: 1, label: 'Honey for the apothecaries', unit: 120, after: ['r_bees'] },
+  { id: 'c_brick', spec: 'brick', n: 100, tier: 1, label: 'Bricks for the new library', after: ['r_masonry'] },
+  { id: 'c_cloth', spec: 'cloth', n: 30, tier: 1, label: 'Cloth for the tailors\' guild', after: ['r_weaving'] },
+  { id: 'c_coil', spec: 'copper_coil', n: 40, tier: 1, label: 'Coils for the telegraph line', after: ['r_metallurgy'] },
   // tier 2: late game
-  { id: 'c_spark', spec: 'spark_coil', n: 20, tier: 2, label: 'Spark coils for the lighthouse' },
+  { id: 'c_spark', spec: 'spark_coil', n: 20, tier: 2, label: 'Spark coils for the lighthouse', after: ['r_spark'] },
   { id: 'c_gold', spec: 'gold_bar', n: 25, tier: 2, label: 'Gold for the royal mint' },
-  { id: 'c_fine', spec: 'fine_cloth', n: 15, tier: 2, label: 'Fleece weave for the opera house' },
-  { id: 'c_beam', spec: 'beam', n: 40, tier: 2, label: 'Beams for the great hall' },
-  { id: 'c_plate', spec: 'iron_plate', n: 60, tier: 2, label: 'Plates for the airship hangar' },
+  { id: 'c_fine', spec: 'fine_cloth', n: 15, tier: 2, label: 'Fleece weave for the opera house', after: ['r_weaving'] },
+  { id: 'c_beam', spec: 'beam', n: 40, tier: 2, label: 'Beams for the great hall', after: ['r_sawmill'] },
+  { id: 'c_plate', spec: 'iron_plate', n: 60, tier: 2, label: 'Plates for the airship hangar', after: ['r_metallurgy'] },
   { id: 'c_gem', spec: '#gem', n: 20, tier: 2, label: 'Gems for the jewelers\' row', unit: 400 },
-  { id: 'c_star', spec: 'starmetal_bar', n: 10, tier: 2, label: 'Starmetal for the Guild charter' },
+  { id: 'c_star', spec: 'starmetal_bar', n: 10, tier: 2, label: 'Starmetal for the Guild charter', after: ['r_starmetal'] },
 ];
 
 /** reputation needed for each rank (index = rank) */

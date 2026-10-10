@@ -35,9 +35,9 @@ export function drawNowStrip(ui: UI, play: PlayScreen, y: number): number {
   ui.text(head, 9, top + 1, C.amber);
   body.forEach((l, i) => ui.text(l, 9 + textWidth(head), top + 1 + i * 10, C.cream));
   why.forEach((l, i) => ui.text(l, 9, top + 1 + body.length * 10 + i * 9, C.pebble));
-  // ? opens the Notebook on the lessons page
-  if (ui.button('nowq', 4 + w - 15, y + 3, 11, 11, '?', { style: 'flat', tip: [{ text: main.title, color: C.amber }, { text: "The Keeper's Notebook: lessons, machines, controls" }] })) {
-    play.openWindow('journal', 'notebook');
+  // ? opens the quest in the journal: what it's for and how, every step (the Notebook is a tab there)
+  if (ui.button('nowq', 4 + w - 15, y + 3, 11, 11, '?', { style: 'flat', tip: [{ text: main.title, color: C.amber }, { text: 'The journal: why this quest matters, its steps and a tip' }] })) {
+    play.openWindow('journal', 'quests');
   }
   if (ui.hover(4, y, w, h)) ui.block(4, y, w, h);
   let yy = y + h + 2;

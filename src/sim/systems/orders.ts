@@ -279,7 +279,7 @@ export function postContracts(g: Game) {
   os.open = os.open.filter((o) => o.kind !== 'guild');
   const r = rank(g, 'guild');
   const maxTier = r >= 4 ? 2 : r >= 2 ? 1 : 0;
-  const pool = CONTRACT_POOL.filter((c) => c.tier <= maxTier && specValid(c.spec));
+  const pool = CONTRACT_POOL.filter((c) => c.tier <= maxTier && specValid(c.spec) && (c.after ?? []).every((w) => holds(g, w)));
   const top = pool.filter((c) => c.tier === maxTier);
   const picks: ContractDef[] = [];
   // one from the newest tier, the rest from anything unlocked

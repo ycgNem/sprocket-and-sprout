@@ -126,21 +126,22 @@ function drawValidateRings(ctx: CanvasRenderingContext2D, g: Game, visible: (e: 
       const out = e.mach?.recipe?.out[0]?.item;
       const def = out ? ITEM_BY_ID.get(out) : undefined;
       if (e.ghost || !visible(e) || !def || !matchesSpec(def, v.item)) continue;
-      const p = glyphPos(e);
-      const cx = p.x + 4.5, cy = p.y + 3;
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = rgba(C.ink, 0.45);
-      ctx.beginPath();
-      ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-      ctx.stroke();
-      // held time in moss; a gentle pulse while it's counting
-      ctx.strokeStyle = PALETTE[k > 0 ? C.lime : C.pebble];
-      ctx.beginPath();
-      ctx.arc(cx, cy, 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(0.04, k));
-      ctx.stroke();
+      // a pixel gauge on the machine itself, at its footprint's top edge (not a smooth arc floating
+      // over the roof: the critic): twelve 2x2 pips, lit clockwise from the top as the minutes are
+      // held, and a pulse in the middle while it's counting
+      const cx = Math.round(e.x * 16 + e.w * 8), cy = Math.round(e.y * 16 + 4);
+      const lit = Math.round(k * 12);
+      for (let i = 0; i < 12; i++) {
+        const a = -Math.PI / 2 + (i / 12) * Math.PI * 2;
+        const x = Math.round(cx + Math.cos(a) * 5) - 1, y = Math.round(cy + Math.sin(a) * 5) - 1;
+        ctx.fillStyle = rgba(C.ink, 0.7);
+        ctx.fillRect(x - 1, y - 1, 4, 4);
+        ctx.fillStyle = i < lit ? PALETTE[C.lime] : rgba(C.pebble, 0.8);
+        ctx.fillRect(x, y, 2, 2);
+      }
       if (k > 0) {
-        ctx.fillStyle = rgba(C.lime, 0.25 + 0.2 * Math.sin(time * 5));
-        ctx.fillRect(Math.round(cx) - 1, Math.round(cy) - 1, 2, 2);
+        ctx.fillStyle = rgba(C.lime, 0.45 + 0.3 * Math.sin(time * 5));
+        ctx.fillRect(cx - 1, cy - 1, 2, 2);
       }
     }
   }

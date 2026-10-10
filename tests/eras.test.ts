@@ -7,7 +7,7 @@ import { Game } from '../src/sim/Game';
 import { key } from '../src/sim/inventory';
 import { questSys, objText, nowLines } from '../src/sim/systems/quests';
 import { stages } from '../src/sim/systems/research';
-import { boardHandIn, openOrder, orders } from '../src/sim/systems/orders';
+import { boardHandIn, openOrder, orders, postContracts } from '../src/sim/systems/orders';
 import { tramBin, tramRun } from '../src/sim/systems/townworks';
 import { QUEST_BY_ID, PROJECTS } from '../src/data/goals';
 import { RECIPES } from '../src/data/recipes';
@@ -290,6 +290,24 @@ describe("the critic's re-check of Phases 3+4", () => {
     g.player.inv.add(key('oil'), 20);
     boardHandIn(g, o);
     expect(oil.have).toBe(50);
+  });
+
+  it('the Guild asks for bread only once the town has flour and you have an oven, as standing orders wait', () => {
+    const g = new Game({ seed: 18 });
+    const asked = new Set<string>();
+    for (let i = 0; i < 60; i++) {
+      postContracts(g);
+      for (const o of orders(g).open) if (o.kind === 'guild') asked.add(o.def);
+    }
+    expect(asked.has('c_bread')).toBe(false);
+    expect(asked.size).toBeGreaterThan(3);
+    g.flags.add('town_mill');
+    g.research.done.add('r_cooking');
+    for (let i = 0; i < 60 && !asked.has('c_bread'); i++) {
+      postContracts(g);
+      for (const o of orders(g).open) if (o.kind === 'guild') asked.add(o.def);
+    }
+    expect(asked.has('c_bread')).toBe(true);
   });
 
   it('a saved quest whose steps changed since loads with its progress sized to the steps it has now', () => {

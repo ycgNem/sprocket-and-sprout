@@ -63,7 +63,9 @@ export const STRATA: StratumDef[] = [
   {
     id: 'crystal', name: 'Crystal', levels: [21, 25], ores: [], rock: 0.2, ore: 0, gem: 0.05, ice: 0,
     extra: [['quartz', 0.25]], decor: 'crystal', decorP: 0.03, ladder: [0.04, 0.012], art: 4,
-    dark: 0.84, lantern: 3.2, tint: C.deepsea,
+    // a near-black, colourless dark: the cyan floor showed through a blue one at 0.84 and read as
+    // bright as the Earth (the critic's Phases 3+4 re-check), so lamps weren't needed
+    dark: 0.93, lantern: 3.2, tint: C.ink,
     intro: 'The Crystal (levels 21-25): gems and quartz in galleries too dark for your lantern. Set lamps down on the floor to light them. Wisps hide the ladders.',
   },
   {

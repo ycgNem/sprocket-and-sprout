@@ -68,8 +68,12 @@ export class PlayScreen implements Screen {
   win: WinState | null = null;
   /** windows waiting their turn (a keystone's card after its scene, then the era's card) */
   winQ: { id: string; arg?: any }[] = [];
-  /** a town keystone's scene: the camera at its building for a few seconds (ROADMAP.md 7.5) */
-  scene: { x: number; y: number; t: number; title: string; text: string; icon?: string } | null = null;
+  /** a town keystone's scene: the camera at its building for a few seconds (ROADMAP.md 7.5); `card`
+   *  false for one replayed after its card already showed */
+  scene: { x: number; y: number; t: number; title: string; text: string; icon?: string; card?: boolean } | null = null;
+  /** keystones finished while you were indoors or asleep (a tagged crate at the night post): their
+   *  cards showed then, and the camera goes to look the first time you're outdoors (the critic) */
+  sceneReplay: { x: number; y: number; title: string }[] = [];
   rot: Dir = 0;
   drag: { x: number; y: number } | null = null;
   /**
@@ -178,6 +182,12 @@ export class PlayScreen implements Screen {
     this.win = { id, arg, t: 0, pause: def.pause ?? true, data: {} };
     this.app.audio.sfx('open');
     this.drag = null;
+  }
+
+  /** can a keystone's scene play now? outdoors in the valley, awake, not fading to or from sleep */
+  private sceneOk(): boolean {
+    const g = this.g;
+    return g.player.where === 'world' && g.map.w >= 200 && !g.sleeping && this.sleepFade === 0;
   }
 
   /** open a window now if the screen is free, or once the windows (and any scene) before it are done */
@@ -310,8 +320,15 @@ export class PlayScreen implements Screen {
       if (this.scene.t >= SCENE_LEN) {
         const s = this.scene;
         this.scene = null;
-        this.winQ.unshift({ id: 'message', arg: { title: s.title, text: s.text, icon: s.icon } });
+        if (s.card !== false) this.winQ.unshift({ id: 'message', arg: { title: s.title, text: s.text, icon: s.icon } });
       }
+    }
+    // one that finished while you were indoors or asleep: the camera goes to look once you're out
+    if (this.sceneReplay.length && !this.scene && !this.win && !this.winQ.length && this.sceneOk()) {
+      const s = this.sceneReplay.shift()!;
+      this.scene = { x: s.x, y: s.y, t: 0, title: s.title, text: '', card: false };
+      this.app.renderer.juice.banner({ title: s.title, sub: 'The town works come alive', color: 50, items: [] });
+      this.app.audio.sfx('quest');
     }
     if (!this.win && !this.scene && this.winQ.length) {
       const w = this.winQ.shift()!;
@@ -1634,14 +1651,18 @@ export class PlayScreen implements Screen {
           this.openWindow(e.open, e.arg);
           break;
         case 'scene':
-          // only outdoors in the valley: in the mine or the house the card comes on its own
-          if (g.player.where === 'world' && g.map.w >= 200) {
+          // only outdoors in the valley and awake: indoors, in the mine or asleep the card comes on
+          // its own, and the camera goes to look the first time you're outdoors
+          if (this.sceneOk()) {
             // the board you handed in at steps aside so you can watch
             if (this.win) this.closeWindow();
             this.scene = { x: e.x, y: e.y, t: 0, title: e.title, text: e.text, icon: e.icon };
             J.banner({ title: e.title, sub: 'The town works come alive', color: 50, items: [] });
             a.sfx('quest');
-          } else this.queueWindow('message', { title: e.title, text: e.text, icon: e.icon });
+          } else {
+            this.queueWindow('message', { title: e.title, text: e.text, icon: e.icon });
+            if (g.map.w >= 200) this.sceneReplay.push({ x: e.x, y: e.y, title: e.title });
+          }
           break;
       }
     }
