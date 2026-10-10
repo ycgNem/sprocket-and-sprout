@@ -121,9 +121,9 @@ export class App {
     if (this.settings.uiScale > 0) return this.settings.uiScale;
     const w = this.canvas.width, h = this.canvas.height;
     const s = Math.max(1, Math.min(Math.floor(w / 560), Math.floor(h / 340)));
-    // a laptop browser (1366x768 minus the tabs, 600-679 px tall) keeps 2x: the UI is laid out to
-    // fit 300 UI px tall, and 1x there is too small to read
-    return s === 1 && w >= 1120 && h >= 600 ? 2 : s;
+    // a laptop browser (1366x768 minus the tabs, 600-679 px tall) and the 960x600 web embed keep
+    // 2x: the UI is laid out to fit 480x300 UI px, and 1x there is too small to read
+    return s === 1 && w >= 960 && h >= 600 ? 2 : s;
   }
 
   private updateCursor() {

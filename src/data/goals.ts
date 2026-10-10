@@ -84,7 +84,7 @@ export const QUESTS: QuestDef[] = [
     reward: { money: 200 } },
   { id: 't_professor', title: "The Professor's Proposal", giver: 'ottoline', tutorial: true, after: ['t_furnace', 't_harvest'],
     desc: 'Professor Cogwhistle bursts with excitement: "A farmer who smelts! Visit my workshop and I will lend you a Study Desk. Research is how a farm learns to run itself!"',
-    hint: 'Talk to Ottoline. She is usually in the Cogwhistle Workshop (south-west of the square) from 10am.',
+    hint: 'Talk to Prof. Cogwhistle. She is usually in the Cogwhistle Workshop (south-west of the square) from 10am.',
     objectives: [{ t: 'talk', npc: 'ottoline' }],
     reward: { items: [{ item: 'lab', n: 1 }, { item: 'bundle_green', n: 4 }], flag: 'lab' } },
   { id: 't_research', title: 'Study Hall', giver: 'ottoline', tutorial: true, after: ['t_professor'],

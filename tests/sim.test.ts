@@ -249,3 +249,16 @@ describe('save/load', () => {
     expect(d.look).toEqual({ skin: C.apricot, hair: C.walnut, hairStyle: 'short', shirt: C.moss, pants: C.river, accent: C.rose });
   });
 });
+
+describe('walkability (1.2 playtest bug 12)', () => {
+  it('weeds and twigs are walkable; bushes, logs and rocks are not', () => {
+    const g = new Game({ seed: 5 });
+    const m = g.map;
+    const x = 44, y = 34;
+    m.setG(x, y, T.GRASS);
+    for (const [o, ok] of [[O.WEED, true], [O.TWIG, true], [O.TALLGRASS, true], [O.BUSH, false], [O.LOG, false], [O.ROCK, false]] as const) {
+      m.setO(x, y, o);
+      expect(m.walkable(x, y), `object ${o}`).toBe(ok);
+    }
+  });
+});

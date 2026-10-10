@@ -141,6 +141,9 @@ function requestPanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w:
 
 const chestPanel = STRUCT_PANELS.chest;
 STRUCT_PANELS.chest = (ui, play, e, x, y, w, st) => {
+  // shift-click from the bag goes into the chest (1.2 playtest: it only ever worked chest -> bag,
+  // because this panel never named a target for the bag)
+  st.data.target = e.inv;
   if (e.def.id === 'crate_req') return requestPanel(ui, play, e, x, y, w);
   if (chestPanel) return chestPanel(ui, play, e, x, y, w, st);
   // generic chest

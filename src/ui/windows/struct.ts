@@ -13,6 +13,7 @@ import type { WinState } from './index';
 import { itemTooltip, stationName } from '../tooltips';
 import { ICON } from '../font';
 import { RESEARCH_BY_ID } from '../../data/research';
+import { deconstruct } from '../../sim/build';
 
 /** Extra struct panels registered by later systems (labs, buildings, hives, megaprojects...). */
 export const STRUCT_PANELS: Record<string, (ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: number, st: WinState) => number> = {};
@@ -61,7 +62,8 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
     else if (kind === 'planter') ui.text('Seeds and fertilizer for sowing. Arms can refill it.', x + 14, top + 2, C.walnut);
     else ui.text(readonly ? 'Collected goods. Click to take, or use an arm.' : `${e.inv.slots.filter(Boolean).length}/${e.inv.size} stacks used. Shift-click to move.`, x + 14, top + 2, C.walnut);
     invGrid(ui, play, e.inv, x + 14, top + 14, 12, { target: inv, readonly, accept: kind === 'shipbin' ? (k) => kDef(k).price > 0 : undefined });
-    if (!readonly) target = e.inv;
+    // the crate takes only what the post will buy, by shift-click as by hand
+    if (!readonly) target = kind === 'shipbin' ? (k, n) => (kDef(k).price > 0 ? n - e.inv!.add(k, n) : 0) : e.inv;
     if (kind === 'chest' && ui.button('csort', x + w - 60, top - 1, 46, 12, 'Sort', { style: 'flat' })) e.inv.sort();
     if (kind === 'shipbin') {
       let total = 0;
@@ -75,8 +77,13 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
   }
   // player inventory
   const py = y + h - playerGridH - 10;
-  ui.text('Your bag (shift-click to move)', x + 14, py - 2, C.walnut);
+  ui.text(target ? 'Your bag (shift-click: stack, ctrl: one, double: all)' : 'Your bag', x + 14, py - 2, C.walnut);
   invGrid(ui, play, inv, x + 14, py + 8, 12, { target, count: 36 });
+  // the one sure way to move a full chest: everything inside comes with it
+  if (!e.st.fixed && ui.button('pickup_struct', x + w - 64, py - 5, 50, 12, 'Pick up', { style: 'flat', tip: e.inv && !e.inv.isEmpty() ? 'Pick it up with everything inside' : 'Pick it up' })) {
+    deconstruct(g, e);
+    return false;
+  }
   return true;
 }
 
@@ -240,7 +247,7 @@ function powerPanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: n
   }
   ui.text(`Grid #${n.id}: ${n.poles} poles, ${n.gens} generators, ${n.consumers} machines`, x + 14, y + 16, C.walnut);
   // rust instead of amber: amber text is unreadable on the peach panel
-  const satCol = n.sat >= 0.99 ? C.moss : n.sat > 0.5 ? (20 as C) : C.brick; // #9e4539
+  const satCol = n.sat >= 0.99 ? C.moss : n.sat > 0.5 ? C.rust : C.brick;
   ui.text(`Demand ${Math.round(n.demand)}   Supply ${Math.round(n.cap)}   Satisfaction ${Math.round(n.sat * 100)}%`, x + 14, y + 27, satCol);
   if (n.storeCap) ui.text(`Batteries ${Math.round(n.stored)} / ${n.storeCap}`, x + w - 14, y + 27, C.walnut, { align: 'right' });
   // graph

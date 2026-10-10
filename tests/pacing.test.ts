@@ -23,3 +23,17 @@ describe('pacing (scripted bot, first 3 weeks)', () => {
     if (days >= 21) expect(armDay!).toBeLessThanOrEqual(21);
   }, 600000);
 });
+
+describe('mail (DECISIONS #57)', () => {
+  it('a week of play brings at most seven letters, one a day', () => {
+    const g = new Game({ seed: 77, name: 'Bot', farmName: 'Bolt' });
+    const bot = new Bot(g);
+    for (let d = 0; d < 7; d++) bot.playDay();
+    const mail = (g.sys.goals?.mail ?? []) as { id: string; day: number }[];
+    console.log('letters:', mail.map((m) => `${m.day}:${m.id}`).join(', '));
+    expect(mail.length).toBeLessThanOrEqual(7);
+    const perDay = new Map<number, number>();
+    for (const m of mail) perDay.set(m.day, (perDay.get(m.day) ?? 0) + 1);
+    expect(Math.max(0, ...perDay.values())).toBeLessThanOrEqual(1);
+  }, 600000);
+});

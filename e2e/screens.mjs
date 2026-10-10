@@ -149,6 +149,10 @@ const SC = {
   mail: async () => ev(`(() => { S.play.openWindow('mail'); })()`),
   stats: async () => ev(`(() => { const g = S.g; for (let i = 0; i < 400; i++) { g.stats.add(S.key('wood'), 1); g.stats.add(S.key('stone'), 2); g.stats.use(S.key('wood'), 1); g.tick(); } S.play.openWindow('stats'); })()`),
   research: async () => ev(`(() => { S.g.research.done.add('r_belts'); S.g.research.done.add('r_preserves'); S.play.openWindow('research'); S.play.win.data.sel = 'r_arms'; })()`),
+  // 1.2 bug 10: every topic reachable (scrolled to the far corners, and the Fit overview)
+  'research-traps': async () => ev(`(async () => { const { RESEARCH_BY_ID } = await import('/src/data/research.ts'); S.play.openWindow('research'); const p = RESEARCH_BY_ID.get('r_traps').pos; S.play.win.data.panX = -(p[0] * 66 - 150); S.play.win.data.panY = -(p[1] * 58 - 100); S.play.win.data.sel = 'r_traps'; })()`),
+  'research-bots': async () => ev(`(async () => { const { RESEARCH_BY_ID } = await import('/src/data/research.ts'); S.play.openWindow('research'); const p = RESEARCH_BY_ID.get('r_bot_count').pos; S.play.win.data.panX = -(p[0] * 66 - 150); S.play.win.data.panY = -(p[1] * 58 - 100); S.play.win.data.sel = 'r_bot_count'; })()`),
+  'research-fit': async () => ev(`(() => { S.play.openWindow('research'); S.play.win.data.fit = true; })()`),
   perk: async () => ev(`(() => { S.g.player.skills.farming = 5; S.play.openWindow('perk'); })()`),
   pause: async () => ev(`(() => { S.play.openWindow('pause'); })()`),
   settings: async () => ev(`(() => { S.play.openWindow('pause'); S.play.win.data.settings = true; })()`),

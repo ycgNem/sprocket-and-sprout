@@ -29,6 +29,8 @@ export interface GoalSys {
   fish: Record<string, { n: number; max: number }>;
   found: string[];
   mail: Letter[];
+  /** letters waiting for a morning with no other letter (one a day) */
+  queue?: Letter[];
 }
 
 export function goals(g: Game): GoalSys {
@@ -217,10 +219,29 @@ export function donateMuseum(g: Game, id: string): boolean {
 }
 
 // ---------------- mail ----------------
+// DECISIONS #57 ("too much mail"): quests send no letters, season notes, festivals and
+// birthdays live in the almanac, and the mailbox delivers at most one letter a day. The rest
+// wait in a queue and arrive on the next free morning, oldest first.
 export function send(g: Game, id: string, l: { from: string; title: string; text: string; items?: { item: string; n: number }[] }) {
   const gs = goals(g);
-  if (gs.mail.some((m) => m.id === id)) return;
-  gs.mail.unshift({ id, from: l.from, title: l.title, text: l.text, items: l.items, read: false, day: g.dayIndex });
+  if (gs.mail.some((m) => m.id === id) || gs.queue?.some((m) => m.id === id)) return;
+  const letter: Letter = { id, from: l.from, title: l.title, text: l.text, items: l.items, read: false, day: g.dayIndex };
+  if (deliveredToday(g)) {
+    (gs.queue ??= []).push(letter);
+    return;
+  }
+  deliver(g, letter);
+}
+
+/** a letter already came today (the one-a-day rule) */
+export function deliveredToday(g: Game): boolean {
+  return goals(g).mail.some((m) => m.day === g.dayIndex);
+}
+
+function deliver(g: Game, letter: Letter) {
+  const gs = goals(g);
+  letter.day = g.dayIndex;
+  gs.mail.unshift(letter);
   if (gs.mail.length > 60) gs.mail.pop();
 }
 
@@ -232,27 +253,13 @@ export function readMail(g: Game, m: Letter) {
 }
 
 function mailSend(g: Game, id: string, args: any) {
-  if (id === 'smithy_done') send(g, 'smithy_' + g.dayIndex, { from: 'bram', title: 'Your tool is ready', text: `Finished your ${ITEM_BY_ID.get(args.tool)?.name}. It's in your bag. Treat it well. - Bram` });
-  else if (id.startsWith('quest:')) {
-    // quests already show as toasts; tutorial letters go in the mailbox for reference
-    const from = args.from;
-    send(g, id, { from, title: args.title, text: args.text });
-  } else send(g, id, args);
+  // tool pick-ups and quests already toast; they no longer write letters
+  if (id === 'smithy_done' || id.startsWith('quest:')) return;
+  send(g, id, args);
 }
 
 function seasonalMail(g: Game) {
-  const t = g.time;
-  const SEAS = ['Spring', 'Summer', 'Fall', 'Winter'];
-  if (t.day === 1) send(g, `season_${g.dayIndex}`, { from: 'marigold', title: `${SEAS[t.season]} has arrived!`, text: `New ${SEAS[t.season].toLowerCase()} seeds are on the shelves at the Mercantile. Out-of-season crops wither at the change of season, so plan ahead! - Marigold` });
-  // festival reminder the day before
-  const fest = g.sys.festivals?.list?.find?.((f: any) => f.season === t.season && f.day === t.day + 1);
-  if (fest) send(g, `fest_${g.dayIndex}`, { from: fest.host, title: `${fest.name} is tomorrow!`, text: `${fest.desc} Come to the town square! - ${NPC_BY_ID.get(fest.host)?.name}` });
-  // birthdays tomorrow
-  for (const n of g.sys.npcs?.list ?? []) {
-    const d = NPC_BY_ID.get(n.id)!;
-    if (d.birthday.season === t.season && d.birthday.day === t.day + 1 && n.met) send(g, `bday_${n.id}_${t.year}`, { from: 'marigold', title: 'Psst!', text: `${shortName(d.name)}'s birthday is tomorrow. A thoughtful gift goes a long way! - Marigold` });
-  }
-  // occasional gifts from close friends
+  // occasional gifts from close friends (season notes, festivals and birthdays are in the almanac)
   for (const n of g.sys.npcs?.list ?? []) {
     if (n.points >= 1000 && g.rng.next() < 0.015) {
       const d = NPC_BY_ID.get(n.id)!;
@@ -260,8 +267,11 @@ function seasonalMail(g: Game) {
       if (love.length) send(g, `gift_${n.id}_${g.dayIndex}`, { from: n.id, title: 'A little something', text: `I saw this and thought of you. - ${shortName(d.name)}`, items: [{ item: g.rng.pick(['cake', 'cookies', 'bread', 'tea', 'honey']), n: 1 }] });
     }
   }
+  // a festival tomorrow gets a toast in the morning rather than a letter
+  const t = g.time;
+  const fest = g.sys.festivals?.list?.find?.((f: any) => f.season === t.season && f.day === t.day + 1);
+  if (fest) g.toast(`${fest.name} is tomorrow in the town square.`);
 }
-
 registerSystem({
   name: 'goals',
   dayStart(g) {
@@ -287,7 +297,7 @@ registerSystem({
       });
     }
     // day 4: Roxy drops a card from the sky so players find Skyhook Field
-    if (g.dayIndex >= 3 && g.map.w > 100 && !g.flags.has('mail_roxy')) {
+    if (g.dayIndex >= 3 && g.map.w > 100 && !g.flags.has('mail_roxy') && !deliveredToday(g)) {
       g.flags.add('mail_roxy');
       send(g, 'roxy_intro', {
         from: 'roxy', title: 'Dropped from a red balloon',
@@ -295,6 +305,9 @@ registerSystem({
       });
       g.toast('A card fluttered down from a passing airship. Check your mail!', undefined, C.amber);
     }
+    // yesterday's waiting letter comes before anything new today
+    const gq = goals(g).queue;
+    if (gq?.length && !deliveredToday(g)) deliver(g, gq.shift()!);
     seasonalMail(g);
     applyMega(g);
   },

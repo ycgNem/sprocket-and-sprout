@@ -102,6 +102,34 @@ export function sellStack(g: Game, k: number, n: number, factor = 1): number {
   return Math.round(total);
 }
 
+/**
+ * What the post will pay for n of k when `ahead` of the same item are already waiting to ship
+ * before them: the same chunked saturation as sellStack, with no side effects. The crate's "+N"
+ * pop uses it, so it never promises the unsaturated price.
+ */
+export function quote(g: Game, k: number, n: number, ahead = 0): number {
+  const m = market(g);
+  const idx = kIdx(k);
+  const s0 = m.sat[idx] ?? 0;
+  try {
+    const total = ahead > 0 ? (sellSim(g, k, ahead, m, idx), sellSim(g, k, n, m, idx)) : sellSim(g, k, n, m, idx);
+    return Math.round(total);
+  } finally {
+    m.sat[idx] = s0;
+  }
+}
+
+function sellSim(g: Game, k: number, n: number, m: Market, idx: number): number {
+  let total = 0;
+  const chunk = Math.max(1, Math.ceil(n / 20));
+  for (let left = n; left > 0; left -= chunk) {
+    const c = Math.min(chunk, left);
+    total += unitPrice(g, k) * c;
+    m.sat[idx] = (m.sat[idx] ?? 0) + c;
+  }
+  return total;
+}
+
 function rollWeek(g: Game) {
   const m = market(g);
   const pool = ITEMS.filter((d) => d.price > 20 && ['crop', 'fruit', 'artisan', 'animal', 'fish', 'food', 'component', 'flower'].includes(d.cat) && !d.id.startsWith('juice_'));
@@ -145,8 +173,10 @@ export function entryPrice(g: Game, e: ShopEntry): number {
   const base = e.price ?? Math.max(10, d.price * 2);
   const m = market(g);
   const bought = m.bought[e.item] ?? 0;
-  // the general store adjusts prices: early-season seed discounts, and stock you clear out gets pricier
-  let f = 1 + Math.min(0.3, bought * 0.004);
+  // the general store adjusts prices: early-season seed discounts, and stock you clear out gets
+  // pricier. Machines and other placeables keep their list price in every shop (a jar is 400 at
+  // the Mercantile and the Workshop alike, however many you bought)
+  let f = d.places ? 1 : 1 + Math.min(0.3, bought * 0.004);
   if (d.cat === 'seed' && g.time.day <= 7) f *= 0.9;
   if (d.cat === 'seed' && g.time.day >= 22) f *= 1.1;
   return Math.max(1, Math.round(base * f));

@@ -148,3 +148,50 @@ Running log of design and technical decisions made while building autonomously.
     height, so a 1366x768 laptop (about 620-660 px of browser viewport) fell to 1x, which is too
     small to read. From 600 px tall and 1120 wide it now keeps 2x; the screen sweep at 1366x620
     (`VIEW=1366x620 npm run screens`) shows every window fits.
+
+## 1.2 "The Works" (owner decisions D1-D12 from ROADMAP.md, 2026-10-09)
+
+The owner playtested 1.1 and asked for an identity rebuild around automation. ROADMAP.md section 1
+lists twelve questions with recommendations; the owner left them as defaults, so the
+recommendations are the decisions.
+
+49. **Version 2.0, codename "The Works" (D1).** It ships as 2.0 when the new opening lands; the
+    playtest hotfix is 1.1.1. The opening, the research model and the save format all change.
+50. **Old saves migrate (D2).** SAVE_VERSION 4 adds new state with defaults and keeps re-roled
+    villager ids. Only new games get the new opening; old saves keep their quest chain through
+    `needFlag`.
+51. **Romance is kept and frozen (D3).** No new romance content; Roxy's events stay. It is no longer
+    a pillar: no quest points at it.
+52. **Combat leaves the critical path (D4).** The mine becomes the Deepworks (hazards, a few pests);
+    the sword stays a tool and `s_deep` stops gating anything important.
+53. **Two festivals stay, two are replaced (D5).** Lantern Night and Frostlight Skate stay. Kite Day
+    becomes the Sprocket Fair (a throughput contest), Pumpkin Roll becomes the Harvest Haul (a trade
+    fair with an auction).
+54. **One flagstone set for every path (D6).** The placeable path and the town's roads are both
+    `T.PATH`, so one set replaces the cobbles: flagstone with a gravel edge, worn variants for the
+    wide town roads.
+55. **One name for the Professor (D7).** Quests, guide arrows, the tracker, the key bubble and the
+    map say "Prof. Cogwhistle" (`questName` in `src/data/cookbook.ts`); only friends' dialogue says
+    "Ottoline". A name tag hangs over the villager the guide arrow points at.
+56. **Art budget timing (D8).** Phase 0 spends up to 60 generations (pickaxe frames, flagstone and
+    plank sets); the big art pass (Phase 6, about 450) waits for the November 9 reset.
+57. **Less mail (D9).** Quests send no letters (the tracker and the toast already say it); season
+    notes, festivals and birthdays live in the almanac (festivals also get a morning toast the day
+    before); the tool-upgrade letter became the toast it already had; the mailbox delivers at most
+    one letter a day and queues the rest (`send` in `src/sim/systems/goals.ts`).
+58. **Structures indoors come with Workshop HQ (D10).** Chests, jars, kegs, the loom, the desk,
+    lamps and decor go indoors in Phase 5; belts and arms indoors later (the Basement).
+59. **No fluid network in 1.2 (D11).** The Waterworks keystone is a restored pump house (a project);
+    pipes are a 2.1 candidate.
+60. **Branches (D12).** Work happens on `works`; `main` (= the website) gets merges at the end of
+    Phase 0 (1.1.1), Phase 2 (2.0 beta, website only) and Phase 7 (2.0).
+61. **Cut freely, but farming stays hands-on (owner, 2026-10-09).** The owner accepts that 2.0 is
+    nearly a new game: old systems and content can be deleted outright when that makes the game
+    more its own, rather than kept behind flags. The floor: the player can always till, plant,
+    water and harvest by hand. Automation is the identity; hand farming is never automated away
+    or removed.
+62. **Tools don't one-shot structures (playtest).** An axe or pickaxe takes three hits within four
+    seconds to lift a structure, with a small wobble; a chest or crate with anything in it never
+    breaks by tool (remove mode or the window's new Pick up button take it with its contents).
+    Weeds and twigs are walkable; shaking is capped (trees and struck structures 2 px, the camera
+    3 px, both off with the Screen shake setting).

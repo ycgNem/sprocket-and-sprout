@@ -103,9 +103,13 @@ function almanacText(g: Game): string {
     'Splitters share items evenly. Burrow belts tunnel under paths.',
     'Rain waters every outdoor crop. The greenhouse needs watering.',
   ];
+  // the season notes that used to come as letters (DECISIONS #57)
+  const SEAS = ['spring', 'summer', 'fall', 'winter'];
+  const seasonLine = t.day <= 3 ? `\n\nIt's early ${SEAS[t.season]}: new seeds are on the Mercantile's shelves.`
+    : t.day >= 24 ? `\n\n${29 - t.day} days of ${SEAS[t.season]} left. Crops out of season wither when ${SEAS[(t.season + 1) % 4]} comes, so plan what you plant.` : '';
   const rec = almanacRecipe(g);
   const recLine = rec ? `\n\nRecipe of the week: ${ITEM_BY_ID.get(rec)!.name}. You copy it into your notebook.` : g.weekday === 6 ? '' : '\n\nA new recipe appears in every Sunday edition.';
-  return `Tomorrow will be ${W[g.tomorrow] ?? g.tomorrow}.\n\nIn demand at market this week: ${hot || 'nothing in particular'}.\n\nComing up: ${soon.length ? soon.join('; ') : 'a quiet week'}.\n\nAlmanac wisdom: ${tips[(g.dayIndex * 7 + 3) % tips.length]}${recLine}`;
+  return `Tomorrow will be ${W[g.tomorrow] ?? g.tomorrow}.\n\nIn demand at market this week: ${hot || 'nothing in particular'}.\n\nComing up: ${soon.length ? soon.join('; ') : 'a quiet week'}.\n\nAlmanac wisdom: ${tips[(g.dayIndex * 7 + 3) % tips.length]}${seasonLine}${recLine}`;
 }
 
 const HOVER: Partial<Record<O, [string, string]>> = {

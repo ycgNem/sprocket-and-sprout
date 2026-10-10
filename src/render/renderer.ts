@@ -30,6 +30,7 @@ import { PULSE_COL, machineState } from '../ui/pulse';
 import { Lighting } from './lighting';
 import { Weather } from './weather';
 import { Ambient } from './ambient';
+import { camShakeOffset, wobbleOffset } from './shake';
 
 const CH = TileMap.CHUNK;
 /** flat objects baked into the ground that get a shadow, and its width */
@@ -84,6 +85,8 @@ export class Renderer {
   drawables: Drawable[] = [];
   /** art overhaul: draw the procedural (1.0) player beside the player, same frame (debug panel) */
   compareArt = false;
+  /** the Screen shake setting: off means no camera kick and no tree/structure wobble */
+  shakeOn = true;
   /** world-pixel view rect */
   view = { x0: 0, y0: 0, x1: 0, y1: 0 };
   /** per-frame overlays added by the UI (ghosts, highlights) */
@@ -438,7 +441,7 @@ export class Renderer {
     const theme = g.sys.mine?.theme ?? 0;
     const cam = this.cam;
     const z = cam.zoom;
-    const sh = cam.shake > 0 ? (Math.random() - 0.5) * cam.shake * 6 : 0;
+    const sh = this.shakeOn ? camShakeOffset(cam.shake, Math.random()) : 0;
     // the camera snaps to whole world pixels like the sprites do, so they don't shimmer against it
     const camPx = Math.round(cam.x * TILE), camPy = Math.round(cam.y * TILE);
     const ox = Math.round(this.W / 2 - camPx * z + sh), oy = Math.round(this.H / 2 - camPy * z + sh);
@@ -509,7 +512,7 @@ export class Renderer {
           const shake = g.sys.treeShake?.get(i) ?? 0;
           const fruitN = tr.fruit > 0 ? Math.min(3, tr.fruit) : 0;
           const s = sprite(`tree:${tr.species}:${tr.stage}:${season}:${fruitN}:${m.deco[i] % 3}`);
-          const sxx = x * TILE + 8 + (shake > 0 ? Math.sin(this.time * 50) * shake * 2 : tr.stage >= 2 ? this.ambient.swayAt(x, y) : 0);
+          const sxx = x * TILE + 8 + (shake > 0 ? (this.shakeOn ? wobbleOffset(shake, this.time) : 0) : tr.stage >= 2 ? this.ambient.swayAt(x, y) : 0);
           // fade trees in front of the player
           D.push({ y: y + 0.95, f: () => {
             const p = g.player;
@@ -848,9 +851,10 @@ export class Renderer {
           continue;
         }
         const shadowW = d.kind === 'decor' || d.kind === 'lamp' ? 10 : Math.round(e.w * TILE * 0.8);
+        const hit = g.sys.structShake?.get(e.id) ?? 0;
         D.push({ y: e.y + e.h - 0.02, f: () => {
           drawSprite(ctx, sprite(`shadow:${shadowW}`), e.x * TILE + e.w * 8, (e.y + e.h) * TILE - 2);
-          drawSprite(ctx, s, e.x * TILE, e.y * TILE + this.juice.hopOf(e.id));
+          drawSprite(ctx, s, e.x * TILE + (hit && this.shakeOn ? wobbleOffset(hit, this.time) : 0), e.y * TILE + this.juice.hopOf(e.id));
           // imported windmill art animates its own sails
           if (d.id === 'windmill' && !hasImage(`st:windmill:${f}:${on ? 1 : 0}:${season}`)) this.drawWindmillBlades(g, e);
           if (d.kind === 'drill') this.drawDrillArrow(e);

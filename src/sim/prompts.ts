@@ -3,6 +3,7 @@
 // announces itself the moment you face it. Mirrors the order of `interact` in actions.ts.
 import { CROP_BY_ID } from '../data/crops';
 import { NPC_BY_ID } from '../data/npcs';
+import { questName } from '../data/cookbook';
 import { QUEST_BY_ID } from '../data/goals';
 import type { Game } from './Game';
 import { kDef } from './inventory';
@@ -22,7 +23,7 @@ export interface Prompt {
   y: number;
 }
 
-const first = (s: string) => s.split(' ')[0];
+
 
 export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   const p = g.player;
@@ -55,7 +56,7 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   if (npc) {
     const held = p.inv.slots[p.sel];
     const hd = held ? kDef(held.k) : null;
-    const name = first(NPC_BY_ID.get(npc.id)?.name ?? '');
+    const name = questName(npc.id, NPC_BY_ID.get(npc.id)?.name ?? '');
     // the same rules F follows (talkTo): the locket, then a gift, else a chat
     const verb = hd?.id === 'heart_charm' && npc.met ? 'Offer the locket' : hd && wouldGift(g, npc, hd) ? `Give to ${name}` : npc.talked ? `Chat with ${name}` : `Talk to ${name}`;
     return { verb, x: npc.x, y: npc.y - 2 };
@@ -131,7 +132,7 @@ const clock = (min: number) => `${((Math.floor(min / 60) + 11) % 12) + 1}${min %
  * can reach now (outdoors, or in their open shop), else the first one with when they open, or
  * a place you still need to visit. Null when nothing needs walking to.
  */
-export function questTarget(g: Game): { x: number; y: number; label: string } | null {
+export function questTarget(g: Game): { x: number; y: number; label: string; npc?: string } | null {
   if (g.player.where !== 'world') return null;
   const q = g.sys.quests;
   if (!q?.active) return null;
@@ -140,9 +141,9 @@ export function questTarget(g: Game): { x: number; y: number; label: string } | 
   const shown = [...(q.active as { id: string; prog: number[] }[])]
     .sort((a, b) => (QUEST_BY_ID.get(b.id)?.tutorial ? 1 : 0) - (QUEST_BY_ID.get(a.id)?.tutorial ? 1 : 0))
     .slice(0, 3);
-  let best: { x: number; y: number; label: string; score: number } | null = null;
-  const consider = (x: number, y: number, label: string, score: number) => {
-    if (!best || score < best.score) best = { x, y, label, score };
+  let best: { x: number; y: number; label: string; score: number; npc?: string } | null = null;
+  const consider = (x: number, y: number, label: string, score: number, npc?: string) => {
+    if (!best || score < best.score) best = { x, y, label, score, npc };
   };
   for (const a of shown) {
     const def = QUEST_BY_ID.get(a.id);
@@ -152,9 +153,9 @@ export function questTarget(g: Game): { x: number; y: number; label: string } | 
       if (o.t === 'talk') {
         const n = g.sys.npcs?.byId?.get(o.npc);
         if (!n || (o.met && n.met)) return;
-        const name = first(NPC_BY_ID.get(o.npc)?.name ?? '');
+        const name = questName(o.npc, NPC_BY_ID.get(o.npc)?.name ?? '');
         const d = Math.hypot(n.x - p.x, n.y - p.y);
-        if (n.visible) return consider(n.x, n.y - 1.6, name, d);
+        if (n.visible) return consider(n.x, n.y - 1.6, name, d, o.npc);
         // indoors: point at the door they went in by, saying when the shop opens if it's shut
         const shop = SHOPS.find((s) => s.owner === o.npc);
         const open = !!shop && shopOpen(g, shop.id).open;

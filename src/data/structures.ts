@@ -144,7 +144,7 @@ const defs: S[] = [
   { id: 'fence_wood', name: 'Wood Fence', kind: 'fence', size: [1, 1], solid: true, price: 2, desc: 'Keeps animals in and trouble out.' },
   { id: 'fence_stone', name: 'Stone Wall', kind: 'fence', size: [1, 1], solid: true, price: 4, desc: 'A low mossy wall.' },
   { id: 'gate', name: 'Garden Gate', kind: 'gate', size: [1, 1], solid: false, price: 8, desc: 'A fence you can walk through.' },
-  { id: 'path_stone', name: 'Cobble Path', kind: 'path', size: [1, 1], floor: true, price: 1, desc: 'Walk a little faster on paths.' },
+  { id: 'path_stone', name: 'Flagstone Path', kind: 'path', size: [1, 1], floor: true, price: 1, desc: 'Worn flagstones set in gravel. Walk a little faster.' },
   { id: 'path_brick', name: 'Brick Path', kind: 'path', size: [1, 1], floor: true, price: 2, desc: 'Warm red bricks. Walk a little faster.' },
   { id: 'path_wood', name: 'Plank Walk', kind: 'path', size: [1, 1], floor: true, price: 1, desc: 'Creaky boards. Walk a little faster.' },
   { id: 'sign', name: 'Wooden Sign', kind: 'decor', size: [1, 1], solid: true, price: 5, desc: 'Shows the item placed on it. Great for labeling.' },

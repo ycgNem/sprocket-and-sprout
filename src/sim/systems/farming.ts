@@ -427,9 +427,12 @@ registerSystem({
         if (s) s.water = true;
       }
     }
-    // tree shake timers for the renderer
+    // tree shake timers for the renderer: 4 -> 0 in half a second (src/render/shake.ts eases it)
     const ts: Map<number, number> | undefined = g.sys.treeShake;
-    if (ts) for (const [k, v] of ts) { if (v - dt * 30 <= 0) ts.delete(k); else ts.set(k, v - dt * 30); }
+    if (ts) for (const [k, v] of ts) { if (v - dt * 8 <= 0) ts.delete(k); else ts.set(k, v - dt * 8); }
+    // and the wobble of a structure struck by a tool (actions.ts hitStructure), keyed by entity id
+    const ss: Map<number, number> | undefined = g.sys.structShake;
+    if (ss) for (const [k, v] of ss) { if (v - dt * 8 <= 0) ss.delete(k); else ss.set(k, v - dt * 8); }
   },
 });
 

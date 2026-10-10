@@ -1,17 +1,17 @@
 // Pixel-art mouse cursors applied as CSS cursors (zero input lag, always visible).
 // Each shape is baked once per scale into a PNG data URL; 'auto' stays as the fallback
 // so the system cursor shows if the browser refuses the image (e.g. size limits).
-import { PALETTE } from '../data/palette';
+import { C, PALETTE } from '../data/palette';
 
 export type CursorKind = 'arrow' | 'hand' | 'grab' | 'build' | 'none';
 
 const COLORS: Record<string, string> = {
-  o: PALETTE[0], // ink outline
-  c: PALETTE[8], // cream
-  a: PALETTE[27], // brass
-  y: PALETTE[6], // amber
-  w: PALETTE[10], // walnut
-  s: PALETTE[1], // plum shadow
+  o: PALETTE[C.ink], // outline
+  c: PALETTE[C.cream],
+  a: PALETTE[C.brass],
+  y: PALETTE[C.amber],
+  w: PALETTE[C.walnut],
+  s: PALETTE[C.plum], // shadow
 };
 
 // '.' is transparent. All rows of a shape must be the same width.

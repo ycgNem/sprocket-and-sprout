@@ -574,3 +574,27 @@ describe('mine collapse regression', () => {
     expect(g.player.where).toBe('world');
   });
 });
+
+describe('tool hits on structures (1.2 playtest bug 7)', () => {
+  it('a structure takes three hits; a chest with things in it never breaks by tool', async () => {
+    const { hitStructure, STRUCT_HITS } = await import('../src/sim/actions');
+    const g = new Game({ seed: 31 });
+    clear(g, 40, 30, 60, 40);
+    const jar = place(g, 'jar', 50, 32, 0);
+    for (let i = 1; i < STRUCT_HITS; i++) {
+      expect(hitStructure(g, jar)).toBe(false);
+      expect(g.ents.get(jar.id)).toBeTruthy();
+    }
+    expect(hitStructure(g, jar)).toBe(true);
+    expect(g.ents.get(jar.id)).toBeFalsy();
+    const chest = place(g, 'chest_wood', 52, 32, 0);
+    chest.inv!.add(key('wood'), 20);
+    for (let i = 0; i < 10; i++) expect(hitStructure(g, chest)).toBe(false);
+    expect(g.ents.get(chest.id)).toBeTruthy();
+    expect(chest.inv!.count(key('wood'))).toBe(20);
+    // emptied, it comes up in three hits like anything else
+    chest.inv!.remove(key('wood'), 20);
+    for (let i = 1; i < STRUCT_HITS; i++) hitStructure(g, chest);
+    expect(hitStructure(g, chest)).toBe(true);
+  });
+});

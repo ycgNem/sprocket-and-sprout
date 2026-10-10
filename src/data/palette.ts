@@ -47,6 +47,8 @@ export enum C {
   bark = 49, walnut = 24, oak = 3, tan = 4, pine = 34, moss = 25, grass = 30, leaf = 32, lime = 33,
   deepsea = 44, river = 46, sky = 47, aqua = 48, frost = 8, slate = 2, stone = 6, pebble = 7, copper = 21, brass = 17,
   rose = 56, blush = 57, violet = 50, lavender = 51,
+  // names for the Resurrect colors the HUD, minimap and windows use directly (no raw indices in UI code)
+  mauve = 5, ember = 16, gold = 18, berry = 19, rust = 20, jade = 29, fern = 35, sage = 36, dusk = 45,
 }
 
 /** Old (1.0, 32-color) palette index -> Resurrect index, in the old order. Used by the save migration. */

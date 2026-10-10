@@ -115,3 +115,19 @@ describe('first session after the replay review', () => {
     expect(q.done).toContain('t_town');
   });
 });
+
+describe('shake caps (1.2 playtest: dampen the shaking)', () => {
+  it('trees and struck structures wobble at most 2 px and the camera at most 3 px', async () => {
+    const { wobbleOffset, camShakeOffset, WOBBLE_START, CAM_SHAKE_MAX } = await import('../src/render/shake');
+    let maxW = 0, maxC = 0;
+    for (let i = 0; i < 400; i++) {
+      maxW = Math.max(maxW, Math.abs(wobbleOffset(WOBBLE_START * (i % 7) / 6, i * 0.013)));
+      maxC = Math.max(maxC, Math.abs(camShakeOffset(10, (i % 100) / 100)));
+    }
+    expect(maxW).toBeLessThanOrEqual(2);
+    expect(maxC).toBeLessThanOrEqual(CAM_SHAKE_MAX);
+    expect(CAM_SHAKE_MAX).toBeLessThanOrEqual(3);
+    // the wobble eases out: a nearly spent timer barely moves
+    for (let t = 0; t < 2; t += 0.01) expect(Math.abs(wobbleOffset(0.5, t))).toBe(0);
+  });
+});

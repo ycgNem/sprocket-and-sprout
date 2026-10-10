@@ -199,6 +199,38 @@ function hitTree(g: Game, x: number, y: number, power: number, tier: number) {
   g.count('trees_chopped');
 }
 
+/** hits a structure takes from an axe or pickaxe before it comes loose */
+export const STRUCT_HITS = 3;
+
+/**
+ * An axe or pickaxe hit on a structure. It wobbles; the third hit within a few seconds picks it
+ * up (contents refunded). A chest or crate with something in it never breaks by tool: empty it,
+ * or take it with remove mode or its window's Pick up (1.2 playtest: "you can one-shot a chest").
+ */
+export function hitStructure(g: Game, e: Ent): boolean {
+  const root = e.parent ?? e;
+  const shake: Map<number, number> = (g.sys.structShake ??= new Map());
+  shake.set(root.id, 4);
+  if ((root.def.kind === 'chest' || root.def.kind === 'shipbin') && root.inv && !root.inv.isEmpty()) {
+    g.emit({ t: 'sfx', id: 'thud' });
+    g.toast(`The ${root.def.name.toLowerCase()} has things in it. Empty it, or use remove mode.`);
+    return false;
+  }
+  if (root.st.fixed) return deconstruct(g, root);
+  const hits: Map<number, { n: number; at: number }> = (g.sys.structHits ??= new Map());
+  const h = hits.get(root.id);
+  const n = (h && g.tickN - h.at < 240 ? h.n : 0) + 1;
+  if (n < STRUCT_HITS) {
+    hits.set(root.id, { n, at: g.tickN });
+    g.emit({ t: 'sfx', id: 'thud', x: root.x, y: root.y });
+    g.emit({ t: 'fx', kind: 'dust', x: root.x + root.w / 2, y: root.y + root.h / 2, n: 3 });
+    return false;
+  }
+  hits.delete(root.id);
+  shake.delete(root.id);
+  return deconstruct(g, root);
+}
+
 function rockDrops(g: Game, x: number, y: number, o: O, data: number) {
   const m = g.map;
   const quarry = m.z(x, y) === Z.QUARRY;
@@ -326,7 +358,7 @@ export function useTool(g: Game, kind: string, tier: number, tx: number, ty: num
         if (s?.crop?.dead) s.crop = null;
         else {
           const e = g.ents.at(tx, ty);
-          if (e && !e.ghost) deconstruct(g, e);
+          if (e && !e.ghost) hitStructure(g, e);
           else {
             g.emit({ t: 'sfx', id: 'swing' });
             g.count('air_swings');
@@ -360,7 +392,7 @@ export function useTool(g: Game, kind: string, tier: number, tx: number, ty: num
       }
       const e = g.ents.at(tx, ty);
       if (e && !e.ghost) {
-        deconstruct(g, e);
+        hitStructure(g, e);
         return true;
       }
       // untill soil / lift player paths

@@ -195,7 +195,7 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
       ui.itemIcon(key(e.item), listX + 2, ry + 1, 16);
       ui.text(d.name + (left !== Infinity ? `  (${left} left today)` : ''), listX + 22, ry + 5, left <= 0 ? C.stone : C.ink);
       // wine-dark prices stay legible on the salmon hover rows
-      ui.text(`${ICON.coin}${price}`, listX + listW - 12, ry + 5, g.player.money >= price ? (19 as C) : C.brick, { align: 'right' });
+      ui.text(`${ICON.coin}${price}`, listX + listW - 12, ry + 5, g.player.money >= price ? C.berry : C.brick, { align: 'right' });
       if (hov) {
         ui.tip(itemTooltip(g, key(e.item), 1, [{ text: 'Click to buy one, shift-click for five, right-click for ten.', color: C.pebble }]));
         if (ui.clicked) {

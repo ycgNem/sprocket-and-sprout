@@ -63,16 +63,22 @@ export class Inventory {
 
   /** Add items; returns leftover count that didn't fit. */
   add(k: ItemKey, n: number): number {
+    return this.addRange(k, n, 0, this.slots.length);
+  }
+
+  /** Add items into slots [start, end) only (the backpack's hotbar and bag rows); returns the leftover. */
+  addRange(k: ItemKey, n: number, start: number, end: number): number {
     const max = kStack(k);
-    for (const sl of this.slots) {
-      if (n <= 0) break;
+    end = Math.min(end, this.slots.length);
+    for (let i = start; i < end && n > 0; i++) {
+      const sl = this.slots[i];
       if (sl && sl.k === k && sl.n < max) {
         const t = Math.min(n, max - sl.n);
         sl.n += t;
         n -= t;
       }
     }
-    for (let i = 0; i < this.slots.length && n > 0; i++) {
+    for (let i = start; i < end && n > 0; i++) {
       if (!this.slots[i]) {
         const t = Math.min(n, max);
         this.slots[i] = { k, n: t };

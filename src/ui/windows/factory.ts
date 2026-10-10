@@ -13,7 +13,7 @@ import { registerWindow, WinState } from './index';
 import { ICON, wrapText } from '../font';
 import { itemTooltip } from '../tooltips';
 
-const NODE_W = 34, NODE_H = 34, GAP_X = 66, GAP_Y = 58;
+const NODE_W0 = 34, NODE_H0 = 34, GAP_X0 = 66, GAP_Y0 = 58;
 const TIER_COL = ['bundle_green', 'bundle_copper', 'bundle_rose', 'bundle_brass', 'bundle_star'];
 
 function nodeTier(id: string) {
@@ -30,33 +30,51 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   ui.panel(vx, vy, vw, vh, 'inset', false);
   st.data.panX = st.data.panX ?? 0;
   st.data.panY = st.data.panY ?? 0;
-  // drag to pan
+  // Fit: the whole tree at small size (icons only), so every topic is one glance away
+  const fit = !!st.data.fit;
+  const cols = Math.max(...RESEARCH.map((r) => r.pos[0])), rows = Math.max(...RESEARCH.map((r) => r.pos[1]));
+  const NODE_W = fit ? 18 : NODE_W0, NODE_H = fit ? 18 : NODE_H0;
+  const GAP_X = fit ? Math.min(44, Math.floor((vw - 40 - NODE_W) / cols)) : GAP_X0, GAP_Y = fit ? Math.min(30, Math.floor((vh - 34 - NODE_H) / rows)) : GAP_Y0;
+  const maxX = cols * GAP_X + NODE_W + (fit ? 24 : 32);
+  const maxY = rows * GAP_Y + NODE_H + (fit ? 26 : 40);
+  const SB = 5; // scrollbar thickness
+  // drag to pan (right button, or shift + left); the wheel pans down, shift + wheel (or a sideways wheel) across
   if (ui.hover(vx, vy, vw, vh)) {
-    if (ui.input.mouse.down[2] || (ui.input.mouse.down[0] && ui.input.shift)) {
+    if (ui.input.mouse.down[2] || (ui.input.mouse.down[0] && ui.input.shift && !st.data.bar)) {
       st.data.panX += (ui.mx - (st.data.lmx ?? ui.mx));
       st.data.panY += (ui.my - (st.data.lmy ?? ui.my));
     }
-    if (ui.input.mouse.wheel) {
-      st.data.panY -= ui.input.mouse.wheel * 20;
+    if (ui.input.mouse.wheel || ui.input.mouse.wheelX) {
+      if (ui.input.shift) st.data.panX -= ui.input.mouse.wheel * 30;
+      else st.data.panY -= ui.input.mouse.wheel * 20;
+      st.data.panX -= ui.input.mouse.wheelX * 30;
       ui.input.mouse.wheel = 0;
+      ui.input.mouse.wheelX = 0;
     }
   }
   st.data.lmx = ui.mx;
   st.data.lmy = ui.my;
-  const maxX = Math.max(...RESEARCH.map((r) => r.pos[0])) * GAP_X + NODE_W + 20;
-  const maxY = Math.max(...RESEARCH.map((r) => r.pos[1])) * GAP_Y + NODE_H + 40;
-  st.data.panX = Math.max(Math.min(0, vw - maxX), Math.min(0, st.data.panX));
-  st.data.panY = Math.max(Math.min(0, vh - maxY), Math.min(0, st.data.panY));
+  // scrollbars on both axes, so it's plain there is more to the right and below; drag or click them
+  const spanX = Math.max(0, maxX - vw), spanY = Math.max(0, maxY - vh);
+  const barX = { x: vx + 2, y: vy + vh - SB - 1, w: vw - SB - 5, h: SB }, barY = { x: vx + vw - SB - 1, y: vy + 2, w: SB, h: vh - SB - 5 };
+  if (!ui.input.mouse.down[0]) st.data.bar = null;
+  else if (ui.clicked && spanX && ui.hover(barX.x, barX.y - 1, barX.w, barX.h + 2)) { st.data.bar = 'x'; ui.eat(); }
+  else if (ui.clicked && spanY && ui.hover(barY.x - 1, barY.y, barY.w + 2, barY.h)) { st.data.bar = 'y'; ui.eat(); }
+  if (st.data.bar === 'x') st.data.panX = -Math.max(0, Math.min(1, (ui.mx - barX.x) / barX.w)) * spanX;
+  if (st.data.bar === 'y') st.data.panY = -Math.max(0, Math.min(1, (ui.my - barY.y) / barY.h)) * spanY;
+  st.data.panX = Math.max(-spanX, Math.min(0, st.data.panX));
+  st.data.panY = Math.max(-spanY, Math.min(0, st.data.panY));
   const ox = vx + 16 + st.data.panX, oy = vy + 20 + st.data.panY;
   const pos = (id: string) => {
     const r = RESEARCH_BY_ID.get(id)!;
     return [ox + r.pos[0] * GAP_X, oy + r.pos[1] * GAP_Y] as const;
   };
-  ui.clip(vx + 1, vy + 1, vw - 2, vh - 2);
+  // the tree stops short of the scrollbars, so nothing hides under them
+  ui.clip(vx + 1, vy + 1, vw - (spanY ? SB + 4 : 2), vh - (spanX ? SB + 4 : 2));
   // tier header: the bundle each column of the tree is paid with
-  const cols = new Map<number, number>();
-  for (const r of RESEARCH) cols.set(r.pos[0], Math.max(cols.get(r.pos[0]) ?? 0, nodeTier(r.id)));
-  for (const [c, tier] of cols) ui.itemIcon(key(TIER_COL[tier]), ox + c * GAP_X + NODE_W / 2 - 6, oy - 16, 12);
+  const tierOf = new Map<number, number>();
+  for (const r of RESEARCH) tierOf.set(r.pos[0], Math.max(tierOf.get(r.pos[0]) ?? 0, nodeTier(r.id)));
+  for (const [c, tier] of tierOf) ui.itemIcon(key(TIER_COL[tier]), ox + c * GAP_X + NODE_W / 2 - (fit ? 5 : 6), oy - (fit ? 13 : 16), fit ? 10 : 12);
   // connections
   for (const r of RESEARCH) {
     const [ax, ay] = pos(r.id);
@@ -88,13 +106,13 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     ui.fill(nx - 1, ny - 1, NODE_W + 2, NODE_H + 2, rim);
     ui.fill(nx + 1, ny + 1, NODE_W - 2, NODE_H - 2, bg);
     ui.fill(nx + 1, ny + 1, NODE_W - 2, 2, [C.leaf, C.copper, C.rose, C.brass, C.lavender][nodeTier(r.id)]);
-    ui.itemIcon(key(r.icon), nx + 1, ny + 1, 32, 0, avail || done ? 1 : 0.4);
-    if (done) ui.text(ICON.star, nx + NODE_W - 7, ny + NODE_H - 9, C.moss, { shadow: C.cream });
-    // name under the node (two short lines)
-    wrapText(r.name, GAP_X - 6).slice(0, 2).forEach((l, li) => ui.text(l, nx + NODE_W / 2, ny + NODE_H + 4 + li * 9, done ? C.moss : avail ? C.ink : C.stone, { align: 'center' }));
+    ui.itemIcon(key(r.icon), nx + 1, ny + 1, fit ? 16 : 32, 0, avail || done ? 1 : 0.4);
+    if (done && !fit) ui.text(ICON.star, nx + NODE_W - 7, ny + NODE_H - 9, C.moss, { shadow: C.cream });
+    // name under the node (two short lines); Fit shows names on hover only
+    if (!fit) wrapText(r.name, GAP_X - 6).slice(0, 2).forEach((l, li) => ui.text(l, nx + NODE_W / 2, ny + NODE_H + 4 + li * 9, done ? C.moss : avail ? C.ink : C.stone, { align: 'center' }));
     const prog = g.research.progress[r.id] ?? 0;
     if (!done && prog > 0) ui.bar(nx + 2, ny + NODE_H - 4, NODE_W - 4, 3, prog / researchUnits(r.id, g), C.moss);
-    if (hov) {
+    if (hov && !st.data.bar) {
       ui.tip([{ text: r.name, color: C.amber }, { text: r.desc }, { text: `Cost: ${researchUnits(r.id, g)} x ${r.cost.map((c) => ITEM_BY_ID.get(c.item)?.name).join(' + ')}`, color: C.butter }, { text: done ? 'Researched' : avail ? 'Click to select, double-click to start' : 'Needs: ' + r.prereq.filter((p) => !g.research.done.has(p)).map((p) => RESEARCH_BY_ID.get(p)!.name).join(', '), color: done ? C.lime : avail ? C.pebble : C.rose }]);
       if (ui.clicked) {
         ui.eat();
@@ -105,6 +123,24 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     }
   }
   ui.unclip();
+  // the scrollbars (track + thumb sized to the visible share)
+  const thumb = (bar: { x: number; y: number; w: number; h: number }, span: number, pan: number, horiz: boolean, vis: number, total: number) => {
+    if (!span) return;
+    ui.fill(bar.x, bar.y, bar.w, bar.h, C.tan);
+    const len = Math.max(12, Math.round((horiz ? bar.w : bar.h) * vis / total));
+    const at = Math.round((-pan / span) * ((horiz ? bar.w : bar.h) - len));
+    const hot = st.data.bar === (horiz ? 'x' : 'y') || ui.hover(bar.x, bar.y, bar.w, bar.h);
+    if (horiz) ui.fill(bar.x + at, bar.y, len, bar.h, hot ? C.copper : C.walnut);
+    else ui.fill(bar.x, bar.y + at, bar.w, len, hot ? C.copper : C.walnut);
+  };
+  thumb(barX, spanX, st.data.panX, true, vw, maxX);
+  thumb(barY, spanY, st.data.panY, false, vh, maxY);
+  // Fit / full size: the overview shows every topic at once
+  if (ui.button('rfit', vx + vw - 52, vy + 4, 44, 12, fit ? 'Zoom' : 'Fit', { style: 'flat', tip: fit ? 'Back to full size' : 'Show the whole tree' })) {
+    st.data.fit = !fit;
+    st.data.panX = 0;
+    st.data.panY = 0;
+  }
   // info panel
   // starts below the frame's close button (y+5..y+17)
   const px = x + w - 158, py = y + 20, pw = 150;
@@ -119,7 +155,7 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     ui.bar(px + 6, py + 39, pw - 12, 5, (g.research.progress[r.id] ?? 0) / researchUnits(r.id, g), C.moss);
   } else ui.text(!labs.length ? 'Place a Study Desk first.' : sel ? 'Press "Research this" below.' : 'Pick a topic to study.', px + 6, py + 22, labs.length && sel ? C.moss : C.brick);
   if (!sel) {
-    ui.para('Select a node to see what it unlocks. Right-drag or scroll to move around.', px + 6, py + 56, pw - 12, C.walnut);
+    ui.para('Select a node to see what it unlocks. Scroll to move down, shift + scroll to move across, or drag the bars. Fit shows the whole tree.', px + 6, py + 56, pw - 12, C.walnut);
     return true;
   }
   let yy = py + 54;
@@ -134,8 +170,7 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   const have = (id: string) => g.player.inv.countId(id) + labs.reduce((a, l) => a + (l.inv?.countId(id) ?? 0), 0);
   const short = sel.cost.filter((c) => have(c.item) < units);
   if (!g.research.done.has(sel.id)) {
-    ui.text(short.length ? `You have ${short.map((c) => have(c.item)).join(' + ')} of ${units}: craft more (C)` : 'You have enough bundles', px + 6, yy, short.length ? C.brick : C.moss);
-    yy += 12;
+    yy += ui.para(short.length ? `You have ${short.map((c) => have(c.item)).join(' + ')} of ${units}: craft more (C)` : 'You have enough bundles', px + 6, yy, pw - 12, short.length ? C.brick : C.moss) + 2;
   }
   ui.text(`${sel.unitTime}s per unit per desk`, px + 6, yy, C.oak);
   yy += 12;
@@ -151,8 +186,7 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     yy += Math.ceil(Math.min(14, unl.items.length) / 7) * 20 + 2;
   }
   for (const e of sel.effects ?? []) {
-    ui.text('+ ' + sel.desc.split('.')[0], px + 6, yy, C.moss);
-    yy += 10;
+    yy += ui.para('+ ' + sel.desc.split('.')[0], px + 6, yy, pw - 12, C.moss);
     void e;
   }
   const done = g.research.done.has(sel.id);

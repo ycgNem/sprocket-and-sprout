@@ -50,9 +50,10 @@ export function drawMenu(ui: UI, play: PlayScreen, st: WinState): boolean {
   if (st.data.tab === 'inventory') {
     const gx = x + 14, gy = y + 34;
     ui.text('Hotbar', gx, gy - 1, C.walnut);
-    invGrid(ui, play, inv, gx, gy + 8, 12, { start: 0, count: 12, selected: g.player.sel });
+    // shift-click swaps rows: hotbar -> bag and bag -> hotbar
+    invGrid(ui, play, inv, gx, gy + 8, 12, { start: 0, count: 12, selected: g.player.sel, target: (k, n) => n - inv.addRange(k, n, 12, 36) });
     ui.text('Bag', gx, gy + 36, C.walnut);
-    invGrid(ui, play, inv, gx, gy + 46, 12, { start: 12, count: 24 });
+    invGrid(ui, play, inv, gx, gy + 46, 12, { start: 12, count: 24, target: (k, n) => n - inv.addRange(k, n, 0, 12) });
     // trash + sort
     const by = gy + 46 + 2 * (SLOT + 2) + 8;
     if (ui.button('sort', gx, by, 50, 16, 'Sort', { tip: 'Sort your bag (hotbar stays put)' })) {
@@ -83,7 +84,7 @@ export function drawMenu(ui: UI, play: PlayScreen, st: WinState): boolean {
     ui.text(`Year ${g.time.year}  -  Day ${g.daysPlayed + 1} in Thistlewick`, cx + 6, cy + 16, C.walnut);
     ui.text(`${{ story: 'Story', cozy: 'Cozy', rush: 'Clockwork Rush', sandbox: 'Sandbox' }[g.mode]} on the ${FARM_BY_ID.get(g.farmKind)?.name ?? 'Homestead'}`, cx + 6, cy + 27, C.walnut);
     ui.text(`Tools at the smithy: ${g.player.upgrading ? ITEM_BY_ID.get(g.player.upgrading.to)?.name + ` (${g.player.upgrading.days}d)` : 'none'}`, cx + 6, cy + 38, C.walnut);
-    ui.text('Shift-click moves items. Right-click splits.', cx + w - 34, cy + 5, C.oak, { align: 'right' });
+    ui.text('Shift-click: hotbar <-> bag. Right-click splits.', cx + w - 34, cy + 5, C.oak, { align: 'right' });
     return true;
   }
   if (st.data.tab === 'crafting') return craftingTab(ui, play, st, x, y, w, h);

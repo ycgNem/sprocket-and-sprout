@@ -8,7 +8,7 @@ import { itemTooltip } from '../tooltips';
 export const SLOT = 20;
 
 export interface GridOpts {
-  /** shift-click moves items here */
+  /** shift-click moves the stack here, ctrl-click one item, double-click every stack of that kind */
   target?: Inventory | ((k: number, n: number) => number);
   /** only allow placing items matching */
   accept?: (k: number) => boolean;
@@ -41,15 +41,48 @@ export function invGrid(ui: UI, play: PlayScreen, inv: Inventory, x: number, y: 
       continue;
     }
     if (r.click) {
-      if (ui.input.shift && st && opts.target) {
-        const moved = moveTo(opts.target, st.k, st.n);
+      // modifiers are the ones held when the button went down (input.press), so a quick
+      // shift-click never turns into a plain pick-up
+      const press = ui.input.press;
+      const again = press.count >= 2 && !!ui.hand && ui.hand.k === lastPick.k && lastPick.inv === inv && lastPick.i === i && (!st || st.k === ui.hand.k);
+      if (opts.target && press.count >= 2 && (again || (!ui.hand && st))) {
+        // double-click: send every stack of that kind across. Usually the first click picked the
+        // stack up, so put it back first; a fast pair can also land in a single frame
+        let k = st?.k ?? -1;
+        if (again) {
+          if (!st) inv.slots[i] = ui.hand;
+          else st.n += ui.hand!.n;
+          k = ui.hand!.k;
+          ui.hand = null;
+        }
+        let movedAny = 0;
+        for (let j = start; j < start + count; j++) {
+          const s = inv.slots[j];
+          if (!s || s.k !== k) continue;
+          const moved = moveTo(opts.target, s.k, s.n);
+          s.n -= moved;
+          movedAny += moved;
+          if (s.n <= 0) inv.slots[j] = null;
+          if (!moved) break;
+        }
+        if (movedAny) ui.sfx('pickup');
+      } else if ((press.shift || press.ctrl) && st && opts.target && !ui.hand) {
+        // shift moves the stack, ctrl moves one
+        const moved = moveTo(opts.target, st.k, press.ctrl && !press.shift ? 1 : st.n);
         st.n -= moved;
         if (st.n <= 0) inv.slots[i] = null;
-        if (moved) ui.sfx('pickup');
-      } else clickSlot(ui, inv, i, opts.accept);
+        ui.sfx(moved ? 'pickup' : 'error');
+      } else {
+        const had = !!ui.hand;
+        clickSlot(ui, inv, i, opts.accept);
+        if (!had && ui.hand) lastPick = { inv, i, k: ui.hand.k };
+      }
     } else if (r.rclick) rclickSlot(ui, inv, i, opts.accept);
   }
 }
+
+/** the slot the last plain click picked a stack up from (double-click = send all of that kind) */
+let lastPick: { inv: Inventory | null; i: number; k: number } = { inv: null, i: -1, k: -1 };
 
 function moveTo(target: Inventory | ((k: number, n: number) => number), k: number, n: number): number {
   if (typeof target === 'function') return target(k, n);

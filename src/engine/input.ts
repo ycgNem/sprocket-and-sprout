@@ -51,7 +51,9 @@ export class Input {
   pressed = new Set<string>();
   released = new Set<string>();
   binds: Record<Action, string[]> = structuredClone(DEFAULT_BINDS);
-  mouse = { x: 0, y: 0, down: [false, false, false], pressed: [false, false, false], released: [false, false, false], wheel: 0, moved: false };
+  mouse = { x: 0, y: 0, down: [false, false, false], pressed: [false, false, false], released: [false, false, false], wheel: 0, wheelX: 0, moved: false };
+  /** Modifier keys and click count latched when the last button went down (a click is judged by these, not by the keys at draw time). */
+  press = { shift: false, ctrl: false, count: 1 };
   /** Typed characters this frame (for text fields). */
   text = '';
   /** When true, actions are suppressed (a text field has focus). */
@@ -86,6 +88,7 @@ export class Input {
     });
     window.addEventListener('blur', () => {
       this.down.clear();
+      this.shift = this.ctrl = false;
       this.mouse.down = [false, false, false];
     });
     el.addEventListener('mousemove', (e) => {
@@ -99,6 +102,7 @@ export class Input {
       this.mouse.pressed[e.button] = true;
       this.shift = e.shiftKey;
       this.ctrl = e.ctrlKey;
+      this.press = { shift: e.shiftKey, ctrl: e.ctrlKey || e.metaKey, count: Math.max(1, e.detail || 1) };
       e.preventDefault();
     });
     window.addEventListener('mouseup', (e) => {
@@ -109,6 +113,7 @@ export class Input {
     el.addEventListener('contextmenu', (e) => e.preventDefault());
     el.addEventListener('wheel', (e) => {
       this.mouse.wheel += Math.sign(e.deltaY);
+      this.mouse.wheelX += Math.sign(e.deltaX);
       e.preventDefault();
     }, { passive: false });
   }
@@ -145,6 +150,7 @@ export class Input {
     this.mouse.pressed = [false, false, false];
     this.mouse.released = [false, false, false];
     this.mouse.wheel = 0;
+    this.mouse.wheelX = 0;
     this.mouse.moved = false;
     this.text = '';
   }

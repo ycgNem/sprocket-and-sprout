@@ -28,3 +28,11 @@ export function shortName(name: string): string {
   const w = name.split(' ');
   return (['Mayor', 'Dr.', 'Old', 'Professor', 'Granny', 'Captain'].includes(w[0]) && w[1] ? w[1] : w[0]);
 }
+
+/** Villagers whose quest name isn't their first name (DECISIONS #55: the playtest got lost between "Ottoline" and "the Professor"). */
+const QUEST_NAMES: Record<string, string> = { ottoline: 'Prof. Cogwhistle' };
+
+/** How quests, guide arrows, the tracker and the map name a villager. Friends' dialogue keeps first names. */
+export function questName(id: string, name: string): string {
+  return QUEST_NAMES[id] ?? shortName(name);
+}

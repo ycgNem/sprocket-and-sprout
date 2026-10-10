@@ -95,3 +95,16 @@ describe('content data', () => {
     for (const s of SHOPS) expect(m.locs.has(s.loc), s.loc).toBe(true);
   });
 });
+
+describe('one name for the Professor (DECISIONS #55)', () => {
+  it('no quest title, text, hint or objective says "Ottoline"', async () => {
+    const { Game } = await import('../src/sim/Game');
+    await import('../src/sim');
+    const { objText } = await import('../src/sim/systems/quests');
+    const g = new Game({ seed: 1 });
+    for (const q of QUESTS) {
+      for (const s of [q.title, q.desc, q.hint ?? '']) expect(s, q.id).not.toMatch(/Ottoline/);
+      for (const o of q.objectives) expect(objText(g, o, 0), q.id).not.toMatch(/Ottoline/);
+    }
+  });
+});

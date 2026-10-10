@@ -29,14 +29,14 @@ import { unlockAch } from '../sim/systems/achievements';
 import { drawAchBanner, AchBanner } from '../ui/windows/achievements';
 import { recordAch } from './profile';
 import { OPENING } from '../sim/systems/modes';
-import { T } from '../sim/world/tilemap';
+import { O, T } from '../sim/world/tilemap';
 import { PULSE_COL, machineState, pulseEnts } from '../ui/pulse';
 import { checkTips } from './tips';
 import { drawFx, Juice, ladderPitch, RIBBON_Y, type Pt } from '../render/juice';
 import { ACH_BY_ID } from '../sim/systems/achievements';
 import { promptAt, questTarget, toolVerb } from '../sim/prompts';
 import { POST_TIMES } from '../sim/systems/economy';
-import { unitPrice } from '../sim/systems/economy';
+import { quote } from '../sim/systems/economy';
 import { unlocksOf } from '../sim/systems/research';
 import { RESEARCH } from '../data/research';
 import { DEBUG_KEYS, keyLabel } from '../engine/input';
@@ -265,8 +265,14 @@ export class PlayScreen implements Screen {
       this.stepT += dt * (g.walkSlow ? 2.5 : 4);
       if (this.stepT > 1) {
         this.stepT = 0;
-        const t = curMap(g).g(Math.floor(g.player.x), Math.floor(g.player.y));
-        app.audio.sfx(t === 7 || t === 21 ? 'step_wood' : t === 6 || t === 9 ? 'step_stone' : 'step', 0.6);
+        const cm = curMap(g), ptx = Math.floor(g.player.x), pty = Math.floor(g.player.y);
+        const t = cm.g(ptx, pty);
+        const ob = cm.o(ptx, pty);
+        // weeds and twigs are walkable: wading through them rustles
+        if (ob === O.WEED || ob === O.TALLGRASS || ob === O.TWIG) {
+          app.audio.sfx('rustle', 0.5);
+          r.particles.burst(g.player.x * 16, g.player.y * 16, 2, [C.leaf, C.moss], { speed: 12, up: 8, g: 30, life: 0.4, size: 1 });
+        } else app.audio.sfx(t === 7 || t === 21 ? 'step_wood' : t === 6 || t === 9 ? 'step_stone' : 'step', 0.6);
         if (t === 2 || t === 3 || t === 6 || t === 13) r.particles.burst(g.player.x * 16, g.player.y * 16, 2, [C.tan, C.pebble], { speed: 10, up: 6, g: 20, life: 0.35, size: 1 });
       }
     }
@@ -290,6 +296,7 @@ export class PlayScreen implements Screen {
     if (this.zoomSeen.min && this.zoomSeen.max) unlockAch(g, 'birdseye');
 
     // ---- world draw ----
+    r.shakeOn = app.settings.screenShake;
     this.worldOverlays();
     r.draw(g, dt);
     if (this.sleepFade > 0) {
@@ -423,24 +430,38 @@ export class PlayScreen implements Screen {
     const kw = textWidth(key) + 6, vw = textWidth(pr.verb);
     const w = kw + vw + 10, h = 15;
     let below = key === 'Click' || facingDown;
+    // the two places the bubble can hang: under the thing, or over it (top edges, UI px)
+    const belowY = Math.round((below ? at.y : this.toUI(pr.x, fy + 1.05).y) + 3);
+    const aboveY = Math.round((facingDown ? this.toUI(pr.x, Math.min(pr.y, fy - 1.7)).y : key === 'Click' ? this.toUI(pr.x, pr.y - 1.15).y : at.y) - h - 6);
     // never over the hotbar and the held-item label: flip above the tile instead
-    if (below && at.y + 3 + h > ui.h - 64) below = false;
-    const ay = below ? at.y : facingDown ? this.toUI(pr.x, Math.min(pr.y, fy - 1.7)).y : key === 'Click' ? this.toUI(pr.x, pr.y - 1.15).y : at.y;
+    if (below && belowY + h > ui.h - 64) below = false;
+    // never under the HUD (quest tracker, toasts, pickups): flip to the other side of the tile,
+    // and if that's covered too, slide sideways clear of whatever covers it
+    const occ: { x: number; y: number; w: number; h: number }[] = this.hud.occupied ?? [];
+    const hits = (bx: number, by: number) => occ.find((o) => bx < o.x + o.w + 2 && bx + w + 2 > o.x && by < o.y + o.h + 2 && by + h + 4 > o.y);
+    let x = Math.round(at.x - w / 2);
+    const cover = hits(x, below ? belowY : aboveY);
+    if (cover) {
+      const flipY = below ? aboveY : belowY;
+      if (!hits(x, flipY) && flipY > 2 && flipY + h < ui.h - 64) below = !below;
+      else x = cover.x + cover.w / 2 < ui.w / 2 ? cover.x + cover.w + 4 : cover.x - w - 4;
+    }
     const rise = this.promptT < 0.12 ? (below ? -2 : 2) : 0;
-    const x = Math.round(at.x - w / 2), y = Math.round(below ? at.y + 3 + rise : ay - h - 6 + rise);
+    const y = (below ? belowY : aboveY) + rise;
+    const tailX = Math.max(x + 3, Math.min(x + w - 4, Math.round(at.x)));
     ui.ctx.globalAlpha = Math.min(1, this.promptT / 0.12);
     // bubble with a tail pointing at the thing
     ui.fill(x, y, w, h, C.ink);
     ui.fill(x + 1, y + 1, w - 2, h - 2, C.plum);
     ui.fill(x + 1, y + 1, w - 2, 1, C.slate);
     if (below) {
-      ui.fill(Math.round(at.x) - 2, y - 1, 5, 1, C.ink);
-      ui.fill(Math.round(at.x) - 1, y - 2, 3, 1, C.ink);
-      ui.fill(Math.round(at.x) - 1, y - 1, 3, 1, C.plum);
+      ui.fill(tailX - 2, y - 1, 5, 1, C.ink);
+      ui.fill(tailX - 1, y - 2, 3, 1, C.ink);
+      ui.fill(tailX - 1, y - 1, 3, 1, C.plum);
     } else {
-      ui.fill(Math.round(at.x) - 2, y + h, 5, 1, C.ink);
-      ui.fill(Math.round(at.x) - 1, y + h + 1, 3, 1, C.ink);
-      ui.fill(Math.round(at.x) - 1, y + h, 3, 1, C.plum);
+      ui.fill(tailX - 2, y + h, 5, 1, C.ink);
+      ui.fill(tailX - 1, y + h + 1, 3, 1, C.ink);
+      ui.fill(tailX - 1, y + h, 3, 1, C.plum);
     }
     // the key cap
     ui.fill(x + 3, y + 3, kw, 9, C.ink);
@@ -959,8 +980,18 @@ export class PlayScreen implements Screen {
     const tg = questTarget(g);
     if (!tg) return;
     const at = this.toUI(tg.x, tg.y);
-    // on screen, the bobbing arrow over the target does the pointing
-    if (this.onScreenUI(at, ui)) return;
+    // on screen, the bobbing arrow over the target does the pointing, with a name tag over a
+    // villager so "Talk to Prof. Cogwhistle" finds the right face in a crowd
+    if (this.onScreenUI(at, ui)) {
+      if (tg.npc) {
+        const tw = textWidth(tg.label) + 8, th = 11;
+        const tx = Math.round(at.x - tw / 2), ty = Math.round(at.y - 34);
+        ui.fill(tx, ty, tw, th, C.ink, 0.85);
+        ui.fill(tx + 1, ty + 1, tw - 2, 1, C.slate);
+        ui.text(tg.label, tx + 4, ty + 3, C.butter);
+      }
+      return;
+    }
     const cx = ui.w / 2, cy = ui.h / 2;
     const dx = at.x - cx, dy = at.y - cy;
     const w = textWidth(tg.label) + 22, h = 14;
@@ -1175,7 +1206,10 @@ export class PlayScreen implements Screen {
             // facing the crate, the key bubble sits over it: pop beside it instead
             const [fx, fy] = facingTile(g);
             const side = e.ent !== undefined && g.ents.rootAt(fx, fy)?.id === e.ent ? 20 : 0;
-            J.pop('+' + unitPrice(g, e.k) * e.n, e.x * TILE + side, e.y * TILE - 2 + (side ? 10 : 0), C.amber, 2);
+            // what the post will really pay: the same kind already in the crate ships first and saturates the price
+            const crate = e.ent !== undefined ? g.ents.get(e.ent) : undefined;
+            const ahead = crate?.inv ? Math.max(0, crate.inv.slots.reduce((a, s) => a + (s && s.k >> 2 === e.k >> 2 ? s.n : 0), 0) - e.n) : 0;
+            J.pop('+' + quote(g, e.k, e.n, ahead), e.x * TILE + side, e.y * TILE - 2 + (side ? 10 : 0), C.amber, 2);
             J.fx('fx:glint', e.x * TILE + 4, e.y * TILE - 2, { fps: 12 });
             if (e.ent !== undefined) J.hop(e.ent);
           }

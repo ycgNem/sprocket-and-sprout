@@ -75,7 +75,7 @@ const SEASON_ICON: string[][] = [
 ];
 const SEASON_MAP = { g: C.leaf, l: C.moss, a: C.amber, y: C.butter, t: C.terracotta, w: C.walnut, f: C.frost, c: C.cream };
 /** season label colors, dark enough for the peach HUD plate (pine, rust, wine, deep blue: ≥ 4:1) */
-export const SEASON_COL: C[] = [29 as C, 20 as C, 19 as C, 45 as C]; // #165a4c #9e4539 #7a3045 #484a77
+export const SEASON_COL: C[] = [C.jade, C.rust, C.berry, C.dusk];
 
 /** sky colors (top, bottom) for an hour of the day */
 function skyCols(h: number, season: number): [number, number, number] {
