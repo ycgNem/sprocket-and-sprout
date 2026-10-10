@@ -9,6 +9,7 @@ import { key } from '../inventory';
 import { O, T, Z } from '../world/tilemap';
 import { plantTree, spawnArtifact } from '../world/worldgen';
 import { openingTile } from '../opening';
+import { noteHandPick } from '../lines';
 
 export const TILLABLE = new Set([T.GRASS, T.DIRT, T.TOWNGRASS]);
 
@@ -163,8 +164,10 @@ export function harvest(g: Game, i: number, rng = g.rng, machine = false): { k: 
     // quality fertilizer is used up; speed/retain persists like soil amendments
     if (s.fert && ITEM_BY_ID.get(s.fert)?.fertilizer?.quality) s.fert = null;
   }
-  if (!machine) g.addXp('farming', Math.max(2, Math.round(Math.sqrt(cr.price) * 0.9)));
-  else g.count('crane_harvests');
+  if (!machine) {
+    g.addXp('farming', Math.max(2, Math.round(Math.sqrt(cr.price) * 0.9)));
+    noteHandPick(g, i, out.reduce((a, s) => a + s.n, 0));
+  } else g.count('crane_harvests');
   g.count('harvested', n);
   g.count('h_' + cr.id);
   g.count('harvest_s' + g.time.season);

@@ -22,14 +22,15 @@ export class StateLog {
 
   /**
    * Today's and yesterday's totals per structure (6am to 6am): seconds in each state, then items
-   * received and items made or moved. Farm-paced lines can't be judged on a minute, so the Lines
-   * tab and the night tally read these (ROADMAP.md 4.2).
+   * received, items made or moved, seconds waiting for harvest, and crops picked by hand inside a
+   * field machine's reach. Farm-paced lines can't be judged on a minute, so the Lines tab and the
+   * night tally read these (ROADMAP.md 4.2).
    */
   private today = new Map<number, Float64Array>();
   private yesterday = new Map<number, Float64Array>();
   private dayAt(id: number): Float64Array {
     let d = this.today.get(id);
-    if (!d) this.today.set(id, (d = new Float64Array(STATE_COUNT + 3)));
+    if (!d) this.today.set(id, (d = new Float64Array(STATE_COUNT + 4)));
     return d;
   }
 
@@ -46,6 +47,11 @@ export class StateLog {
     this.dayAt(id)[STATE_COUNT + 1] += n;
   }
 
+  /** crops picked by hand inside a field machine's reach count toward its field (ROADMAP.md 4.2) */
+  handPicked(e: Ent, n: number) {
+    this.dayAt((e.parent ?? e).id)[STATE_COUNT + 3] += n;
+  }
+
   /** 6am: today becomes yesterday */
   rollDay() {
     this.yesterday = this.today;
@@ -56,7 +62,7 @@ export class StateLog {
    * A day's record for a structure: share of the sampled time in each state, seconds sampled,
    * items in and out. `which` 'auto' reads yesterday when it ran at least 10 minutes, else today.
    */
-  day(e: Ent, which: 'today' | 'yesterday' | 'auto' = 'auto'): { shares: number[]; harvestWait: number; secs: number; inN: number; outN: number; which: 'today' | 'yesterday' } {
+  day(e: Ent, which: 'today' | 'yesterday' | 'auto' = 'auto'): { shares: number[]; harvestWait: number; secs: number; inN: number; outN: number; handN: number; which: 'today' | 'yesterday' } {
     const id = (e.parent ?? e).id;
     const y = this.yesterday.get(id), t = this.today.get(id);
     const secsOf = (d?: Float64Array) => (d ? d.slice(0, STATE_COUNT).reduce((a, b) => a + b, 0) : 0);
@@ -65,7 +71,7 @@ export class StateLog {
     const secs = secsOf(d);
     const shares = new Array(STATE_COUNT).fill(0);
     if (d && secs > 0) for (let i = 0; i < STATE_COUNT; i++) shares[i] = d[i] / secs;
-    return { shares, harvestWait: d && secs > 0 ? d[STATE_COUNT + 2] / secs : 0, secs, inN: d?.[STATE_COUNT] ?? 0, outN: d?.[STATE_COUNT + 1] ?? 0, which: pick };
+    return { shares, harvestWait: d && secs > 0 ? d[STATE_COUNT + 2] / secs : 0, secs, inN: d?.[STATE_COUNT] ?? 0, outN: d?.[STATE_COUNT + 1] ?? 0, handN: d?.[STATE_COUNT + 3] ?? 0, which: pick };
   }
 
   /** items per works day (1,008 sim s: 6am-2am awake plus the night shift), from a day's record */

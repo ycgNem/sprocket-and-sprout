@@ -231,6 +231,15 @@ export function fieldTiles(e: Ent): [number, number][] {
   return out;
 }
 
+/** a crop picked by hand inside a field machine's reach counts toward that field (ROADMAP.md 4.2) */
+export function noteHandPick(g: Game, i: number, n: number) {
+  const x = i % g.map.w, y = Math.floor(i / g.map.w);
+  for (const e of g.ents.others) {
+    if (e.ghost || !FIELD_KINDS.has(e.def.kind)) continue;
+    if (fieldTiles(e).some(([fx, fy]) => fx === x && fy === y)) g.stats.states.handPicked(e, n);
+  }
+}
+
 /**
  * A field's nominal yield (ROADMAP.md 4.2: always nominal, a field ripens all at once): plants in
  * reach x average yield / days per harvest, plus the crop most of them are and its yield a plant.
@@ -308,7 +317,8 @@ export function diagnose(g: Game, sink: Ent): Diagnosis {
   let problem: Stage | null = null;
   let key = '';
   let vars: Record<string, string | number> = {};
-  const pick = (s: Stage | null, k: string, v: Record<string, string | number>) => {
+  let hands = '';
+  const pick =(s: Stage | null, k: string, v: Record<string, string | number>) => {
     problem = s;
     key = k;
     vars = v;
@@ -346,6 +356,8 @@ export function diagnose(g: Game, sink: Ent): Diagnosis {
       const can = s.capDay;
       const more = fy.perPlant > 0 ? Math.max(1, Math.ceil((can - fy.perDay) / fy.perPlant)) : 0;
       pick(s, 'field', { name: label(s.e), crop: fy.crop, have: fmt(fy.perDay), can: fmt(can), more });
+      const d = log.day(field);
+      if (d.handN > 0) hands = `Your hands took ${fmt(d.handN)} of the field's ${fmt(d.handN + d.outN)}.`;
     }
   }
   // 3. an arm flat out while what it feeds still starves, or while the machine it empties piles
@@ -395,7 +407,7 @@ export function diagnose(g: Game, sink: Ent): Diagnosis {
     else pick(null, 'empty', {});
   }
   const t = adviceText(key, vars);
-  return { sink: s0, stages, belts: belts.length, problem, key, gap: t.gap, fix: t.fix, rate };
+  return { sink: s0, stages, belts: belts.length, problem, key, gap: hands ? `${t.gap} ${hands}` : t.gap, fix: t.fix, rate };
 }
 
 export function fmt(v: number): string {

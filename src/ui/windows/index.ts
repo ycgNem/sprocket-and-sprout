@@ -224,7 +224,7 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
 /** the night tally's works lines: the bottleneck and the night shift */
 function worksLines(s: { bottleneck?: string | null; nightBatches?: number }): string[] {
   const out: string[] = [];
-  if (s.bottleneck) out.push(...wrapText('Yesterday: ' + s.bottleneck, 280).slice(0, 2));
+  if (s.bottleneck) out.push(...wrapText('Yesterday: ' + s.bottleneck, 280).slice(0, 3));
   if (s.nightBatches) out.push(`The night shift ran ${s.nightBatches} batch${s.nightBatches === 1 ? '' : 'es'} while you slept.`);
   return out;
 }

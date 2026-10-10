@@ -236,6 +236,42 @@ describe('L5: a gleaner on a cogbean field -> arm -> jar -> arm -> crate', () =>
     expect(d.fix).toMatch(/27 more cogbean plants within a picker/);
   });
 
+  it('hand picks inside the gleaner\'s reach count toward the field, and the diagnosis says how many', async () => {
+    const { till, plant, cropTotal, harvest } = await import('../src/sim/systems/farming');
+    const { CROP_BY_ID } = await import('../src/data/crops');
+    const g = blank();
+    const gl = place(g, 'gleaner', 5, 5, 0);
+    place(g, 'arm_basic', 6, 5, 1);
+    place(g, 'jar', 7, 5, 0);
+    place(g, 'arm_basic', 8, 5, 1);
+    const crate = place(g, 'chest_wood', 9, 5, 0);
+    const bean = CROP_BY_ID.get('cogbean')!;
+    const tiles: number[] = [];
+    for (let y = 4; y <= 6; y++) for (let x = 4; x <= 6; x++) {
+      if (g.ents.at(x, y)) continue;
+      till(g, x, y);
+      const i = g.map.idx(x, y);
+      plant(g, bean, i);
+      const c = g.soil.get(i)!.crop!;
+      c.days = cropTotal(bean);
+      c.ready = true;
+      tiles.push(i);
+    }
+    // the hands get to three plants first (and one outside the reach counts for nothing)
+    let hand = 0;
+    for (const i of tiles.slice(0, 3)) hand += harvest(g, i)!.reduce((a, s) => a + s.n, 0);
+    till(g, 20, 20);
+    plant(g, bean, g.map.idx(20, 20));
+    Object.assign(g.soil.get(g.map.idx(20, 20))!.crop!, { days: cropTotal(bean), ready: true });
+    harvest(g, g.map.idx(20, 20));
+    run(g, 13 * 60);
+    const day = g.stats.states.day(gl, 'today');
+    expect(day.handN).toBe(hand);
+    const d = diagnose(g, crate);
+    expect(d.key).toBe('field');
+    expect(d.gap).toContain(`Your hands took ${hand} of the field's ${hand + day.outN}.`);
+  });
+
   it('the morning belongs to the hands: a crop that ripened today waits for noon', async () => {
     const { till, plant, cropTotal } = await import('../src/sim/systems/farming');
     const { CROP_BY_ID } = await import('../src/data/crops');
