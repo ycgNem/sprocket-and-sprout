@@ -1,4 +1,5 @@
 // Journal (notebook, quests, orders, friends, collections, mail), world map, restoration board, museum.
+import { togglePetStay } from '../../sim/systems/pet';
 import { TRUST_REWARDS } from '../../data/trust';
 import { C, PALETTE } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
@@ -104,6 +105,8 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
       ui.text(ICON.heart.repeat(ph) + '.'.repeat(5 - ph), bx + 230, ry + 3, C.rose);
       ui.text(pet.bowlFull ? 'Water bowl full' : 'Water bowl empty', bx + 230, ry + 13, pet.bowlFull ? C.moss : C.walnut);
       if (pet.petted) ui.text('petted', bx + bw - 8, ry + 3, C.moss, { align: 'right' });
+      // stay around the farmhouse, or come along (Shift+F at the pet does the same)
+      if (ui.button('petstay', bx + bw - 76, ry + 12, 68, 12, pet.stay ? 'Stays home' : 'Follows you', { style: 'flat', tip: pet.stay ? `${pet.name} stays around the farmhouse. Click to have them come along.` : `${pet.name} follows you about the farm. Click to have them stay home.` })) togglePetStay(g, pet);
     }
     list.forEach((n, i0) => {
       const i = i0 + first;

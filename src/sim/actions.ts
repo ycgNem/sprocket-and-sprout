@@ -524,10 +524,11 @@ export function eatHeld(g: Game): boolean {
 
 /** Secondary action (right click / F): talk, harvest, open, collect, insert. */
 export function interact(g: Game, tx: number, ty: number): boolean {
-  const p = g.player;
   if (g.sleeping) return false;
-  const m = curMap(g);
-  if (p.where === 'mine') return g.sys.mine?.interact?.(g, tx, ty) ?? false;
+  if (g.player.where === 'mine') return g.sys.mine?.interact?.(g, tx, ty) ?? false;
+  if (interactTile(g, tx, ty)) return true;
+  // the pet and Tock answer F only when nothing else at the tile does (the owner's playtest: a cat
+  // underfoot took the F meant for the crock)
   const pet = petAt(g, tx + 0.5, ty + 0.5);
   if (pet) {
     petInteract(g, pet);
@@ -538,6 +539,13 @@ export function interact(g: Game, tx: number, ty: number): boolean {
     tockInteract(g, tock);
     return true;
   }
+  return false;
+}
+
+/** F at a tile: a structure, a villager, a crop, a door... (true when something answered) */
+function interactTile(g: Game, tx: number, ty: number): boolean {
+  const p = g.player;
+  const m = curMap(g);
   if (p.where === 'house') {
     // a structure placed indoors works as it does outside (Workshop HQ)
     const he = g.houseEnts.rootAt(tx, ty);

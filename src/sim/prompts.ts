@@ -50,10 +50,27 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   const o = m.o(tx, ty);
   const top = (verb: string, lift = 0.1): Prompt => ({ verb, x: tx + 0.5, y: ty - lift });
   if (p.where === 'mine') return minePrompt(g, tx, ty);
+  // the pet and Tock answer only when nothing else at the tile does (as F, src/sim/actions.ts)
+  const here = tilePrompt(g, tx, ty);
+  if (here) return here;
   const pet = petAt(g, tx + 0.5, ty + 0.5);
-  if (pet) return pet.stage === 'stray' ? { verb: 'Say hello', x: pet.x, y: pet.y - 1 } : pet.petted ? null : { verb: 'Pet ' + pet.name, x: pet.x, y: pet.y - 1 };
+  if (pet) {
+    if (pet.stage === 'stray') return { verb: 'Say hello', x: pet.x, y: pet.y - 1 };
+    const held = p.inv.slots[p.sel];
+    const fish = held && kDef(held.k).cat === 'fish' && pet.treatDay !== g.dayIndex;
+    const hint = pet.stay ? 'Shift+F: come along' : 'Shift+F: stay';
+    return fish ? { verb: 'Give a treat', x: pet.x, y: pet.y - 1, hint } : pet.petted ? null : { verb: 'Pet ' + pet.name, x: pet.x, y: pet.y - 1, hint };
+  }
   const tock = tockAt(g, tx + 0.5, ty + 0.5);
   if (tock) return { verb: 'Tock', x: tock.x, y: tock.y - 1.3 };
+  return null;
+}
+
+function tilePrompt(g: Game, tx: number, ty: number): Prompt | null {
+  const p = g.player;
+  const m = curMap(g);
+  const o = m.o(tx, ty);
+  const top = (verb: string, lift = 0.1): Prompt => ({ verb, x: tx + 0.5, y: ty - lift });
   if (p.where === 'house') {
     // a structure placed indoors (Workshop HQ) answers as it does outside
     const he = g.houseEnts.rootAt(tx, ty);

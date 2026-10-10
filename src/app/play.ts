@@ -3,7 +3,7 @@ import { quickStack } from '../sim/quickstack';
 import { pendingPerk } from '../sim/perks';
 import { canPlaceDecor, placeDecor } from '../sim/systems/house';
 import { FURN_BY_ID } from '../data/furniture';
-import { petAt, petHearts } from '../sim/systems/pet';
+import { petAt, petHearts, togglePetStay } from '../sim/systems/pet';
 import { tockAt } from '../sim/systems/tock';
 import { C, PALETTE, rgba } from '../data/palette';
 import { STRUCT_BY_ID } from '../data/structures';
@@ -614,7 +614,16 @@ export class PlayScreen implements Screen {
       const h = petHearts(pt);
       ui.tip(pt.stage === 'stray'
         ? [{ text: `A stray ${pt.kind}`, color: C.amber }, { text: 'F or right-click to say hello', color: C.pebble }]
-        : [{ text: pt.name, color: C.amber }, { text: `Your ${pt.kind}  ` + ICON.heart.repeat(h) + '.'.repeat(5 - h), color: C.rose }, { text: pt.petted ? 'Petted today' : 'F or right-click to pet', color: C.pebble }, { text: pt.bowlFull ? 'Water bowl is full' : 'Water bowl is empty (use the watering can)', color: pt.bowlFull ? C.aqua : C.pebble }]);
+        : [
+            { text: pt.name, color: C.amber },
+            { text: `Your ${pt.kind}  ` + ICON.heart.repeat(h) + '.'.repeat(5 - h), color: C.rose },
+            ...(pt.mode === 'ride' ? [{ text: 'Riding your belt', color: C.butter }] : pt.warm !== undefined && pt.mode === 'sleep' ? [{ text: 'Napping by the warm machine', color: C.butter }] : []),
+            { text: pt.petted ? 'Petted today' : 'F or right-click to pet', color: C.pebble },
+            { text: pt.treatDay === g.dayIndex ? 'Had a fish today' : 'Hold a fish and press F: a treat, once a day', color: C.pebble },
+            { text: pt.stay ? 'Staying around the farmhouse (Shift+F: come along)' : h >= 1 ? 'Follows you (Shift+F: stay here)' : 'Will follow you once it trusts you (a heart)', color: C.pebble },
+            ...(h >= 2 ? [{ text: 'Keeps the crows off the crops by the house', color: C.moss }] : []),
+            { text: pt.bowlFull ? 'Water bowl is full' : 'Water bowl is empty (use the watering can)', color: pt.bowlFull ? C.aqua : C.pebble },
+          ], 220);
       return;
     }
     const tk = tockAt(g, t.fx, t.fy + 0.3);
@@ -820,7 +829,11 @@ export class PlayScreen implements Screen {
       // not while walking: Shift is also the walk-slowly key
       const walking = input.isDown('up') || input.isDown('down') || input.isDown('left') || input.isDown('right');
       const fe = input.shift && !walking ? hereEnts(g)?.rootAt(fx, fy) ?? null : null;
-      if (fe && !fe.ghost && !fe.st.rust && (fe.mach || fe.inv || fe.arm || fe.gen || fe.def.kind === 'pole')) this.openWindow('struct', fe.id);
+      const fs = fe && !fe.ghost && !fe.st.rust && (fe.mach || fe.inv || fe.arm || fe.gen || fe.def.kind === 'pole') ? fe : null;
+      // Shift+F at your pet: stay around the farmhouse, or come along (the owner's playtest)
+      const fp = input.shift && !walking && !fs ? petAt(g, fx + 0.5, fy + 0.5) : null;
+      if (fs) this.openWindow('struct', fs.id);
+      else if (fp?.stage === 'adopted') togglePetStay(g, fp);
       else if (!interact(g, fx, fy) && g.player.where === 'world') {
         // the Orders board answers F from any side: it's a post you walk around, not a door
         const px = Math.floor(g.player.x), py = Math.floor(g.player.y);

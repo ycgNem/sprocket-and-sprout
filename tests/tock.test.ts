@@ -76,8 +76,13 @@ describe('Tock', () => {
   it('F says how it is getting on; indoors it waits by the door; it keeps its count through a save', () => {
     const g = withTock(52);
     const k = tockSys(g);
-    k.x = g.player.x + 1;
-    k.y = g.player.y;
+    // a bare tile near you: F at a tile with something else on it (a door, a crop) is that thing's
+    const m = g.map;
+    const near: [number, number][] = [];
+    for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) near.push([Math.floor(g.player.x) + dx, Math.floor(g.player.y) + dy]);
+    const [bx, by] = near.find(([x, y]) => m.walkable(x, y) && !g.ents.at(x, y) && !m.obj[m.idx(x, y)] && !g.soil.has(m.idx(x, y)) && !m.buildingAtTile(x, y) && !m.buildingAtTile(x, y - 1))!;
+    k.x = bx + 0.5;
+    k.y = by + 0.8;
     k.wound = 7;
     expect(tockAt(g, Math.floor(k.x) + 0.5, Math.floor(k.y - 0.3) + 0.5)).toBe(k);
     g.events.length = 0;

@@ -253,6 +253,9 @@ function seasonChange(g: Game, newSeason: Season) {
   }
 }
 
+/** how far from its water bowl an adopted pet keeps the crows off */
+export const PET_GUARD = 14;
+
 function crows(g: Game) {
   if (g.dayIndex < 5) return;
   const m = g.map;
@@ -265,17 +268,26 @@ function crows(g: Game) {
     unprotected.push(i);
   }
   const attacks = Math.floor(unprotected.length / 20);
-  let eaten = 0;
+  // an adopted pet with two hearts chases them off the crops near its bowl (src/sim/systems/pet.ts;
+  // read from its state, not imported: farming registers long before the pet). The dice fall as before.
+  const pet = g.sys.pet as { stage: string; points: number; bowl: [number, number]; name: string } | undefined;
+  const guard = pet?.stage === 'adopted' && pet.points >= 400 ? pet.bowl : null;
+  let eaten = 0, chased = 0;
   for (let k = 0; k < attacks; k++) {
     if (g.rng.next() > 0.4) continue;
     const i = g.rng.pick(unprotected);
     const s = g.soil.get(i);
     if (s?.crop && !s.crop.dead) {
+      if (guard && Math.hypot((i % m.w) - guard[0], Math.floor(i / m.w) - guard[1]) <= PET_GUARD) {
+        chased++;
+        continue;
+      }
       s.crop = null;
       eaten++;
     }
   }
   if (eaten) g.toast(`Crows nibbled ${eaten} crop${eaten > 1 ? 's' : ''} overnight. A scarecrow would help!`);
+  if (chased) g.toast(`${pet!.name} chased the crows off ${chased} crop${chased > 1 ? 's' : ''} by the house overnight.`);
 }
 
 const FORAGE: Record<number, string[]> = {

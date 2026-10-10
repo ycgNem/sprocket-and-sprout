@@ -1574,7 +1574,7 @@ export class Renderer {
       // imported pets: walk cycle 0 1 4 5, sleep breathes 3 ↔ 6
       const full = hasImage(`pet:${pet.kind}:${pet.coat}:5`);
       const walk = full ? [0, 1, 4, 5][Math.floor(pet.walkT * 4.4) % 4] : Math.floor(pet.walkT * 2.2) % 2;
-      const pose = pet.mode === 'sleep' ? (full && Math.floor(this.time) % 2 ? 6 : 3) : pet.mode === 'sit' ? 2 : pet.moving ? walk : 0;
+      const pose = pet.mode === 'sleep' ? (full && Math.floor(this.time) % 2 ? 6 : 3) : pet.mode === 'sit' || pet.mode === 'ride' ? 2 : pet.moving ? walk : 0;
       D.push({ y: pet.y, f: () => {
         drawSprite(ctx, sprite('shadow:10'), pet.x * TILE, pet.y * TILE);
         drawSprite(ctx, sprite(`pet:${pet.kind}:${pet.coat}:${pose}`), pet.x * TILE, pet.y * TILE, 1, pet.dir === 3);
