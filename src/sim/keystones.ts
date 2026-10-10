@@ -2,7 +2,7 @@
 // own, so the orders, the town works and the quests can ask without moving research's place in the
 // tick order (src/sim/index.ts).
 import { QUESTS } from '../data/goals';
-import { RESEARCH, RESEARCH_BY_ID } from '../data/research';
+import { ERA_REWARDS, RESEARCH, RESEARCH_BY_ID } from '../data/research';
 import type { Game } from './Game';
 
 export function canResearch(g: Game, id: string): boolean {
@@ -10,6 +10,19 @@ export function canResearch(g: Game, id: string): boolean {
   if (!r || g.research.done.has(id)) return false;
   if (r.needFlag && !g.flags.has(r.needFlag)) return false;
   return r.prereq.every((p) => g.research.done.has(p));
+}
+
+/**
+ * The era the player is in: on a Keeper's Line save the first whose town keystone isn't done yet
+ * (the Town Mill done = the Steam era, whatever Spring topics are still unstudied); elsewhere the
+ * earliest era with something to study (6 = nothing left).
+ */
+export function townEra(g: Game): number {
+  if (g.flags.has('keepers_line')) {
+    for (let era = 1; era <= 5; era++) if (ERA_REWARDS.some((r) => r.era === era && !g.flags.has(r.flag))) return era;
+    return 5;
+  }
+  return Math.min(6, ...RESEARCH.filter((r) => canResearch(g, r.id)).map((r) => r.era));
 }
 
 /** the main quest that walks a keystone through its stages, if any */

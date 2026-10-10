@@ -15,6 +15,7 @@ import { ITEM_BY_ID, matchesSpec } from '../src/data/items';
 import { SHOP_BY_ID } from '../src/data/shops';
 import { STANDING_BY_ID } from '../src/data/orders';
 import { RESEARCH_BY_ID } from '../src/data/research';
+import { townEra } from '../src/sim/keystones';
 
 const secs = (g: Game, s: number) => { for (let i = 0; i < s * 60; i++) g.tick(); };
 const toasts = (g: Game) => g.events.filter((e) => e.t === 'toast').map((e) => (e as { text: string }).text);
@@ -157,6 +158,26 @@ describe('the one path past the Mill (C1)', () => {
     for (const id of ['w_town_mill', 'w_waterworks', 'w_lamps', 'w_tram', 'p_clock']) {
       expect([...QUEST_BY_ID.values()].some((d) => d.main && d.objectives.some((o) => o.t === 'order' && o.id === id))).toBe(true);
     }
+  });
+});
+
+describe("the era you're in", () => {
+  it("follows the town's keystones on the Keeper's Line, not the oldest unstudied topic", () => {
+    const g = new Game({ seed: 14 });
+    expect(g.flags.has('keepers_line')).toBe(true);
+    expect(townEra(g)).toBe(1);
+    g.flags.add('quest_done:k9_power');
+    expect(townEra(g)).toBe(2);
+    g.flags.add('town_mill');
+    // Gleaning and the rest of Spring are still unstudied: the town is in the Steam era all the same
+    expect(townEra(g)).toBe(3);
+    g.flags.add('waterworks');
+    expect(townEra(g)).toBe(3);
+    g.flags.add('lamplighting');
+    expect(townEra(g)).toBe(4);
+    g.flags.add('tram');
+    g.flags.add('clock_fixed');
+    expect(townEra(g)).toBe(5);
   });
 });
 

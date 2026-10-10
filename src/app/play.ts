@@ -45,7 +45,7 @@ import { promptAt, questTarget, toolVerb } from '../sim/prompts';
 import { POST_TIMES } from '../sim/systems/economy';
 import { quote } from '../sim/systems/economy';
 import { unlocksOf } from '../sim/systems/research';
-import { RESEARCH, ERA_NAMES } from '../data/research';
+import { RESEARCH, ERA_NAMES, ERA_REWARDS } from '../data/research';
 import { DEBUG_KEYS, keyLabel } from '../engine/input';
 import { textWidth } from '../ui/font';
 import { landmarkAt, landmarkTip, lookAt } from '../sim/systems/townworks';
@@ -1600,7 +1600,10 @@ export class PlayScreen implements Screen {
         case 'era': {
           // an era's town keystone is done: a banner, then the card with what the town gave back
           a.sfx('research');
-          J.banner({ title: `The ${ERA_NAMES[e.era]} era`, sub: e.title, color: 50, items: [] });
+          // the banner says what comes next: the next era, or the era's other keystone still to build
+          const left = ERA_REWARDS.some((r) => r.era === e.era && !g.flags.has(r.flag));
+          const sub = left ? `The ${ERA_NAMES[e.era]} era: one keystone to go` : e.era < 5 ? `The ${ERA_NAMES[e.era + 1]} era begins` : 'The last keystone';
+          J.banner({ title: e.title, sub, color: 50, items: [] });
           J.confetti(this.app.ui.w / 2, RIBBON_Y + 26, 60, true, 120);
           // after the keystone's own scene and card
           this.queueWindow('message', { title: e.title, icon: 'clockwork_core', text: `The ${ERA_NAMES[e.era]} era's works are running, and the town notices. Its thanks, for good:\n\n${e.pieces.map((p) => '+ ' + p).join('\n')}\n\nThe Now line names the town's next keystone.` });

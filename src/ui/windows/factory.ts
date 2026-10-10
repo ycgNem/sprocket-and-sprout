@@ -4,7 +4,7 @@ import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { ERA_KEYSTONE, ERA_NAMES, RESEARCH, RESEARCH_BY_ID, eraCol } from '../../data/research';
 import { key } from '../../sim/inventory';
 import { canResearch, researchUnits, setResearch, stageNext, stageObjMet, stageObjText, stages, unlocksOf } from '../../sim/systems/research';
-import { keystoneOpen, keystoneQuest } from '../../sim/keystones';
+import { keystoneOpen, keystoneQuest, townEra } from '../../sim/keystones';
 import { powerState } from '../../sim/systems/power';
 import { RES } from '../../sim/systems/stats';
 import type { PlayScreen } from '../../app/play';
@@ -99,11 +99,11 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   else if (ui.clicked && spanY && ui.hover(barY.x - 1, barY.y, barY.w + 2, barY.h)) { st.data.bar = 'y'; ui.eat(); }
   if (st.data.bar === 'x') st.data.panX = -Math.max(0, Math.min(1, (ui.mx - barX.x) / barX.w)) * spanX;
   if (st.data.bar === 'y') st.data.panY = -Math.max(0, Math.min(1, (ui.my - barY.y) / barY.h)) * spanY;
-  // the first visit opens on the era the player is in
+  // the first visit opens on the topic being studied, else on the era the player is in
   if (st.data.panX === 0 && st.data.firstEra === undefined) {
-    const cur = RESEARCH_BY_ID.get(g.research.current ?? '') ?? RESEARCH.find((r) => canResearch(g, r.id));
-    st.data.firstEra = cur?.era ?? 1;
-    if (cur && cur.era > 1) st.data.panX = -(L.start[cur.era] * GAP_X + (cur.era - 1) * BAND_PAD);
+    const era = Math.min(5, RESEARCH_BY_ID.get(g.research.current ?? '')?.era ?? townEra(g));
+    st.data.firstEra = era;
+    if (era > 1) st.data.panX = -(L.start[era] * GAP_X + (era - 1) * BAND_PAD);
   }
   // a topic to show (st.data.focus, e.g. from the screenshot sweep): picked, and scrolled to the middle
   if (st.data.focus && RESEARCH_BY_ID.has(st.data.focus)) {
@@ -127,8 +127,8 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   // the tree stops short of the scrollbars, so nothing hides under them
   ui.clip(vx + 1, vy + 1, vw - (spanY ? SB + 4 : 2), vh - (spanX ? SB + 4 : 2));
   // era bands: a tinted column per era with its name, its bundles and its keystone
-  // "(now)" marks one era: the topic being studied, else the earliest era with something to study
-  const nowEra = RESEARCH_BY_ID.get(g.research.current ?? '')?.era ?? Math.min(6, ...RESEARCH.filter((r) => canResearch(g, r.id)).map((r) => r.era));
+  // "(now)" marks the era the player is in (townEra: the town's next keystone on the Keeper's Line)
+  const nowEra = townEra(g);
   for (let era = 1; era <= 5; era++) {
     const bx = bandX(era), bw = L.cols[era] * GAP_X + BAND_PAD - (fit ? 2 : 6);
     ui.fill(bx, vy + 1, bw, vh - 2, ERA_TINT[era], 0.1);
