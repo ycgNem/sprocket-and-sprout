@@ -112,7 +112,7 @@
     "sword0": "swordRaise",
     "sword1": "swordStrike"
   },
-  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 03f5b51f-3cd3-4a33-a8a0-2a1407590f4e; walk: v3 custom walk (north), walking-4-frames.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/ponytail/<kind>/)",
+  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 03f5b51f-3cd3-4a33-a8a0-2a1407590f4e; walk: v3 custom walk (north), walking-4-frames.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/ponytail/<kind>/) Pick (1.2, bug 13): overhead strike like the hoe, custom v3 animation \"raising a wooden-handled iron pickaxe high overhead with both hands, then bringing it straight down in front of the body to strike the ground, like hoeing\" (east, west) and \"facing forward, raising a wooden-handled iron pickaxe high overhead with both hands, then slamming it straight down so the pickaxe head strikes the ground\" (south), raw in pick/<dir>/; north re-rolled (the first take showed no pick at all) with \"seen from behind, both arms lifting a wooden-handled iron pickaxe high above the head so the pickaxe is clearly visible over the head, then slamming it down beside the body so the pickaxe head strikes the ground\" (pick/north-b/); the west raise is frame 2 of the 1.1 pick swing (pick/west-old/: in the new take the ponytail hid the raised pick); the iron head is moved onto the metal ramp, handle pixels onto wood, and boot pixels the handle pass took for wood back onto boots by meta.cleanTool",
   "toolKinds": [
     "hoe",
     "axe",
@@ -160,21 +160,23 @@
       ]
     },
     "pick": {
+      "north": [
+        1,
+        4,
+        "north-b"
+      ],
+      "east": [
+        1,
+        4
+      ],
       "south": [
         1,
         4
       ],
-      "east": [
-        2,
-        4
-      ],
-      "north": [
-        1,
-        4
-      ],
       "west": [
-        1,
-        4
+        2,
+        4,
+        "west-old+west"
       ]
     },
     "can": {
@@ -251,6 +253,192 @@
     }
   },
   "cleanGrow": 3,
+  "cleanTool": {
+    "ponytail/pick/north-b/1.png": [
+      [
+        28,
+        9,
+        32,
+        14,
+        "metal",
+        "all-dark"
+      ]
+    ],
+    "ponytail/pick/north-b/4.png": [
+      [
+        31,
+        21,
+        35,
+        36,
+        "metal",
+        "all-dark"
+      ],
+      [
+        30,
+        22,
+        30,
+        23,
+        "metal",
+        "all-dark"
+      ]
+    ],
+    "ponytail/pick/east/1.png": [
+      [
+        4,
+        7,
+        7,
+        19,
+        "metal",
+        "all-dark"
+      ],
+      [
+        8,
+        7,
+        12,
+        11,
+        "metal",
+        "all-dark"
+      ],
+      [
+        8,
+        12,
+        14,
+        15,
+        "wood",
+        "all-dark"
+      ]
+    ],
+    "ponytail/pick/east/4.png": [
+      [
+        36,
+        21,
+        38,
+        35,
+        "metal",
+        "all-dark"
+      ],
+      [
+        33,
+        21,
+        35,
+        25,
+        "metal",
+        "all-dark"
+      ],
+      [
+        34,
+        29,
+        35,
+        35,
+        "metal",
+        "all-dark"
+      ],
+      [
+        25,
+        27,
+        35,
+        27,
+        "wood",
+        "all-dark"
+      ],
+      [
+        34,
+        28,
+        35,
+        28,
+        "wood",
+        "all-dark"
+      ]
+    ],
+    "ponytail/pick/south/1.png": [
+      [
+        28,
+        7,
+        34,
+        18,
+        "metal",
+        "all-dark"
+      ]
+    ],
+    "ponytail/pick/south/4.png": [
+      [
+        32,
+        18,
+        36,
+        36,
+        "metal",
+        "all-dark"
+      ],
+      [
+        28,
+        18,
+        31,
+        24,
+        "metal",
+        "all-dark"
+      ],
+      [
+        29,
+        30,
+        31,
+        36,
+        "metal",
+        "all-dark"
+      ],
+      [
+        17,
+        34,
+        17,
+        35,
+        "boots",
+        "dark"
+      ]
+    ],
+    "ponytail/pick/west-old/2.png": [
+      [
+        32,
+        8,
+        37,
+        25,
+        "metal",
+        "all-dark"
+      ],
+      [
+        27,
+        8,
+        31,
+        12,
+        "metal",
+        "all-dark"
+      ],
+      [
+        26,
+        15,
+        31,
+        18,
+        "wood",
+        "all-dark"
+      ],
+      [
+        24,
+        19,
+        27,
+        20,
+        "wood",
+        "dark"
+      ]
+    ],
+    "ponytail/pick/west/4.png": [
+      [
+        6,
+        19,
+        12,
+        33,
+        "metal",
+        "all-dark"
+      ]
+    ]
+  },
   "colors": [
     "#2e222f",
     "#374e4a",
@@ -268,7 +456,6 @@
     "#7f708a",
     "#8ff8e2",
     "#905ea9",
-    "#91db69",
     "#92a984",
     "#966c6c",
     "#9babb2",

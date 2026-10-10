@@ -112,7 +112,7 @@
     "sword0": "swordRaise",
     "sword1": "swordStrike"
   },
-  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> ff574554-9297-48dc-a9d5-40a62ab20cea; walk: walking-4-frames.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/bun/<kind>/)",
+  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> ff574554-9297-48dc-a9d5-40a62ab20cea; walk: walking-4-frames.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/bun/<kind>/) Pick (1.2, bug 13): overhead strike like the hoe, custom v3 animation \"raising a wooden-handled iron pickaxe high overhead with both hands, then bringing it straight down in front of the body to strike the ground, like hoeing\" (east, west) and \"facing forward / seen from behind, raising a wooden-handled iron pickaxe high overhead with both hands, then slamming it straight down so the pickaxe head strikes the ground\" (south, north), raw in pick/<dir>/; the south raise is frame 1 of the 1.1 pick swing (pick/south-old/: the new take held the handle down the face); the iron head is moved onto the metal ramp and lit boot pixels the handle pass took for wood back onto boots by meta.cleanTool",
   "toolKinds": [
     "hoe",
     "axe",
@@ -161,17 +161,18 @@
       ]
     },
     "pick": {
-      "south": [
-        1,
-        4
-      ],
-      "east": [
-        2,
-        4
-      ],
       "north": [
         2,
         4
+      ],
+      "east": [
+        1,
+        4
+      ],
+      "south": [
+        1,
+        4,
+        "south-old+south"
       ],
       "west": [
         1,
@@ -252,10 +253,240 @@
     }
   },
   "cleanGrow": 2,
+  "cleanTool": {
+    "bun/pick/south-old/1.png": [
+      [
+        15,
+        9,
+        18,
+        13,
+        "metal",
+        "all"
+      ],
+      [
+        19,
+        9,
+        20,
+        10,
+        "metal",
+        "all"
+      ],
+      [
+        27,
+        9,
+        30,
+        9,
+        "metal",
+        "all"
+      ],
+      [
+        29,
+        10,
+        29,
+        10,
+        "metal",
+        "all"
+      ],
+      [
+        30,
+        10,
+        36,
+        16,
+        "metal",
+        "all"
+      ]
+    ],
+    "bun/pick/south/4.png": [
+      [
+        33,
+        23,
+        38,
+        38,
+        "metal",
+        "all"
+      ],
+      [
+        30,
+        39,
+        35,
+        41,
+        "clear"
+      ],
+      [
+        18,
+        35,
+        18,
+        35,
+        "boots",
+        "dark"
+      ],
+      [
+        17,
+        36,
+        19,
+        37,
+        "boots",
+        "dark"
+      ]
+    ],
+    "bun/pick/east/1.png": [
+      [
+        5,
+        10,
+        12,
+        13,
+        "metal",
+        "all"
+      ],
+      [
+        5,
+        14,
+        7,
+        20,
+        "metal",
+        "all"
+      ],
+      [
+        16,
+        19,
+        16,
+        19,
+        "wood",
+        "dark"
+      ]
+    ],
+    "bun/pick/east/4.png": [
+      [
+        34,
+        22,
+        41,
+        37,
+        "metal",
+        "all"
+      ],
+      [
+        20,
+        34,
+        20,
+        34,
+        "boots",
+        "dark"
+      ],
+      [
+        25,
+        34,
+        25,
+        34,
+        "boots",
+        "dark"
+      ]
+    ],
+    "bun/pick/north/4.png": [
+      [
+        37,
+        32,
+        37,
+        32,
+        "metal",
+        "all"
+      ],
+      [
+        19,
+        34,
+        21,
+        34,
+        "boots",
+        "dark"
+      ],
+      [
+        19,
+        35,
+        19,
+        35,
+        "boots",
+        "dark"
+      ]
+    ],
+    "bun/pick/west/1.png": [
+      [
+        33,
+        10,
+        41,
+        17,
+        "metal",
+        "all"
+      ],
+      [
+        38,
+        18,
+        41,
+        29,
+        "metal",
+        "all"
+      ],
+      [
+        29,
+        22,
+        29,
+        22,
+        "wood",
+        "dark"
+      ],
+      [
+        28,
+        23,
+        28,
+        23,
+        "wood",
+        "dark"
+      ]
+    ],
+    "bun/pick/west/4.png": [
+      [
+        5,
+        19,
+        12,
+        28,
+        "metal",
+        "all"
+      ],
+      [
+        5,
+        29,
+        7,
+        29,
+        "metal",
+        "all"
+      ],
+      [
+        5,
+        30,
+        12,
+        37,
+        "metal",
+        "all"
+      ],
+      [
+        8,
+        29,
+        18,
+        29,
+        "wood"
+      ],
+      [
+        15,
+        28,
+        20,
+        28,
+        "wood"
+      ]
+    ]
+  },
   "colors": [
     "#0b8a8f",
     "#0eaf9b",
     "#2e222f",
+    "#323353",
     "#374e4a",
     "#3e3546",
     "#45293f",
@@ -277,7 +508,6 @@
     "#9e4539",
     "#a2a947",
     "#ab947a",
-    "#b2ba90",
     "#c7dcd0",
     "#cd683d",
     "#e6904e",

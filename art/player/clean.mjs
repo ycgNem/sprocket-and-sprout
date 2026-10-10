@@ -18,6 +18,10 @@
 //         A sixth entry "all" ([x0, y0, x1, y1, "metal", "all"]) moves every non-outline pixel to that part
 //         whatever it matched (an iron pick head PixelLab lit with cream highlights the tool part claims),
 //         except pixels this pass already tagged boots or wood (a handle running through the box).
+//         A sixth entry "dark" ([x0, y0, x1, y1, "boots", "dark"]) works like the plain form but counts only
+//         near-black pixels as outline, so dark boot shading (luma 12-50) the handle pass took for wood,
+//         outside the feet rows the feet pass looks at, goes back onto the boots. "all-dark" is "all" with
+//         that outline rule: a pick head's near-black olive shadow edge, which the shirt's dark colors would claim.
 //         [x0, y0, x1, y1, "clear"] makes the box transparent: a generator stray, e.g. a tool tip one row
 //         below the feet that would lift the whole frame (art-import aligns each frame's lowest pixel)
 // A recipe lists its inputs as clean/<raw path>; this script writes them from <raw path>.
@@ -116,13 +120,14 @@ for (const recipeFile of process.argv.slice(2)) {
         continue;
       }
       const into = part ? partFrom(part) : toolFrom;
+      const all = how === 'all' || how === 'all-dark', dark = how === 'dark' || how === 'all-dark';
       for (let y = y0; y <= y1; y++)
         for (let x = x0; x <= x1; x++) {
           if (!on(x, y)) continue;
           const o = (y * W + x) * 4;
           const L = luma([...orig.subarray(o, o + 3)]);
-          if (L < 50) continue; // outline stays
-          if (part && how === 'all') { if (TAGS.has(hex(img.data, o))) continue; } // boots / wood tagged above stay
+          if (L < (dark ? 12 : 50)) continue; // outline stays
+          if (part && all) { if (TAGS.has(hex(img.data, o))) continue; } // boots / wood tagged above stay
           else if (part && !LOOK_PARTS.has(partOf(hex(orig, o)))) continue; // a named part only takes look-colored pixels
           let best = into[0];
           for (const t of into) if (Math.abs(t.L - L) < Math.abs(best.L - L)) best = t;

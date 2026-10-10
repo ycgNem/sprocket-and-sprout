@@ -112,7 +112,7 @@
     "sword0": "swordRaise",
     "sword1": "swordStrike"
   },
-  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 5b437b16-c8aa-4021-bd75-7c88d5f302f4; walk: v3 custom walk (south, east, north, west), walking-4-frames unused; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/bald/<kind>/)",
+  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 5b437b16-c8aa-4021-bd75-7c88d5f302f4; walk: v3 custom walk (south, east, north, west), walking-4-frames unused; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/bald/<kind>/) Pick (1.2, bug 13): overhead strike like the hoe, custom v3 animation \"raising a wooden-handled iron pickaxe high overhead with both hands, then bringing it straight down in front of the body to strike the ground, like hoeing\" (east, west) and \"facing forward / seen from behind, raising a wooden-handled iron pickaxe high overhead with both hands, then slamming it straight down so the pickaxe head strikes the ground\" (south, north), raw in pick/<dir>/; north strike re-rolled with \"seen from behind, both arms lifting a wooden-handled iron pickaxe high above the head so the pickaxe is clearly visible over the head, then slamming it down beside the body so the pickaxe head strikes the ground\" (pick/north-b/); the south raise is frame 1 of the 1.1 pick swing (pick/south-old/: the new take held the handle down the face); the iron head is moved onto the metal ramp, handle pixels in look colors onto wood, and boot and eyebrow pixels the handle pass took for wood back onto boots and hair by meta.cleanTool",
   "toolKinds": [
     "hoe",
     "axe",
@@ -160,17 +160,19 @@
       ]
     },
     "pick": {
-      "south": [
-        1,
-        4
+      "north": [
+        2,
+        4,
+        "north+north-b"
       ],
       "east": [
         2,
         4
       ],
-      "north": [
-        2,
-        4
+      "south": [
+        1,
+        4,
+        "south-old+south"
       ],
       "west": [
         1,
@@ -279,15 +281,6 @@
         "metal"
       ]
     ],
-    "bald/pick/south/1.png": [
-      [
-        7,
-        10,
-        11,
-        11,
-        "metal"
-      ]
-    ],
     "bald/rod/east/4.png": [
       [
         31,
@@ -327,6 +320,328 @@
         14,
         16,
         "wood"
+      ]
+    ],
+    "bald/pick/north-b/4.png": [
+      [
+        33,
+        21,
+        37,
+        36,
+        "metal",
+        "all"
+      ]
+    ],
+    "bald/pick/east/2.png": [
+      [
+        5,
+        6,
+        9,
+        18,
+        "metal",
+        "all"
+      ],
+      [
+        10,
+        12,
+        11,
+        12,
+        "wood"
+      ],
+      [
+        14,
+        15,
+        14,
+        15,
+        "wood"
+      ],
+      [
+        22,
+        12,
+        23,
+        12,
+        "hair",
+        "dark"
+      ],
+      [
+        19,
+        14,
+        19,
+        14,
+        "hair",
+        "dark"
+      ],
+      [
+        18,
+        15,
+        18,
+        16,
+        "hair",
+        "dark"
+      ],
+      [
+        19,
+        17,
+        19,
+        17,
+        "hair",
+        "dark"
+      ]
+    ],
+    "bald/pick/east/4.png": [
+      [
+        34,
+        21,
+        37,
+        36,
+        "metal",
+        "all"
+      ],
+      [
+        33,
+        34,
+        33,
+        35,
+        "metal",
+        "all"
+      ],
+      [
+        20,
+        15,
+        20,
+        15,
+        "hair",
+        "dark"
+      ],
+      [
+        19,
+        16,
+        19,
+        17,
+        "hair",
+        "dark"
+      ],
+      [
+        24,
+        16,
+        25,
+        16,
+        "hair",
+        "dark"
+      ],
+      [
+        20,
+        18,
+        20,
+        18,
+        "hair",
+        "dark"
+      ]
+    ],
+    "bald/pick/south-old/1.png": [
+      [
+        7,
+        6,
+        16,
+        10,
+        "metal",
+        "all"
+      ],
+      [
+        7,
+        11,
+        8,
+        12,
+        "metal",
+        "all"
+      ],
+      [
+        9,
+        11,
+        13,
+        18,
+        "wood"
+      ],
+      [
+        18,
+        14,
+        19,
+        14,
+        "hair",
+        "dark"
+      ],
+      [
+        24,
+        14,
+        25,
+        14,
+        "hair",
+        "dark"
+      ]
+    ],
+    "bald/pick/south/4.png": [
+      [
+        32,
+        20,
+        35,
+        34,
+        "metal",
+        "all"
+      ],
+      [
+        30,
+        35,
+        32,
+        36,
+        "metal",
+        "all"
+      ],
+      [
+        28,
+        37,
+        30,
+        37,
+        "clear"
+      ],
+      [
+        15,
+        34,
+        17,
+        35,
+        "boots",
+        "dark"
+      ],
+      [
+        16,
+        33,
+        16,
+        33,
+        "boots",
+        "dark"
+      ],
+      [
+        18,
+        17,
+        19,
+        17,
+        "hair",
+        "dark"
+      ],
+      [
+        24,
+        17,
+        25,
+        17,
+        "hair",
+        "dark"
+      ],
+      [
+        20,
+        18,
+        20,
+        18,
+        "hair",
+        "dark"
+      ],
+      [
+        23,
+        18,
+        23,
+        18,
+        "hair",
+        "dark"
+      ]
+    ],
+    "bald/pick/west/1.png": [
+      [
+        27,
+        15,
+        33,
+        18,
+        "wood",
+        "all"
+      ],
+      [
+        26,
+        18,
+        26,
+        18,
+        "wood",
+        "all"
+      ],
+      [
+        19,
+        14,
+        20,
+        14,
+        "hair",
+        "dark"
+      ],
+      [
+        23,
+        14,
+        23,
+        14,
+        "hair",
+        "dark"
+      ],
+      [
+        24,
+        15,
+        24,
+        16,
+        "hair",
+        "dark"
+      ],
+      [
+        23,
+        17,
+        23,
+        17,
+        "hair",
+        "dark"
+      ]
+    ],
+    "bald/pick/west/4.png": [
+      [
+        9,
+        26,
+        9,
+        27,
+        "wood",
+        "all"
+      ],
+      [
+        10,
+        27,
+        21,
+        27,
+        "wood",
+        "all"
+      ],
+      [
+        25,
+        16,
+        25,
+        16,
+        "hair",
+        "dark"
+      ],
+      [
+        17,
+        18,
+        17,
+        18,
+        "hair",
+        "dark"
+      ],
+      [
+        21,
+        18,
+        21,
+        18,
+        "hair",
+        "dark"
       ]
     ]
   },

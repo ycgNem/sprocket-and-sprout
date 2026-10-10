@@ -67,7 +67,7 @@
       "clean/long/hoe/east/4.png",
       "clean/long/axe/east/2.png",
       "clean/long/axe/east/4.png",
-      "clean/long/pick/east/2.png",
+      "clean/long/pick/east/1.png",
       "clean/long/pick/east/4.png",
       "clean/long/can/east/2.png",
       "clean/long/can/east/4.png",
@@ -88,7 +88,7 @@
       "clean/long/hoe/south/4.png",
       "clean/long/axe/south/2.png",
       "clean/long/axe/south/4.png",
-      "clean/long/pick/south/2.png",
+      "clean/long/pick/south/1.png",
       "clean/long/pick/south/4.png",
       "clean/long/can/south-retake/2.png",
       "clean/long/can/south-retake/4.png",
@@ -110,7 +110,7 @@
       "clean/long/axe/west/1.png",
       "clean/long/axe/west/4.png",
       "clean/long/pick/west/1.png",
-      "clean/long/pick/west/3.png",
+      "clean/long/pick/west/4.png",
       "clean/long/can/west/2.png",
       "clean/long/can/west/4.png",
       "clean/long/scythe/west/1.png",
@@ -384,7 +384,7 @@
       "sword0": "swordRaise",
       "sword1": "swordStrike"
     },
-    "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 7b78c3f3-441e-4fba-b932-f5923fbef65b; walk: v3 custom walk (south, north), walking-4-frames.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/long/<kind>/)",
+    "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 7b78c3f3-441e-4fba-b932-f5923fbef65b; walk: v3 custom walk (south, north), walking-4-frames.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/long/<kind>/) Pick (1.2, bug 13): overhead strike like the hoe, custom v3 animation \"raising a wooden-handled iron pickaxe high overhead with both hands, then bringing it straight down in front of the body to strike the ground, like hoeing\" (east, west) and \"facing forward / seen from behind, raising a wooden-handled iron pickaxe high overhead with both hands, then slamming it straight down so the pickaxe head strikes the ground\" (south, north), raw in pick/<dir>/; the iron head is moved onto the metal ramp, handle pixels onto wood, and hair and boot pixels the handle pass took for wood back onto hair and boots by meta.cleanTool",
     "toolKinds": [
       "hoe",
       "axe",
@@ -432,21 +432,21 @@
         ]
       },
       "pick": {
-        "south": [
-          2,
-          4
-        ],
-        "east": [
-          2,
-          4
-        ],
         "north": [
           2,
           4
         ],
+        "east": [
+          1,
+          4
+        ],
+        "south": [
+          1,
+          4
+        ],
         "west": [
           1,
-          3
+          4
         ]
       },
       "can": {
@@ -539,6 +539,300 @@
           20,
           33,
           25
+        ]
+      ],
+      "long/pick/north/2.png": [
+        [
+          13,
+          8,
+          16,
+          10,
+          "metal",
+          "all-dark"
+        ],
+        [
+          28,
+          10,
+          31,
+          13,
+          "metal",
+          "all-dark"
+        ]
+      ],
+      "long/pick/north/4.png": [
+        [
+          33,
+          19,
+          38,
+          37,
+          "metal",
+          "all-dark"
+        ],
+        [
+          31,
+          19,
+          32,
+          26,
+          "metal",
+          "all-dark"
+        ],
+        [
+          31,
+          30,
+          32,
+          37,
+          "metal",
+          "all-dark"
+        ],
+        [
+          29,
+          27,
+          30,
+          28,
+          "wood",
+          "dark"
+        ]
+      ],
+      "long/pick/east/1.png": [
+        [
+          4,
+          7,
+          9,
+          21,
+          "metal",
+          "all-dark"
+        ],
+        [
+          10,
+          7,
+          15,
+          11,
+          "metal",
+          "all-dark"
+        ],
+        [
+          26,
+          18,
+          26,
+          18,
+          "hair",
+          "dark"
+        ],
+        [
+          25,
+          19,
+          25,
+          19,
+          "hair",
+          "dark"
+        ],
+        [
+          24,
+          23,
+          24,
+          23,
+          "hair",
+          "dark"
+        ],
+        [
+          10,
+          12,
+          13,
+          15,
+          "wood",
+          "dark"
+        ],
+        [
+          14,
+          16,
+          15,
+          16,
+          "wood",
+          "dark"
+        ],
+        [
+          16,
+          17,
+          17,
+          17,
+          "wood",
+          "dark"
+        ]
+      ],
+      "long/pick/east/4.png": [
+        [
+          34,
+          21,
+          38,
+          36,
+          "metal",
+          "all-dark"
+        ],
+        [
+          31,
+          33,
+          34,
+          36,
+          "metal",
+          "all-dark"
+        ],
+        [
+          31,
+          37,
+          33,
+          37,
+          "clear"
+        ],
+        [
+          27,
+          19,
+          27,
+          19,
+          "hair",
+          "dark"
+        ],
+        [
+          26,
+          20,
+          26,
+          20,
+          "hair",
+          "dark"
+        ]
+      ],
+      "long/pick/south/1.png": [
+        [
+          10,
+          8,
+          16,
+          14,
+          "metal",
+          "all-dark"
+        ],
+        [
+          22,
+          21,
+          22,
+          21,
+          "wood"
+        ]
+      ],
+      "long/pick/south/4.png": [
+        [
+          31,
+          16,
+          38,
+          36,
+          "metal",
+          "all-dark"
+        ],
+        [
+          29,
+          16,
+          30,
+          18,
+          "metal",
+          "all-dark"
+        ],
+        [
+          21,
+          22,
+          22,
+          22,
+          "hair",
+          "dark"
+        ],
+        [
+          17,
+          35,
+          17,
+          35,
+          "boots",
+          "dark"
+        ],
+        [
+          23,
+          27,
+          24,
+          27,
+          "wood",
+          "dark"
+        ],
+        [
+          29,
+          27,
+          30,
+          27,
+          "wood",
+          "dark"
+        ]
+      ],
+      "long/pick/west/1.png": [
+        [
+          32,
+          7,
+          37,
+          21,
+          "metal",
+          "all-dark"
+        ],
+        [
+          28,
+          13,
+          33,
+          16,
+          "wood",
+          "all-dark"
+        ],
+        [
+          17,
+          18,
+          17,
+          18,
+          "hair",
+          "dark"
+        ]
+      ],
+      "long/pick/west/4.png": [
+        [
+          4,
+          19,
+          12,
+          26,
+          "metal",
+          "all-dark"
+        ],
+        [
+          4,
+          27,
+          7,
+          36,
+          "metal",
+          "all-dark"
+        ],
+        [
+          8,
+          29,
+          12,
+          36,
+          "metal",
+          "all-dark"
+        ],
+        [
+          8,
+          27,
+          12,
+          27,
+          "wood",
+          "all"
+        ],
+        [
+          18,
+          19,
+          18,
+          19,
+          "hair",
+          "dark"
         ]
       ]
     }

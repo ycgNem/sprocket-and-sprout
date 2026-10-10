@@ -112,7 +112,7 @@
     "sword0": "swordRaise",
     "sword1": "swordStrike"
   },
-  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 0ba04f99-f891-46d5-ac2f-b06f4fa7a325; walk: v3 custom walk (south, east, north, west), walking-4-frames unused.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/curly/<kind>/)",
+  "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 0ba04f99-f891-46d5-ac2f-b06f4fa7a325; walk: v3 custom walk (south, east, north, west), walking-4-frames unused.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/curly/<kind>/) Pick (1.2, bug 13): overhead strike like the hoe, custom v3 animation \"raising a wooden-handled iron pickaxe high overhead with both hands, then bringing it straight down in front of the body to strike the ground, like hoeing\" (east, west) and \"facing forward / seen from behind, raising a wooden-handled iron pickaxe high overhead with both hands, then slamming it straight down so the pickaxe head strikes the ground\" (south, north), raw in pick/<dir>/; the north raise is frame 2 of the 1.1 pick swing (pick/north-old/: in both new north takes the curls hid the raised pick); the iron head is moved onto the metal ramp, handle pixels onto wood, and boot pixels the handle pass took for wood back onto boots by meta.cleanTool",
   "toolKinds": [
     "hoe",
     "axe",
@@ -161,20 +161,21 @@
       ]
     },
     "pick": {
+      "north": [
+        2,
+        4,
+        "north-old+north"
+      ],
+      "east": [
+        1,
+        4
+      ],
       "south": [
         2,
         4
       ],
-      "east": [
-        2,
-        4
-      ],
-      "north": [
-        2,
-        4
-      ],
       "west": [
-        2,
+        1,
         4
       ]
     },
@@ -254,6 +255,214 @@
     }
   },
   "cleanGrow": 2,
+  "cleanTool": {
+    "curly/pick/north-old/2.png": [
+      [
+        5,
+        6,
+        21,
+        7,
+        "metal",
+        "all-dark"
+      ],
+      [
+        5,
+        8,
+        16,
+        9,
+        "metal",
+        "all-dark"
+      ],
+      [
+        5,
+        10,
+        15,
+        11,
+        "metal",
+        "all-dark"
+      ],
+      [
+        5,
+        12,
+        14,
+        15,
+        "metal",
+        "all-dark"
+      ],
+      [
+        5,
+        16,
+        9,
+        19,
+        "metal",
+        "all-dark"
+      ],
+      [
+        10,
+        16,
+        12,
+        17,
+        "wood",
+        "all"
+      ],
+      [
+        24,
+        31,
+        25,
+        31,
+        "boots",
+        "dark"
+      ]
+    ],
+    "curly/pick/north/4.png": [
+      [
+        30,
+        24,
+        35,
+        35,
+        "metal",
+        "all-dark"
+      ]
+    ],
+    "curly/pick/south/2.png": [
+      [
+        24,
+        7,
+        29,
+        9,
+        "metal",
+        "all-dark"
+      ],
+      [
+        29,
+        10,
+        34,
+        17,
+        "metal",
+        "all-dark"
+      ],
+      [
+        28,
+        10,
+        28,
+        11,
+        "metal",
+        "all-dark"
+      ]
+    ],
+    "curly/pick/south/4.png": [
+      [
+        32,
+        19,
+        36,
+        36,
+        "metal",
+        "all-dark"
+      ],
+      [
+        29,
+        19,
+        31,
+        25,
+        "metal",
+        "all-dark"
+      ],
+      [
+        30,
+        33,
+        31,
+        36,
+        "metal",
+        "all-dark"
+      ],
+      [
+        17,
+        35,
+        17,
+        35,
+        "boots",
+        "dark"
+      ]
+    ],
+    "curly/pick/west/1.png": [
+      [
+        34,
+        7,
+        38,
+        22,
+        "metal",
+        "all-dark"
+      ],
+      [
+        26,
+        7,
+        33,
+        9,
+        "metal",
+        "all-dark"
+      ],
+      [
+        27,
+        14,
+        31,
+        17,
+        "wood",
+        "dark"
+      ],
+      [
+        32,
+        11,
+        33,
+        13,
+        "wood",
+        "dark"
+      ]
+    ],
+    "curly/pick/west/4.png": [
+      [
+        4,
+        13,
+        10,
+        34,
+        "metal",
+        "all-dark"
+      ]
+    ],
+    "curly/pick/east/1.png": [
+      [
+        10,
+        14,
+        14,
+        17,
+        "wood",
+        "dark"
+      ],
+      [
+        14,
+        18,
+        16,
+        18,
+        "wood",
+        "dark"
+      ],
+      [
+        16,
+        19,
+        17,
+        19,
+        "wood",
+        "dark"
+      ],
+      [
+        18,
+        20,
+        18,
+        20,
+        "wood",
+        "dark"
+      ]
+    ]
+  },
   "colors": [
     "#2e222f",
     "#323353",
@@ -264,7 +473,6 @@
     "#4c3e24",
     "#4d65b4",
     "#4d9be6",
-    "#547e64",
     "#625565",
     "#676633",
     "#694f62",

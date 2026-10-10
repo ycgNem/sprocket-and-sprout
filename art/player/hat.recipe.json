@@ -46,7 +46,7 @@
       "clean/hat/hoe/north/4.png",
       "clean/hat/axe/north/3.png",
       "clean/hat/axe/north/4.png",
-      "clean/hat/pick/north/2.png",
+      "clean/hat/pick/north-old/2.png",
       "clean/hat/pick/north/4.png",
       "clean/hat/can/north/2.png",
       "clean/hat/can/north/4.png",
@@ -67,7 +67,7 @@
       "clean/hat/hoe/east/4.png",
       "clean/hat/axe/east/2.png",
       "clean/hat/axe/east/4.png",
-      "clean/hat/pick/east/2.png",
+      "clean/hat/pick/east/1.png",
       "clean/hat/pick/east/4.png",
       "clean/hat/can/east/2.png",
       "clean/hat/can/east/4.png",
@@ -109,7 +109,7 @@
       "clean/hat/hoe/west/3.png",
       "clean/hat/axe/west/2.png",
       "clean/hat/axe/west/4.png",
-      "clean/hat/pick/west/2.png",
+      "clean/hat/pick/west/1.png",
       "clean/hat/pick/west/4.png",
       "clean/hat/can/west/2.png",
       "clean/hat/can/west/4.png",
@@ -412,7 +412,7 @@
       "sword0": "swordRaise",
       "sword1": "swordStrike"
     },
-    "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> beac9f13-0873-44b5-a1d6-bf057e7930c1; walk: v3 custom walk (south, east, north, west), walking-4-frames unused.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/hat/<kind>/)",
+    "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> beac9f13-0873-44b5-a1d6-bf057e7930c1; walk: v3 custom walk (south, east, north, west), walking-4-frames unused.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/hat/<kind>/) Pick (1.2, bug 13): overhead strike like the hoe, custom v3 animation \"raising a wooden-handled iron pickaxe high overhead with both hands, then bringing it straight down in front of the body to strike the ground, like hoeing\" (east, west) and \"facing forward / seen from behind, raising a wooden-handled iron pickaxe high overhead with both hands, then slamming it straight down so the pickaxe head strikes the ground\" (south, north), raw in pick/<dir>/; the north raise is frame 2 of the 1.1 pick swing (pick/north-old/: in both new north takes the brim hid the raised pick); the iron head is moved onto the metal ramp, handle pixels onto wood, and hat-crease, hair and boot pixels the handle pass took for wood back onto hair and boots by meta.cleanTool",
     "toolKinds": [
       "hoe",
       "axe",
@@ -460,20 +460,21 @@
         ]
       },
       "pick": {
+        "north": [
+          2,
+          4,
+          "north-old+north"
+        ],
+        "east": [
+          1,
+          4
+        ],
         "south": [
           2,
           4
         ],
-        "east": [
-          2,
-          4
-        ],
-        "north": [
-          2,
-          4
-        ],
         "west": [
-          2,
+          1,
           4
         ]
       },
@@ -573,6 +574,485 @@
           27,
           16,
           27
+        ]
+      ],
+      "hat/pick/north-old/2.png": [
+        [
+          5,
+          6,
+          21,
+          7,
+          "metal",
+          "all-dark"
+        ],
+        [
+          5,
+          8,
+          16,
+          9,
+          "metal",
+          "all-dark"
+        ],
+        [
+          5,
+          10,
+          13,
+          10,
+          "metal",
+          "all-dark"
+        ],
+        [
+          5,
+          11,
+          12,
+          11,
+          "metal",
+          "all-dark"
+        ],
+        [
+          5,
+          12,
+          11,
+          12,
+          "metal",
+          "all-dark"
+        ],
+        [
+          5,
+          13,
+          10,
+          13,
+          "metal",
+          "all-dark"
+        ],
+        [
+          5,
+          14,
+          9,
+          22,
+          "metal",
+          "all-dark"
+        ],
+        [
+          26,
+          9,
+          26,
+          9,
+          "hair",
+          "dark"
+        ],
+        [
+          17,
+          10,
+          17,
+          10,
+          "hair",
+          "dark"
+        ],
+        [
+          27,
+          10,
+          27,
+          10,
+          "hair",
+          "dark"
+        ],
+        [
+          16,
+          11,
+          16,
+          11,
+          "hair",
+          "dark"
+        ],
+        [
+          27,
+          11,
+          27,
+          11,
+          "hair",
+          "dark"
+        ],
+        [
+          16,
+          12,
+          16,
+          12,
+          "hair",
+          "dark"
+        ],
+        [
+          27,
+          12,
+          27,
+          12,
+          "hair",
+          "dark"
+        ],
+        [
+          17,
+          13,
+          17,
+          13,
+          "hair",
+          "dark"
+        ],
+        [
+          26,
+          13,
+          26,
+          13,
+          "hair",
+          "dark"
+        ],
+        [
+          17,
+          14,
+          17,
+          14,
+          "hair",
+          "dark"
+        ],
+        [
+          26,
+          14,
+          26,
+          14,
+          "hair",
+          "dark"
+        ]
+      ],
+      "hat/pick/north/4.png": [
+        [
+          33,
+          21,
+          36,
+          36,
+          "metal",
+          "all-dark"
+        ],
+        [
+          30,
+          21,
+          32,
+          26,
+          "metal",
+          "all-dark"
+        ],
+        [
+          30,
+          33,
+          32,
+          36,
+          "metal",
+          "all-dark"
+        ],
+        [
+          16,
+          13,
+          16,
+          13,
+          "hair",
+          "dark"
+        ],
+        [
+          27,
+          13,
+          27,
+          13,
+          "hair",
+          "dark"
+        ],
+        [
+          16,
+          14,
+          16,
+          14,
+          "hair",
+          "dark"
+        ],
+        [
+          27,
+          14,
+          27,
+          14,
+          "hair",
+          "dark"
+        ],
+        [
+          17,
+          15,
+          17,
+          15,
+          "hair",
+          "dark"
+        ],
+        [
+          26,
+          15,
+          26,
+          15,
+          "hair",
+          "dark"
+        ],
+        [
+          17,
+          16,
+          17,
+          16,
+          "hair",
+          "dark"
+        ],
+        [
+          23,
+          17,
+          23,
+          17,
+          "hair",
+          "dark"
+        ]
+      ],
+      "hat/pick/east/1.png": [
+        [
+          5,
+          9,
+          10,
+          24,
+          "metal",
+          "all-dark"
+        ],
+        [
+          11,
+          9,
+          15,
+          13,
+          "metal",
+          "all-dark"
+        ]
+      ],
+      "hat/pick/east/4.png": [
+        [
+          37,
+          19,
+          41,
+          36,
+          "metal",
+          "all-dark"
+        ],
+        [
+          35,
+          19,
+          36,
+          26,
+          "metal",
+          "all-dark"
+        ]
+      ],
+      "hat/pick/south/2.png": [
+        [
+          14,
+          5,
+          29,
+          8,
+          "metal",
+          "all-dark"
+        ],
+        [
+          14,
+          9,
+          17,
+          11,
+          "metal",
+          "all-dark"
+        ],
+        [
+          21,
+          9,
+          22,
+          10,
+          "metal",
+          "all-dark"
+        ],
+        [
+          26,
+          9,
+          29,
+          11,
+          "metal",
+          "all-dark"
+        ],
+        [
+          17,
+          13,
+          17,
+          13,
+          "hair",
+          "dark"
+        ],
+        [
+          18,
+          13,
+          18,
+          13,
+          "hair",
+          "dark"
+        ],
+        [
+          19,
+          13,
+          19,
+          13,
+          "hair",
+          "dark"
+        ],
+        [
+          17,
+          14,
+          17,
+          14,
+          "hair",
+          "dark"
+        ]
+      ],
+      "hat/pick/south/4.png": [
+        [
+          33,
+          23,
+          37,
+          36,
+          "metal",
+          "all-dark"
+        ],
+        [
+          31,
+          29,
+          32,
+          30,
+          "metal",
+          "all-dark"
+        ],
+        [
+          31,
+          35,
+          32,
+          36,
+          "metal",
+          "all-dark"
+        ],
+        [
+          31,
+          37,
+          33,
+          37,
+          "clear"
+        ],
+        [
+          17,
+          15,
+          17,
+          15,
+          "hair",
+          "dark"
+        ],
+        [
+          18,
+          15,
+          18,
+          15,
+          "hair",
+          "dark"
+        ],
+        [
+          19,
+          15,
+          19,
+          15,
+          "hair",
+          "dark"
+        ],
+        [
+          20,
+          15,
+          20,
+          15,
+          "hair",
+          "dark"
+        ],
+        [
+          18,
+          16,
+          18,
+          16,
+          "hair",
+          "dark"
+        ],
+        [
+          17,
+          35,
+          17,
+          35,
+          "boots",
+          "dark"
+        ]
+      ],
+      "hat/pick/west/1.png": [
+        [
+          34,
+          7,
+          42,
+          16,
+          "metal",
+          "all-dark"
+        ],
+        [
+          40,
+          17,
+          42,
+          26,
+          "metal",
+          "all-dark"
+        ],
+        [
+          33,
+          17,
+          39,
+          19,
+          "wood",
+          "all-dark"
+        ],
+        [
+          19,
+          19,
+          19,
+          19,
+          "hair",
+          "dark"
+        ]
+      ],
+      "hat/pick/west/4.png": [
+        [
+          8,
+          28,
+          12,
+          28,
+          "wood",
+          "all"
+        ],
+        [
+          12,
+          29,
+          12,
+          29,
+          "wood",
+          "all"
+        ],
+        [
+          17,
+          29,
+          19,
+          29,
+          "wood",
+          "all"
         ]
       ]
     }

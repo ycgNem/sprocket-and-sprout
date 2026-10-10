@@ -67,8 +67,8 @@
       "clean/braids/hoe/east/3.png",
       "clean/braids/axe/east/2.png",
       "clean/braids/axe/east/4.png",
-      "clean/braids/pick/east/2.png",
-      "clean/braids/pick/east/4.png",
+      "clean/braids/pick/east-b/2.png",
+      "clean/braids/pick/east-b/4.png",
       "clean/braids/can/east/2.png",
       "clean/braids/can/east/4.png",
       "clean/braids/scythe/east/1.png",
@@ -109,7 +109,7 @@
       "clean/braids/hoe/west-mirror/3.png",
       "clean/braids/axe/west/2.png",
       "clean/braids/axe/west/4.png",
-      "clean/braids/pick/west/2.png",
+      "clean/braids/pick/west/1.png",
       "clean/braids/pick/west/4.png",
       "clean/braids/can/west/2.png",
       "clean/braids/can/west/4.png",
@@ -377,7 +377,7 @@
       "sword0": "swordRaise",
       "sword1": "swordStrike"
     },
-    "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 170369fd-5775-4f5c-ad53-759e5608a0d5; walk: v3 custom walk (south, east, north, west), walking-4-frames unused.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/braids/<kind>/)",
+    "source": "PixelLab create_character_state of the player (c3eac680-f7ae-453d-9a61-b22fdff859d1, use_color_palette_from_reference) -> 170369fd-5775-4f5c-ad53-759e5608a0d5; walk: v3 custom walk (south, east, north, west), walking-4-frames unused.; tool swings: custom v3 animations on the state, 4 frames per direction (picks in meta.picks, raw in art/player/braids/<kind>/) Pick (1.2, bug 13): overhead strike like the hoe, custom v3 animation \"raising a wooden-handled iron pickaxe high overhead with both hands, then bringing it straight down in front of the body to strike the ground, like hoeing\" (west) and \"facing forward / seen from behind, raising a wooden-handled iron pickaxe high overhead with both hands, then slamming it straight down so the pickaxe head strikes the ground\" (south, north), raw in pick/<dir>/; east re-rolled (the first take came out as semi-transparent ghost frames) with \"side view, lifting a wooden-handled iron pickaxe high above the head with both hands, then swinging it straight down in front of the body so the pickaxe head strikes the ground\" (pick/east-b/); the iron head is moved onto the metal ramp, handle pixels onto wood, and braid and boot pixels the handle pass took for wood back onto hair and boots by meta.cleanTool",
     "toolKinds": [
       "hoe",
       "axe",
@@ -426,20 +426,21 @@
         ]
       },
       "pick": {
-        "south": [
+        "north": [
           2,
           4
         ],
         "east": [
           2,
-          4
+          4,
+          "east-b"
         ],
-        "north": [
+        "south": [
           2,
           4
         ],
         "west": [
-          2,
+          1,
           4
         ]
       },
@@ -534,6 +535,267 @@
           17,
           14,
           27
+        ]
+      ],
+      "braids/pick/north/2.png": [
+        [
+          11,
+          13,
+          14,
+          15,
+          "metal",
+          "all-dark"
+        ],
+        [
+          29,
+          13,
+          31,
+          15,
+          "metal",
+          "all-dark"
+        ],
+        [
+          19,
+          32,
+          19,
+          32,
+          "boots",
+          "dark"
+        ],
+        [
+          24,
+          32,
+          25,
+          32,
+          "boots",
+          "dark"
+        ]
+      ],
+      "braids/pick/north/4.png": [
+        [
+          31,
+          21,
+          36,
+          36,
+          "metal",
+          "all-dark"
+        ]
+      ],
+      "braids/pick/east-b/2.png": [
+        [
+          4,
+          8,
+          13,
+          24,
+          "metal",
+          "all-dark"
+        ],
+        [
+          5,
+          20,
+          5,
+          20,
+          "metal"
+        ],
+        [
+          13,
+          17,
+          16,
+          17,
+          "wood",
+          "dark"
+        ]
+      ],
+      "braids/pick/east-b/4.png": [
+        [
+          32,
+          19,
+          38,
+          36,
+          "metal",
+          "all-dark"
+        ]
+      ],
+      "braids/pick/south/2.png": [
+        [
+          4,
+          6,
+          15,
+          12,
+          "metal",
+          "all-dark"
+        ],
+        [
+          4,
+          13,
+          7,
+          17,
+          "metal",
+          "all-dark"
+        ],
+        [
+          10,
+          12,
+          14,
+          18,
+          "wood",
+          "all"
+        ],
+        [
+          18,
+          20,
+          18,
+          20,
+          "hair",
+          "dark"
+        ],
+        [
+          25,
+          20,
+          26,
+          21,
+          "hair",
+          "dark"
+        ],
+        [
+          25,
+          22,
+          25,
+          22,
+          "hair",
+          "dark"
+        ],
+        [
+          17,
+          23,
+          17,
+          23,
+          "hair",
+          "dark"
+        ],
+        [
+          17,
+          27,
+          18,
+          28,
+          "hair",
+          "dark"
+        ],
+        [
+          25,
+          27,
+          26,
+          28,
+          "hair",
+          "dark"
+        ]
+      ],
+      "braids/pick/south/4.png": [
+        [
+          32,
+          21,
+          38,
+          26,
+          "metal",
+          "all-dark"
+        ],
+        [
+          33,
+          27,
+          38,
+          27,
+          "metal",
+          "all-dark"
+        ],
+        [
+          32,
+          28,
+          38,
+          36,
+          "metal",
+          "all-dark"
+        ],
+        [
+          22,
+          27,
+          24,
+          27,
+          "wood",
+          "all"
+        ],
+        [
+          27,
+          27,
+          32,
+          27,
+          "wood",
+          "all"
+        ],
+        [
+          28,
+          28,
+          30,
+          28,
+          "wood",
+          "all"
+        ],
+        [
+          18,
+          24,
+          18,
+          24,
+          "hair",
+          "dark"
+        ],
+        [
+          25,
+          24,
+          26,
+          25,
+          "hair",
+          "dark"
+        ],
+        [
+          15,
+          27,
+          15,
+          27,
+          "hair",
+          "dark"
+        ],
+        [
+          17,
+          29,
+          18,
+          29,
+          "hair",
+          "dark"
+        ],
+        [
+          16,
+          35,
+          17,
+          35,
+          "boots",
+          "dark"
+        ]
+      ],
+      "braids/pick/west/1.png": [
+        [
+          29,
+          15,
+          29,
+          16,
+          "wood",
+          "dark"
+        ],
+        [
+          27,
+          14,
+          30,
+          18,
+          "wood",
+          "dark"
         ]
       ]
     }
