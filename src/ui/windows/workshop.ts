@@ -141,16 +141,17 @@ function drawDrafting(ui: UI, play: PlayScreen, st: WinState): boolean {
   const copyKey = keyLabel(binds.copy?.[0] ?? 'KeyV'), pasteKey = keyLabel(binds.paste?.[0] ?? 'KeyB');
   const bp = play.blueprint;
   // the blueprint tool's copy, and saving it under a name
-  ui.panel(x + 10, y + 14, W - 20, 40, 'inset', false);
+  // (clear of the frame's close button)
+  ui.panel(x + 10, y + 20, W - 20, 40, 'inset', false);
   if (bp && bp.items.length) {
-    thumb(ui, bp, x + 14, y + 18, 32);
-    ui.text('In the blueprint tool:', x + 52, y + 19, C.ink);
-    ui.text(describe(bp), x + 52, y + 30, C.walnut);
+    thumb(ui, bp, x + 14, y + 24, 32);
+    ui.text('In the blueprint tool:', x + 52, y + 25, C.ink);
+    ui.text(describe(bp), x + 52, y + 36, C.walnut);
     st.data.name ??= `Line ${lib.length + 1}`;
     const fx = x + W - 172;
-    st.data.name = ui.textField('bpname', fx, y + 20, 110, st.data.name, 18);
+    st.data.name = ui.textField('bpname', fx, y + 26, 110, st.data.name, 18);
     const full = lib.length >= LIB_MAX;
-    if (ui.button('bpsave', fx + 114, y + 20, 44, 16, 'Save', { style: 'green', disabled: full || !st.data.name.trim(), tip: full ? `The library holds ${LIB_MAX}: delete one first` : 'Save it in the library' })) {
+    if (ui.button('bpsave', fx + 114, y + 26, 44, 16, 'Save', { style: 'green', disabled: full || !st.data.name.trim(), tip: full ? `The library holds ${LIB_MAX}: delete one first` : 'Save it in the library' })) {
       if (addBlueprint(g, st.data.name, bp)) {
         play.toast(`Saved "${lib[lib.length - 1].name}" in the library.`);
         ui.sfx('place');
@@ -158,13 +159,13 @@ function drawDrafting(ui: UI, play: PlayScreen, st: WinState): boolean {
         ui.focus = null;
       }
     }
-    if (full) ui.text(`The library is full (${LIB_MAX}).`, fx, y + 39, C.brick);
+    if (full) ui.text(`The library is full (${LIB_MAX}).`, fx, y + 45, C.brick);
   } else {
-    ui.para(`The blueprint tool is empty. Outside, ${copyKey} and a drag copy a line; come back to save it here.`, x + 16, y + 20, W - 32, C.walnut);
+    ui.para(`The blueprint tool is empty. Outside, ${copyKey} and a drag copy a line; come back to save it here.`, x + 16, y + 26, W - 32, C.walnut);
   }
   // the library
-  ui.text(`The library (${lib.length}/${LIB_MAX})`, x + 12, y + 60, C.amber);
-  const ly = y + 72, lh = H - 72 - 22;
+  ui.text(`The library (${lib.length}/${LIB_MAX})`, x + 12, y + 66, C.amber);
+  const ly = y + 78, lh = H - 78 - 22;
   ui.panel(x + 10, ly - 2, W - 20, lh + 4, 'inset', false);
   if (!lib.length) ui.para('Saved lines are listed here, to load back into the blueprint tool and paste, or to bring to the Sprocket Fair.', x + 16, ly + 4, W - 32, C.walnut);
   const rowH = 26;

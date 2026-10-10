@@ -533,3 +533,41 @@ recommendations are the decisions.
       narrow screen toasts stack above the hotbar, clear of the Now strip; a main step at the desk
       points the compass at the desk (one with no place points nowhere, not at a side quest); the
       Works tab wraps a project's description; each perk card has its own picture.
+100. **Workshop HQ: structures indoors, the Workshop wing, the drafting table, the ledger (7.8,
+    Phase 5).** The farmhouse holds structures in a second entity store, `g.houseEnts`, whose ids
+    start at 1,000,000 so every id-keyed thing (stats rings, hops, the struct window, undo) works
+    across both; the machines, desks, night shift and stats tick it as they tick the farm's, and the
+    renderer draws it with the farm's structure code. Indoors takes chests, the hand-era machines
+    (anything that draws no power), the study desk, lamps and signs; belts and arms wait for the
+    Basement (2.1), powered machines and bee crates stay outside, with the reason said on the ghost.
+    Structures go on floor tiles only, never in the doorway, and share the floor with the furniture
+    (neither stands on the other; both stand on a rug). The Workshop upgrade (Juniper's Joinery, its
+    Home tab renamed Workshop) opens the east wall into a 22-wide flagstone wing with a workbench
+    (F crafts) and a tool wall; the drafting table there keeps up to twelve named blueprints from the
+    blueprint tool (Load puts one back for pasting outside; Thorne's drawings arrive here), saved
+    with item keys by name since keys shift when items are added. The almanac is the ledger:
+    yesterday's sales by customer, what's saturated, then the almanac's page (tomorrow, the week,
+    the season, the Sunday recipe). Quick-stack fills indoor chests; a quest's craft and build steps
+    count a structure wherever it stands; copy and paste say they work outside; indoor rooms get no
+    outdoor ground decals.
+101. **Fishing's and combat's professions: hands or works (the critic's Phase 3+4 leftover).**
+    Fishing 5 Pond Keeper (ponds grow and lay roe 50% faster; was Fishmonger's +25% fish price) or
+    Trap-setter; fishing 10 Net Rigger (traps catch without bait, bait still adds one; was Steady
+    Hands' wider catch zone) or Fly-tier; combat 5 Shorer (a cracked ceiling takes one plank, the
+    caved-in gallery 10 beams; was Hard Hat's +25 health) or Crab-cracker; combat 10 Lampwright
+    (set-down lamps light 10 tiles, not 7; was Scavenger's loot) or Warrior. Ids are kept, so a save
+    keeps its picks with the new effects; Hard Hat's +25 health comes back off an old save once (the
+    flag `hardhat_back`).
+102. **Steady supply: the Works tab's last baskets (the critic's Phase 3+4 leftover).** The Kettle's
+    Cellar (8 preserves, 2 wine), Dairy Day (3 cheese, 3 butter, 4 eggs) and the Bakery Window (4
+    bread, 4 cookies) ask for that as one day's share, three times, at most one share a day; a part
+    share carries over until it's whole, so nothing handed in is lost. A line feeding a crate tagged
+    for the Council fills them by the post; the board's Hand in works too. Honey, goat milk, cake and
+    pumpkin pie left the asks (a daily share can't wait on bees or the fall). An old save's basket
+    takes the new lines, keeping what's in.
+103. **Tock (Phase 5's stretch).** The morning after the Tram's first run the Professor writes and
+    Tock waits at the farmhouse door: a knee-high automaton on the pet's steering that follows you
+    about the farm and turns the key of any run-down spring arm or gleaner within five tiles of it
+    (its own count, not your winding achievement; rusted machines are the keeper's to restore).
+    Indoors, down the Deepworks and at night it waits by the door. F and the hover say how many keys
+    it has turned.
