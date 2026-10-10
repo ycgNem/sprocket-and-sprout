@@ -1,0 +1,9 @@
+{
+ "_": "Per-tile classes drawn as a recolor of another class until they get art of their own: the Deepworks' Clayworks (3), Crystal (4) and Starfall (5) floors and walls, from the Earth (0) and Frost (1) tiles. make-recipe.mjs copies this into the recipe, terrain-import.mjs into the sheet's manifest.",
+ "minefloor3": { "from": "minefloor0", "recolor": { "#9e4539": "#ab947a", "#7a3045": "#966c6c", "#cd683d": "#e6904e" } },
+ "minewall3": { "from": "minewall0", "recolor": { "#45293f": "#7a3045", "#7a3045": "#9e4539", "#9e4539": "#cd683d" } },
+ "minefloor4": { "from": "minefloor1", "recolor": { "#625565": "#0b5e65", "#9babb2": "#0b8a8f", "#c7dcd0": "#30e1b9", "#7f708a": "#8ff8e2" } },
+ "minewall4": { "from": "minewall1", "recolor": { "#3e3546": "#323353", "#625565": "#484a77", "#7f708a": "#4d65b4" } },
+ "minefloor5": { "from": "minefloor1", "recolor": { "#625565": "#45293f", "#9babb2": "#6b3e75", "#c7dcd0": "#f9c22b", "#7f708a": "#fbff86" } },
+ "minewall5": { "from": "minewall1", "recolor": { "#3e3546": "#45293f", "#625565": "#6b3e75", "#7f708a": "#905ea9" } }
+}

@@ -58,7 +58,7 @@ describe('save v5 migration', () => {
     raw.research.done.push('r_lab_speed', 'r_tuning1');
     raw.research.current = 'r_market';
     raw.sys.mine = { deepest: 47 };
-    raw.flags.push('elev_25', 'elev_45');
+    raw.flags.push('elev_25', 'elev_45', 'treasure_10', 'treasure_20', 'treasure_40', 'treasure_50');
     let d = structuredClone(raw);
     while (d.v < 4) d = { ...d, v: d.v + 1 };
     d = migrateV5(d);
@@ -80,5 +80,8 @@ describe('save v5 migration', () => {
     expect(d.sys.mine.deepest).toBe(24);
     expect(d.flags).toEqual(expect.arrayContaining(['elev_5', 'elev_15', 'elev_25', 'chamber:lift', 'bread_town']));
     expect(d.flags).not.toContain('elev_45');
+    // the grand chests of floors 20 and 40 are the ones on levels 10 and 20
+    expect(d.flags).toEqual(expect.arrayContaining(['treasure_10', 'treasure_20']));
+    for (const f of ['treasure_30', 'treasure_40', 'treasure_50']) expect(d.flags).not.toContain(f);
   });
 });

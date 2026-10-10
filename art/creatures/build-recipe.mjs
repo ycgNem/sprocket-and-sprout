@@ -27,6 +27,18 @@ for (const b of [0, 1]) if (has(`bowl_${b}`)) add(`bowl:${b}`, `bowl_${b}`, [16,
 for (const id of ['dew_blob', 'cave_moth', 'pebble_crab', 'frost_blob', 'burrow_mole', 'ember_wisp', 'dusk_moth', 'rust_golem'])
   for (let f = 0; f < 5; f++) if (has(`mon_${id}_${f}`)) add(`mon:${id}:${f}`, `mon_${id}_${f}`, [20, 20], [10, 18]);
 
+// the Deepworks' pests (src/data/creatures.ts) wear recolors of the old monsters' frames until they get art of their own
+const like = (match, src, recolor) => { if (!sprites.some((e) => e.match === src)) throw new Error('no entry ' + src); sprites.push({ match, like: src, recolor }); };
+// a rust-mite: the rust golem, its teal eyes glowing amber
+const MITE = { '#30e1b9': '#f9c22b', '#8ff8e2': '#fbff86' };
+// a clatter-crab: the pebble crab in a slate shell with brass claws
+const CRAB = { '#966c6c': '#7f708a', '#ab947a': '#9babb2', '#6e2727': '#9e4539', '#b33831': '#cd683d', '#ea4f36': '#f79617', '#f57d4a': '#fbb954' };
+// a wisp: the ember wisp burning blue
+const WISP = { '#f9c22b': '#8fd3ff', '#f79617': '#4d9be6', '#fb6b1d': '#4d65b4', '#fbb954': '#8ff8e2', '#6e2727': '#323353', '#ea4f36': '#484a77' };
+for (let f = 0; f < 4; f++) like(`mon:rust_mite:${f}`, `mon:rust_golem:${f}`, MITE);
+for (let f = 0; f < 5; f++) like(`mon:clatter_crab:${f}`, `mon:pebble_crab:${f}`, CRAB);
+for (let f = 0; f < 4; f++) like(`mon:wisp:${f}`, `mon:ember_wisp:${f}`, WISP);
+
 const recipe = { name: 'creatures', kind: 'sprites', defaults: { place: 'none', keepStrays: true }, sprites };
 const json = JSON.stringify({ ...recipe, sprites: [] }, null, 1).replace('"sprites": []', '"sprites": [\n' + sprites.map((e) => '  ' + JSON.stringify(e)).join(',\n') + '\n ]');
 fs.writeFileSync(path.join(HERE, 'sprites.json'), json + '\n');

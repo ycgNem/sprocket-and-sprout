@@ -1,4 +1,4 @@
-// Farm animals and mine monsters.
+// Farm animals and the Deepworks' pests.
 import { C } from './palette';
 import type { AnimalDef, MonsterDef } from './types';
 
@@ -23,31 +23,20 @@ export const ANIMALS: AnimalDef[] = [
 
 export const ANIMAL_BY_ID = new Map(ANIMALS.map((a) => [a.id, a]));
 
+// The Deepworks' pests (ROADMAP.md 7.2) replaced the Old Mine's monsters: they never hurt you, they
+// get in the way, and one hit with a pickaxe or a sword is one hit (combat stays optional). Their
+// drops keep the old monster drops obtainable (dew gel and moth dust feed the compost and tonics).
+// The imported art reuses the old monster frames with a recolor (art/creatures/build-recipe.mjs).
 export const MONSTERS: MonsterDef[] = [
-  { id: 'dew_blob', name: 'Dew Blob', hp: 24, dmg: 5, speed: 1.2, floors: [1, 25], behavior: 'hop', xp: 3,
-    drops: [{ item: 'slime_gel', chance: 0.8, n: [1, 2] }, { item: 'copper_ore', chance: 0.15 }],
-    look: { body: C.leaf, body2: C.grass, eye: C.ink, kind: 'blob' } },
-  { id: 'cave_moth', name: 'Cave Moth', hp: 18, dmg: 6, speed: 2.2, floors: [4, 35], behavior: 'fly', xp: 4,
-    drops: [{ item: 'moth_dust', chance: 0.7 }, { item: 'fiber', chance: 0.3 }],
-    look: { body: C.tan, body2: C.walnut, eye: C.amber, kind: 'moth' } },
-  { id: 'pebble_crab', name: 'Pebble Crab', hp: 60, dmg: 9, speed: 1.4, floors: [10, 45], behavior: 'chase', xp: 7,
-    drops: [{ item: 'crab_shell', chance: 0.7 }, { item: 'iron_ore', chance: 0.3, n: [1, 3] }],
-    look: { body: C.stone, body2: C.slate, eye: C.rose, kind: 'crab' } },
-  { id: 'frost_blob', name: 'Frost Blob', hp: 70, dmg: 10, speed: 1.4, floors: [20, 40], behavior: 'hop', xp: 8,
-    drops: [{ item: 'slime_gel', chance: 0.9, n: [2, 3] }, { item: 'frost_shard', chance: 0.25 }],
-    look: { body: C.aqua, body2: C.sky, eye: C.ink, kind: 'blob' } },
-  { id: 'burrow_mole', name: 'Burrow Mole', hp: 85, dmg: 12, speed: 1.8, floors: [22, 52], behavior: 'burrow', xp: 10,
-    drops: [{ item: 'clay', chance: 0.6, n: [1, 3] }, { item: 'gold_ore', chance: 0.25 }],
-    look: { body: C.walnut, body2: C.bark, eye: C.blush, kind: 'mole' } },
-  { id: 'ember_wisp', name: 'Ember Wisp', hp: 70, dmg: 14, speed: 2.4, floors: [30, 60], behavior: 'shoot', xp: 12,
-    drops: [{ item: 'wisp_essence', chance: 0.6 }, { item: 'coal', chance: 0.5, n: [1, 2] }],
-    look: { body: C.amber, body2: C.terracotta, eye: C.cream, kind: 'wisp' } },
-  { id: 'dusk_moth', name: 'Dusk Moth', hp: 90, dmg: 16, speed: 2.8, floors: [40, 60], behavior: 'fly', xp: 13,
-    drops: [{ item: 'moth_dust', chance: 0.8, n: [1, 2] }, { item: 'amethyst', chance: 0.08 }],
-    look: { body: C.violet, body2: C.plum, eye: C.lime, kind: 'moth' } },
-  { id: 'rust_golem', name: 'Rust Golem', hp: 220, dmg: 22, speed: 1.0, floors: [45, 60], behavior: 'chase', xp: 25,
-    drops: [{ item: 'iron_bar', chance: 0.5 }, { item: 'brass_gear', chance: 0.4, n: [1, 2] }, { item: 'starmetal_ore', chance: 0.2 }],
-    look: { body: C.copper, body2: C.brick, eye: C.aqua, kind: 'golem' } },
+  { id: 'rust_mite', name: 'Rust-mite', hp: 1, dmg: 0, speed: 1.7, floors: [1, 10], behavior: 'mite', xp: 3,
+    drops: [{ item: 'slime_gel', chance: 0.8, n: [1, 2] }, { item: 'moth_dust', chance: 0.3 }],
+    look: { body: C.copper, body2: C.rust, eye: C.butter, kind: 'mite' } },
+  { id: 'clatter_crab', name: 'Clatter-crab', hp: 3, dmg: 0, speed: 3, floors: [11, 20], behavior: 'block', xp: 8,
+    drops: [{ item: 'crab_shell', chance: 0.85 }, { item: 'iron_ore', chance: 0.35, n: [1, 3] }, { item: 'moth_dust', chance: 0.15 }],
+    look: { body: C.pebble, body2: C.brass, eye: C.ink, kind: 'crab' } },
+  { id: 'wisp', name: 'Wisp', hp: 1, dmg: 0, speed: 1.4, floors: [21, 30], behavior: 'guard', xp: 10,
+    drops: [{ item: 'wisp_essence', chance: 0.7 }, { item: 'moth_dust', chance: 0.5, n: [1, 2] }],
+    look: { body: C.aqua, body2: C.sky, eye: C.ink, kind: 'wisp' } },
 ];
 
 export const MONSTER_BY_ID = new Map(MONSTERS.map((m) => [m.id, m]));

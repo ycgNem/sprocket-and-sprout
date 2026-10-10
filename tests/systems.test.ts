@@ -415,7 +415,7 @@ describe('quick stack', () => {
 });
 
 describe('mine variety', () => {
-  it('grand treasure every tenth floor (once) and infested floors reveal a ladder when cleared', async () => {
+  it('grand treasure every tenth level (once), and a wisp keeps the ladder hidden until it is hit', async () => {
     const { mine } = await import('../src/sim/systems/mine');
     const g = new Game({ seed: 24 });
     const st = mine(g);
@@ -430,15 +430,17 @@ describe('mine variety', () => {
     expect(g.flags.has('treasure_10')).toBe(true);
     st.enter(g, 10);
     expect([...st.map!.obj].some((o, i) => o === O.TREASURE && st.map!.objData[i] === 1)).toBe(false);
-    // find an infested floor
-    let f = 7;
-    for (; f < 60; f++) { if (f % 5 === 0) continue; st.enter(g, f); if (st.infested) break; }
-    expect(st.infested).toBe(true);
-    g.player.hp = 99999;
-    for (const mo of st.monsters) mo.hp = 0;
-    g.tick();
-    expect(st.monsters.length).toBe(0);
-    expect(st.ladder).not.toBeNull();
+    // a Crystal level: its wisp floats over the ladder; one pickaxe hit and the ladder shows
+    st.enter(g, 22);
+    const wisp = st.monsters.find((mo) => mo.def.behavior === 'guard')!;
+    expect(wisp).toBeTruthy();
+    expect(st.ladder).toBeNull();
+    g.player.x = wisp.x;
+    g.player.y = wisp.y + 1.2;
+    g.player.dir = 0;
+    st.useTool(g, 'pick', 0, Math.floor(wisp.x), Math.floor(wisp.y - 0.3));
+    expect(st.monsters.includes(wisp)).toBe(false);
+    expect(st.ladder).toEqual(st.wispLadder);
   });
 });
 
@@ -554,18 +556,19 @@ describe('night events', () => {
 });
 
 describe('mine collapse regression', () => {
-  it('fainting among monsters carries you out without crashing the monster loop', async () => {
+  it('fainting under falling rock carries you out without crashing the hazard loop', async () => {
     const { mine } = await import('../src/sim/systems/mine');
     const g = new Game({ seed: 34 });
     const st = mine(g);
-    st.enter(g, 25);
-    const proto = st.monsters[0];
-    expect(proto).toBeTruthy();
-    // surround the player
-    for (let k = 0; k < 8; k++) st.monsters.push({ ...proto, x: g.player.x + 0.1 * k, y: g.player.y, hp: 50, cool: 0, state: 1 });
+    st.enter(g, 3);
+    const crack = st.hazards.find((h) => h.kind === 'crack');
+    expect(crack).toBeTruthy();
+    // stand on the loose rock with almost no health left
+    g.player.x = crack!.x + 0.5;
+    g.player.y = crack!.y + 0.7;
     g.player.hp = 1;
     g.player.invuln = 0;
-    expect(() => { for (let i = 0; i < 120; i++) g.tick(); }).not.toThrow();
+    expect(() => { for (let i = 0; i < 180; i++) g.tick(); }).not.toThrow();
     expect(g.player.where).toBe('world');
   });
 });

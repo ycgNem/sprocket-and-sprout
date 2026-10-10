@@ -17,6 +17,8 @@ const recipe = {
   name: 'terrain', kind: 'terrain', tile: 16, scale: 1,
   sets, baseFromSets: false, bases, tiles, decals,
   seasons: JSON.parse(fs.readFileSync(path.join(here, 'seasons.json'), 'utf8')),
+  // classes drawn as a recolor of another until they have art (the Deepworks' new strata)
+  derive: Object.fromEntries(Object.entries(JSON.parse(fs.readFileSync(path.join(here, 'derive.json'), 'utf8'))).filter(([k]) => k !== '_')),
 };
 fs.writeFileSync(path.join(here, 'terrain.json'), JSON.stringify(recipe, null, 1) + '\n');
 console.log(`terrain.json: ${sets.length} sets, bases ${Object.entries(bases).map(([k, v]) => k + ' ' + v.length).join(', ')}; tiles ${Object.keys(tiles).length} classes; decals ${Object.entries(decals).map(([k, v]) => k + ' ' + v.length).join(', ')}`);

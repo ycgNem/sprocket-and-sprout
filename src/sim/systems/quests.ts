@@ -196,7 +196,7 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
     case 'craft': return `Craft ${o.n > 1 ? o.n + ' ' : 'a '}${item(o.item)}` + (o.fresh ? ` (${Math.min(prog, o.n)}/${o.n})` : '');
     case 'load': return `Load the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct}`;
     case 'research': return o.id === '*' ? 'Start researching a topic' : `Research ${RESEARCH_BY_ID.get(o.id)?.name}`;
-    case 'floor': return `Reach mine floor ${o.n} (${Math.min(o.n, g.sys.mine?.deepest ?? 0)}/${o.n})`;
+    case 'floor': return `Reach Deepworks level ${o.n} (${Math.min(o.n, g.sys.mine?.deepest ?? 0)}/${o.n})`;
     case 'catch': return `Catch ${o.n} fish (${Math.min(prog, o.n)}/${o.n})`;
     case 'till': return `Till ${o.n} soil (${Math.min(prog, o.n)}/${o.n})`;
     case 'plant': return o.crop ? `Plant ${o.n} ${CROP_BY_ID.get(o.crop)?.name ?? o.crop} (${Math.min(prog, o.n)}/${o.n})` : `Plant ${o.n} seeds (${Math.min(prog, o.n)}/${o.n})`;

@@ -336,6 +336,16 @@ export function migrateV5(d: any): any {
     next.add('chamber:lift');
     d.flags = [...next];
   }
+  // the grand chests stood on floors 20, 40 and 60: they are levels 10, 20 and 30 now
+  const chests = (d.flags as string[]).filter((f) => /^treasure_\d+$/.test(f));
+  if (chests.length) {
+    const next = new Set((d.flags as string[]).filter((f) => !/^treasure_\d+$/.test(f)));
+    for (const f of chests) {
+      const n = Number(f.slice(9));
+      if (n % 20 === 0 && n <= 60) next.add('treasure_' + n / 2);
+    }
+    d.flags = [...next];
+  }
   d.v = 5;
   return d;
 }

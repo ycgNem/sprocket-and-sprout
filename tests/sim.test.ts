@@ -190,7 +190,7 @@ describe('npcs', () => {
 describe('mine', () => {
   it('generates every floor with an exit and ore', () => {
     const g = new Game({ seed: 14 });
-    for (const f of [1, 5, 12, 20, 33, 47, 60]) {
+    for (const f of [1, 5, 12, 20, 23, 27, 30]) {
       mine(g).enter(g, f);
       const m = mine(g).map!;
       expect(m.obj.includes(O.MINE_EXIT)).toBe(true);
@@ -288,21 +288,28 @@ describe('shopkeepers (owner playtest: the ranch never opened)', () => {
 });
 
 describe('mine lifts (owner playtest: "mine floors don\'t save")', () => {
-  it('a shaft past a lift floor unlocks it, and the deepest floor reached unlocks lifts in old saves', () => {
+  it('a level past a chamber unlocks its lift stop, and the deepest level reached unlocks stops in old saves', () => {
     const g = new Game({ seed: 5, name: 'T', farmName: 'T' });
     mine(g as any);
     const m = g.sys.mine!;
     m.enter(g, 4);
-    m.enter(g, 8); // a shaft from 4 drops past 5
+    m.enter(g, 8); // carried past level 5
     expect(g.flags.has('elev_5')).toBe(true);
-    // an old save that tumbled past 10 and 15 without the flags
+    // an old save that went past 10 and 15 without the flags, with the lift and the waterworks running
     m.deepest = 17;
     g.flags.delete('elev_5');
+    g.flags.add('chamber:lift');
+    g.flags.add('waterworks');
     const evs: any[] = [];
     const emit = g.emit.bind(g);
     g.emit = (ev: any) => { evs.push(ev); return emit(ev); };
     m.enterPrompt(g);
     expect(evs.find((ev) => ev.t === 'ui' && ev.open === 'elevator')?.arg).toEqual([1, 5, 10, 15]);
+    // under water until the Waterworks drains it: no stop below level 10
+    g.flags.delete('waterworks');
+    evs.length = 0;
+    m.enterPrompt(g);
+    expect(evs.find((ev) => ev.t === 'ui' && ev.open === 'elevator')?.arg).toEqual([1, 5, 10]);
   });
 });
 

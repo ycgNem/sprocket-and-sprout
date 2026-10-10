@@ -107,10 +107,10 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
     ui.ctx.globalAlpha = 1;
     toastY += h + 2;
   }
-  // mine floor
+  // the Deepworks level
   if (p.where === 'mine') {
     ui.panel(4, ty, 70, 16, 'dark', false);
-    ui.text(`Floor ${g.sys.mine?.floor ?? 1}`, 10, ty + 5, C.amber);
+    ui.text(`Level ${g.sys.mine?.floor ?? 1}`, 10, ty + 5, C.amber);
     play.hud.leftY = ty + 20;
   }
 }

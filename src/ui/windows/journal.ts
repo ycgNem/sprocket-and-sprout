@@ -243,7 +243,7 @@ function drawMap(ui: UI, play: PlayScreen, st: WinState): boolean {
     if (Math.floor(ui.time * 3) % 2) ui.fill(px - 7, py - 7, 15, 15, C.rose, 0.5);
     headIcon(ui, 'player', px, py, C.rose);
     if (Math.abs(mx - px) <= 6 && Math.abs(my - py) <= 6) ui.tip([{ text: `${p.name} (you)`, color: C.amber }]);
-  } else ui.text(p.where === 'mine' ? `You are on mine floor ${g.sys.mine?.floor}` : 'You are at home', x + w / 2, y + h - 10, C.walnut, { align: 'center' });
+  } else ui.text(p.where === 'mine' ? `You are on level ${g.sys.mine?.floor} of the Deepworks` : 'You are at home', x + w / 2, y + h - 10, C.walnut, { align: 'center' });
   // labels over the heads, never over each other (a 2 px gap): each takes the first free spot
   // around its place, or waits for a hover. They don't move as villagers walk about.
   const taken: [number, number, number, number][] = [];
@@ -262,7 +262,7 @@ function drawMap(ui: UI, play: PlayScreen, st: WinState): boolean {
   // no label covers a shop (its own label goes beside it)
   for (const b of blds) if (b.kind === 'shop') taken.push([ox + b.x * s2, oy + b.y * s2, b.w * s2, b.h * s2]);
   // places first (the farm, the square, the lake ...), then every named building
-  const areas: [string, string][] = [['farmhouse', g.player.farmName + ' Farm'], ['square', 'Town Square'], ['mine_entrance', 'Old Mine'], ['quarry', 'Quarry'], ['lake_dock', 'Mirror Lake'], ['pier', 'Pier'], ['forest_pond', 'Forest Pond'], ['forest_glade', 'Glade']];
+  const areas: [string, string][] = [['farmhouse', g.player.farmName + ' Farm'], ['square', 'Town Square'], ['mine_entrance', 'The Deepworks'], ['quarry', 'Quarry'], ['lake_dock', 'Mirror Lake'], ['pier', 'Pier'], ['forest_pond', 'Forest Pond'], ['forest_glade', 'Glade']];
   for (const [loc, name] of areas) {
     const l = m.locs.get(loc);
     if (!l) continue;

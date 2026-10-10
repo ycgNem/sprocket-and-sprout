@@ -164,6 +164,9 @@ export interface TerrainMeta {
   decals?: Record<string, [number, number, number, number][]>;
   /** recolor per season index ("2" fall, "3" winter) applied to every terrain tile */
   seasons?: Record<string, Record<string, string>>;
+  /** per-tile classes drawn as a recolor of another class's tiles until they have art of their own
+   * (the Deepworks' Clayworks, Crystal and Starfall floors and walls: minefloor3-5, minewall3-5) */
+  derive?: Record<string, { from: string; recolor: Record<string, string> }>;
 }
 
 export interface TerrainArt {
@@ -194,15 +197,25 @@ function defTerrainSheet(url: string, m: TerrainMeta) {
   // tb:<class>:<v>:<season>  tw:<set>:<mask>:<v>:<season>  tt:<class>:<v>:<season>  td:<key>:<v>:<season>
   defImageFamily('tb:', [url], (n) => { const [, c, v, s] = n.split(':'); const xy = m.bases[c]?.[+v]; return xy ? frame(xy, +s) : null; });
   defImageFamily('tw:', [url], (n) => { const [, i, k, v, s] = n.split(':'); const xy = m.sets[+i]?.tiles[k]?.[+v]; return xy ? frame(xy, +s) : null; });
-  defImageFamily('tt:', [url], (n) => { const [, c, v, s] = n.split(':'); const xy = m.tiles[c]?.[+v]; return xy ? frame(xy, +s) : null; });
+  // a class's own tiles win; a class without any is drawn as its `derive` recolor of another
+  const derived = (c: string) => (m.tiles[c]?.length ? undefined : m.derive?.[c] && m.tiles[m.derive[c].from]?.length ? m.derive[c] : undefined);
+  defImageFamily('tt:', [url], (n) => {
+    const [, c, v, s] = n.split(':');
+    const d = derived(c);
+    const xy = (d ? m.tiles[d.from] : m.tiles[c])?.[+v];
+    if (!xy) return null;
+    const f = frame(xy, +s);
+    return d ? { ...f, recolor: { ...(f.recolor ?? {}), ...d.recolor } } : f;
+  });
   defImageFamily('td:', [url], (n) => { const [, c, v, s] = n.split(':'); const r = m.decals?.[c]?.[+v]; return r ? frame(r, +s) : null; });
   const vi = <V>(list: V[] | undefined, h: number) => (list && list.length ? Math.min(list.length - 1, Math.floor(h * list.length)) : -1);
   terrain = {
     hasBase: (c) => !!m.bases[c]?.length,
-    hasTile: (c) => !!m.tiles[c]?.length,
+    hasTile: (c) => !!m.tiles[c]?.length || !!derived(c),
     hasSet: (a, b) => m.sets.some((s) => (s.lower === a && s.upper === b) || (s.lower === b && s.upper === a)),
     tile(c, h, s) {
-      const v = vi(m.tiles[c], h);
+      const d = derived(c);
+      const v = vi(d ? m.tiles[d.from] : m.tiles[c], h);
       return v < 0 ? null : `tt:${c}:${v}:${s}`;
     },
     decal(c, h, s) {

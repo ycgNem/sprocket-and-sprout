@@ -19,8 +19,10 @@ export class Lighting {
     const house = g.player.where === 'house';
     // the brighter imported palette needs a deeper overcast to read as a storm
     const rainDim = g.isRaining() && !underground ? (g.weather === 'storm' ? 0.32 : 0.22) : g.weather === 'snow' ? 0.06 : 0;
-    // indoors is a little dim by day and cosy-dark at night, lit by the hearth
-    let dark = house ? 0.22 + night * 0.48 + rainDim * 0.5 : underground ? 0.62 : Math.min(0.78, night * 0.78 + rainDim);
+    // indoors is a little dim by day and cosy-dark at night, lit by the hearth; each stratum of the
+    // Deepworks has its own dark (the Crystal galleries are darkest)
+    const deep = underground && !house ? g.sys.mine : null;
+    let dark = house ? 0.22 + night * 0.48 + rainDim * 0.5 : underground ? deep?.dark ?? 0.62 : Math.min(0.78, night * 0.78 + rainDim);
     if (this.flash > 0) {
       main.fillStyle = `rgba(255,247,228,${Math.min(0.6, this.flash)})`;
       main.fillRect(0, 0, r.W, r.H);
@@ -56,7 +58,7 @@ export class Lighting {
     const lc = this.ctx!;
     lc.globalCompositeOperation = 'source-over';
     lc.clearRect(0, 0, w, h);
-    const [nr, ng, nb] = PALETTE_RGB[underground && !house ? C.ink : house ? C.plum : C.deepsea];
+    const [nr, ng, nb] = PALETTE_RGB[underground && !house ? deep?.tint ?? C.ink : house ? C.plum : C.deepsea];
     lc.fillStyle = `rgba(${Math.round(nr * 0.4)},${Math.round(ng * 0.4)},${Math.round(nb * 0.7)},${dark})`;
     lc.fillRect(0, 0, w, h);
     lc.globalCompositeOperation = 'destination-out';
@@ -121,7 +123,8 @@ export class Lighting {
       }
       return out;
     }
-    out.push({ x: p.x, y: p.y - 0.6, r: underground ? 6 : 2.2, i: underground ? 1 : 0.5, c: underground ? C.amber : undefined, flicker: underground });
+    // your lantern: its reach underground depends on the stratum
+    out.push({ x: p.x, y: p.y - 0.6, r: underground ? g.sys.mine?.lantern ?? 6 : 2.2, i: underground ? 1 : 0.5, c: underground ? C.amber : undefined, flicker: underground });
     for (let y = ty0; y <= ty1; y++)
       for (let x = tx0; x <= tx1; x++) {
         const o = m.obj[m.idx(x, y)];
@@ -133,7 +136,7 @@ export class Lighting {
       for (const b of m.buildings) {
         if (b.x > tx1 || b.x + b.w < tx0 || b.y > ty1 || b.y + b.h < ty0) continue;
         if (b.kind === 'house' || b.kind === 'shop' || b.kind === 'farmhouse') out.push({ x: b.x + b.w / 2, y: b.y + b.h - 0.8, r: 3.5, i: 0.75, c: C.amber, flicker: true });
-        // the lantern by the old mine's mouth
+        // the lantern by the Deepworks' mouth
         else if (b.kind === 'mine') out.push({ x: b.x + b.w / 2, y: b.y + b.h - 0.6, r: 3, i: 0.7, c: C.amber, flicker: true });
       }
       const seen = new Set<number>();

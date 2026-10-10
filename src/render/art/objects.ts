@@ -5,6 +5,7 @@ import { hash2 } from '../../engine/rng';
 import { defSpriteFamily } from '../atlas';
 import { O } from '../../sim/world/tilemap';
 import { PixBuf } from './pixbuf';
+import { drawGallery } from './deep';
 
 const FLOWER_COLS = [[C.rose, C.butter], [C.butter, C.amber], [C.lavender, C.cream], [C.cream, C.amber], [C.blush, C.cream], [C.sky, C.cream]];
 
@@ -271,6 +272,9 @@ function drawObj(o: O, v: number, season: number): PixBuf {
       for (let x = 3; x < 13; x += 2) pb.rect(x, 2, 1, 12, C.brass);
       pb.rect(2, 1, 12, 1, C.brass);
       pb.outline(C.ink);
+      break;
+    case O.GALLERY:
+      drawGallery(pb, v);
       break;
     case O.WELL:
       pb.ellipse(8, 11, 6, 4, C.stone);

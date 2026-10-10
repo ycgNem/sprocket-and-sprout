@@ -1,4 +1,4 @@
-// Crops (growth stages, giant crops) and creatures (farm animals, mine monsters).
+// Crops (growth stages, giant crops) and creatures (farm animals, the Deepworks' pests).
 import { C, DARK, LIGHT } from '../../data/palette';
 import { CROP_BY_ID } from '../../data/crops';
 import { ANIMAL_BY_ID, MONSTER_BY_ID } from '../../data/creatures';
@@ -261,6 +261,21 @@ function drawMonster(id: string, frame: number): PixBuf {
         pb.rect(9, 13, 2, 1, C.blush);
         pb.rect(4, 14, 3, 2, C.blush); pb.rect(13, 14, 3, 2, C.blush);
       } else for (let i = 0; i < 5; i++) pb.set(6 + i * 2, 15 + (i % 2), C.oak);
+      break;
+    }
+    case 'mite': {
+      // a round little ore-eater: a rusty shell on six busy legs, feelers up front
+      const step = f % 2;
+      for (let i = 0; i < 3; i++) {
+        const lx = 6 + i * 4;
+        pb.line(lx, 14, lx - 2, 17 - ((i + step) % 2), DARK[body2]);
+        pb.line(lx + 2, 14, lx + 4, 17 - ((i + step + 1) % 2), DARK[body2]);
+      }
+      pb.ellipse(10, 12, 6, 4.5, body2);
+      pb.ellipse(10, 11, 5, 3.5, body);
+      pb.line(7, 10, 13, 10, LIGHT[body]);
+      pb.line(4, 11, 2, 8 - step, body2); pb.line(5, 12, 1, 11, body2);
+      pb.set(5, 12, eye); pb.set(6, 13, eye);
       break;
     }
     case 'golem': {

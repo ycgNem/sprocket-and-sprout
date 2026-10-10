@@ -53,7 +53,7 @@ export const TIPS: Tip[] = [
     when: (p) => p.g.ents.gens.some((e) => !e.st.rust),
     text: 'Generators need poles to reach machines. Each pole powers the shaded square around it and wires itself to nearby poles.\n\nIf demand outgrows supply, every machine on that grid slows down. Open a pole to see the grid graph.',
   },
-  { id: 'mine', when: (p) => p.g.player.where === 'mine', title: '', text: 'Break rocks to find ore and the ladder down. Every fifth floor has a lift. Watch your health (red bar)!' },
+  { id: 'mine', when: (p) => p.g.player.where === 'mine', title: '', text: 'Break rocks for ore and the ladder down. Every fifth level ends in a works chamber: study its old machine (F), and some can be restored. Hazards like cracked ceilings cost health (the red bar by your hotbar); pests only pester.' },
   { id: 'fish', when: (p) => held(p)?.tool?.kind === 'rod', title: '', text: 'Hold the mouse to charge a cast, release over water. When the bobber dips, click!' },
   { id: 'blueprint', when: (p) => p.g.ents.map.size > 30, title: '', text: 'Pro tip: V copies an area as a blueprint and B pastes it. X deconstructs an area. Q picks up the structure under the mouse.' },
   { id: 'bots', when: (p) => p.g.ents.others.some((e) => e.def.kind === 'hive') || p.g.ents.consumers.some((e) => e.def.kind === 'hive'), title: '', text: 'Bumblebots fly between bee crates within the hive\'s range. Set a wish list on a Request crate.' },

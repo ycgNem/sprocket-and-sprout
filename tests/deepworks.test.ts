@@ -1,0 +1,528 @@
+// The Deepworks (ROADMAP.md 7.2): thirty levels in six strata, their hazards, pests and works chambers.
+import { describe, expect, it } from 'vitest';
+import '../src/sim';
+import { Game } from '../src/sim/Game';
+import { key } from '../src/sim/inventory';
+import { O, ORE_TYPES, T, type TileMap } from '../src/sim/world/tilemap';
+import {
+  BEAMS_TO_SHORE, CRACK_FUSE, DEEP_FLAGS, FLOOD_TEXT, MAX_FLOOR, generateFloor, liftLevels, mine, themeOf, type MineState, type Monster,
+} from '../src/sim/systems/mine';
+import { CHAMBERS, CHAMBER_BY_KIND, OBSERVATIONS, STRATA, type ChamberKind } from '../src/data/deepworks';
+import { MONSTERS } from '../src/data/creatures';
+import { ITEM_BY_ID } from '../src/data/items';
+import { C } from '../src/data/palette';
+import { dropsState, spawnDrop } from '../src/sim/systems/drops';
+
+const SEEDS = [1, 7, 23, 404, 9001];
+const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const run = (g: Game, sec: number) => { for (let i = 0; i < Math.round(sec * 60); i++) g.tick(); };
+const toasts = (g: Game) => g.events.filter((e) => e.t === 'toast').map((e) => (e as { text: string }).text);
+const opened = (g: Game, win: string) => g.events.filter((e) => e.t === 'ui' && (e as { open: string }).open === win) as { arg?: unknown }[];
+/** stand on a tile (the player's feet are a little below its middle) */
+const stand = (g: Game, x: number, y: number) => { g.player.x = x + 0.5; g.player.y = y + 0.7; g.player.invuln = 0; };
+const isRock = (o: number) => o === O.ROCK || o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.ICE_ROCK;
+
+/** tiles you can walk or dig through (rocks can be mined): what the generator keeps in reach */
+const passable = (m: TileMap, i: number) => m.ground[i] === T.MINEFLOOR && ![O.STALAGMITE, O.CRYSTAL, O.CHAMBER, O.TREASURE, O.GALLERY].includes(m.obj[i]);
+function reach(m: TileMap, from: [number, number]): Int32Array {
+  const d = new Int32Array(m.w * m.h).fill(-1);
+  const s = m.idx(from[0], from[1]);
+  d[s] = 0;
+  const q = [s];
+  for (let h = 0; h < q.length; h++) {
+    const u = q[h], ux = u % m.w, uy = (u - ux) / m.w;
+    for (const [dx, dy] of N4) {
+      const x = ux + dx, y = uy + dy;
+      if (!m.inb(x, y)) continue;
+      const v = m.idx(x, y);
+      if (d[v] >= 0 || !passable(m, v)) continue;
+      d[v] = d[u] + 1;
+      q.push(v);
+    }
+  }
+  return d;
+}
+const besideReach = (m: TileMap, d: Int32Array, x: number, y: number) => N4.some(([dx, dy]) => m.inb(x + dx, y + dy) && d[m.idx(x + dx, y + dy)] >= 0);
+
+/** break every rock on the level with a gold pickaxe (pests set aside so none takes a hit) */
+function breakAll(g: Game, st: MineState) {
+  const keep = st.monsters;
+  st.monsters = [];
+  const m = st.map!;
+  for (let i = 0; i < m.obj.length; i++) {
+    const x = i % m.w, y = Math.floor(i / m.w);
+    for (let k = 0; k < 20 && isRock(m.obj[i]); k++) st.useTool(g, 'pick', 4, x, y);
+  }
+  st.monsters = keep;
+}
+
+/** the first level from `levels` (on the first seed that has one) with a pest of this behaviour */
+function levelWith(behavior: Monster['def']['behavior'], levels: number[]): { g: Game; st: MineState; mo: Monster } {
+  for (const seed of SEEDS)
+    for (const f of levels) {
+      const g = new Game({ seed });
+      const st = mine(g);
+      st.enter(g, f);
+      const mo = st.monsters.find((x) => x.def.behavior === behavior);
+      if (mo) return { g, st, mo };
+    }
+  throw new Error('no level with a ' + behavior);
+}
+
+describe('the Deepworks: thirty levels in six strata', () => {
+  it('every level 1-30, on several seeds, keeps its floor, its way down, its chambers and its hazards in reach of the ladder up', () => {
+    for (const seed of SEEDS) {
+      const g = new Game({ seed });
+      for (let f = 1; f <= MAX_FLOOR; f++) {
+        const gen = generateFloor(g, f), m = gen.map, at = `seed ${seed} level ${f}`;
+        expect(m.o(gen.entry[0], gen.entry[1]), at).toBe(O.MINE_EXIT);
+        const d = reach(m, gen.entry);
+        let lost = 0;
+        for (let i = 0; i < d.length; i++) if (passable(m, i) && d[i] < 0) lost++;
+        expect(lost, at + ': open tiles out of reach').toBe(0);
+        // the way down: the gallery (6, 10), a wisp's ladder (21-29), a rock hiding the ladder (the rest); none on 30
+        if (f === 6 || f === 10) {
+          expect(gen.gallery, at).not.toBeNull();
+          const [x, y] = gen.gallery!;
+          expect(m.o(x, y), at).toBe(O.GALLERY);
+          expect(d[m.idx(x, y + 1)], at).toBeGreaterThanOrEqual(0);
+          expect(gen.hidden, at).toBe(-1);
+        } else if (f > 20 && f < MAX_FLOOR) {
+          expect(gen.wispLadder, at).not.toBeNull();
+          expect(d[m.idx(gen.wispLadder![0], gen.wispLadder![1])], at).toBeGreaterThanOrEqual(0);
+          expect(gen.monsters.some((mo) => mo.def.behavior === 'guard'), at).toBe(true);
+        } else if (f < MAX_FLOOR) {
+          expect(gen.hidden, at).toBeGreaterThanOrEqual(0);
+          expect(isRock(m.obj[gen.hidden]), at).toBe(true);
+          expect(d[gen.hidden], at).toBeGreaterThanOrEqual(0);
+        } else {
+          expect([gen.hidden, gen.wispLadder, gen.gallery], at).toEqual([-1, null, null]);
+        }
+        // works chambers on every fifth level, the machine against the clearing's back wall, a lift landing beside the entry
+        expect(gen.chambers.map((c) => c.kind), at).toEqual(CHAMBERS.filter((c) => c.level === f).map((c) => c.kind));
+        for (const c of gen.chambers) {
+          for (let x = c.x; x < c.x + c.w; x++) expect(m.o(x, c.y), at).toBe(O.CHAMBER);
+          expect(Array.from({ length: c.w }, (_, k) => d[m.idx(c.x + k, c.y + 1)]).some((v) => v >= 0), at + ' ' + c.kind).toBe(true);
+        }
+        expect(m.obj.includes(O.ELEVATOR), at).toBe(f % 5 === 0 && f !== 5);
+        // hazards, pests and chests in reach
+        for (const h of gen.hazards) expect(d[m.idx(h.x, h.y)], at + ' ' + h.kind).toBeGreaterThanOrEqual(0);
+        for (const mo of gen.monsters) expect(d[m.idx(Math.floor(mo.x), Math.floor(mo.y))], at + ' ' + mo.id).toBeGreaterThanOrEqual(0);
+        m.obj.forEach((o, i) => { if (o === O.TREASURE) expect(besideReach(m, d, i % m.w, Math.floor(i / m.w)), at + ' chest').toBe(true); });
+      }
+    }
+  });
+
+  it('six strata of five levels, each with its own ores; the bottom is level 30', () => {
+    expect([1, 5, 6, 10, 11, 15, 16, 20, 21, 25, 26, 30].map(themeOf)).toEqual([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5]);
+    expect(STRATA.map((s) => s.levels)).toEqual([[1, 5], [6, 10], [11, 15], [16, 20], [21, 25], [26, 30]]);
+    const want: Record<string, string[]> = {
+      earth: ['copper_ore', 'clay', 'coal'], clayworks: ['tin_ore', 'clay'], frost: ['iron_ore'], ember: ['gold_ore', 'coal'], crystal: [], starfall: ['starmetal_ore'],
+    };
+    const games = SEEDS.slice(0, 3).map((seed) => new Game({ seed }));
+    for (const S of STRATA) {
+      const ores = new Set<string>();
+      let ice = 0, gems = 0, crystals = 0;
+      for (const g of games)
+        for (let f = S.levels[0]; f <= S.levels[1]; f++) {
+          const m = generateFloor(g, f).map;
+          m.obj.forEach((o, i) => {
+            if (o === O.ORE_ROCK) ores.add(ORE_TYPES[m.objData[i]]);
+            if (o === O.ICE_ROCK) ice++;
+            if (o === O.GEM_ROCK) gems++;
+            if (o === O.CRYSTAL) crystals++;
+          });
+        }
+      expect([...ores].sort(), S.id).toEqual([...want[S.id]].sort());
+      if (S.id === 'frost') expect(ice, 'frost shards in the ice').toBeGreaterThan(20);
+      else expect(ice, S.id).toBe(0);
+      if (S.id === 'crystal' || S.id === 'starfall') expect(gems, S.id).toBeGreaterThan(10);
+      if (S.id === 'crystal') expect(crystals).toBeGreaterThan(20);
+    }
+    const g = games[0], st = mine(g);
+    st.enter(g, 45);
+    expect(st.floor).toBe(MAX_FLOOR);
+  });
+
+  it('each stratum reads differently: its own art, darkness and light', () => {
+    expect(new Set(STRATA.map((s) => s.art)).size).toBe(6);
+    const g = new Game({ seed: 3 }), st = mine(g);
+    st.enter(g, 3);
+    const earth = { dark: st.dark, lantern: st.lantern };
+    // the Crystal's galleries are dark: a short lantern, and the crystals give the light
+    st.enter(g, 23);
+    expect(st.dark).toBeGreaterThan(earth.dark);
+    expect(st.lantern).toBeLessThan(earth.lantern);
+    const crystals = st.map!.obj.filter((o) => o === O.CRYSTAL).length;
+    expect(crystals).toBeGreaterThan(5);
+    expect(st.lights.filter((l) => !l.dyn && l.c === C.lavender).length).toBe(crystals);
+  });
+
+  it('levels regenerate every day, and stay put within one', () => {
+    const g = new Game({ seed: 9 });
+    const a = generateFloor(g, 3).map.obj.join();
+    expect(generateFloor(g, 3).map.obj.join()).toBe(a);
+    g.time.day++;
+    expect(generateFloor(g, 3).map.obj.join()).not.toBe(a);
+  });
+
+  it("drops stay with their level: what's within reach goes into the bag on the way down", () => {
+    const g = new Game({ seed: 3 }), st = mine(g);
+    st.enter(g, 2);
+    const ore = g.player.inv.countId('copper_ore'), coal = g.player.inv.countId('coal');
+    spawnDrop(g, key('copper_ore'), 2, g.player.x + 1, g.player.y, false, 'mine');
+    spawnDrop(g, key('coal'), 5, g.player.x + 15, g.player.y, false, 'mine');
+    st.enter(g, 3);
+    expect(g.player.inv.countId('copper_ore')).toBe(ore + 2);
+    expect(g.player.inv.countId('coal')).toBe(coal);
+    expect(dropsState(g).list.some((d) => d.map === 'mine')).toBe(false);
+  });
+
+  it('a grand chest waits on levels 10, 20 and 30, once each', () => {
+    for (const f of [10, 20, 30]) {
+      const g = new Game({ seed: 6 }), st = mine(g);
+      st.enter(g, f);
+      const m = st.map!;
+      const i = m.obj.findIndex((o, j) => o === O.TREASURE && m.objData[j] === 1);
+      expect(i, 'level ' + f).toBeGreaterThanOrEqual(0);
+      const money = g.player.money;
+      st.interact(g, i % m.w, Math.floor(i / m.w));
+      expect(g.flags.has('treasure_' + f)).toBe(true);
+      expect(g.player.money).toBeGreaterThan(money);
+      st.enter(g, f);
+      expect(st.map!.obj.some((o, j) => o === O.TREASURE && st.map!.objData[j] === 1), 'level ' + f + ' again').toBe(false);
+    }
+  });
+});
+
+describe('the Deepworks: works problems in the way down', () => {
+  it("level 6's collapsed gallery blocks the way until 20 beams shore it up, for good", () => {
+    const g = new Game({ seed: 4 }), st = mine(g);
+    st.enter(g, 6);
+    expect(toasts(g).some((t) => t.includes('caved in'))).toBe(true);
+    const [x, y] = st.gallery!;
+    expect(st.solid(g, x, y)).toBe(true);
+    // no ladder turns up under the rocks
+    breakAll(g, st);
+    expect(st.ladder).toBeNull();
+    // not enough beams: nothing happens but a note
+    g.player.inv.add(key('beam'), BEAMS_TO_SHORE - 8);
+    g.events.length = 0;
+    expect(st.interact(g, x, y)).toBe(true);
+    expect(g.flags.has(DEEP_FLAGS.shored)).toBe(false);
+    expect(g.player.inv.countId('beam')).toBe(BEAMS_TO_SHORE - 8);
+    expect(toasts(g).some((t) => t.includes(`${BEAMS_TO_SHORE} hardwood beams`))).toBe(true);
+    expect(st.floor).toBe(6);
+    // enough: shored, and the beams are used
+    g.player.inv.add(key('beam'), 10);
+    st.interact(g, x, y);
+    expect(g.flags.has(DEEP_FLAGS.shored)).toBe(true);
+    expect(g.player.inv.countId('beam')).toBe(2);
+    expect(st.solid(g, x, y)).toBe(false);
+    // the gallery stays shored: tomorrow's level 6 is open, and F takes you down
+    g.time.day++;
+    st.enter(g, 6);
+    const [x2, y2] = st.gallery!;
+    expect(st.map!.objData[st.map!.idx(x2, y2)]).toBe(1);
+    st.interact(g, x2, y2);
+    expect(st.floor).toBe(7);
+  });
+
+  it('below level 10 is under water until the town drains it', () => {
+    const g = new Game({ seed: 3 }), st = mine(g);
+    st.enter(g, 10);
+    expect(toasts(g)).toContain(FLOOD_TEXT);
+    const [x, y] = st.gallery!;
+    expect(st.map!.objData[st.map!.idx(x, y)]).toBe(2);
+    expect(st.solid(g, x, y)).toBe(true);
+    g.events.length = 0;
+    st.interact(g, x, y);
+    expect(st.floor).toBe(10);
+    expect(toasts(g)).toContain(FLOOD_TEXT);
+    breakAll(g, st);
+    expect(st.ladder).toBeNull();
+    // the Waterworks keystone drains it: the stair is open
+    g.flags.add(DEEP_FLAGS.drained);
+    st.enter(g, 10);
+    const [x2, y2] = st.gallery!;
+    expect(st.map!.objData[st.map!.idx(x2, y2)]).toBe(3);
+    expect(st.solid(g, x2, y2)).toBe(false);
+    st.interact(g, x2, y2);
+    expect(st.floor).toBe(11);
+  });
+});
+
+describe('the Deepworks: hazards', () => {
+  it('Earth: a cracked ceiling rumbles when you come near and comes down 1.5 s later, on you if you stay', () => {
+    const g = new Game({ seed: 34 }), st = mine(g);
+    st.enter(g, 2);
+    const crack = st.hazards.find((h) => h.kind === 'crack')!;
+    expect(crack).toBeTruthy();
+    const group = st.hazards.filter((h) => h.kind === 'crack' && h.group === crack.group);
+    expect(group.length).toBeGreaterThanOrEqual(2);
+    stand(g, crack.x, crack.y);
+    const hp = g.player.hp;
+    g.events.length = 0;
+    run(g, 0.1);
+    expect(group.every((h) => h.state === 1)).toBe(true);
+    expect(g.events.some((e) => e.t === 'shake')).toBe(true);
+    run(g, CRACK_FUSE - 0.4);
+    expect(g.player.hp).toBe(hp);
+    run(g, 0.6);
+    expect(g.player.hp).toBeLessThan(hp);
+    expect(st.hazards.includes(crack)).toBe(false);
+    // the fallen rock stays where you weren't
+    for (const h of group) if (h !== crack) expect(st.map!.o(h.x, h.y)).toBe(O.ROCK);
+  });
+
+  it('Ember: gas pockets puff you back up a level, unless Spark Coils burn them off', () => {
+    const g = new Game({ seed: 8 }), st = mine(g);
+    st.enter(g, 17);
+    const gas = st.hazards.find((h) => h.kind === 'gas')!;
+    expect(gas).toBeTruthy();
+    stand(g, gas.x, gas.y);
+    g.events.length = 0;
+    run(g, 0.1);
+    expect(st.floor).toBe(16);
+    expect(toasts(g).some((t) => t.startsWith('Firedamp'))).toBe(true);
+    // with the spark-coil lantern the pocket burns off and you stay
+    g.research.done.add('r_spark');
+    st.enter(g, 17);
+    const gas2 = st.hazards.find((h) => h.kind === 'gas')!;
+    stand(g, gas2.x, gas2.y);
+    run(g, 0.1);
+    expect(st.floor).toBe(17);
+    expect(st.hazards.some((h) => h.kind === 'gas' && h.group === gas2.group)).toBe(false);
+    expect(st.hazards.some((h) => h.kind === 'gas')).toBe(true);
+  });
+
+  it("Starfall: a star-shard's mark glows, then the shard lands: it hurts, and leaves starmetal", () => {
+    const g = new Game({ seed: 11 }), st = mine(g);
+    st.enter(g, 27);
+    const shards = st.hazards.filter((h) => h.kind === 'shard');
+    expect(shards.length).toBeGreaterThanOrEqual(2);
+    const [a, b] = shards;
+    a.t = b.t = 0.05;
+    stand(g, a.x, a.y);
+    run(g, 0.1);
+    expect([a.state, b.state]).toEqual([1, 1]);
+    const hp = g.player.hp;
+    run(g, 1.3);
+    expect(g.player.hp).toBeLessThan(hp);
+    expect(st.map!.o(b.x, b.y)).toBe(O.ORE_ROCK);
+    expect(ORE_TYPES[st.map!.objData[st.map!.idx(b.x, b.y)]]).toBe('starmetal_ore');
+    expect(st.map!.o(a.x, a.y)).toBe(O.NONE);
+  });
+});
+
+describe('the Deepworks: pests, not monsters', () => {
+  it('pests live by stratum and keep the old drops', () => {
+    expect(MONSTERS.map((m) => [m.id, m.floors])).toEqual([['rust_mite', [1, 10]], ['clatter_crab', [11, 20]], ['wisp', [21, 30]]]);
+    const drops = new Set(MONSTERS.flatMap((m) => m.drops.map((d) => d.item)));
+    for (const id of ['slime_gel', 'moth_dust', 'crab_shell', 'wisp_essence']) expect(drops.has(id), id).toBe(true);
+    expect(MONSTERS.every((m) => m.dmg === 0)).toBe(true);
+  });
+
+  it('rust-mites eat ore left lying about (not what you stand by) and give it back when squashed', () => {
+    const { g, st, mo: mite } = levelWith('mite', [4, 2, 8]);
+    st.monsters = [mite];
+    const ore = key('copper_ore');
+    spawnDrop(g, ore, 3, mite.x, mite.y - 0.1, false, 'mine');
+    const drop = dropsState(g).list[dropsState(g).list.length - 1];
+    // you stand by it: the mite leaves it alone (and doesn't hurt you)
+    g.player.x = drop.x + 2.35;
+    g.player.y = drop.y + 0.3;
+    const hp = g.player.hp;
+    run(g, 2);
+    expect(dropsState(g).list.includes(drop)).toBe(true);
+    expect(mite.ate.length).toBe(0);
+    // you walk off: the mite eats it
+    g.player.x = drop.x + 12;
+    mite.x = drop.x;
+    mite.y = drop.y + 0.1;
+    run(g, 1.5);
+    expect(dropsState(g).list.includes(drop)).toBe(false);
+    expect(mite.ate).toEqual([{ k: ore, n: 3 }]);
+    expect(g.player.hp).toBe(hp);
+    // squash it with the pickaxe and the ore comes back
+    g.player.x = mite.x;
+    g.player.y = mite.y + 1.2;
+    g.player.dir = 0;
+    st.useTool(g, 'pick', 0, Math.floor(mite.x), Math.floor(mite.y - 0.3));
+    expect(st.monsters.includes(mite)).toBe(false);
+    expect(dropsState(g).list.some((d) => d.k === ore && d.n === 3)).toBe(true);
+    expect([g.counters.monsters, g.counters.slain_rust_mite]).toEqual([1, 1]);
+  });
+
+  it('clatter-crabs sit in a narrow gallery, never chase, and scuttle off after three hits (pickaxe or sword)', () => {
+    const { g, st, mo: crab } = levelWith('block', [12, 13, 17, 14, 18]);
+    const [hx, hy] = crab.home!;
+    expect(st.solid(g, hx, hy)).toBe(true);
+    const at = [crab.x, crab.y];
+    g.player.x = crab.x;
+    g.player.y = crab.y + 1.2;
+    g.player.dir = 0;
+    const hp = g.player.hp;
+    run(g, 3);
+    expect([crab.x, crab.y]).toEqual(at);
+    expect(g.player.hp).toBe(hp);
+    st.useTool(g, 'pick', 0, hx, hy);
+    st.useTool(g, 'pick', 0, hx, hy);
+    expect(crab.hp).toBe(1);
+    expect(st.solid(g, hx, hy)).toBe(true);
+    st.attack(g, hx, hy, { dmg: 5, speed: 1, knock: 1 });
+    expect(crab.state).toBe(2);
+    expect(st.solid(g, hx, hy)).toBe(false);
+    expect(g.counters.slain_clatter_crab).toBe(1);
+    run(g, 1.5);
+    expect(st.monsters.includes(crab)).toBe(false);
+  });
+
+  it('the combat perks still count: Brute fells a clatter-crab in two hits, Warrior takes the edge off falling rock', () => {
+    const { g, st, mo: crab } = levelWith('block', [12, 13, 17, 14, 18]);
+    g.player.perks.push('brute');
+    const [hx, hy] = crab.home!;
+    st.useTool(g, 'pick', 0, hx, hy);
+    expect(crab.state).toBe(0);
+    st.useTool(g, 'pick', 0, hx, hy);
+    expect(crab.state).toBe(2);
+    // the same crack, with and without Warrior
+    const hurt = (perk: boolean) => {
+      const g2 = new Game({ seed: 34 }), st2 = mine(g2);
+      if (perk) g2.player.perks.push('warrior');
+      st2.enter(g2, 2);
+      const crack = st2.hazards.find((h) => h.kind === 'crack')!;
+      stand(g2, crack.x, crack.y);
+      const hp = g2.player.hp;
+      run(g2, CRACK_FUSE + 0.3);
+      return hp - g2.player.hp;
+    };
+    const plain = hurt(false), warrior = hurt(true);
+    expect(warrior).toBeGreaterThan(0);
+    expect(warrior).toBeLessThan(plain);
+  });
+
+  it('a wisp hides the ladder: no rock turns it up, one hit shows it', () => {
+    const { g, st, mo: wisp } = levelWith('guard', [24, 22, 27]);
+    expect(st.ladder).toBeNull();
+    breakAll(g, st);
+    expect(st.ladder).toBeNull();
+    // it never hurts you either
+    const hp = g.player.hp;
+    g.player.x = wisp.x;
+    g.player.y = wisp.y;
+    run(g, 2);
+    expect(g.player.hp).toBe(hp);
+    g.player.y = wisp.y + 1.2;
+    g.player.dir = 0;
+    st.attack(g, Math.floor(wisp.x), Math.floor(wisp.y - 0.3), { dmg: 1, speed: 1, knock: 1 });
+    expect(st.monsters.includes(wisp)).toBe(false);
+    expect(st.ladder).toEqual(st.wispLadder);
+    expect(st.map!.o(st.wispLadder![0], st.wispLadder![1])).toBe(O.LADDER);
+  });
+});
+
+describe('the Deepworks: works chambers', () => {
+  it('walking up to a chamber records what its machine teaches', () => {
+    const g = new Game({ seed: 2 }), st = mine(g);
+    for (const f of [5, 10, 15, 20, 25, 30]) {
+      st.enter(g, f);
+      for (const c of st.chambers) {
+        // the entry is too far to see from
+        expect(g.flags.has('observed:' + c.kind), `${c.kind} from the entry`).toBe(false);
+        g.player.x = c.x + c.w / 2;
+        g.player.y = c.y + 3.2;
+        g.events.length = 0;
+        run(g, 0.05);
+        expect(g.flags.has('observed:' + c.kind), c.kind).toBe(true);
+        expect(toasts(g)).toContain(CHAMBER_BY_KIND.get(c.kind)!.learned);
+      }
+    }
+    expect(OBSERVATIONS.every((f) => g.flags.has(f))).toBe(true);
+  });
+
+  const RESTORES: [ChamberKind, string][] = [['lift', DEEP_FLAGS.lift], ['pump', DEEP_FLAGS.pump], ['cart', DEEP_FLAGS.cart]];
+  it.each(RESTORES)('the %s takes its parts from the bag and sets %s (nothing taken when some are missing)', (kind, flag) => {
+    const d = CHAMBER_BY_KIND.get(kind)!;
+    const parts = d.restore!.parts;
+    for (const [id] of parts) expect(ITEM_BY_ID.has(id), id).toBe(true);
+    const g = new Game({ seed: 21 }), st = mine(g), inv = g.player.inv;
+    st.enter(g, d.level);
+    const c = st.chambers.find((x) => x.kind === kind)!;
+    for (const [id, n] of parts) inv.add(key(id), Math.floor(n / 2));
+    g.events.length = 0;
+    expect(st.interact(g, c.x, c.y)).toBe(true);
+    expect(g.flags.has(flag)).toBe(false);
+    for (const [id, n] of parts) expect(inv.countId(id), id).toBe(Math.floor(n / 2));
+    expect(toasts(g).some((t) => t.includes('needs'))).toBe(true);
+    expect(g.flags.has('observed:' + kind)).toBe(true);
+    for (const [id, n] of parts) inv.add(key(id), n - Math.floor(n / 2) + 1);
+    st.interact(g, c.x, c.y);
+    expect(g.flags.has(flag)).toBe(true);
+    for (const [id] of parts) expect(inv.countId(id), id).toBe(1);
+    // running: F again takes nothing more
+    st.interact(g, c.x, c.y);
+    for (const [id] of parts) expect(inv.countId(id), id).toBe(1);
+    expect(st.restore(g, kind)).toBe('already');
+  });
+
+  it('the old pump drains the pools below level 10 and Frost and Ember ore comes out cleaner', () => {
+    const g = new Game({ seed: 21 }), st = mine(g);
+    const water = () => st.map!.ground.filter((t) => t === T.MINEWATER).length;
+    st.enter(g, 15);
+    expect(water()).toBeGreaterThan(0);
+    g.player.inv.add(key('iron_plate'), 2);
+    g.player.inv.add(key('spring'), 1);
+    expect(st.restore(g, 'pump')).toBe('done');
+    expect(water()).toBe(0);
+    st.enter(g, 12);
+    expect(water()).toBe(0);
+    st.enter(g, 18);
+    expect(st.map!.ground.includes(T.LAVA)).toBe(true);
+    st.enter(g, 4);
+    expect(water()).toBeGreaterThan(0);
+    // an iron ore rock on level 12 gives at least two ore with the pump running
+    st.enter(g, 12);
+    st.monsters = [];
+    const m = st.map!;
+    for (let k = 0; k < 3; k++) {
+      const i = m.obj.findIndex((o) => o === O.ORE_ROCK);
+      const before = dropsState(g).list.length;
+      for (let n = 0; n < 20 && m.obj[i] === O.ORE_ROCK; n++) st.useTool(g, 'pick', 4, i % m.w, Math.floor(i / m.w));
+      const ore = dropsState(g).list.slice(before).find((d) => d.k === key('iron_ore'));
+      expect(ore?.n).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('no lift until the old lift on level 5 runs; then it stops at every chamber reached, none under the flood', () => {
+    const g = new Game({ seed: 2 }), st = mine(g);
+    // the entrance: the ladder straight down to level 1
+    st.enterPrompt(g);
+    expect(st.floor).toBe(1);
+    expect(opened(g, 'elevator').length).toBe(0);
+    // a chamber level's lift landing is dead
+    st.enter(g, 10);
+    const m = st.map!;
+    const li = m.obj.indexOf(O.ELEVATOR);
+    expect(li).toBeGreaterThanOrEqual(0);
+    g.events.length = 0;
+    st.interact(g, li % m.w, Math.floor(li / m.w));
+    expect(opened(g, 'elevator').length).toBe(0);
+    expect(st.floor).toBe(10);
+    // the lift restored, it stops at the chambers reached: 5 and 10, then 15 and 20 once the flood's drained
+    g.flags.add(DEEP_FLAGS.lift);
+    st.deepest = 22;
+    expect(liftLevels(g)).toEqual([5, 10]);
+    g.flags.add(DEEP_FLAGS.drained);
+    expect(liftLevels(g)).toEqual([5, 10, 15, 20]);
+    g.events.length = 0;
+    st.interact(g, li % m.w, Math.floor(li / m.w));
+    expect(opened(g, 'elevator').map((e) => e.arg)).toEqual([[1, 5, 10, 15, 20]]);
+    // and from the entrance
+    st.leave(g);
+    g.events.length = 0;
+    st.enterPrompt(g);
+    expect(g.player.where).toBe('world');
+    expect(opened(g, 'elevator').map((e) => e.arg)).toEqual([[1, 5, 10, 15, 20]]);
+  });
+});

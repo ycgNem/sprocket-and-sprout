@@ -7,7 +7,8 @@ import { NPC_BY_ID } from '../../data/npcs';
 import { key } from '../../sim/inventory';
 import { fishing } from '../../sim/systems/fishing';
 import { finishActivity } from '../../sim/systems/festivals';
-import { mine } from '../../sim/systems/mine';
+import { DEEP_FLAGS, FLOOD_LEVEL, FLOOD_TEXT, mine } from '../../sim/systems/mine';
+import { STRATA } from '../../data/deepworks';
 import { sprite, drawSprite, drawItemIcon } from '../../render/atlas';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
@@ -73,16 +74,27 @@ function drawFishing(ui: UI, play: PlayScreen, st: WinState): boolean {
 function drawElevator(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
   const floors: number[] = st.arg;
-  const w = 220, h = 70 + Math.ceil(floors.length / 5) * 22;
+  // below level 10 the Deepworks are flooded until the town's Waterworks drains them
+  const flooded = !g.flags.has(DEEP_FLAGS.drained) && (mine(g).deepest >= FLOOD_LEVEL || g.flags.has('elev_' + FLOOD_LEVEL));
+  const intro = wrapText(g.player.where === 'mine' ? 'The old lift creaks. Which level?' : 'The old lift stops at every works chamber you have reached. Which level?', 196);
+  const note = flooded ? wrapText('Below level 10: ' + FLOOD_TEXT, 196) : [];
+  const rows = Math.ceil(floors.length / 5);
+  const bodyY = 12 + intro.length * 10 + 6;
+  const w = 220, h = bodyY + rows * 22 + note.length * 10 + (note.length ? 8 : 0) + 34;
   const { x, y } = centered(ui, w, h);
-  if (!frame(ui, x, y, w, h, 'The Old Mine')) return false;
-  ui.text(g.player.where === 'mine' ? 'The lift creaks. Where to?' : 'Choose a floor. The old lift reaches every fifth floor you\'ve found.', x + 12, y + 12, C.walnut);
+  if (!frame(ui, x, y, w, h, 'The Deepworks lift')) return false;
+  intro.forEach((l, i) => ui.text(l, x + 12, y + 12 + i * 10, C.walnut));
   floors.forEach((f, i) => {
-    if (ui.button('fl' + f, x + 12 + (i % 5) * 40, y + 30 + Math.floor(i / 5) * 22, 36, 18, String(f), { style: f === 1 ? 'green' : 'wood' })) {
+    const stratum = STRATA[Math.max(0, Math.min(STRATA.length - 1, Math.floor((f - 1) / 5)))];
+    // the level you're on is a flat button (you are here); from the surface, level 1 is the default
+    const here = g.player.where === 'mine' && mine(g).floor === f;
+    const tip = [{ text: `Level ${f}: ${stratum.name}${here ? ' (you are here)' : ''}`, color: C.amber }];
+    if (ui.button('fl' + f, x + 12 + (i % 5) * 40, y + bodyY + Math.floor(i / 5) * 22, 36, 18, String(f), { style: here ? 'flat' : f === 1 && g.player.where !== 'mine' ? 'green' : 'wood', tip }) && !here) {
       play.win = null;
       mine(g).enter(g, f);
     }
   });
+  note.forEach((l, i) => ui.text(l, x + 12, y + bodyY + rows * 22 + 4 + i * 10, C.river));
   if (g.player.where === 'mine' && ui.button('flup', x + 12, y + h - 26, 80, 18, 'To surface', { style: 'flat' })) {
     play.win = null;
     mine(g).leave(g);

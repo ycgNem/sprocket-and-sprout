@@ -1,5 +1,5 @@
 // Creature art check in the running game: every farm animal (adult and baby, standing and mid-step),
-// the pet in each pose with its bowl, next to the player on the farm; then every monster in the mine.
+// the pet in each pose with its bowl, next to the player on the farm; then the Deepworks' pests.
 // Screenshots with the imported art and with ?art=old.
 // Usage: node art/creatures/scene.mjs [zoom=3]   -> e2e/out/creatures-farm-{new,old}.png, creatures-mine-{new,old}.png
 import { chromium } from 'playwright';
@@ -41,7 +41,8 @@ for (const scene of ['farm', 'mine']) for (const mode of ['new', 'old']) {
     } else {
       g.sys.mine.enter(g, +(window.MINE_FLOOR ?? 12));
       const m = g.sys.mine.map;
-      const ids = ['dew_blob', 'cave_moth', 'pebble_crab', 'frost_blob', 'burrow_mole', 'ember_wisp', 'dusk_moth', 'rust_golem'];
+      // the Deepworks' pests: a rust-mite, a clatter-crab (tucked in, then hit once), a wisp
+      const ids = ['rust_mite', 'clatter_crab', 'wisp'];
       const { MONSTER_BY_ID } = await import('/src/data/creatures.ts');
       // find an open floor area near the player
       const px = Math.floor(g.player.x), py = Math.floor(g.player.y);
@@ -49,7 +50,9 @@ for (const scene of ['farm', 'mine']) for (const mode of ['new', 'old']) {
       for (let y = py - 4; y <= py + 5; y++) for (let x = px - 10; x <= px + 10; x++) { try { m.setG(x, y, floorT); m.setO(x, y, O.NONE); } catch {} }
       g.sys.mine.monsters = ids.flatMap((id, i) => [0, 1].map((r) => {
         const def = MONSTER_BY_ID.get(id);
-        return { id, def, x: px - 8 + i * 2.2, y: py - 2 + r * 3, vx: r ? -0.001 : 0, vy: 0, z: 0, hp: r ? def.hp / 2 : def.hp, maxHp: def.hp, hurt: 0, phase: r * 2, t: 0, state: id === 'burrow_mole' ? 1 : 0, cool: 99, frozen: true };
+        const x = px - 4 + i * 4, y = py - 2 + r * 3;
+        // (mites stand still, crabs sit until hit, wisps circle a spot)
+        return { id, def, x, y, vx: 0, vy: 0, z: 0, hp: r ? Math.max(1, def.hp - 1) : def.hp, maxHp: def.hp, hurt: 0, phase: r * 2, t: 0, state: 0, cool: 99, face: r ? -1 : 1, aim: NaN, home: [Math.floor(x), Math.floor(y)], ate: [], target: null };
       }));
       g.player.y = py + 3;
     }
