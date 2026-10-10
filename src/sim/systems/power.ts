@@ -127,8 +127,10 @@ export function rebuildPower(g: Game) {
 
 /** Current maximum output of a generator. */
 export function genCapacity(g: Game, e: Ent): number {
-  // the keeper's old wheel is worn: st.cap (40) instead of a new wheel's 60
-  const base = (e.st.cap as number | undefined) ?? e.def.powerGen ?? 0;
+  // the keeper's old wheel is worn: st.cap (35) instead of a new wheel's 60, and rain or a frozen
+  // river doesn't change it, so B8's brownout is real in any weather
+  if (e.st.cap !== undefined) return e.st.cap as number;
+  const base = e.def.powerGen ?? 0;
   switch (e.def.id) {
     case 'waterwheel':
       return base * (g.time.season === 3 ? 0.6 : g.isRaining() ? 1.25 : 1);

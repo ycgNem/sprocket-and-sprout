@@ -67,8 +67,8 @@ export const RIVER = {
   spot: [87, 47] as XY,
   /** the whole works: cleared, and no weed or storm debris lands here later */
   rect: { x: 83, y: 47, w: 8, h: 6 },
-  /** the old wheel's output: worn, it makes 40 sparks where a new wheel makes 60 */
-  cap: 40,
+  /** the old wheel's output: worn, it makes 35 sparks in any weather where a new wheel makes 60 */
+  cap: 35,
 };
 
 const inRect = (r: { x: number; y: number; w: number; h: number }, x: number, y: number) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
@@ -162,7 +162,7 @@ export function buildYard(g: Game) {
   jar.st.quick = 99;
   jar.mach?.inBuf.set(key('cogbean'), 3);
   // the keeper's cellar: two dozen beans, so day 1's line never runs dry (the cellar sends a
-  // dozen more each morning through day 4)
+  // dozen more each morning through day 7)
   const cellar = g.ents.add('chest_wood', OPENING.chest[0], OPENING.chest[1], 0);
   cellar.inv?.add(key('cogbean'), 24);
   cellar.st.yard = 1;

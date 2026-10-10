@@ -7,7 +7,8 @@ import { FURNITURE } from './furniture';
 const seeds = (seasonsFilter: (s: number[]) => boolean, exclude: string[] = []): ShopEntry[] =>
   CROPS.filter((c) => seasonsFilter(c.seasons) && !exclude.includes(c.id)).map((c) => ({ item: c.seed, price: c.seedPrice, seasons: c.seasons as any }));
 
-const RARE = ['glowmelon', 'starpetal', 'cogbean', 'mooncap', 'coffee', 'tealeaf', 'sunbell', 'hops'];
+// cogbean isn't rare: the Keeper's Line runs on it, so the Mercantile sells its seed (the 2.0 critic)
+const RARE = ['glowmelon', 'starpetal', 'mooncap', 'coffee', 'tealeaf', 'sunbell', 'hops'];
 
 export interface BuildingKit {
   id: string;

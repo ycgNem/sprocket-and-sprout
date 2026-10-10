@@ -137,9 +137,9 @@ registerSystem({
     startKit(g);
   },
   dayStart(g) {
-    // days 2-4: the keeper's cellar sends up a dozen cogbeans, so the jar line runs until the
-    // gleaner's bed ripens (B6's second jar starves on its own chest, not this one)
-    if ((!g.flags.has('tinker_start') && !g.flags.has('keepers_line')) || g.dayIndex < 1 || g.dayIndex > 3) return;
+    // days 2-7: the keeper's cellar sends up a dozen cogbeans, so the crock line runs until beds you
+    // planted ripen (B6's second jar starves on its own chest, not this one)
+    if ((!g.flags.has('tinker_start') && !g.flags.has('keepers_line')) || g.dayIndex < 1 || g.dayIndex > 6) return;
     const chest = g.ents.at(OPENING.chest[0], OPENING.chest[1]);
     if (chest?.def.kind === 'chest' && chest.inv && chest.inv.space(key('cogbean')) >= 12) chest.inv.add(key('cogbean'), 12);
     else g.give(key('cogbean'), 12);

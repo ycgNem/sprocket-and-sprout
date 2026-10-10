@@ -72,7 +72,7 @@ export const CROPS: CropDef[] = [
     look: { style: 'tuber', leaf: C.grass, fruit: C.brick }, edible: 20, desc: 'A sturdy orange root for cold evenings.', tags: ['vegetable'] }),
   crop({ id: 'artichoke', name: 'Thistlechoke', seasons: [FA], stages: [2, 2, 1, 2, 1], price: 160, seedPrice: 30, icon: 'choke',
     look: { style: 'stalk', leaf: C.moss, fruit: C.grass, fruit2: C.lavender }, edible: 12, desc: 'The flower bud of a giant thistle. The town is named for it.', tags: ['vegetable'] }),
-  crop({ id: 'barley', name: 'Barley', seasons: [FA], stages: [1, 1, 2, 1], scythe: true, price: 30, seedPrice: 12, icon: 'grain',
+  crop({ id: 'barley', name: 'Barley', seasons: [SP, FA], stages: [1, 1, 2, 1], scythe: true, price: 30, seedPrice: 12, icon: 'grain',
     look: { style: 'grain', leaf: C.lime, fruit: C.tan }, desc: 'Bearded grain for brewing and baking.', tags: ['grain', 'brew'] }),
   crop({ id: 'glowmelon', name: 'Glowmelon', seasons: [FA], stages: [2, 3, 3, 4, 4], giant: true, price: 650, seedPrice: 250, icon: 'melon',
     look: { style: 'gourd', leaf: C.moss, fruit: C.aqua, fruit2: C.frost }, edible: 60, cat: 'fruit', desc: 'It hums softly and lights up at dusk. Worth a fortune.', tags: ['fruit', 'rare'] }),

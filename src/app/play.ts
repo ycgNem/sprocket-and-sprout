@@ -915,13 +915,16 @@ export class PlayScreen implements Screen {
    */
   armSlots(): { x: number; y: number; rot: Dir | null }[] {
     const g = this.g;
-    const q = g.sys.quests?.active as { id: string }[] | undefined;
-    const has = (id: string) => !!q?.some((a) => a.id === id);
+    // only the slots the current step marks: in B6 the out-arm's slot sits one tile from where the
+    // fix's third arm goes, and snapping there took the player's fix away (the 2.0 critic)
+    const now = (g.sys.quests?.now?.(g, 1) ?? [])[0] as { id: string; index: number } | undefined;
+    const step = now ? `${now.id}:${now.index}` : '';
     const out: { x: number; y: number; rot: Dir | null }[] = [];
-    if (has('k3_hands')) out.push({ x: OPENING.feedArm[0], y: OPENING.feedArm[1], rot: 0 });
-    if (has('k6_bottleneck')) out.push({ x: OPENING.jar2Feed[0], y: OPENING.jar2Feed[1], rot: null }, { x: OPENING.jar2Out[0], y: OPENING.jar2Out[1], rot: null });
+    if (step === 'k3_hands:0') out.push({ x: OPENING.feedArm[0], y: OPENING.feedArm[1], rot: 0 });
+    if (step === 'k6_bottleneck:1') out.push({ x: OPENING.jar2Feed[0], y: OPENING.jar2Feed[1], rot: null });
+    if (step === 'k6_bottleneck:4') out.push({ x: OPENING.jar2Out[0], y: OPENING.jar2Out[1], rot: null });
     // B8: Bram's Brass Arms load the mill from the grain bin and empty it into the meal chest
-    if (has('k8_river')) out.push({ x: RIVER.binArm[0], y: RIVER.binArm[1], rot: 1 }, { x: RIVER.outArm[0], y: RIVER.outArm[1], rot: 1 });
+    if (step === 'k8_river:3') out.push({ x: RIVER.binArm[0], y: RIVER.binArm[1], rot: 1 }, { x: RIVER.outArm[0], y: RIVER.outArm[1], rot: 1 });
     return out.filter((s) => !g.ents.at(s.x, s.y));
   }
 

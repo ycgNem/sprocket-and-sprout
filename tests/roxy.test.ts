@@ -29,7 +29,7 @@ describe('Roxy Vane', () => {
     for (const e of shop.stock.filter((e) => e.item.endsWith('_seed'))) expect(e.seasons?.length).toBeGreaterThan(0);
   });
 
-  it('drops her card on day 4; the keeper tops up the bean chest on days 2-4', () => {
+  it('drops her card on day 4; the keeper tops up the bean chest on days 2-7', () => {
     const g = new Game({ seed: 8 });
     const chest = g.ents.at(OPENING.chest[0], OPENING.chest[1])!;
     const beans = () => chest.inv!.countId('cogbean');
@@ -40,7 +40,8 @@ describe('Roxy Vane', () => {
       g.tick();
       expect(mail().some((m) => m.id === 'roxy_intro'), `day ${d + 1}`).toBe(d >= 3);
     }
-    expect(beans()).toBe(start + 36);
+    // four nights: the dozens of days 2-5 (the cellar keeps sending through day 7)
+    expect(beans()).toBe(start + 48);
   });
 
   it('can walk from the town square to the gangplank and her field', () => {

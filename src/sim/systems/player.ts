@@ -84,7 +84,8 @@ function rideBelt(g: Game, dt: number) {
   const p = g.player;
   if (p.where !== 'world' || g.sleeping) return;
   const e = g.ents.at(Math.floor(p.x), Math.floor(p.y - 0.1));
-  if (!e || e.ghost || e.def.kind !== 'belt' || !e.belt) return;
+  // a rusted belt is dead: it carries nothing, farmers included
+  if (!e || e.ghost || e.st.rust || e.def.kind !== 'belt' || !e.belt) return;
   const sp = (e.belt.speed ?? 1.5) * 0.9;
   const ox = p.x, oy = p.y;
   tryMove(g, DX[e.rot] * sp * dt, DY[e.rot] * sp * dt);

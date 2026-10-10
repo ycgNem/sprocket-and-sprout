@@ -37,7 +37,7 @@ const step = (g: Game) => {
 describe("the Keeper's Line data", () => {
   it('every beat says why it matters, names its steps for the Now strip, and lives on the main path', () => {
     const chain = QUESTS.filter((q) => q.id.startsWith('k'));
-    expect(chain.map((q) => q.id)).toEqual(['k1_line', 'k2_springs', 'k3_hands', 'k4_grow', 'k5_desk', 'k6_bottleneck', 'k7_town', 'k8_river', 'k9_power']);
+    expect(chain.map((q) => q.id)).toEqual(['k1_line', 'k2_springs', 'k3_hands', 'k4_grow', 'k5_desk', 'k6_bottleneck', 'k7_town', 'k8_river', 'k9_bed', 'k9_power']);
     for (const q of chain) {
       expect(q.why, q.id).toBeTruthy();
       expect(q.main, q.id).toBe(true);
@@ -165,7 +165,7 @@ describe("B8: the keeper's river works", () => {
     }
   });
 
-  it('a rusted wheel and poles carry nothing; the mended wheel gives 40, and the mill browns out', () => {
+  it('a rusted wheel and poles carry nothing; the mended wheel gives 35 in any weather, and the mill browns out', () => {
     const g = new Game({ seed: 51 });
     skipTo(g, 'k8_river');
     expect(orders(g).open.map((o) => o.id)).toContain('bram_oil');
@@ -186,7 +186,7 @@ describe("B8: the keeper's river works", () => {
     secs(g, 20);
     const mill = g.ents.at(RIVER.mill[0], RIVER.mill[1])!;
     const net = powerState(g).nets.get(mill.net)!;
-    expect(net.cap).toBe(40);
+    expect(net.cap).toBe(35);
     expect(mill.mach!.made).toBeGreaterThan(0);
     expect(mill.sat).toBeLessThan(0.8);
     expect(g.flags.has('lesson:brownout')).toBe(true);

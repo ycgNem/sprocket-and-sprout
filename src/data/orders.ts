@@ -37,6 +37,12 @@ export const STANDING: StandingDef[] = [
     text: "My bellows squeal like a kettle. Six bottles of cogbean oil and I'll forge the bars for the keeper's old wheel, with two of my brass arms for its mill.",
     thanks: "Quiet bellows at last. The bars will mend the old wheel's axle, and the arms want sparks: mind your grid.",
   },
+  {
+    // the keeper's mill gets a customer once it turns (B8): meal sells for 55 at market, 80 here
+    id: 'rowan_meal', npc: 'rowan', place: 'The Copper Kettle', spec: 'barley_flour', n: 10, unit: 80, weekly: true,
+    text: "Barley meal for the bread ovens, ten sacks a week. The old keeper's mill used to grind it for us.",
+    thanks: 'Bread for the whole square again. Same again next week?',
+  },
 ];
 
 export const STANDING_BY_ID = new Map(STANDING.map((s) => [s.id, s]));

@@ -165,6 +165,11 @@ registerSystem({
     hooks(g);
     // a visit that never got its scene (the day ended) starts again
     if (keeper(g).visit === 1) keeper(g).visit = 0;
+    // days 2-7: the keeper's granary tops the grain bin up to 20 barley, so the restored mill has
+    // something to grind until barley you sow ripens (the cellar does the same for the crocks' beans)
+    const bin = g.flags.has('keepers_line') && g.dayIndex >= 1 && g.dayIndex <= 6 ? g.ents.at(RIVER.bin[0], RIVER.bin[1]) : null;
+    const short = bin?.inv && bin.def.kind === 'chest' ? 20 - bin.inv.countId('barley') : 0;
+    if (bin && short > 0 && bin.inv!.add(key('barley'), short) < short && !bin.st.rust) g.toast("The keeper's granary sent down barley for the mill.", 'i:barley');
   },
   tick(g) {
     if (g.tickN % 30 !== 0 || g.map.w < 100) return;

@@ -216,10 +216,35 @@
 - Tests: 141 (new `tests/keeper.test.ts`: the chain by the bot, the 150-seed B6 starve, wreck the
   yard, rust rules, old saves); smoke 0 errors. Pacing: Story 35.5k, Rush 33.9k (28 days, 8 seeds).
 
+## 1.2 "The Works", Phase 2 session 2: Orders, the river works, the critic's review (October 10, 2026)
+- The Orders board (on the square and J -> Orders): standing orders and today's asks, consignment
+  through the crate's "Ship to:" tag, reputation per business. B7 is Rowan's weekly pickles (by
+  hand or by the post); Bram's oil order pays the bars and two Brass Arms for B8. DECISIONS #77.
+- B8 The River Works: the keeper's wheel (worn to 40 sparks), two poles, the grist mill and the
+  grain bin by the bridge; a real brownout, and lamps dim in one. k9 More Power follows, toward
+  Phase 3's Town Mill. DECISIONS #78.
+- Shift+F opens a machine's window; a recipe picked mid-batch takes the next batch; the Skills
+  cards (bug 5); crafting labels; the Preserves Jar is the Preserving Crock. DECISIONS #76, #79.
+- The pace bot builds its own line before it grows its plot (3.2 rule 5) and waters the beds that
+  feed its line. DECISIONS #80.
+- A pre-merge review loaded ten real 1.1.1 saves into 2.0 (nothing lost) and its fixes: saves are
+  v4, items added after 1.1 go last, a B5 softlock, crate-window deposits counting for B1, the
+  mainspring stream. DECISIONS #81.
+- The indie-critic's end review: FAIL on day 5 (the works starved: no bean supply after day 4, a
+  one-off barley bin). Fixed since: the cellar through day 7, cogbean seeds at the Mercantile,
+  barley in spring, the granary, Rowan's barley meal order, k9 "A Second Bed" before More Power,
+  a Metalwork step, arms snapping only to the current step's slot, rusted belts, the 35-spark
+  wheel. DECISIONS #82. Left (ROADMAP.md Phase 2): the bot planting beans for its crocks, the
+  acceptance check (`scripts/accept.ts`), the critic's re-check.
+- Tests: 152; sweep 67 shots / 0 issues (before the supply fixes); smoke, flow, shift (185),
+  works, windows, perf all pass. Pacing (28 days, 8 seeds, before the supply fixes): Story 42.2k,
+  Rush 39.9k.
+- Not merged: the owner deferred the 2.0 beta and asked for Phase 3 next.
+
 ## Next
-- Phase 2 session 2 (the prompt is in HANDOFF.md, "What's next"): the Orders board and
-  consignment for B7, B8's rework, the Skills cards, crafting labels, the day-5 shot, the bot
-  through B8, the critic's full review.
+- Finish Phase 2's must-fix list, then Phase 3 (the prompt is in HANDOFF.md, "What's next"): the
+  full Orders board, research stages and era columns, crop numbers and rapeseed, the thresher, the
+  Town Mill keystone, the Rush medals.
 - Older ideas: more interior variety (decor items placeable indoors), farmhouse expansion tiers;
   more depth for mid-game automation goals and late-game megaprojects.
 

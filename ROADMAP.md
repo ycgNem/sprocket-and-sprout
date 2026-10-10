@@ -671,7 +671,7 @@ chest. Known at the start: Preserving and Clockwork Arms (the keeper's notes). C
 | **B5 The desk** | day 1 evening or day 2 morning | Restore the keeper's desk (F): it holds the keeper's notes and one sprout bundle. Craft a second (C: 3 cogbeans, from the chest). Feed the desk (F) and pick **Conveyance** (T, now 2 bundles), the first keystone in miniature with three pips: *Observe* (hover the rusted belt run, or hold I over it), *Experiment* (restore the gleaner's arm with the second spring and the four belts; done when a bean rides into the jar: the gleaner's basket starts with the keeper's last pick, 6 beans), *Apply* (the desk studies it in about 90 s, finishing during B6's walk to town). Reward: 12 belts and 2 arms from the Professor. | beans riding the belt from the gleaner into the jar | research has stages; belts deliver into whatever they run into; crafting; the desk | "You don't research what you haven't touched." |
 | **B6 The bottleneck** | day 2 | The day-1 posts paid for a second jar: the first walk to town (over the bridge, past the keeper's rusted wheel), the Mercantile. Place it on the marked tile west of the cellar chest, your kit chest (empty) on the tile below it and an arm between them, its out-arm and the four marked belts to the crate. The arms snap to their tiles but don't turn themselves this time (R turns them; a wrong facing shows the squares and the "Arms take from behind" card). Its chest is empty, so within a minute it shows the **Starved** glyph and the "Starved" card, while the first jar keeps running (the cellar's dozen still fills the cellar chest through day 4). Read why (hover, hold I, or the Lines tab). Fixes that work on day 2: carry beans into its chest; a third arm from the cellar chest into it; turn the gleaner's belt into it (pays from day 4). Done when the second jar makes 3 pickles. | both jars running | diagnosis; more than one answer; the glyph, the hover line, the Lines tab | "A stopped machine is a question. The glyph is the answer." |
 | **B7 The town wants** | day 2-3 | The Orders board on the square (and J -> Orders): Rowan's standing order, 6 pickled cogbeans a week, silver pays double. Hand them over at the inn, or tag the crate "Ship to: The Copper Kettle" (F at the crate; consignment: at each post, goods that fit an open order go to it first, ahead of the market). The crate's price tag names the most flooded item (the "Saturation" card the first time a price drops 20%). Filled: reputation +1 with the Copper Kettle, and Rowan teaches cogbean oil (a second crock recipe for the same bean, the "One input, two recipes" card). | the post carrying tagged pickles to the inn: a machine filling an order | orders, consignment, saturation, reputation, one input with two recipes | "The town is your real customer. The crate is just the door." |
-| **B8 The River Works** (built 2026-10-10 as the critic proposed) | day 3-5 | Bram's order on the board: 6 cogbean oil (lock a crock to oil: Shift+F opens it; a pick mid-batch takes the next batch) for 5 copper bars and two Brass Arms. The keeper's river works by the farm gate, just south of the bridge B6 crossed: restore the wheel with the bars (worn to 40 sparks), then its two poles, the grist mill and the grain bin (last autumn's 40 barley). Bram's arms on the marked tiles load and empty the mill. The mill (50) and its arms on a 40-spark wheel: the "Brownout" card, the amber power lamp, slow animation, dim lamps. Done when the mill has ground 5 barley meal. The next main step is **k9 More Power** (Water Power at the desk, a second wheel, the mill's grid able to run everything at once), toward **the Town Mill** keystone (Phase 3): one path, no choice card (DECISIONS #72). | the mill turning on the wheel, slowly, in a brownout | an order paid in parts; power and poles; a brownout and its two fixes | "The valley runs on what you build next." |
+| **B8 The River Works** (built 2026-10-10 as the critic proposed) | day 3-5 | Bram's order on the board: 6 cogbean oil (lock a crock to oil: Shift+F opens it; a pick mid-batch takes the next batch) for 5 copper bars and two Brass Arms. The keeper's river works by the farm gate, just south of the bridge B6 crossed: restore the wheel with the bars (worn to 35 sparks, in any weather), then its two poles, the grist mill and the grain bin (last autumn's 40 barley). Bram's arms on the marked tiles load and empty the mill. The mill (50) and its arms on a 35-spark wheel: the "Brownout" card, the amber power lamp, slow animation, dim lamps. Done when the mill has ground 5 barley meal. The next main steps are **k9 A Second Bed** (Gleaning, a second gleaner on 8 cogbeans: supply for the crocks) and **More Power** (Metalwork, Water Power, a second wheel, the mill's grid able to run everything at once), toward **the Town Mill** keystone (Phase 3): one path, no choice card (DECISIONS #72, #82). Rowan's weekly barley meal order gives the mill a customer; the granary tops its bin up through day 7, then barley you sow (it grows in spring now). | the mill turning on the wheel, slowly, in a brownout | an order paid in parts; power and poles; a brownout and its two fixes | "The valley runs on what you build next." |
 
 **The critic's quick read** (2026-10-09, approve with changes) is folded into the rows above: B1
 shorter with the Professor at about 1:30, F at a machine collecting and loading in one press, B3
@@ -981,36 +981,74 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
   within 15% of 1.1's numbers; the `indie-critic` approves the loop (3.1) and the spec (section 4)
   before the build, and its short automation-only review of the build finds no "I can't tell why
   it stopped".
-### Phase 2 — The Keeper's Line (2-3 sessions) — IN PROGRESS (session 1 of ~3, 2026-10-09, on `works`)
-- **Done in session 1:** the re-spec (6.0) and the critic's quick read (approve with changes,
-  folded in); rust and restore (`src/sim/rust.ts`, the rust ramp `src/render/rust.ts`, the badge);
-  the keeper's yard (`src/sim/opening.ts` `buildYard`); the chain B1-B8 in `src/data/goals.ts`
-  (B1-B6 as specified; B7 a hand delivery to Rowan until the Orders board; B8 the old copper,
-  furnace and Water Power steps until its rework); the Professor's visit (`src/sim/systems/keeper.ts`);
-  new objective kinds (crate, restore, flag, made, feeds, armload; `label`, `why`, `goto`); the Now
-  strip (`src/ui/nowstrip.ts`); lesson cards (`src/data/lessons.ts`, `src/ui/lessoncard.ts`, the
-  sim triggers); the Keeper's Notebook tab (`src/ui/windows/notebook.ts`); undo (Ctrl+Z); F
-  collects and loads in one press; the bot plays B1-B7 (by day 3 on seed 2024);
-  `tests/keeper.test.ts` (the 150-seed B6 starve, wreck the yard, old saves, rust rules).
-- **Left:** the minimal Orders board with Rowan's standing order and consignment (B7); B8's rework
-  (critic's version above) and the rusted river works; the Skills cards (bug 5); the crafting
-  labels; the `day5-farm` sweep shot and new sweep scenarios (Now strip, lesson card, Notebook);
-  the bot through B8 by day 5 on 8 seeds; the full critic review with the eight questions and the
-  Stardew test; the owner's call on renaming the Preserves Jar; then the 2.0 beta merge.
-- Pacing after session 1 (8 seeds, 28 days): Story 35.5k (was 20.9k), Rush 33.9k (was 23.1k), day
-  1 about 4.1k; no seed collapses. The jar line now runs from minute 3: Phase 3's economy pass
-  re-tunes it with the Rush medals.
-- Section 6 in full: the eight beats, the Now strip, the Notebook, lesson cards, undo, the
-  Professor's visit scene, Rowan's first order (a minimal Orders board: Today + one Standing
-  entry; the rest is Phase 3), the Skills cards (bug 5), the crafting labels.
-- Old tutorial chains removed; `needFlag`'d quests migrated: saves from 1.x mark the whole old
-  chain done if `tutorial_done` is set.
-- **Factory first (3.2)**: the yard as derelict works to bring back, no debris chores in the
-  first hour, the pulse and Now strip from minute 0, a `day5-farm` sweep shot.
-- `tests/bot.ts` plays B1-B8; the 150-seed opening test; the "wreck the yard" test.
-- Done when: the bot finishes B8 by day 5 on 8 seeds; the critic answers 7 of 8 questions from
-  section 5 correctly from a fresh build **and passes the Stardew test (3.2 rule 7)**; sweep 0
-  issues; **merge to `main` as 2.0 beta** (the website; installers stay 1.1.1).
+### Phase 2 — The Keeper's Line (2 sessions + a finish) — BUILT; the critic's end review FAILED on day 5 (2026-10-10); its must-fix list is mostly done on `works`; not merged (the owner deferred the 2.0 beta)
+- **Session 1** (2026-10-09): the re-spec (6.0) and the critic's quick read; rust and restore
+  (`src/sim/rust.ts`, `src/render/rust.ts`); the keeper's yard (`buildYard` in
+  `src/sim/opening.ts`); the chain in `src/data/goals.ts`; the Professor's visit
+  (`src/sim/systems/keeper.ts`); new objective kinds (crate, restore, flag, made, feeds, armload;
+  `label`, `why`, `goto`); the Now strip (`src/ui/nowstrip.ts`); lesson cards
+  (`src/data/lessons.ts`, `src/ui/lessoncard.ts`); the Keeper's Notebook
+  (`src/ui/windows/notebook.ts`); undo (Ctrl+Z); F collects and loads in one press.
+- **Session 2** (2026-10-10, commits `b5c2140`, `7bada4d` and the critic fixes after them):
+  - The Orders board (minimal; 7.4 is Phase 3): `src/data/orders.ts`, `src/sim/systems/orders.ts`,
+    `src/ui/windows/orders.ts` (the board on the square and J -> Orders). The crate's "Ship to:"
+    tag consigns at each post. Rowan's weekly pickles (silver pays double; each fill adds
+    reputation, the order grows 2 a point), Bram's oil for 5 bars and 2 Brass Arms, Rowan's weekly
+    barley meal after B8. DECISIONS #77.
+  - B8 The River Works (`RIVER`, `buildRiverWorks`): the keeper's wheel (worn to 35 sparks in any
+    weather), two poles, the grist mill and the grain bin; Bram's arms; a real brownout; lamps dim
+    in a brownout. DECISIONS #78, #82.
+  - Shift+F; a recipe picked mid-batch takes the next batch (and is saved); the Skills cards; the
+    crafting labels; the Preserving Crock. DECISIONS #76, #79.
+  - A pre-merge review loaded ten real 1.1.1 saves into 2.0 (nothing lost) and its fixes: saves
+    are v4, items added after 1.1 go last (`ITEMS_AFTER_1_1`), the B5 softlock, crate-window
+    deposits for B1, the mainspring stream, silver-first consignment. DECISIONS #81.
+  - The bot plays B1-B8 by day 4 on 8 seeds and builds its own crock line before it grows its
+    plot (DECISIONS #80); 152 tests; sweep 67 shots / 0 issues (before the critic fixes).
+- **The critic's end review** (indie-critic, 2026-10-10): FAIL. The hour is good (the Stardew test
+  passes for the first 15 minutes); the week breaks on day 5 (every machine starved, day 6 earned
+  0); the eight questions 6 yes / 2 partly. Its must-fix list, and where it stands:
+  - [x] C1 supply: cogbean seeds at the Mercantile (not RARE in `src/data/shops.ts`); the cellar's
+    dozen through day 7 (`src/sim/systems/modes.ts`); barley in spring and fall
+    (`src/data/crops.ts`); the granary tops the grain bin up to 20 barley through day 7
+    (`keeper.ts` dayStart); Rowan's Barley Meal order (`rowan_meal`); k9 "A Second Bed"
+    (`k9_bed`: Gleaning, a second gleaner, 8 cogbeans) before More Power.
+  - [ ] C1 acceptance (`npx vite-node scripts/accept.ts`): seeds 2024, 7, 99 in Story, crocks
+    Working >= 50% of awake samples on days 5-7, day-6 income > 0, the mill producing on day 6.
+    Now: income ~900-1,000 on day 6 and the mill +20 a day on days 5-7 pass; crocks are Working
+    32-33%. Next: `tests/bot.ts` buys cogbean seeds (the Mercantile sells them now; `bestSeed`
+    picks strawberries) and plants them where its line gets the beans, and plays `k9_bed` (a
+    second gleaner on a bed); also sow barley so the mill runs after day 7.
+  - [x] M2 arms snap only to the slot the current step marks (`armSlots` in `src/app/play.ts`).
+  - [x] M3 rusted belts don't carry the player (`rideBelt`, `src/sim/systems/player.ts`).
+  - [x] M4 k9 More Power: a Metalwork step, the Workshop named for copper gears.
+  - [x] M5 the worn wheel: 35 sparks, no rain bonus (`genCapacity`, `RIVER.cap`).
+  - [?] M1 (rusted nodes break `fieldSource`; the slow-arm advice counts swing time only and
+    stays quiet when an arm has twice the capacity needed), C1e (a starved crock's advice says it
+    takes any vegetable or fruit), M4's "Needs: Metalwork" on a locked research node, and the four
+    "Sprout Bundle" crafting labels: a helper agent was fixing these in `src/sim/lines.ts`,
+    `src/data/advice.ts`, `src/ui/windows/factory.ts`, `menu.ts`, `statelines.ts`,
+    `tests/lines.test.ts`; check what landed in the last commit and finish what didn't.
+  - [ ] Then: typecheck, tests, the sweep (the board now lists three standing orders: check the
+    `board` and `journal-orders` shots), smoke, pace; rebuild `../sns-review` and have the critic
+    re-check (the bot acceptance and the eight questions, not a full review).
+- **The critic's Minors (the backlog; Phase 3 can take them):** the arm sprite reads as "?" (an
+  art-director job, first); B2 has no fallback if the crock is empty when the arm is restored;
+  "Find out why it stopped" passes by itself after 3 batches (move it to the day's end); the
+  keystone's "look" stage should be "hold I over the belt run"; the day summary merges order
+  deliveries into market rows; the Today asks should wait until k9; J should open on Orders while
+  k7 is active, and the board should answer F from any side; a path into the river works
+  clearing; a midnight "bed by 2am" toast; the undo window (keep the last 5, no timer); labels by
+  the crate when the Professor arrives; the Lines tab mixes /min and /day and calls the keeper's
+  chests "Wooden Chest"; the Mercantile lists the crock near the bottom; `index.html`'s meta
+  description is 1.1's; the title demo is 1.1's; the rule-5 test should count structures that
+  were Working and check day 7 too (the critic on DECISIONS #80).
+- Pacing (8 seeds, 28 days, before the critic fixes): Story 42.2k, Rush 39.9k; re-run after them.
+  The Rush medals (20k / 40k / 65k) sit at about 0.5x / 1.0x / 1.6x the bot: Phase 3 re-tunes them.
+- Done when: the must-fix list and the acceptance check pass, the critic's re-check passes, the
+  sweep is clean; then **merge to `main` as 2.0 beta when the owner says** (version
+  2.0.0-beta.1; `main` fast-forwards in `C:\Users\jacks\Documents\sns-p0check`; the owner pushes;
+  the installers stay 1.1.1).
 
 ### Phase 3 — Orders, research stages, the Mill (2 sessions)
 - 7.4 the Orders board (unifying requests, contracts, projects; consignment; per-business

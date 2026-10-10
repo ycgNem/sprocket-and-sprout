@@ -4,14 +4,28 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 9, 2026, ~midnight): Phase 2 (the Keeper's Line) is in progress on `works`,
-session 1 of about 3.** A new game now opens on the keeper's rusted works with the jar running;
-B1-B6 play as specified, B7-B8 are placeholders, and the bot plays B1-B7 by day 3. What's done and
-what's left: ROADMAP.md Phase 2; the prompt for session 2 is under "What's next". Phases 0 and 1
-are done; 1.1.1 is released (website + installers). The owner's rules since: hand farming stays,
-but the factory is the face (ROADMAP.md 3.2, DECISIONS #68); one path for every player, no "pick a
-direction" card (DECISIONS #72). ROADMAP.md is the 1.2 plan; ROADMAP-1.1.md the finished 1.1
-overhaul.
+**Status (October 10, 2026, night): Phase 2 (the Keeper's Line) is built on `works` and nearly
+finished; nothing is merged.** A new game opens on the keeper's rusted works and the chain B1-B8
+plays as specified (the bot finishes it by day 4 on 8 seeds). The indie-critic's end-of-phase
+review FAILED it on one thing: from day 5 the works starved (no bean supply, a one-off barley bin).
+Most of its must-fix list is fixed and committed; what's left, with the acceptance check, is the
+checklist in ROADMAP.md Phase 2. **The owner deferred the 2.0 beta merge** and asked for Phase 3
+next: the prompt under "What's next" finishes Phase 2's list first, then starts Phase 3, all on
+`works`. Don't merge to `main` or push unless the owner says so. The owner's rules since Phase 1:
+hand farming stays, but the factory is the face (ROADMAP.md 3.2, DECISIONS #68); one path for
+every player, no "pick a direction" card (#72); the Preserves Jar is the Preserving Crock (#76).
+ROADMAP.md is the 2.0 plan; ROADMAP-1.1.md the finished 1.1 overhaul.
+- **Phase 2 on `works`** (`7fc17bf` session 1, `b5c2140` session 2, `7bada4d` the pre-merge
+  review fixes, then the critic's fixes): the Keeper's Line (rust and restore, the chain, the Now
+  strip, lesson cards, the Notebook, undo), the Orders board with consignment, the river works
+  with a real brownout, Shift+F, the Skills cards and crafting labels. A pre-merge review loaded
+  ten real 1.1.1 saves into 2.0 with nothing lost (DECISIONS #81); `SAVE_VERSION` is now 4, so
+  1.1.x refuses a 2.0 save cleanly. The critic's review and the supply fixes: DECISIONS #82.
+- **When the owner says ship the beta:** version `2.0.0-beta.1` (`npm version 2.0.0-beta.1
+  --no-git-tag-version` updates package.json and the lock), commit on `works`, then
+  `git -C ../sns-p0check merge --ff-only works` (`main` is checked out there; `main` has nothing
+  `works` lacks), then the owner runs `git push origin main` (that deploys the website; the
+  installers stay 1.1.1, so no `gh release`).
 - **Phase 0 = 1.1.1 on `main`** (commits `1c0d50e`..`ba760a9`, version bumped): the owner's
   playtest bugs, the overhead pickaxe for all 9 looks, flagstone paths, plank decks, the seam
   audit, painted ground transitions (the farming glitch), placed paths that change the ground;
@@ -135,12 +149,13 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 124 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5)
+npm test                                   # 152 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5, the Keeper's Line)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
 npx vite-node scripts/pace.ts story rush   # economy: the bot's 28-day earnings on 8 seeds (a few minutes)
+npx vite-node scripts/accept.ts            # the critic's Phase 2 acceptance: crocks working on days 5-7, day-6 income, the mill
 npm run build                              # production build, about 1.2 MB JS (386 KB gzipped) + ~520 KB of PNG sheets
 node e2e/smoke.mjs http://localhost:5173/  # real UI smoke, 0 console errors expected
-npm run screens                            # 51-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 for another size
+npm run screens                            # 67-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 for another size
 node e2e/coverage.mjs                      # every sprite name vs imported art (6415/6415 = 100% expected)
 node e2e/sprites.mjs <name> ...            # imported vs procedural sprites side by side
 BASE=http://localhost:5173/ node e2e/flow.mjs  # real input: two-step new game, farm, house, bed, reload
@@ -153,16 +168,21 @@ node e2e/seams.mjs                         # Wang-set seam audit -> e2e/out/seam
 BASE=http://localhost:5173/ node e2e/perf.mjs      # 1,300 belts / 260 machines: < 1 ms a tick, the night shift < 3 s
 ```
 
-Last results (October 9, night): everything above passes with 0 console errors; the sweep is 51
-shots / 0 issues at 1280x720 and clean at 1366x620.
+Last results (October 10, 2026, before the critic's supply fixes; re-run them): everything
+above passes with 0 console errors; the sweep is 67 shots / 0 issues at 1280x720; at 1366x620 it flags two "covered"
+labels in the research tree that the screenshot doesn't show (clipped nodes; the window wasn't
+touched in Phase 2). `e2e/shift.mjs` 185/185; `e2e/perf.mjs` 0.32 ms a tick, the night shift
+1.5 s. `e2e/qa.mjs` logs "missing sprite i:hoe_0" warnings: its contact sheet asks tools for an
+icon name they don't use (harmless).
 
-Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 9, late night, branch `works`):
-- Story: average 20.9k coins (19.5k to 22.8k). 1.1 was 10.7k.
-- Clockwork Rush: average 23.1k (21.5k to 24.9k). 1.1 was 13.0k.
-- Why it doubled: the bot now builds a real jar line (L1) on day 6 and a gleaner on day 7 (+~8k);
-  the night shift adds ~2k. The old bot built no factory. **The Rush medals (20k / 40k / 65k) now
-  sit at about 0.9x / 1.7x / 2.8x the bot: re-tune them with the economy in Phase 3.**
-- Day 1 earns about 1.8k.
+Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 10, branch `works`):
+- Story: average 42.2k coins (39.6k to 45.4k). Before Phase 2: 20.9k; 1.1: 10.7k.
+- Clockwork Rush: average 39.9k (38.1k to 43.4k). Before Phase 2: 23.1k; 1.1: 13.0k.
+- Why it doubled: the jar line runs from minute 3 (the Keeper's Line), the bot builds its own
+  crock line on day 2-3, fills Rowan's and Bram's orders, and waters the beds that feed its line.
+  **The Rush medals (20k / 40k / 65k) now sit at about 0.5x / 1.0x / 1.6x the bot: re-tune them
+  with the economy in Phase 3.**
+- Day 1 earns about 4.1k.
 - Adding or removing a villager changes how many random rolls happen per tick, so per-seed results
   shift (weather, drops). Judge balance on the 8-seed average, never on one seed. A seed that
   collapses is a bug: that is how the opening-tile weed was found (seed 99 fell to 4.5k).
@@ -183,12 +203,14 @@ src/sim/      pure simulation, no DOM. prompts.ts (what F / a left click would d
               bubbles; questTarget for the guide arrow and compass). Game.ts (state, tick, endDay,
               simRate/clockRate, beltSink = belt ends feed structures), opening.ts (the clockwork
               opening's tile layout + openingTile), ents.ts, ports.ts, build.ts, blueprint.ts,
-              save.ts (SAVE_VERSION 3 + MIGRATIONS; saves store mode + farmKind, ground and
+              save.ts (SAVE_VERSION 4 + MIGRATIONS; saves store mode + farmKind, ground and
               objects, not buildings), world/ (tilemap, worldgen incl. AIRSHIP + skyfield(),
               farms.ts = map variants, A*)
 src/sim/systems/  one file per system, registered with registerSystem({tick, dayStart, dayEnd,
               init, save, load, afterLoad, realtime}). Import order lives in src/sim/index.ts.
-              New: modes.ts (start kits, the clockwork opening, Rush scoring), achievements.ts
+              New: modes.ts (start kits, the clockwork opening, Rush scoring), achievements.ts,
+              keeper.ts (the Keeper's Line: the Professor's visit, safety nets), orders.ts (the
+              Orders board, reputation, consignment); rust.ts and lessons.ts sit in src/sim
 src/render/   juice.ts (Phase 3 reward layer: sprite effects, confetti, rings, hops, item/coin flights
               into the HUD, streak counter, ribbons, big pop numbers, the post courier; drawFx with
               code fallbacks), renderer (dual-grid terrain bake, y-sorted sprites), lighting, weather, particles, ambient,
@@ -246,7 +268,9 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 - **Sprite cache:** sprites are generated once per name and cached. If what a name draws changes at
   runtime (like the player look), flush it with `invalidateSpritePrefix`.
 - **Other conventions (unchanged):**
-  - Item keys are `index*4 + quality`. Saves store `[id, quality]`.
+  - Item keys are `index*4 + quality`. Saves store `[id, quality]`, except a blueprint ghost's
+    filters (raw keys): a new item goes in `ITEMS_AFTER_1_1` (`src/data/items.ts`) so older items
+    keep their index; `tests/data.test.ts` checks it.
   - The `O` enum is saved by value, so only append to it.
   - Flags are saved automatically.
 
@@ -275,23 +299,33 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
-Phase 2 of ROADMAP.md (1.2 "The Works") continues on branch `works`, session 2:
+Finish Phase 2, then Phase 3 of ROADMAP.md (2.0 "The Works"), on branch `works`:
 
-> Read ROADMAP.md sections 3.2, 6 (6.0 and the critic's notes under the beat table) and Phase 2's
-> status, and HANDOFF.md. On `works`: the minimal Orders board (Today + Rowan's standing order) with
-> consignment by crate tag, so B7 fills by the post; B8 reworked as the critic proposed (Bram's bars
-> for cogbean oil, the keeper's rusted wheel, poles and grist mill by the river with last autumn's
-> barley, two Brass Arms, a 40-spark wheel and a real brownout; lamps dim in a brownout); the Skills
-> cards (bug 5); the crafting labels; the `day5-farm` shot and sweep scenarios for the Now strip,
-> a lesson card and the Notebook. Make tests/bot.ts finish B8 by day 5 on 8 seeds. Run the checks,
-> then the indie-critic's full review with the eight questions and the Stardew test. Ask the owner
-> about renaming the Preserves Jar. Merge to `main` as the 2.0 beta only when the owner says so.
+> Read HANDOFF.md, ROADMAP.md Phase 2 (the critic's must-fix checklist and its Minors), DECISIONS
+> #76-82, then ROADMAP.md sections 3.2, 7.1, 7.3, 7.4, 7.5, 8 and Phase 3. First finish Phase 2 on
+> `works`: the unchecked must-fix items (check what the last commit already has of M1, C1e and
+> "Needs: Metalwork"), make `tests/bot.ts` buy and plant cogbeans for its crocks and play k9 "A
+> Second Bed", and pass the acceptance check (`npx vite-node scripts/accept.ts`: crocks Working
+> >= 50% on days 5-7, day-6 income > 0, the mill producing on day 6, seeds 2024, 7, 99); run the
+> checks and the sweep; have the indie-critic re-check (the acceptance and the eight questions).
+> Then Phase 3: the full Orders board (7.4: Today; Standing for each business with reputation
+> ranks and special stock; Works for the restoration projects and the keystones; fold the Guild
+> contracts and the restoration board into it; consignment stays the crate's "Ship to:" tag;
+> Phase 2's minimal board is `src/sim/systems/orders.ts`); research stages for the keystones,
+> five era columns and era rewards (7.3; prune the 12 flat-buff nodes); crop numbers and rapeseed
+> (7.1); the crop intermediates and the thresher (4.10); the Town Mill keystone end to end after
+> More Power (project -> flag -> the town mill's wheel turns -> Rowan's bread); research window
+> colours; the critic's Minors from Phase 2 where they fit (the arm sprite first, via the
+> art-director). Save migration v5 (contracts/requests/projects -> orders; pruned node ids -> era
+> rewards), tested on real 1.1.1 and 2.0 saves. Re-tune the Rush medals against the pace bot.
+> Done when the bot reaches the Mill by day 20 on 6 of 8 seeds, `data.test.ts` validates every
+> order and keystone, the sweep is clean and the critic's review passes (with the Stardew test).
+> Commit on `works` as you go; don't merge to `main` or push unless the owner says so.
 
 Owner rules to keep in mind (all in DECISIONS.md): cut old systems freely, but hand farming
 (till, plant, water, harvest) stays (#61); the factory must be apparent and un-Stardew-like at a
-glance (#68); no Builderment-style arm-free lines (#69); push `main` and `gh release` only when the
-owner says so (and the owner runs the push). Still open from Phase 1: lamps dimming in a
-brownout, the pace bot building L3, Rush medals below the bot's earnings (Phase 3 re-tune).
+glance (#68); no Builderment-style arm-free lines (#69); one path, no "pick a direction" card
+(#72); push `main` and `gh release` only when the owner says so (and the owner runs the push).
 
 Handy for headless probes: write a scratch `e2e/out/<name>.ts` (gitignored) that imports
 `../../src/sim` and run it with `npx tsx e2e/out/<name>.ts` (tsx is in the npx cache). 42 ticks
@@ -299,6 +333,32 @@ are one game minute.
 The "deferred critic list" below is now covered by ROADMAP.md (crop numbers 7.1, re-roles 7.6,
 the Exhibition 7.7, Tock Phase 5, the Post Tube is dropped in favour of consignment 7.4,
 crafting labels Phase 2, the cut list D3-D5).
+
+Patterns from 1.2 Phase 2 (the Keeper's Line):
+- The opening's layout is data in `src/sim/opening.ts`: `OPENING` (the yard, marked tiles) and
+  `RIVER` (the river works); `buildYard` and `buildRiverWorks` build them for a new game, and
+  `openingTile` keeps weeds and storm debris off both. The keeper's pieces carry `st.yard = 1`
+  (the bot and the "wreck the yard" test leave them alone).
+- Rust and Restore: `rustStruct(e, need?, n)` in `src/sim/rust.ts` sets `st.rust`, `st.need` and
+  `st.needN`; a rusted structure's ports refuse, a rusted pole carries nothing and a rusted
+  generator makes nothing (`src/sim/systems/power.ts`); `restore()` takes the parts and bumps
+  `powerDirty` and `ents.version`. A worn generator's output is `st.cap` (the old wheel: 40).
+- The chain is data in `src/data/goals.ts` (k1-k9). Objective kinds beyond the old ones: crate,
+  restore (one tile or a `rect`), flag, made, feeds, armload, order, grid; each has `label`,
+  `why` and `goto`. The Now strip (`src/ui/nowstrip.ts`) reads `nowLines` in
+  `src/sim/systems/quests.ts`; guide marks per step live in `src/app/play.ts` (`quest:index`).
+  Sim code raises a lesson card with `lesson(g, id)` (`src/sim/lessons.ts`, data in
+  `src/data/lessons.ts`); cards and the post timer wait while a banner shows.
+- Orders: `g.sys.orders` (open, filled, rep) in `src/sim/systems/orders.ts`, standing orders in
+  `src/data/orders.ts`. The crate's `st.tag` names a customer; `consign` runs inside `shipAll`
+  before market sales and never saturates the market. Hand delivery goes through the quest
+  system's `tryDeliver` -> `g.sys.orders.hand`.
+- A recipe picked while a machine is crafting goes to `MachC.pending` and takes at the end of the
+  batch; Shift+F opens any structure's window. A key bubble can carry a second line
+  (`Prompt.hint`).
+- `tests/bot.ts` plays the chain (`keeperLine`), waters the keeper's patch and the gleaner's bed
+  (unwatered, the line starves for days), and builds its own crock line before it grows its plot
+  (3.2 rule 5, checked in `tests/keeper.test.ts`).
 
 Patterns from 1.2 Phases 0-1:
 - Every structure has `e.state` (`MState`), `e.why` and `e.since`; set them with `setState`
@@ -388,8 +448,8 @@ visible change over polish.
 - NPC paths cached before a big structure is placed can clip through it until the cache clears.
 - The noon/6pm post tally (`g.sys.postDay`) isn't saved. After a mid-day reload, the night summary
   lists only sales made since the reload. Money is never lost.
-- The pacing bot is simple: it ships crops and builds one arm line, with no real factory. It is a
-  floor for balance, not a target.
+- The pacing bot is simple: it plays the Keeper's Line, builds one crock line and ships crops, but
+  doesn't reach k9 More Power or build a second wheel. It is a floor for balance, not a target.
 - Tinker's Yard's ruins are still plain cobble halls. They need wrecked-machine dressing.
 - Open art items from the Phase 2 critic review are in ROADMAP.md (NPC walk faces, strike-frame
   tool heads, riverbanks, winter dirt, the world-map window, logo, chronometer sky, player portrait).

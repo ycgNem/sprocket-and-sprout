@@ -315,3 +315,18 @@ recommendations are the decisions.
     fills an order silver first as a hand delivery does, quests start on load (an old save's
     retired tutorial left the Now strip empty until morning), and Shift+F doesn't open a window
     while walking slowly. Phase 3's orders migration is v5.
+82. **The critic's end-of-Phase-2 review failed the works on day 5; the hour stays, the week gets a
+    supply (2026-10-10).** The first hour passed the Stardew test (a rusted works running its own
+    line by minute 8), but by day 5 every machine starved: the cellar's beans stopped on day 4, no
+    shop sold cogbean seeds, and the mill's 40 barley was a one-off, so day 6 earned nothing and
+    the next goal asked for power for a mill with nothing to grind. This revises decisions 75 and
+    78: the cellar sends its dozen beans through day 7; cogbean is no longer a rare seed (the
+    Mercantile sells it); barley grows in spring and fall; the keeper's granary tops the grain bin
+    up to 20 barley each morning through day 7; Rowan posts a weekly Barley Meal order (10 at 80)
+    once B8 is done; the worn wheel makes 35 sparks in any weather (rain lifted it to 98%). The
+    chain after B8 is k9 "A Second Bed" (Gleaning, a second gleaner, 8 cogbeans in its reach) and
+    then More Power (with a Metalwork step and the Workshop named for copper gears); side quests
+    start after the second bed and the money goal after More Power. Also: arms snap only to the
+    slot the current step marks (B6's out-arm slot took the fix's third arm), rusted belts don't
+    carry the player, and a crate tagged for a customer with nothing open follows a new order.
+    What's left of the must-fix list, and the acceptance check, are in ROADMAP.md Phase 2.

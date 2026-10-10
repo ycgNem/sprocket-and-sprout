@@ -77,6 +77,14 @@ function post(g: Game, def: StandingDef) {
   const who = questName(def.npc, NPC_BY_ID.get(def.npc)?.name ?? def.npc);
   g.toast(`${who} posted an order on the board: ${n} ${ITEM_BY_ID.get(def.spec)?.name ?? def.spec}.`, 'i:' + def.spec, C.amber);
   lesson(g, 'consign');
+  // a crate still tagged for a customer with nothing open follows the new order, or its goods would
+  // go to market unasked
+  for (const b of g.ents.all()) {
+    const t = b.st.tag as string | undefined;
+    if (b.def.kind !== 'shipbin' || !t || t === def.npc || ordersFor(g, t).length) continue;
+    b.st.tag = def.npc;
+    g.toast(`Your crate ships to ${def.place} now, for the new order.`, 'i:' + def.spec);
+  }
 }
 
 /** is this standing order on offer to this save right now (before weekly renewals)? */
@@ -87,6 +95,7 @@ function available(g: Game, def: StandingDef): boolean {
   const keeper = g.flags.has('keepers_line');
   if (def.id === 'rowan_pickles') return keeper ? on('k7_town') : g.dayIndex >= 2;
   if (def.id === 'bram_oil') return keeper && on('k8_river');
+  if (def.id === 'rowan_meal') return keeper && on('k9_bed');
   return false;
 }
 
