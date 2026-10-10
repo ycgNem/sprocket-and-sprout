@@ -4,24 +4,17 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 10, 2026, evening): Phases 1-5 of 2.0 "The Works" are built on `works`;
-nothing is merged.** Phase 5 (people, events, HQ) was built in one run with agents in worktrees:
-the six specialists and Trust, Pip's echoes, the Sprocket Fair's test bed and the Harvest Haul,
-Workshop HQ (structures indoors, the Workshop wing, the drafting table, the ledger), Mags the
-freight broker and shortages, and Tock (DECISIONS #100-#114). The indie-critic's full review was
-PASS WITH FIXES and its fixes are in (#115-#123): Trust buys works things, Pip's watch and his
-question card, spring arms indoors, signs to the phase's hooks, asks that wait for their know-how,
-Mags on a shortage's Tuesday, and the Fair scored on the value a line adds over five minutes, on the
-square, told ahead, with the Haul on fall 15. Then the owner playtested and asked for changes, all in
-(#124-#129): watering costs a quarter less, hand-loading is about ten minutes' work, machines ask
-what to load, the pet stays or comes along (and treats, the crow guard, belt rides, naps), a hamster
-in a cage, a counter for villagers at work indoors, and coconuts and Deepworks chests can no longer
-be farmed. The bridges and fences pass the owner asked for is the last open piece.
-**Where it stopped:** Phase 5 and the owner's playtest are committed on `works` (to `778fb65` and
-the docs after it). An art-director agent was making the bridges seamless and the fences connect in
-`../sns-bridges` (branch `works-bridges`); merge it when it reports, then the critic's confirmation
-pass. Next is Phase 6 ("What's next" below).
-**The owner deferred the 2.0 beta merge**; don't merge to `main` or push unless the owner says so.
+**Status (October 10, 2026, night): 2.0 beta is released.** Phases 1-5 of 2.0 "The Works" are
+built, `main` is fast-forwarded to `works` and pushed (the website runs 2.0 beta), and a GitHub
+pre-release `v2.0.0-beta` carries the patch notes and the Windows installers (1.1.1 stays the
+"Latest" release). Phase 5 (people, events, HQ: DECISIONS #100-#114), the critic's full review's
+fixes (#115-#123), the owner's playtest (#124-#129), the critic's confirmation pass (#130, #132,
+#133), the owner's last notes (hand loads count 150 of an input, the pets from "Housewarming": #131,
+#132), the bridges and fences pass (#134) and the release (#135) are all in. The patch notes are
+the title screen's "What's new" (`src/data/patchnotes.ts`) and PATCHNOTES.md.
+**Where it stopped:** released; nothing is pending. Next is Phases 6 and 7 in a new session
+("What's next" below). `main` and `works` are the same commit; keep working on `works` and merge to
+`main` (fast-forward, in `../sns-p0check`) only when the owner says ship.
 The owner's rules since Phase 1: hand farming stays, but the factory is the face (ROADMAP.md 3.2,
 DECISIONS #68); one path for every player, no "pick a direction" card (#72); the Preserves Jar is
 the Preserving Crock (#76). ROADMAP.md is the 2.0 plan; ROADMAP-1.1.md the finished 1.1 overhaul.
@@ -46,11 +39,13 @@ the Preserving Crock (#76). ROADMAP.md is the 2.0 plan; ROADMAP-1.1.md the finis
   ten real 1.1.1 saves into 2.0 with nothing lost (DECISIONS #81); `SAVE_VERSION` is 5 since Phase 3
   (v5 moves the old requests, contracts, projects, pruned research and mine state), so 1.1.x
   refuses a 2.0 save cleanly. The critic's review and the supply fixes: DECISIONS #82.
-- **When the owner says ship the beta:** version `2.0.0-beta.1` (`npm version 2.0.0-beta.1
-  --no-git-tag-version` updates package.json and the lock), commit on `works`, then
-  `git -C ../sns-p0check merge --ff-only works` (`main` is checked out there; `main` has nothing
-  `works` lacks), then the owner runs `git push origin main` (that deploys the website; the
-  installers stay 1.1.1, so no `gh release`).
+- **2.0 beta, released October 10** (version `2.0.0-beta`): `git -C ../sns-p0check merge --ff-only
+  works` (`main` is checked out there), `git push origin main` (deploys the website through
+  .github/workflows/deploy.yml, which runs the tests first), the installers built from that `main`
+  in `../sns-p0check/release`, and `gh release create v2.0.0-beta --prerelease` with PATCHNOTES.md's
+  2.0 section as its body. For the next one: bump the version in package.json and package-lock.json,
+  add a `PATCH_NOTES` entry at the top of `src/data/patchnotes.ts` (the UI font has printable ASCII
+  only, no `$` or `_`) and its twin in PATCHNOTES.md, then the same steps.
 - **Phase 0 = 1.1.1 on `main`** (commits `1c0d50e`..`ba760a9`, version bumped): the owner's
   playtest bugs, the overhead pickaxe for all 9 looks, flagstone paths, plank decks, the seam
   audit, painted ground transitions (the farming glitch), placed paths that change the ground;
@@ -174,14 +169,14 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 331 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5, the Keeper's Line, orders, eras and the k11-k17 chain, professions, the Deepworks, the town keystones, save v5, the specialists and Trust, the Fair and the Haul, Workshop HQ, the pet, the hamster, the counter, palms)
+npm test                                   # 361 Vitest tests (the critic's confirmation pass and Housewarming in confirm.test.ts, bridges and fences in planks/fences.test.ts; sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5, the Keeper's Line, orders, eras and the k11-k17 chain, professions, the Deepworks, the town keystones, save v5, the specialists and Trust, the Fair and the Haul, Workshop HQ, the pet, the hamster, the counter, palms)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
 npx vite-node scripts/pace.ts story rush   # economy: the bot's 28-day earnings on 8 seeds (a few minutes)
 npx vite-node scripts/accept.ts            # the critic's Phase 2 acceptance: crocks working on days 5-7, day-6 income, the mill
 npx vite-node scripts/mill20.ts            # Phase 3's done-when: the day each main quest finished, per seed (the Mill by day 20)
 npm run build                              # production build, about 1.2 MB JS (386 KB gzipped) + ~520 KB of PNG sheets
 node e2e/smoke.mjs http://localhost:5173/  # real UI smoke, 0 console errors expected
-npm run screens                            # 94-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 or VIEW=960x600 (the web embed) for other sizes
+npm run screens                            # 96-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 or VIEW=960x600 (the web embed) for other sizes
 node e2e/coverage.mjs                      # every sprite name vs imported art (6415/6415 = 100% expected)
 node e2e/sprites.mjs <name> ...            # imported vs procedural sprites side by side
 BASE=http://localhost:5173/ node e2e/flow.mjs  # real input: two-step new game, farm, house, bed, reload
@@ -196,19 +191,21 @@ BASE=http://localhost:5173/ node e2e/minex.mjs     # the Deepworks: a level of e
 BASE=http://localhost:5173/ node e2e/townworks.mjs # the town keystones on screen: the mill, the lamps on your power, the fountain, the tram
 BASE=http://localhost:5173/ node e2e/people.mjs    # Phase 5: Pip, Sable, Thorne with real input; Pip's farm question card
 BASE=http://localhost:5173/ node e2e/fairs.mjs     # Phase 5: the Fair on the square, the bench test, the Haul's auction
-BASE=http://localhost:5173/ node e2e/hamster.mjs   # the hamster (cage, name, feed, wheel, ball, pick up) and the counter's Chat
+BASE=http://localhost:5173/ node e2e/hamster.mjs   # Housewarming (F at the farmhouse door), the hamster (cage, name, feed, wheel, ball, pick up), the counter's Chat
+BASE=http://localhost:5173/ node e2e/bridgefence.mjs # the bridges, the dock, the pier, the paddock and a placed fence layout, zoom 2 and 4
 npx vite-node scripts/systems-order.ts     # the systems in tick order (check after adding a system or an import)
 ```
 
-Last results (October 10, 2026, evening, after Phase 5, the critic's fixes and the owner's
-playtest): typecheck, 331 tests, the year-long run, `mill20` 8/8 (day 17); `house`, `people`,
-`fairs`, `pet`, `hamster`, `works`, `townworks` and `smoke` pass with 0 console errors; the sweep is
-clean (0 issues) at 1280x720, 1366x620 and 960x600. (From the Phase 3-4 round, not re-run: `flow`,
+Last results (October 10, 2026, night, the 2.0 beta as released): typecheck, 361 tests, the
+year-long run, `mill20` 8/8 (day 17; seed 7 day 20, as before); `house`, `people`, `fairs`, `pet`,
+`hamster`, `works`, `townworks` and `smoke` pass with 0 console errors; the sweep is clean (0 issues,
+96 shots) at 1280x720, 1366x620 and 960x600; every relative import matches its file's case (CI is
+Linux). (From the Phase 3-4 round, not re-run: `flow`,
 `roxy`, `windows`, `minex`.) (From before Phase 3, not re-run:) `e2e/shift.mjs` 185/185; `e2e/perf.mjs` 0.32 ms a tick, the night shift
 1.5 s. `e2e/qa.mjs` logs "missing sprite i:hoe_0" warnings: its contact sheet asks tools for an
 icon name they don't use (harmless).
 
-Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 10, evening, branch `works`):
+Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 10, night, the 2.0 beta; unchanged by the last round):
 - Story: average 66.0k coins (63.7k to 68.1k); Clockwork Rush 65.6k (63.2k to 67.9k); day 1 about
   2.7k (Story), 4.5k (Rush). Before the owner's playtest: Story 65.0k, Rush 66.5k; after Phases 3-4:
   Story 65.9k, Rush 66.3k. The Rush
@@ -251,11 +248,14 @@ src/sim/systems/  one file per system, registered with registerSystem({tick, day
               Fair and the Haul), cart.ts (Mags), house.ts (the farmhouse, its furniture and
               DECOR_USE). In src/sim: people.ts (the specialists' talks and Pip's question),
               testbed.ts (the Fair's plate), fair.ts (entries and prizes), auction.ts, drafting.ts
-              (the blueprint library), indoors.ts (structures in the farmhouse: g.houseEnts)
+              (the blueprint library), indoors.ts (structures in the farmhouse: g.houseEnts).
+              Hand loads: handBatches / handFuel and loadChoices in machines.ts
 src/render/   juice.ts (Phase 3 reward layer: sprite effects, confetti, rings, hops, item/coin flights
               into the HUD, streak counter, ribbons, big pop numbers, the post courier; drawFx with
               code fallbacks), renderer (dual-grid terrain bake, y-sorted sprites), lighting, weather, particles, ambient,
               atlas.ts (sprite cache, imported sheet frames, hasImage, drawFit, drawItemIcon),
+              planks.ts (plank decks: direction, railings, the ground under), fences.ts (fences,
+              walls, gates and the paddock by neighbour mask),
               art/sheets.ts (loads src/art/*.json: character, sprites, terrain kinds), art/match.ts
               (pattern + Wang vertex rules), art/* (procedural generators = the ?art=old fallback)
 src/art/      imported sprite sheets (PNG + JSON manifest), written by scripts/*-import.mjs
@@ -267,7 +267,8 @@ src/ui/       immediate-mode canvas UI kit (ui.ts; records draws for the audit w
               cursor.ts (CSS pixel cursor), tooltips, windows/* (achievements, modes = Rush result,
               palette = Sandbox build palette, plus the older ones; Phase 5: fair, auction, workshop
               = the drafting table and bench test, loadpick = "Load which?", home = the hamster's
-              name, town = the shops' counter), askcard.ts (Pip's question beside the play)
+              name, town = the shops' counter), askcard.ts (Pip's question beside the play),
+              notes.ts (the title screen's "What's new", from src/data/patchnotes.ts)
 src/app/      App/title/new game (two steps: character, then mode + map with a live preview),
               PlayScreen (input, build mode, guide markers, events -> UI), tips, profile.ts
               (cross-save achievement/Rush profile in localStorage), perf
@@ -342,28 +343,41 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
-First, if it hasn't happened: merge the bridges and fences agent's branch (`works-bridges` in
-`../sns-bridges`; remove its node_modules junction before `git worktree remove`), run the checks and
-the sweep, and ask the indie-critic for a confirmation pass of the owner's playtest changes
-(DECISIONS #124-#129) and that art. Then Phase 6 of ROADMAP.md (2.0 "The Works"), after Nov 9 when
-the PixelLab budget resets:
+Phases 6 and 7 of ROADMAP.md (2.0 "The Works"), in a new session. The owner asked for both. Phase 6
+spends PixelLab generations (about 480 planned; the balance was about 388 on October 10, and the
+budget resets on November 9), so check `get_balance` first and plan the groups to fit what's there.
+The bridges, fences and the hamster's cage were hand-pixeled by script for 0 generations, which is
+the fallback for small pieces. A prompt to paste:
 
-> Read HANDOFF.md, DECISIONS.md #100-#129 (what Phase 5 and the owner's playtest built), then
-> ROADMAP.md section 9 and Phase 6, and STYLE.md. On `works`: the art direction pass, one
-> art-director agent per group in parallel, each in its own worktree (the Phase 2 pattern from 1.1,
-> `art/README.md`); STYLE.md's "Machines" section; the seam audit (`node e2e/seams.mjs`) at 0;
-> `node e2e/coverage.mjs` at 100%, then delete the procedural generators in `src/render/art/` and
-> `?art=old`. Run qa-screens after each group. Done when the screenshot test (ROADMAP.md 3) passes
-> by the owner's eye, the sweep has 0 issues at 1280x720 and 1366x620, and qa-screens finds no
-> regressions. Commit on `works` as you go; don't merge to `main` or push unless the owner says so.
+> Read HANDOFF.md, DECISIONS.md #100-#135 (Phase 5, the owner's playtest, the 2.0 beta), then
+> ROADMAP.md section 9, Phases 6 and 7, and STYLE.md. 2.0 beta is live; work on `works`.
+> Phase 6, the art direction pass: check the PixelLab balance, then one art-director agent per
+> group in parallel, each in its own worktree outside the repo (the Phase 2 pattern from 1.1,
+> `art/README.md`; remove a worktree's node_modules junction before `git worktree remove`);
+> STYLE.md's "Machines" section (every machine has a readable moving part, idle and working frames,
+> and a marked output side); the seam audit (`node e2e/seams.mjs`) at 0; `node e2e/coverage.mjs` at
+> 100%, then delete the procedural generators in `src/render/art/` and `?art=old`. Run qa-screens
+> after each group. Done when the screenshot test (ROADMAP.md 3) passes by the owner's eye, the
+> sweep has 0 issues at 1280x720 and 1366x620, and qa-screens finds no regressions.
+> Phase 7, review and release 2.0: `/code-review` (high) on `v1.1.1..works`, the indie-critic's
+> full review, fix the Criticals; README, HANDOFF, PROGRESS, DECISIONS and the patch notes
+> (`src/data/patchnotes.ts` + PATCHNOTES.md: a "2.0" entry over "2.0 beta") updated; version
+> 2.0.0; merge to `main` and push only when the owner says ship; installers; `gh release create
+> v2.0.0`.
 
-Left over for Phase 6 or 7: the pace bot still stops at the Town Mill (k11 on is covered by
-`tests/eras.test.ts`); fishing's and combat's professions keep Stardew-like effects.
+Left over for Phase 6 or 7:
+- The pace bot still stops at the Town Mill (k11 on is covered by `tests/eras.test.ts`).
+- Fishing's and combat's professions keep Stardew-like effects.
+- The drafting library opens only at the table (the critic, Phase 5).
+- The blueprint and placement ghosts draw a fence's east-west sprite on a north-south line (#134).
+- `art/icons/items.tsv` is stale by 15 post-1.1 items, and 11 of them have no icon pick (canvas,
+  lubricant, grain, straw, starch_paste, pigment, spirit, rapeseed and its seed, thresher, tram_bin):
+  their bag icons are procedural, so `coverage.mjs`'s icon family reads 541/552.
 
 Owner rules to keep in mind (all in DECISIONS.md): cut old systems freely, but hand farming
 (till, plant, water, harvest) stays (#61); the factory must be apparent and un-Stardew-like at a
 glance (#68); no Builderment-style arm-free lines (#69); one path, no "pick a direction" card
-(#72); push `main` and `gh release` only when the owner says so (and the owner runs the push).
+(#72); merge to `main`, push and `gh release` only when the owner says so (2.0 beta: they did).
 
 Handy for headless probes: write a scratch `e2e/out/<name>.ts` (gitignored) that imports
 `../../src/sim` and run it with `npx tsx e2e/out/<name>.ts` (tsx is in the npx cache). 42 ticks

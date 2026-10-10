@@ -800,3 +800,26 @@ recommendations are the decisions.
     alternate days by tile (`palmSets`), so the beach is never bare all at once, and a palm's hover
     says whether a coconut is up or when the next sets. The counter's "Also here" pages with a +N past
     four. A window's title plate stays on screen at 1366x620 (`centered`).
+134. **Seamless bridges and fences that join (the owner: "the bridges still look wonky, and the fences
+    aren't rotated where they need to be").** An art-director agent in a worktree, 0 PixelLab
+    generations, every piece hand-pixeled by script. Plank decks (`src/render/planks.ts`, rewritten):
+    each tile's boards lie across its longer straight run, nine variants each way coloured along the
+    board (`deckHash`), so a deck reads as one; a run with water on both sides is a bridge, and its
+    railings are fence-style, on every long side facing water (or non-road land), with posts only
+    where a rail stops, the near rail a y-sorted drawable the player walks behind; the ground under a
+    deck carries on as beside it (`PLANK_UNDER`, `plankVertex`). Fences (`src/render/fences.ts`,
+    `src/art/fences.png`): wood, stone and gates join by a 4-bit mask (`fence:<kind>:<mask>`, gates
+    `fence:gate:h` and `fence:gate:v<n><s>`), north-south runs are drawn as north-south runs in 3/4
+    view, and the paddock's map fence (`fence:map:<mask>:<v>:<season>`) joins too; ghosts never join,
+    and the east-west pieces are the old sprites pixel for pixel. The blueprint and placement ghosts
+    still draw the east-west sprite (a follow-up for Phase 6).
+135. **2.0 beta ships (the owner: "fully commit and push it live as v2 beta, and add an extensive patch
+    notes list that people can see").** Version `2.0.0-beta` (the title reads "v2.0 beta"); `main` is
+    fast-forwarded to `works` and pushed, so the website runs 2.0; a GitHub pre-release `v2.0.0-beta`
+    carries the patch notes and the Windows installers, while 1.1.1 stays the "Latest" release. The
+    patch notes live in `src/data/patchnotes.ts` (the title screen's "What's new", every version's
+    notes, the button glowing until this version's are read; the UI font's characters only) and say
+    the same in PATCHNOTES.md, whose 2.0 section is the release's body. The service worker's cache
+    becomes `sns-v2`, so 1.x's cached assets go. 1.x farms load with nothing lost and get Housewarming
+    (`QuestDef.small`: a one-step gift takes no story slot). Phases 6 (the art pass, after the PixelLab
+    reset on Nov 9) and 7 (the 2.0.0 review and release) follow in a new session.

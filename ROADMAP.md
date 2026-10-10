@@ -1234,7 +1234,7 @@ at night on your power (they draw 12 sparks after dark; unpowered they stay dark
 brass gears and 20 pigment): every morning the cart runs the quarry road to town with 20 of the
 ore you left in its bin at the quarry and sells them at a 30% premium; a cart sprite runs the road.
 
-### Phase 5 — People, events, HQ (2-3 sessions) — BUILT 2026-10-10 on `works`; the critic's full review PASSED WITH FIXES and those are in (DECISIONS #115-#123), with the owner's playtest after it (DECISIONS #124-#129: watering, hand-loading, the load chooser, the pet, a hamster, the counter, coconuts and chests) and the bridges and fences pass; not merged
+### Phase 5 — People, events, HQ (2-3 sessions) — DONE 2026-10-10 and RELEASED as the 2.0 beta (website + GitHub pre-release `v2.0.0-beta`); the critic's full review PASSED WITH FIXES (DECISIONS #115-#123), the owner's playtest (#124-#129), the critic's confirmation pass and the owner's last notes (#130-#133), the bridges and fences pass (#134), the release (#135)
 - 7.6 the six re-roles with 12 rewritten heart events and ~40 lines each; Trust in the UI;
   Pip's echo questions; 7.7 the Sprocket Fair and the Harvest Haul (Kite Day and Pumpkin Roll
   retired; their achievements remapped); 7.8 Workshop HQ with indoor structures and the

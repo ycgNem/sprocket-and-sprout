@@ -218,6 +218,12 @@ woodfloor wall wall_upper wall_top`) are drawn over the grid. Decals (`grass`, `
 scattered on tiles whose 8 neighbors share the class. Seasons are recolor maps that touch only the
 grass colors. The pure rules are in `src/render/art/match.ts` (tested in `tests/art.test.ts`).
 
+Planks are drawn by `src/render/planks.ts`: deck pieces lie across each run, railings, posts and
+ends follow from the neighbours, and the ground under a deck continues as beside it
+(`PLANK_UNDER`). Fences, walls and gates connect per neighbour mask (`fence:<kind>:<mask>`, N 1,
+E 2, S 4, W 8; `src/render/fences.ts`), north-south runs drawn in 3/4 view; their sources are
+hand-pixeled frames in `art/fences/` (`node art/fences/build.mjs`).
+
 ### Animation is not optional
 
 Anything that moves in the game ships with real frames: belts (4, the surface travels),

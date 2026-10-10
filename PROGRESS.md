@@ -340,9 +340,33 @@
   e2e house, people, fairs, pet, hamster (the cage, its ball and the counter), works, townworks and
   smoke pass with no console errors; the sweep is clean at 1280x720, 1366x620 and 960x600.
 
+## 2.0 beta: the confirmation pass, bridges and fences, and the release (October 10, 2026)
+- The critic's confirmation pass of the owner's playtest changes: PASS WITH FIXES, all fixed. "Load
+  which?" is a small card beside the machine (no pause, the HUD stays, 1-6 or F, Shift+F opens it),
+  a collect never opens it, coal comes before wood and a hand fuel load is ten minutes of burn, a
+  better fuel takes a worse one's place; the hamster's wheel makes the machines by its cage work a
+  quarter faster on the night shift (winding arms alone changed nothing); Shift+F asks the tile
+  before the pet; the crow guard reaches 8; palms take turns; the counter's +N; title plates stay on
+  screen at 1366x620. DECISIONS #130, #132-#133.
+- The owner's last notes: hand loads count 150 of an input (a sawmill takes 150 wood, where 50 was
+  gone in under two minutes; nothing takes fewer than before; #131); the pets come with
+  "Housewarming", a small quest once the Professor has been by (walk into the farmhouse: the hamster's
+  cage, a goldfish tank, seeds), not on the first morning, and 1.x farms get it too (#132, #135).
+- Art: seamless plank bridges, docks and the pier, and fences, walls, gates and the paddock that join
+  (an art-director agent, 0 generations; #134); the Hamster Cage's bag icon, hand-pixeled.
+- The release: version 2.0.0-beta, "What's new" on the title screen with every version's notes (2.0
+  beta: 16 sections, 147 notes) and PATCHNOTES.md; `main` fast-forwarded and pushed (the website),
+  a GitHub pre-release with the notes and the Windows installers (#135).
+- Checks: 361 tests and the year-long run; the bot reaches the Mill by day 20 on 8 of 8 seeds (day
+  17, seed 7 day 20 as before); pacing Story 66.0k, Rush 65.6k (unchanged); e2e house, hamster (now
+  from the Housewarming quest), pet, people, fairs, works, townworks and smoke pass with no console
+  errors; the sweep is clean at 1280x720, 1366x620 and 960x600; every relative import matches its
+  file's case (the Linux CI).
+
 ## Next
-- Phase 6 of ROADMAP.md (after Nov 9): the art direction pass, one art-director per group; see
-  HANDOFF.md "What's next".
+- In a new session, Phases 6 and 7 of ROADMAP.md: the art direction pass (one art-director per group,
+  after the PixelLab budget resets on Nov 9), then the 2.0.0 review and release; see HANDOFF.md
+  "What's next".
 - Older ideas: more interior variety, farmhouse expansion tiers; more depth for mid-game automation
   goals and late-game megaprojects.
 
