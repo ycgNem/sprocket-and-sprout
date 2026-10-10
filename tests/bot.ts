@@ -1,6 +1,7 @@
 // A scripted "player" that plays through the sim API with realistic time costs.
 // Used by the pacing test (Node) and the Playwright bot (browser).
 import type { Game } from '../src/sim/Game';
+import type { Ent } from '../src/sim/ents';
 import { CROPS, CROP_BY_ID } from '../src/data/crops';
 import { ITEM_BY_ID, matchesSpec } from '../src/data/items';
 import { RECIPES } from '../src/data/recipes';
@@ -156,14 +157,75 @@ export class Bot {
     return this.plot.filter(([x, y]) => g.soil.get(g.map.idx(x, y)) && !g.soil.get(g.map.idx(x, y))!.crop).length;
   }
 
+  /** crocks the bot feeds from its own beds (and the keeper's cellar chest, last) */
+  crockFeeds(): { chest: Ent; beansOnly: boolean }[] {
+    const g = this.g;
+    const out: { chest: Ent; beansOnly: boolean }[] = [];
+    const add = (chestId: number | null | undefined, crockXY?: [number, number]) => {
+      const c = chestId !== null && chestId !== undefined ? g.ents.get(chestId) : null;
+      if (!c?.inv) return;
+      const crock = crockXY ? g.ents.at(crockXY[0], crockXY[1]) : null;
+      out.push({ chest: c, beansOnly: !!crock?.mach?.locked });
+    };
+    const j2 = g.ents.at(OPENING.jar2[0], OPENING.jar2[1]);
+    if (j2?.def.id === 'jar') add(g.ents.at(OPENING.jar2Chest[0], OPENING.jar2Chest[1])?.id, OPENING.jar2);
+    add(this.lineIn);
+    if (this.pairOut.length) add(this.pairOut[0]);
+    // the keeper's cellar last: its dozen a day keeps that crock busy through day 7
+    if (g.flags.has('keepers_line')) add(g.ents.at(OPENING.chest[0], OPENING.chest[1])?.id, OPENING.jar);
+    return out;
+  }
+
+  /**
+   * How many plot tiles grow cogbeans for the works (critic, Phase 2 C1: the line needs a supply
+   * after the cellar stops): about a dozen per crock the bot feeds, once the desk is restored.
+   */
+  beanTarget(): number {
+    const g = this.g;
+    if (!g.flags.has('keepers_line') || !questSys(g).done.includes('k4_grow')) return 0;
+    const crocks = this.crockFeeds().filter((f) => !(f.chest.x === OPENING.chest[0] && f.chest.y === OPENING.chest[1])).length;
+    return Math.min(Math.floor(this.plot.length * 0.75), 12 * Math.max(1, crocks) + 4);
+  }
+
+  /** plot tiles that grow barley for the keeper's mill once it turns (B8): it grinds what you sow */
+  grainTarget(): number {
+    const g = this.g;
+    if (!questSys(g).done.includes('k8_river') || ![0, 2].includes(g.time.season)) return 0;
+    return Math.min(16, Math.max(0, this.plot.length - this.beanTarget() - 4));
+  }
+
+  /** what a plot tile is for: 'bean' (the works' cogbeans), 'grain' (the mill's barley) or 'cash' */
+  tileRole(i: number): 'bean' | 'grain' | 'cash' {
+    const b = this.beanTarget();
+    if (i < b) return 'bean';
+    if (i < b + this.grainTarget()) return 'grain';
+    return 'cash';
+  }
+
+  /** buy seeds for empty tiles of a role (cogbeans, barley) at the Mercantile */
+  private buyFor(role: 'bean' | 'grain', seed: string) {
+    const g = this.g;
+    const e = shopStock(g, 'general').find((s) => s.item === seed);
+    if (!e) return;
+    const empty = this.plot.filter(([x, y], i) => this.tileRole(i) === role && g.soil.get(g.map.idx(x, y)) && !g.soil.get(g.map.idx(x, y))!.crop).length;
+    const want = Math.max(0, Math.min(empty + 2 - g.player.inv.countId(seed), Math.floor((g.player.money - 150) / entryPrice(g, e))));
+    if (want > 0) {
+      const got = buy(g, e, want);
+      if (got) this.notes.push(`bought ${got} ${ITEM_BY_ID.get(seed)!.name}`);
+    }
+  }
+
   shop() {
     const g = this.g;
     if (!shopOpen(g, 'general').open) return;
+    // the works' supply first: cogbeans for the crocks, barley for the mill
+    if (this.beanTarget()) this.buyFor('bean', 'cogbean_seed');
+    if (this.grainTarget()) this.buyFor('grain', 'barley_seed');
     const seed = this.bestSeed();
     if (!seed) { this.notes.push('no seed'); return; }
     const e = shopStock(g, 'general').find((s) => s.item === seed);
     if (!e) { this.notes.push('not stocked ' + seed); return; }
-    const empty = this.plot.filter(([x, y]) => g.soil.get(g.map.idx(x, y)) && !g.soil.get(g.map.idx(x, y))!.crop).length;
+    const empty = this.plot.filter(([x, y], i) => this.tileRole(i) === 'cash' && g.soil.get(g.map.idx(x, y)) && !g.soil.get(g.map.idx(x, y))!.crop).length;
     const have = g.player.inv.countId(seed);
     const want = Math.max(0, Math.min(empty + 6 - have, Math.floor((g.player.money - 150) / entryPrice(g, e))));
     if (want > 0) {
@@ -193,22 +255,43 @@ export class Bot {
       } else if (s?.crop?.dead) s.crop = null;
     }
     this.collectDrops();
+    // barley goes to the keeper's grain bin once the mill turns (it grinds what you sow)
+    const grainBin = questSys(g).done.includes('k8_river') ? g.ents.at(RIVER.bin[0], RIVER.bin[1]) : null;
+    if (grainBin?.inv && !grainBin.st.rust) {
+      const n = g.player.inv.countId('barley');
+      if (n) g.player.inv.removeSpec('barley', n - grainBin.inv.add(key('barley'), n));
+    }
     // keep a few crops for bundles/quests, ship the rest
+    const feeds = this.crockFeeds();
+    const stock = (c: Ent) => c.inv!.slots.reduce((a, s) => a + (s && ['crop', 'fruit'].includes(kDef(s.k).cat) ? s.n : 0), 0);
+    // share the cellar's beans out: the keeper's crock has the gleaner's belt as well, so a cellar
+    // chest that holds more than the other crocks' chests gives the difference to them (a player
+    // carries them over, or adds the arm from the cellar chest that B6 suggests)
+    const cellar = feeds.find((f) => f.chest.x === OPENING.chest[0] && f.chest.y === OPENING.chest[1])?.chest;
+    if (cellar?.inv) {
+      for (const f of feeds) {
+        if (f.chest === cellar) continue;
+        const move = Math.floor((cellar.inv.countId('cogbean') - stock(f.chest)) / 2);
+        if (move <= 0) continue;
+        cellar.inv.removeSpec('cogbean', move);
+        const left = f.chest.inv!.add(key('cogbean'), move);
+        if (left) cellar.inv.add(key('cogbean'), left);
+      }
+    }
     for (const sl of g.player.inv.slots) {
       if (!sl) continue;
       const d = kDef(sl.k);
       if ((d.cat === 'crop' || d.cat === 'fruit' || d.cat === 'flower' || d.cat === 'forage' || d.cat === 'fish' || d.cat === 'artisan') && d.price > 0) {
         const researching = g.flags.has('lab') && !!g.research.current;
         const keep = d.cat === 'crop' || d.cat === 'fruit' ? (researching ? 8 : 3) : 0;
-        // the works first: the L1 jar line takes up to a day's worth of vegetables and fruit
-        const lineIn = this.lineIn !== null ? g.ents.get(this.lineIn) : g.ents.at(OPENING.chest[0], OPENING.chest[1]);
-        // the keeper's crock locked to oil (B8) takes cogbeans only: anything else would jam its arm
-        const crock = g.ents.at(OPENING.jar[0], OPENING.jar[1]);
-        const beansOnly = this.lineIn === null && !!crock?.mach?.locked;
-        if (lineIn?.inv && (d.cat === 'crop' || d.cat === 'fruit') && sl.n > keep && (!beansOnly || d.id === 'cogbean')) {
-          const room = Math.max(0, 17 - lineIn.inv.slots.reduce((a, s) => a + (s ? s.n : 0), 0));
-          const give = Math.min(room, sl.n - keep);
-          sl.n -= give - lineIn.inv.add(sl.k, give);
+        // the works first: every crock's chest takes up to a day's worth of vegetables and fruit,
+        // the emptiest first (a crock locked to oil takes cogbeans only: anything else jams its arm)
+        if ((d.cat === 'crop' || d.cat === 'fruit') && d.id !== 'barley') {
+          while (sl.n > keep) {
+            const f = feeds.filter((f) => (!f.beansOnly || d.id === 'cogbean') && stock(f.chest) < 17).sort((a, b) => stock(a.chest) - stock(b.chest))[0];
+            if (!f || f.chest.inv!.add(sl.k, 1) > 0) break;
+            sl.n--;
+          }
         }
         const n = Math.max(0, sl.n - keep);
         if (n > 0) {
@@ -219,7 +302,25 @@ export class Bot {
       }
     }
     g.player.inv.slots = g.player.inv.slots.map((s) => (s && s.n > 0 ? s : null));
-    // water (the keeper's patch and the gleaner's bed feed the line: unwatered, it starves for days)
+    // plant: the works' tiles get their crop (cogbeans, barley), the rest the best seed in the bag
+    const grows = (s: { k: number } | null) => !!s && !!kDef(s.k).plant?.crop && CROP_BY_ID.get(kDef(s.k).plant!.crop!)!.seasons.includes(g.time.season);
+    const slotOf = (id: string) => g.player.inv.slots.find((s) => s && s.n > 0 && kDef(s.k).id === id && grows(s)) ?? null;
+    const cash = () => g.player.inv.slots.find((s) => s && s.n > 0 && grows(s) && !['cogbean_seed', 'barley_seed'].includes(kDef(s.k).id)) ?? slotOf('cogbean_seed');
+    this.plot.forEach(([x, y], idx) => {
+      const i = g.map.idx(x, y);
+      const s = g.soil.get(i);
+      if (!s || s.crop) return;
+      const role = this.tileRole(idx);
+      const seed = role === 'bean' ? slotOf('cogbean_seed') : role === 'grain' ? slotOf('barley_seed') ?? cash() : cash();
+      if (!seed || seed.n <= 0) return;
+      const cr = CROP_BY_ID.get(kDef(seed.k).plant!.crop!)!;
+      if (plant(g, cr, i)) {
+        g.player.inv.remove(seed.k, 1);
+        g.sys.quests?.notify?.(g, 'plant', 1);
+        this.wait(0.25);
+      }
+    });
+    // then water: seeds sown this morning grow today
     const can = this.toolId('can');
     const yardBeds = keeperPatch.length ? [...keeperPatch, ...OPENING.bed, ...OPENING.bedRipe] : [];
     for (const [x, y] of [...yardBeds, ...this.plot]) {
@@ -234,19 +335,6 @@ export class Bot {
       if (can && this.energyOk(5)) {
         this.use('can', x, y);
         void waterTile;
-      }
-    }
-    // plant
-    const seed = g.player.inv.slots.find((s) => s && kDef(s.k).plant?.crop && CROP_BY_ID.get(kDef(s.k).plant!.crop!)!.seasons.includes(g.time.season));
-    for (const [x, y] of this.plot) {
-      const i = g.map.idx(x, y);
-      const s = g.soil.get(i);
-      if (!s || s.crop || !seed || seed.n <= 0) continue;
-      const cr = CROP_BY_ID.get(kDef(seed.k).plant!.crop!)!;
-      if (plant(g, cr, i)) {
-        g.player.inv.remove(seed.k, 1);
-        g.sys.quests?.notify?.(g, 'plant', 1);
-        this.wait(0.25);
       }
     }
   }
@@ -480,6 +568,25 @@ export class Bot {
           }
         }
     }
+    // k9 "A Second Bed" without a spare arm: the gleaner alone amid the bean tiles, its basket
+    // emptied into the line by hand each day (an arm and a chest come later)
+    if (this.gleanOut === null && g.research.done.has('r_gleaning') && questSys(g).active.some((a) => a.id === 'k9_bed') && have('gleaner', 1)) {
+      const inPlot = (x: number, y: number) => this.plot.some(([a, b]) => a === x && b === y);
+      let best: [number, number] | null = null, bestN = 0;
+      for (const [px, py] of this.plot.slice(0, Math.max(8, this.beanTarget())))
+        for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [-1, -1], [1, -1], [-1, 1]]) {
+          const tx = px + dx, ty = py + dy;
+          if (inPlot(tx, ty) || !canPlace(g, 'gleaner', tx, ty, 0).ok) continue;
+          let near = 0;
+          for (let yy = ty - 1; yy <= ty + 1; yy++) for (let xx = tx - 1; xx <= tx + 1; xx++) if (inPlot(xx, yy)) near++;
+          if (near > bestN) [best, bestN] = [[tx, ty], near];
+        }
+      const gl = best && bestN >= 3 ? this.placeAt('gleaner', best[0], best[1]) : null;
+      if (gl) {
+        this.gleanOut = gl.id;
+        this.notes.push('placed a gleaner in the bean bed');
+      }
+    }
     // L3: chest -> arm -> belt -> splitter -> two belts -> two jars -> arms -> chests
     if (this.lineIn !== null && !this.pairOut.length && g.research.done.has('r_logistics') && have('splitter_1', 1) && have('belt_1', 3) && have('jar', 2) && have('arm_basic', 3) && have('chest_wood', 3)) {
       const at = this.freeRun(7, 2);
@@ -520,6 +627,18 @@ export class Bot {
     }
   }
 
+  /** k9 "A Second Bed": the gleaner wants 2 copper gears; the Workshop sells them (the step's hint) */
+  buyGleanerParts() {
+    const g = this.g;
+    const q = questSys(g);
+    if (!q.active.some((a) => a.id === 'k9_bed') || !g.research.done.has('r_gleaning') || this.gleanOut !== null) return;
+    if (g.player.inv.countId('gleaner') > 0 || g.player.inv.countId('copper_gear') >= 2 || g.player.money < 600) return;
+    if (g.time.min < 600) this.wait((600 - g.time.min) * 0.7 + 1);
+    if (!shopOpen(g, 'workshop').open) return;
+    const e = shopStock(g, 'workshop').find((x) => x.item === 'copper_gear');
+    if (e && buy(g, e, 2 - g.player.inv.countId('copper_gear'))) this.notes.push('bought copper gears');
+  }
+
   /** once the Keeper's Line has its second crock, buy the parts of the bot's own L1 line in town */
   buyLineParts() {
     const g = this.g;
@@ -556,7 +675,8 @@ export class Bot {
     const g = this.g;
     // tools, and the parts of the works the bot is still building
     // the keeper's chests (the cellar, the river works) and the B6 crock's feed chest are lines, not storage
-    const store = (e: { def: { id: string }; st: Record<string, any>; x: number; y: number }) => e.def.id === 'chest_wood' && !e.st.yard && !(e.x === OPENING.jar2Chest[0] && e.y === OPENING.jar2Chest[1]);
+    const lines = new Set([this.lineIn, this.lineOut, this.gleanOut, ...this.pairOut]);
+    const store = (e: { id: number; def: { id: string }; st: Record<string, any>; x: number; y: number }) => e.def.id === 'chest_wood' && !e.st.yard && !lines.has(e.id) && !(e.x === OPENING.jar2Chest[0] && e.y === OPENING.jar2Chest[1]);
     let chests = g.ents.others.filter(store);
     if (g.player.inv.slots.filter(Boolean).length > 24 && g.player.inv.countId('wood') >= 20) {
       const r = RECIPES.find((x) => x.out[0].item === 'chest_wood')!;
@@ -887,6 +1007,7 @@ export class Bot {
     this.talk();
     this.shop();
     this.buyLineParts();
+    this.buyGleanerParts();
     this.keeperLine(true);
     this.walkTo(56, 30);
     this.keeperLine();

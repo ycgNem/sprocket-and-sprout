@@ -155,7 +155,12 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     ui.text('Researching:', px + 6, py + 18, C.oak);
     ui.text(r.name, px + 6, py + 28, C.ink);
     ui.bar(px + 6, py + 39, pw - 12, 5, (g.research.progress[r.id] ?? 0) / researchUnits(r.id, g), C.moss);
-  } else ui.text(!labs.length ? 'Place a Study Desk first.' : sel ? 'Press "Research this" below.' : 'Pick a topic to study.', px + 6, py + 22, labs.length && sel ? C.moss : C.brick);
+  } else {
+    // a locked pick names what it waits for, in red, where the "press Research this" line sits
+    const missing = sel && !g.research.done.has(sel.id) ? sel.prereq.filter((p) => !g.research.done.has(p)).map((p) => RESEARCH_BY_ID.get(p)!.name) : [];
+    if (labs.length && missing.length) ui.para('Needs: ' + missing.join(', '), px + 6, py + 18, pw - 12, C.brick);
+    else ui.text(!labs.length ? 'Place a Study Desk first.' : sel ? (g.research.done.has(sel.id) ? 'Researched.' : 'Press "Research this" below.') : 'Pick a topic to study.', px + 6, py + 22, labs.length && sel ? C.moss : C.brick);
+  }
   if (!sel) {
     ui.para('Select a node to see what it unlocks. Scroll to move down, shift + scroll to move across, or drag the bars. Fit shows the whole tree.', px + 6, py + 56, pw - 12, C.walnut);
     return true;

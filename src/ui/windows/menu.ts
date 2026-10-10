@@ -183,8 +183,7 @@ function craftingTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: numbe
         const hov = ui.hover(rx, ly, colW - 2, rowH - 1);
         if (sel || hov) ui.fill(rx, ly, colW - 2, rowH - 1, sel ? C.butter : C.tan, sel ? 0.7 : 0.5);
         ui.itemIcon(key(r.out[0].item), rx + 1, ly + 1, 12, 0, can ? 1 : 0.45);
-        const out = ITEM_BY_ID.get(r.out[0].item)!;
-        ui.text(ellipsize(out.name + (r.out[0].n > 1 ? ` x${r.out[0].n}` : ''), colW - 20), rx + 16, ly + 4, can ? C.ink : unlocked ? C.oak : C.pebble);
+        ui.text(ellipsize(recipeLabel(r), colW - 20), rx + 16, ly + 4, can ? C.ink : unlocked ? C.oak : C.pebble);
         if (hov) {
           const tl = itemTooltip(g, key(r.out[0].item), 1);
           if (!unlocked) {
@@ -217,7 +216,7 @@ function craftingTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: numbe
   }
   const out = ITEM_BY_ID.get(r.out[0].item)!;
   ui.itemIcon(key(out.id), x + 20, dy + 6, 16);
-  ui.text(`${out.name}${r.out[0].n > 1 ? ' x' + r.out[0].n : ''}`, x + 40, dy + 7, C.ink);
+  ui.text(recipeLabel(r), x + 40, dy + 7, C.ink);
   ui.text(recipeCategory(r), x + 40, dy + 16, C.oak);
   r.in.forEach((i, n) => {
     const have = g.player.inv.countSpec(i.item);
@@ -235,6 +234,22 @@ function craftingTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: numbe
   if (ui.button('craft5', x + w - 74, dy + 6, 54, 16, max >= 5 ? 'x5' : 'Max', { disabled: max < 1 })) craft(g, r, Math.min(5, max));
   if (!unlocked) ui.text('Locked - see the research tree (T)', x + w - 22, dy + 30, C.brick, { align: 'right' });
   return true;
+}
+
+/**
+ * A recipe's name in the crafting grid: the output, and when another recipe makes the same thing,
+ * what this one takes ("Sprout Bundle (3 crops)", "Sprout Bundle (fiber + fruit)"), so the four
+ * look-alike rows say which is which (the critic, Phase 2).
+ */
+export function recipeLabel(r: RecipeDef): string {
+  const out = ITEM_BY_ID.get(r.out[0].item)!;
+  const base = out.name + (r.out[0].n > 1 ? ` x${r.out[0].n}` : '');
+  if (HAND_RECIPES.filter((o) => o.out[0].item === r.out[0].item).length < 2) return base;
+  const word = (spec: string, n: number) => {
+    const name = spec[0] === '#' ? spec.slice(1) : (ITEM_BY_ID.get(spec)?.name ?? spec).toLowerCase();
+    return n > 1 ? `${n} ${name}${name.endsWith('s') ? '' : 's'}` : name;
+  };
+  return `${base} (${r.in.map((i) => word(i.item, i.n)).join(' + ')})`;
 }
 
 export function specIcon(spec: string): string {

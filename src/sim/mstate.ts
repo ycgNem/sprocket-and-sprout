@@ -43,6 +43,7 @@ export function setState(e: Ent, s: MState, why: string, now: number) {
   e.why = why;
   e.fieldWait = false;
   e.refused = undefined;
+  e.queued = false;
 }
 
 /** why a consumer on a switched-off pole does nothing */
@@ -66,8 +67,10 @@ export function setHarvestWait(e: Ent, why: string, now: number) {
 }
 
 /** a stop that's just a queue in front of a busy taker (ROADMAP.md 4.2 "queued, not blocked") */
-export function setQueued(e: Ent, taker: Ent | null, now: number) {
-  setState(e, MState.Working, taker ? `Queued: the ${taker.def.name.toLowerCase()} is busy` : 'Queued', now);
+export function setQueued(e: Ent, taker: Ent | null, now: number, why?: string) {
+  setState(e, MState.Working, why ?? (taker ? `Queued: the ${taker.def.name.toLowerCase()} is busy` : 'Queued'), now);
+  // counted apart from real work, so an arm waiting on a busy machine never reads as "flat out"
+  e.queued = true;
 }
 
 /** is this structure busy (so a full queue in front of it is healthy)? */

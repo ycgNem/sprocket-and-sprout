@@ -420,3 +420,40 @@ describe('the wrong input (critic, Phase 1 build review)', () => {
     void chest;
   });
 });
+
+describe("the critic's end-of-Phase-2 fixes (M1a, M1b, C1e)", () => {
+  it('M1b: an arm queued in front of a busy crock is never "flat out", even after the crock starved', () => {
+    const g = blank();
+    const chest = place(g, 'chest_wood', 2, 5, 0);
+    const arm = place(g, 'arm_basic', 3, 5, 1);
+    const jar = place(g, 'jar', 4, 5, 0);
+    place(g, 'arm_basic', 5, 5, 1);
+    const crate = place(g, 'shipping_crate', 6, 5, 0);
+    // starved for a while, then a full chest: the feed arm waits on the busy crock the rest of the time
+    run(g, 60);
+    expect(jar.state).toBe(MState.Starved);
+    chest.inv!.add(key('cogbean'), 200);
+    run(g, 90);
+    expect(arm.state).toBe(MState.Working);
+    expect(arm.why).toMatch(/Queued/);
+    expect(arm.queued).toBe(true);
+    const d = diagnose(g, crate);
+    expect(d.key).not.toMatch(/^slow:arm/);
+    expect(d.gap).not.toMatch(/flat out/);
+  });
+
+  it('C1e: a crock never fed names what its neighbours run on, not "any crop or fruit"', () => {
+    const g = blank();
+    const a = place(g, 'chest_wood', 2, 5, 0);
+    a.inv!.add(key('cogbean'), 20);
+    place(g, 'arm_basic', 3, 5, 1);
+    place(g, 'jar', 4, 5, 0);
+    // a second crock beside it on an empty chest
+    place(g, 'chest_wood', 2, 8, 0);
+    place(g, 'arm_basic', 3, 8, 1);
+    const jar2 = place(g, 'jar', 4, 8, 0);
+    run(g, 20);
+    expect(jar2.state).toBe(MState.Starved);
+    expect(jar2.why).toBe('Waiting for cogbean');
+  });
+});

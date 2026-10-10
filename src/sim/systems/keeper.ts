@@ -94,8 +94,11 @@ const LESSON_AFTER = 4;
 function scanLessons(g: Game) {
   const now = g.simTime;
   const long = (e: { since: number }) => now - (e.since ?? 0) >= LESSON_AFTER;
+  // until the keeper's line is whole (B3) you are its arm: its crock running dry is the chain's
+  // first step ("feed the crock"), not the Starved lesson (that one belongs to B6's second crock)
+  const handFed = g.flags.has('keepers_line') && !questSys(g).done.includes('k3_hands');
   for (const e of g.ents.machines) {
-    if (e.ghost || e.st.rust) continue;
+    if (e.ghost || e.st.rust || (handFed && e.st.keeper)) continue;
     if (e.fieldWait) lesson(g, 'harvest');
     if (!long(e)) continue;
     if (e.state === MState.Starved) lesson(g, 'starved');

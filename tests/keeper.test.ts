@@ -233,6 +233,9 @@ describe('the eight beats', () => {
     const farms = ['classic', 'riverside', 'ruins', 'highlands', 'wildwood'];
     for (let seed = 1; seed <= 150; seed++) {
       const g = new Game({ seed, farm: farms[seed % farms.length] as any });
+      // B3's arm feeds the keeper's jar from the cellar (without it the keeper's jar starves too: its
+      // only other feeder is the rusted belt run, which carries nothing)
+      put(g, 'arm_basic', OPENING.feedArm, 0);
       for (const [id, xy, rot] of [['jar', OPENING.jar2, 0], ['chest_wood', OPENING.jar2Chest, 0], ['arm_basic', OPENING.jar2Feed, 0]] as [string, [number, number], Dir][]) {
         expect(canPlace(g, id, xy[0], xy[1], rot).ok, `seed ${seed} ${id}`).toBe(true);
         put(g, id, xy, rot);
@@ -342,5 +345,25 @@ describe('the pre-merge review (2.0 beta)', () => {
     expect(r.total).toBe(4 * 300 + 2 * 150);
     expect(bin.inv!.count(key('pickles_cogbean', 1))).toBe(0);
     expect(bin.inv!.count(key('pickles_cogbean'))).toBe(2);
+  });
+});
+
+describe("the critic's end-of-Phase-2 fixes", () => {
+  it('M1a: the keeper\'s crock run dry at minute 1 is starved (the rusted belt carries nothing), not "waiting for harvest"', () => {
+    const g = new Game({ seed: 7 });
+    const jar = at(g, OPENING.jar);
+    // its last three beans run out in about 45 s at the opening's quick pace
+    secs(g, 70);
+    expect(jar.state).toBe(MState.Starved);
+    expect(jar.why).toBe('Waiting for cogbean');
+    expect(jar.fieldWait).toBeFalsy();
+  });
+
+  it('C1e: B6\'s second crock waits for cogbeans, like the keeper\'s', () => {
+    const g = new Game({ seed: 3 });
+    put(g, 'arm_basic', OPENING.feedArm, 0);
+    for (const [id, xy, rot] of [['jar', OPENING.jar2, 0], ['chest_wood', OPENING.jar2Chest, 0], ['arm_basic', OPENING.jar2Feed, 0]] as [string, [number, number], Dir][]) put(g, id, xy, rot);
+    secs(g, 60);
+    expect(at(g, OPENING.jar2).why).toBe('Waiting for cogbean');
   });
 });

@@ -11,6 +11,7 @@ import { BeltKind, DX, DY, Ent, Ents } from './ents';
 import { kDef } from './inventory';
 import { MState } from './mstate';
 import { rebuildBelts } from './systems/belts';
+import { armRate } from './systems/arms';
 import { powerState } from './systems/power';
 
 export interface PortNode {
@@ -106,6 +107,9 @@ export function fieldSource(g: Game, e: Ent): Ent | null {
     for (const f of frontier) {
       if (seen.has(f.id)) continue;
       seen.add(f.id);
+      // a rusted piece carries nothing: the chain to the field is broken there, so what it feeds
+      // is starved, not waiting for a harvest (the critic, Phase 2: M1a)
+      if (f.st.rust) continue;
       if (FIELD_KINDS.has(f.def.kind)) return f;
       // arms and belts pass supply through; so does a chest that has run empty
       if (f.arm || f.belt || ((f.def.kind === 'chest') && f.inv?.isEmpty())) next.push(...(nodes.get(f.id)?.ins ?? []));
@@ -152,6 +156,8 @@ export interface Stage {
   /** share of the day (or the last minute, early on) in each state, and waiting for harvest */
   shares: number[];
   harvestWait: number;
+  /** share of the day Working only as a queue in front of a busy taker (not real work) */
+  queued: number;
   /** items a works day: received / made or moved (measured) */
   inDay: number;
   outDay: number;
@@ -285,6 +291,16 @@ export function plantPerDay(cr: CropDef): number {
   return (lo + hi) / 2 / Math.max(1, days);
 }
 
+/** what a machine could take in flat out in a works day (its recipe's inputs) */
+function inputDay(g: Game, e: Ent): number {
+  const m = e.mach;
+  if (!m) return 0;
+  const r = m.recipe ?? availableRecipes(g, e)[0];
+  if (!r) return 0;
+  const inN = r.in.reduce((a, i) => a + i.n, 0);
+  return (DAY_SECS / Math.max(0.05, r.time)) * m.speed * g.mods.machineSpeed * inN;
+}
+
 /** what a maker could make flat out in a works day */
 function capacityDay(g: Game, e: Ent): number {
   if (FIELD_KINDS.has(e.def.kind)) return fieldYield(g, e).perDay;
@@ -297,10 +313,10 @@ function capacityDay(g: Game, e: Ent): number {
 }
 
 /** shares of the day (or the last minute until 2 game hours of the day have run) */
-function sharesOf(g: Game, e: Ent): { shares: number[]; harvestWait: number } {
+function sharesOf(g: Game, e: Ent): { shares: number[]; harvestWait: number; queued: number } {
   const d = g.stats.states.day(e);
-  if (d.secs >= 84) return { shares: d.shares, harvestWait: d.harvestWait };
-  return { shares: g.stats.states.shares(e), harvestWait: e.fieldWait ? 1 : 0 };
+  if (d.secs >= 84) return { shares: d.shares, harvestWait: d.harvestWait, queued: d.queued };
+  return { shares: g.stats.states.shares(e), harvestWait: e.fieldWait ? 1 : 0, queued: g.stats.states.queuedShare(e) };
 }
 
 /** per day at or below one a minute, per minute above that (ROADMAP.md 4.2) */
@@ -324,8 +340,8 @@ export function diagnose(g: Game, sink: Ent): Diagnosis {
     }
   }
   const all: Stage[] = order.map((e) => {
-    const { shares, harvestWait } = sharesOf(g, e);
-    return { e, depth: depth.get(e.id)!, shares, harvestWait, inDay: log.perDay(e, 'in'), outDay: log.perDay(e, 'out'), capDay: isMaker(e) ? capacityDay(g, e) : 0 };
+    const { shares, harvestWait, queued } = sharesOf(g, e);
+    return { e, depth: depth.get(e.id)!, shares, harvestWait, queued, inDay: log.perDay(e, 'in'), outDay: log.perDay(e, 'out'), capDay: isMaker(e) ? capacityDay(g, e) : 0 };
   });
   const belts = all.filter((s) => s.e.belt);
   const stages = all.filter((s) => !s.e.belt).sort((a, b) => b.depth - a.depth);
@@ -378,19 +394,24 @@ export function diagnose(g: Game, sink: Ent): Diagnosis {
     }
   }
   // 3. an arm flat out while what it feeds still starves, or while the machine it empties piles
-  //    up: the arm is the bottleneck
+  //    up: the arm is the bottleneck. Flat out means swinging, not queued in front of a busy
+  //    machine, and never when it could move twice what its machines need (the critic, M1b: "flat
+  //    out, 100%" for an arm waiting on a busy crock)
   if (!key) {
     const perMin = (d: number) => d / (DAY_SECS / 60);
     for (const s of stages) {
-      if (!s.e.arm || s.shares[MState.Working] < 0.9) continue;
+      const swing = s.shares[MState.Working] - s.queued;
+      if (!s.e.arm || swing < 0.9) continue;
       const near = (ids: Ent[]) => ids.map((o) => all.find((x) => x.e === o)).filter((x): x is Stage => !!x && isMaker(x.e));
       const hungry = near(nodes.get(s.e.id)?.outs ?? []).filter((f) => f.shares[MState.Starved] >= 0.3);
       const piling = near(nodes.get(s.e.id)?.ins ?? []).filter((f) => f.e.mach && f.shares[MState.Working] + f.shares[MState.Blocked] >= 0.9 && (f.e.mach.outBuf.reduce((a, o) => a + o.n, 0) >= 6 || f.shares[MState.Blocked] >= 0.3));
-      if (hungry.length || piling.length) {
-        const can = hungry.length ? hungry.reduce((a, f) => a + f.capDay, 0) : piling.reduce((a, f) => a + f.capDay, 0);
-        pick(s, hungry.length ? 'slow:arm' : 'slow:arm-out', { name: label(s.e), src: piling[0] ? label(piling[0].e) : '', pct: pct(s.shares[MState.Working]), can: fmt(perMin(can)), have: fmt(perMin(Math.max(s.outDay, s.e.arm ? 0 : 0))) });
-        break;
-      }
+      if (!hungry.length && !piling.length) continue;
+      // what the machines need a day (inputs for the hungry ones, outputs for the piling ones)
+      const need = hungry.length ? hungry.reduce((a, f) => a + inputDay(g, f.e), 0) : piling.reduce((a, f) => a + f.capDay, 0);
+      const moves = armRate(s.e, g.mods.armHand) * (DAY_SECS / 60);
+      if (need > 0 && moves >= need * 2) continue;
+      pick(s, hungry.length ? 'slow:arm' : 'slow:arm-out', { name: label(s.e), src: piling[0] ? label(piling[0].e) : '', pct: pct(swing), can: fmt(perMin(need)), have: fmt(perMin(moves)) });
+      break;
     }
   }
   // 4. the wrong input: an arm or belt stopped by an item its taker can't use at all (a hard stop

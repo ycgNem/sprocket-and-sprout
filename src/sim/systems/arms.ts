@@ -121,7 +121,7 @@ export function updateArms(g: Game, dt: number) {
             const full = a.limit > 0 && avail.every((k) => room(k) <= 0);
             // only items the taker can't use at all: the wrong input, named; else it's full
             const usable = avail.some((k) => portUses(g, dst, k));
-            if (full) setState(e, MState.Working, `Queued: stock limit reached in the ${nameOf(dst)}`, now);
+            if (full) setQueued(e, dst, now, `Queued: stock limit reached in the ${nameOf(dst)}`);
             else if (!usable) setRefused(e, dst, avail[0], kDef(avail[0]).name.toLowerCase(), now);
             else if (isBusy(dst)) setQueued(e, dst, now);
             else setState(e, MState.Blocked, `The ${nameOf(dst)} is full`, now);

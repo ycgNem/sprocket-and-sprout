@@ -6,7 +6,8 @@ import type { Ent, MachC } from '../ents';
 import { ITEM_BY_ID } from '../../data/items';
 import { MState, offText, setHarvestWait, setState } from '../mstate';
 import { rustTick } from '../rust';
-import { feedersOf, fieldSource, harvestWaitText, hasFeeder } from '../lines';
+import { feedersOf, fieldSource, fieldTiles, harvestWaitText, hasFeeder } from '../lines';
+import { CROP_BY_ID } from '../../data/crops';
 import { ItemKey, kDef, kMatches, key, kStack, Stack } from '../inventory';
 
 const OUT_CAP = 60;
@@ -191,8 +192,35 @@ function wantedInput(g: Game, e: Ent): string {
   for (const [k] of m.inBuf) return kDef(k).name.toLowerCase();
   // what the arms aimed at it last carried
   for (const f of feedersOf(g, e)) if (f.lastK !== undefined) return kDef(f.lastK).name.toLowerCase();
-  // never fed: name what it last made from, else what it takes
-  return m.recipe ? name(m.recipe.in[0].item) : machTakesText(g, e);
+  // never fed: what it last made from
+  if (m.recipe) return name(m.recipe.in[0].item);
+  // ...else what its line brings: the crop of the field it draws on (critic, Phase 2 C1e: a new
+  // crock on a bean line waits for cogbeans, not "any crop or fruit")
+  const field = fieldSource(g, e);
+  const crop = field ? fieldCrop(g, field) : null;
+  if (crop) return crop;
+  // ...else what the nearest machine of its kind runs on, else what it takes
+  let best: Ent | null = null, bd = 1e9;
+  for (const o of g.ents.machines) {
+    if (o === e || o.def.id !== e.def.id || o.ghost || !o.mach?.recipe) continue;
+    const d = Math.abs(o.x - e.x) + Math.abs(o.y - e.y);
+    if (d < bd) [best, bd] = [o, d];
+  }
+  if (best && bd <= 24) return name(best.mach!.recipe!.in[0].item);
+  return machTakesText(g, e);
+}
+
+/** the crop most of a field machine's plants are (item name, lower case), or null */
+function fieldCrop(g: Game, field: Ent): string | null {
+  const n = new Map<string, number>();
+  for (const [x, y] of fieldTiles(field)) {
+    if (!g.map.inb(x, y)) continue;
+    const c = g.soil.get(g.map.idx(x, y))?.crop;
+    if (c && !c.dead) n.set(c.id, (n.get(c.id) ?? 0) + 1);
+  }
+  const top = [...n].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const prod = top ? CROP_BY_ID.get(top)?.produce : undefined;
+  return prod ? (ITEM_BY_ID.get(prod)?.name ?? prod).toLowerCase() : null;
 }
 
 export function updateMachines(g: Game, dt: number) {

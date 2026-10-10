@@ -126,6 +126,8 @@ export interface Ent {
   want?: string;
   /** waiting for its field to ripen (Idle, not Starved): ROADMAP.md 4.2; not saved */
   fieldWait?: boolean;
+  /** Working only as a queue in front of a busy taker (setQueued), not moving goods; not saved */
+  queued?: boolean;
   /** a field gantry's strip tiles (refreshed as it ticks); not saved */
   strip?: [number, number][];
   /** the last item an arm carried (names what a starved machine waits for); not saved */

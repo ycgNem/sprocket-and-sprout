@@ -22,15 +22,15 @@ export class StateLog {
 
   /**
    * Today's and yesterday's totals per structure (6am to 6am): seconds in each state, then items
-   * received, items made or moved, seconds waiting for harvest, and crops picked by hand inside a
-   * field machine's reach. Farm-paced lines can't be judged on a minute, so the Lines tab and the
+   * received, items made or moved, seconds waiting for harvest, crops picked by hand inside a
+   * field machine's reach, and seconds Working only as a queue in front of a busy taker. Farm-paced lines can't be judged on a minute, so the Lines tab and the
    * night tally read these (ROADMAP.md 4.2).
    */
   private today = new Map<number, Float64Array>();
   private yesterday = new Map<number, Float64Array>();
   private dayAt(id: number): Float64Array {
     let d = this.today.get(id);
-    if (!d) this.today.set(id, (d = new Float64Array(STATE_COUNT + 4)));
+    if (!d) this.today.set(id, (d = new Float64Array(STATE_COUNT + 5)));
     return d;
   }
 
@@ -62,7 +62,7 @@ export class StateLog {
    * A day's record for a structure: share of the sampled time in each state, seconds sampled,
    * items in and out. `which` 'auto' reads yesterday when it ran at least 10 minutes, else today.
    */
-  day(e: Ent, which: 'today' | 'yesterday' | 'auto' = 'auto'): { shares: number[]; harvestWait: number; secs: number; inN: number; outN: number; handN: number; which: 'today' | 'yesterday' } {
+  day(e: Ent, which: 'today' | 'yesterday' | 'auto' = 'auto'): { shares: number[]; harvestWait: number; queued: number; secs: number; inN: number; outN: number; handN: number; which: 'today' | 'yesterday' } {
     const id = (e.parent ?? e).id;
     const y = this.yesterday.get(id), t = this.today.get(id);
     const secsOf = (d?: Float64Array) => (d ? d.slice(0, STATE_COUNT).reduce((a, b) => a + b, 0) : 0);
@@ -71,7 +71,7 @@ export class StateLog {
     const secs = secsOf(d);
     const shares = new Array(STATE_COUNT).fill(0);
     if (d && secs > 0) for (let i = 0; i < STATE_COUNT; i++) shares[i] = d[i] / secs;
-    return { shares, harvestWait: d && secs > 0 ? d[STATE_COUNT + 2] / secs : 0, secs, inN: d?.[STATE_COUNT] ?? 0, outN: d?.[STATE_COUNT + 1] ?? 0, handN: d?.[STATE_COUNT + 3] ?? 0, which: pick };
+    return { shares, harvestWait: d && secs > 0 ? d[STATE_COUNT + 2] / secs : 0, queued: d && secs > 0 ? d[STATE_COUNT + 4] / secs : 0, secs, inN: d?.[STATE_COUNT] ?? 0, outN: d?.[STATE_COUNT + 1] ?? 0, handN: d?.[STATE_COUNT + 3] ?? 0, which: pick };
   }
 
   /** items per works day (1,008 sim s: 6am-2am awake plus the night shift), from a day's record */
@@ -92,10 +92,12 @@ export class StateLog {
       if (e.ghost || e.parent) continue;
       let r = this.ring.get(e.id);
       if (!r) this.ring.set(e.id, (r = new Uint8Array(60)));
-      r[this.head] = e.state + 1;
+      // the low bits hold the state + 1, bit 4 a queue in front of a busy taker
+      r[this.head] = e.state + 1 + (e.queued ? 16 : 0);
       const day = this.dayAt(e.id);
       day[e.state] += 1;
       if (e.fieldWait) day[STATE_COUNT + 2] += 1;
+      if (e.queued) day[STATE_COUNT + 4] += 1;
     }
     for (const [rings, pend] of [[this.inRing, this.pendIn], [this.outRing, this.pendOut]] as const) {
       for (const r of rings.values()) r[this.head] = 0;
@@ -134,10 +136,23 @@ export class StateLog {
     for (let i = 0; i < 60; i++) {
       const v = r[i];
       if (!v) continue;
-      out[v - 1]++;
+      out[(v & 15) - 1]++;
       n++;
     }
     return n ? out.map((c) => c / n) : out;
+  }
+
+  /** share of the sampled seconds (up to the last 60) Working only as a queue (setQueued) */
+  queuedShare(e: Ent): number {
+    const r = this.ring.get((e.parent ?? e).id);
+    if (!r) return 0;
+    let n = 0, q = 0;
+    for (let i = 0; i < 60; i++) {
+      if (!r[i]) continue;
+      n++;
+      if (r[i] & 16) q++;
+    }
+    return n ? q / n : 0;
   }
 
   share(e: Ent, s: MState): number {

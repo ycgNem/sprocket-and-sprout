@@ -29,11 +29,11 @@ export const ADVICE: Record<string, Advice> = {
     fix: 'Grow about {more} more {crop} plants within a picker\'s reach (a gleaner reaches 8, a crane 48), or feed the {name} from a chest as well.',
   },
   'slow:arm': {
-    gap: 'The {name} is flat out ({pct}% of the time) and what it feeds still waits: it can use {can}/min, one arm moves about 40.',
+    gap: 'The {name} is flat out ({pct}% of the time) and what it feeds still waits: they can use {can}/min, the arm moves about {have}.',
     fix: 'Wind it (right-click), add a second arm, or use a Brass Arm.',
   },
   'slow:arm-out': {
-    gap: 'The {name} is flat out ({pct}% of the time) and the {src} still piles up: it makes {can}/min, one arm moves about 40.',
+    gap: 'The {name} is flat out ({pct}% of the time) and the {src} still piles up: it makes {can}/min, the arm moves about {have}.',
     fix: 'Wind it (right-click), add a second arm out of the {src}, or use a Brass Arm.',
   },
   'starved:chest': {
