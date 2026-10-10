@@ -4,23 +4,37 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 10, 2026, night): Phase 2 (the Keeper's Line) is built on `works` and nearly
-finished; nothing is merged.** A new game opens on the keeper's rusted works and the chain B1-B8
-plays as specified (the bot finishes it by day 4 on 8 seeds). The indie-critic's end-of-phase
-review FAILED it on one thing: from day 5 the works starved (no bean supply, a one-off barley bin).
-Most of its must-fix list is fixed and committed; what's left, with the acceptance check, is the
-checklist in ROADMAP.md Phase 2. **The owner deferred the 2.0 beta merge** and asked for Phase 3
-next: the prompt under "What's next" finishes Phase 2's list first, then starts Phase 3, all on
-`works`. Don't merge to `main` or push unless the owner says so. The owner's rules since Phase 1:
-hand farming stays, but the factory is the face (ROADMAP.md 3.2, DECISIONS #68); one path for
-every player, no "pick a direction" card (#72); the Preserves Jar is the Preserving Crock (#76).
-ROADMAP.md is the 2.0 plan; ROADMAP-1.1.md the finished 1.1 overhaul.
+**Status (October 10, 2026, late night): Phases 1-4 of 2.0 "The Works" are built on `works`;
+nothing is merged.** Phase 2 (the Keeper's Line) was finished first: its must-fix list, the
+re-check's supply for days 8-12 and the acceptance check (DECISIONS #83). Phases 3 and 4 were built
+in one run, as the owner asked, and checked together: one Orders board, research eras with keystone
+stages and era rewards, crop numbers and intermediates, the Town Mill end to end, save v5, the
+Deepworks (30 levels, 6 strata) and the town keystones in the world (DECISIONS #84-92). The
+indie-critic's end review of Phases 3+4 FAILED narrowly: the one path ended at k10 (the Now strip
+fell back to side quests). Its fixes are in (DECISIONS #93-98): main quests k11-k17 hand over each
+era's keystone (Steam, the Waterworks, Spark Coils, Lamplighting, the Tram, the Clock); a
+keystone's stages count from its quest; keystone orders go up with their quest; the Town Mill asks
+40 meal and its payoff is a camera pan to the wheel; the Works tab lost Stardew's Community Center
+baskets; goods only a line makes; the Deepworks' vents, set-down lamps and chamber cards.
+The critic's re-check of the fixes: pending at the time of writing.
+**The owner deferred the 2.0 beta merge**; don't merge to `main` or push unless the owner says so.
+The owner's rules since Phase 1: hand farming stays, but the factory is the face (ROADMAP.md 3.2,
+DECISIONS #68); one path for every player, no "pick a direction" card (#72); the Preserves Jar is
+the Preserving Crock (#76). ROADMAP.md is the 2.0 plan; ROADMAP-1.1.md the finished 1.1 overhaul.
+- **Phases 3-4 on `works`** (`8f24f3d` Phase 2's must-fix list, `876dc2f`..`7d4c159` Phases 3-4 with the three agents' merges, then the critic's fixes to HEAD): the
+  done-when checks: the bot reaches the Mill by day 20 on 8 of 8 seeds (days 15-18 after the fixes,
+  `npx vite-node scripts/mill20.ts`); `data.test.ts` validates every order and keystone;
+  `e2e/minex.mjs` walks all six strata; the year-long bot restores the lift; the Tram runs on a
+  reloaded game (`tests/townworks.test.ts`); a chain-walk test takes k11 to k17
+  (`tests/eras.test.ts`); the sweep is clean at 1280x720 and 1366x620. Pacing (28 days, 8 seeds):
+  Story 65.7k, Rush 66.0k; Rush medals 40k / 75k / 110k (DECISIONS #97).
 - **Phase 2 on `works`** (`7fc17bf` session 1, `b5c2140` session 2, `7bada4d` the pre-merge
   review fixes, then the critic's fixes): the Keeper's Line (rust and restore, the chain, the Now
   strip, lesson cards, the Notebook, undo), the Orders board with consignment, the river works
   with a real brownout, Shift+F, the Skills cards and crafting labels. A pre-merge review loaded
-  ten real 1.1.1 saves into 2.0 with nothing lost (DECISIONS #81); `SAVE_VERSION` is now 4, so
-  1.1.x refuses a 2.0 save cleanly. The critic's review and the supply fixes: DECISIONS #82.
+  ten real 1.1.1 saves into 2.0 with nothing lost (DECISIONS #81); `SAVE_VERSION` is 5 since Phase 3
+  (v5 moves the old requests, contracts, projects, pruned research and mine state), so 1.1.x
+  refuses a 2.0 save cleanly. The critic's review and the supply fixes: DECISIONS #82.
 - **When the owner says ship the beta:** version `2.0.0-beta.1` (`npm version 2.0.0-beta.1
   --no-git-tag-version` updates package.json and the lock), commit on `works`, then
   `git -C ../sns-p0check merge --ff-only works` (`main` is checked out there; `main` has nothing
@@ -299,28 +313,23 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
-Finish Phase 2, then Phase 3 of ROADMAP.md (2.0 "The Works"), on branch `works`:
+Phase 5 of ROADMAP.md (2.0 "The Works"), on branch `works`:
 
-> Read HANDOFF.md, ROADMAP.md Phase 2 (the critic's must-fix checklist and its Minors), DECISIONS
-> #76-82, then ROADMAP.md sections 3.2, 7.1, 7.3, 7.4, 7.5, 8 and Phase 3. First finish Phase 2 on
-> `works`: the unchecked must-fix items (M1a, M1b, C1e, "Needs: Metalwork", the Sprout Bundle
-> labels), make `tests/bot.ts` buy and plant cogbeans for its crocks and play k9 "A
-> Second Bed", and pass the acceptance check (`npx vite-node scripts/accept.ts`: crocks Working
-> >= 50% on days 5-7, day-6 income > 0, the mill producing on day 6, seeds 2024, 7, 99); run the
-> checks and the sweep; have the indie-critic re-check (the acceptance and the eight questions).
-> Then Phase 3: the full Orders board (7.4: Today; Standing for each business with reputation
-> ranks and special stock; Works for the restoration projects and the keystones; fold the Guild
-> contracts and the restoration board into it; consignment stays the crate's "Ship to:" tag;
-> Phase 2's minimal board is `src/sim/systems/orders.ts`); research stages for the keystones,
-> five era columns and era rewards (7.3; prune the 12 flat-buff nodes); crop numbers and rapeseed
-> (7.1); the crop intermediates and the thresher (4.10); the Town Mill keystone end to end after
-> More Power (project -> flag -> the town mill's wheel turns -> Rowan's bread); research window
-> colours; the critic's Minors from Phase 2 where they fit (the arm sprite first, via the
-> art-director). Save migration v5 (contracts/requests/projects -> orders; pruned node ids -> era
-> rewards), tested on real 1.1.1 and 2.0 saves. Re-tune the Rush medals against the pace bot.
-> Done when the bot reaches the Mill by day 20 on 6 of 8 seeds, `data.test.ts` validates every
-> order and keystone, the sweep is clean and the critic's review passes (with the Stardew test).
-> Commit on `works` as you go; don't merge to `main` or push unless the owner says so.
+> Read HANDOFF.md, DECISIONS.md #83-98 (what Phases 3-4 built and changed after the critic), then
+> ROADMAP.md sections 7.6-7.9 and Phase 5. First fix anything the critic's re-check of Phases 3-4
+> left (the status above). Then, on `works`: the six re-roles (Juniper the
+> millwright, Bram the foundry master, Sable the archivist, Thorne the old works' last engineer,
+> Hazel the draughtswoman, Pip the apprentice) with twelve rewritten heart events and about 40
+> lines each; Trust in the UI (hearts under the hood, gift points / 3); Pip's echo questions; the
+> Sprocket Fair (bring a 6x6 line, scored on throughput) and the Harvest Haul (an auction, every
+> standing order pays double), retiring Kite Day and the Pumpkin Roll with their achievements
+> remapped; Workshop HQ (structures indoors through a second entity store, the drafting table's
+> blueprint library, the ledger); Mags as the freight broker (rare parts, a Sunday lot, shortage
+> events). The re-roles should hand the main path's quests where they fit (Juniper already gives
+> k16 "The Tram"; Thorne knows the old works). Tock if there is time. Keep the owner's rules (below).
+> Done when `e2e/roxy.mjs`-style real-input passes for two re-roled villagers and both new events,
+> `e2e/house.mjs` with indoor structures, the checks and the sweep pass, and the critic's full
+> review passes. Commit on `works` as you go; don't merge to `main` or push unless the owner says so.
 
 Owner rules to keep in mind (all in DECISIONS.md): cut old systems freely, but hand farming
 (till, plant, water, harvest) stays (#61); the factory must be apparent and un-Stardew-like at a
@@ -333,6 +342,42 @@ are one game minute.
 The "deferred critic list" below is now covered by ROADMAP.md (crop numbers 7.1, re-roles 7.6,
 the Exhibition 7.7, Tock Phase 5, the Post Tube is dropped in favour of consignment 7.4,
 crafting labels Phase 2, the cut list D3-D5).
+
+Patterns from 1.2 Phases 3-4 (Orders, eras, the Town Mill, the Deepworks):
+- One Orders board: `src/sim/systems/orders.ts` owns every ask (Today, Standing, the Guild, Works).
+  An `Order` has lines (`spec`, `n`, `have`), a customer (`cust`: a business id = its keeper's
+  villager id, `guild` or `council`), a kind, a due day, pay and reputation. Standing orders and the
+  keystones are data in `src/data/orders.ts`: a keystone (`KEYSTONE_WORKS`) is posted when its main
+  quest starts (`quest`) and finished once its `after` holds (`keystoneWait` says what it waits
+  for); projects (`PROJECTS` in `src/data/goals.ts`) wait for their era (`after`). The crate's
+  `st.tag` routes the post's goods (`consign`); the day summary shows them as "<villager>'s order".
+- Research eras and keystones: `src/data/research.ts` (`era`, `row`, `keystone: { observe,
+  experiment, validate }`, `ERA_REWARDS`). When a keystone's stages count is `src/sim/keystones.ts`
+  (`keystoneOpen`, `lookCounts`, `stageCount`, `canResearch`): pure helpers with no system, so any
+  module can import them without moving research's place in the tick order. On a Keeper's Line save
+  a keystone walked by a main quest (`QuestDef.keystone`) opens with its quest: `stages_open:<id>`
+  and `research.base` hold the counters' starting points. The quest objective kind `stage` mirrors a
+  keystone's stage (its line shows the count or the validate clock).
+- The main path is data: `src/data/goals.ts` k1-k17 (`main: true`, `needFlag: 'keepers_line'`).
+  `tests/eras.test.ts` walks k11-k17 step by step; add a step there when you add one to the chain.
+- Import order is tick order (`src/sim/index.ts`): importing a module that calls `registerSystem`
+  from an earlier system registers it earlier and changes the tick order for everything (the bot's
+  numbers move). Put shared pure helpers in a module of their own (as `keystones.ts`).
+- A town keystone's payoff is a `{ t: 'scene' }` event: the play screen holds the camera on the
+  building (`PlayScreen.scene`), then shows its card; `queueWindow` keeps cards in order (the era's
+  card comes after the keystone's).
+- Caches belong to their world (DECISIONS #91): the villagers' walk cache is keyed on the map, so
+  the bot running seeds in one process is deterministic per seed.
+- The Deepworks: `src/sim/systems/mine.ts` (strata from `src/data/deepworks.ts`, hazards with their
+  own clocks and rng so level layouts don't change, `lamps` on the mine state, chamber cards with
+  `card:<kind>` flags separate from `observed:<kind>`).
+- The bots and scripts: `tests/bot.ts` plays to the Town Mill (k10) and stops there;
+  `scripts/mill20.ts` (the day each main quest finished), `scripts/pace.ts` (28-day earnings, the
+  Rush medals' reference), `scripts/accept.ts` (Phase 2's days 5-12 check).
+- Parallel agents: one per disjoint subsystem, each in a git worktree outside the repo
+  (`../sns-crops`, `../sns-deep`, `../sns-town`) with node_modules as a junction to the main
+  repo's; remove the junction (`cmd /c rmdir`) before `git worktree remove`, or it deletes the real
+  node_modules.
 
 Patterns from 1.2 Phase 2 (the Keeper's Line):
 - The opening's layout is data in `src/sim/opening.ts`: `OPENING` (the yard, marked tiles) and
@@ -448,8 +493,9 @@ visible change over polish.
 - NPC paths cached before a big structure is placed can clip through it until the cache clears.
 - The noon/6pm post tally (`g.sys.postDay`) isn't saved. After a mid-day reload, the night summary
   lists only sales made since the reload. Money is never lost.
-- The pacing bot is simple: it plays the Keeper's Line, builds one crock line and ships crops, but
-  doesn't reach k9 More Power or build a second wheel. It is a floor for balance, not a target.
+- The pacing bot plays the Keeper's Line to the Town Mill (k10, days 15-18) and stops there: it
+  doesn't play k11 on, so its research and works stop growing after the Mill and its cash piles up.
+  It is a floor for balance, not a target; the chain past the Mill is tested in `tests/eras.test.ts`.
 - Tinker's Yard's ruins are still plain cobble halls. They need wrecked-machine dressing.
 - Open art items from the Phase 2 critic review are in ROADMAP.md (NPC walk faces, strike-frame
   tool heads, riverbanks, winter dirt, the world-map window, logo, chronometer sky, player portrait).
