@@ -5,6 +5,8 @@ import { O } from '../sim/world/tilemap';
 import { FURN_BY_ID } from '../data/furniture';
 import { curMap } from '../sim/systems/player';
 import type { Renderer } from './renderer';
+import { townworksLights } from './townworks';
+import { SQUARE_LAMP } from '../sim/world/townworks';
 
 const RES = 4; // screen px per light-map px
 
@@ -125,7 +127,8 @@ export class Lighting {
     for (let y = ty0; y <= ty1; y++)
       for (let x = tx0; x <= tx1; x++) {
         const o = m.obj[m.idx(x, y)];
-        if (o === O.LAMPPOST) out.push({ x: x + 0.5, y: y - 0.3, r: 5, i: 1, c: C.amber, flicker: true });
+        // (the square's twelve lamps light only on the player's power: townworksLights, below)
+        if (o === O.LAMPPOST && m.objData[m.idx(x, y)] !== SQUARE_LAMP) out.push({ x: x + 0.5, y: y - 0.3, r: 5, i: 1, c: C.amber, flicker: true });
         else if (o === O.CRYSTAL) out.push({ x: x + 0.5, y: y + 0.3, r: 2.5, i: 0.7, c: C.lavender });
         else if (o === O.TREASURE && m.objData[m.idx(x, y)] !== 2) out.push({ x: x + 0.5, y: y + 0.4, r: m.objData[m.idx(x, y)] === 1 ? 3 : 1.8, i: 0.8, c: C.amber, flicker: true });
       }
@@ -155,6 +158,8 @@ export class Lighting {
           if (s?.crop?.ready && (s.crop.id === 'glowmelon' || s.crop.id === 'emberpepper' || s.crop.id === 'starpetal')) out.push({ x: x + 0.5, y: y + 0.4, r: 1.6, i: 0.6, c: s.crop.id === 'glowmelon' ? C.aqua : s.crop.id === 'starpetal' ? C.lavender : C.apricot });
         }
       for (const L of g.sys.festivalLights ?? []) out.push(L);
+      // the town keystones: the square's lamps on your power, the mill's and pump house's windows
+      out.push(...townworksLights(g));
     } else {
       for (const L of g.sys.mine?.lights ?? []) out.push(L);
     }

@@ -15,8 +15,11 @@ export const LANDMARK = 'landmark';
  * door faces Main Street; the wheel stands in the river off its west wall (MILL_WHEEL).
  */
 export const TOWN_MILL = { id: 'town_mill', name: 'The Town Mill', x: 98, y: 53, w: 7, h: 6, door: [101, 58] as [number, number] };
-/** the wheel's hub and radius in tiles: its lower third in the river (x 93-98 on these rows on every map) */
-export const MILL_WHEEL = { cx: 96.4, cy: 56.6, r: 1.75 };
+/**
+ * the wheel's hub and radius in tiles: its lower part in the river (x 93-98 on these rows on every
+ * map), a stone pier between its rim and the mill's west wall carrying the axle
+ */
+export const MILL_WHEEL = { cx: 95.9, cy: 56.6, r: 1.75 };
 /** the Waterworks' brick pump house, just west of the square on Main Street */
 export const PUMP_HOUSE = { id: 'pump_house', name: 'The Waterworks', x: 116, y: 55, w: 5, h: 4, door: [118, 58] as [number, number] };
 /**

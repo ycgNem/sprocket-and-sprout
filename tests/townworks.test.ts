@@ -170,6 +170,23 @@ describe('Lamplighting', () => {
     expect(townworks(g).lit).toBe(false);
     expect(g.flags.has('lamplighting')).toBe(false);
   });
+
+  it("the keeper's river works, once restored, carry the town line (their pole stands by the farm gate)", () => {
+    const g = new Game({ seed: 8 });
+    g.flags.add('lamps_hung');
+    g.time.min = 21 * 60;
+    secs(g, 2.1);
+    expect(townworks(g).lit).toBe(false);
+    // bring back the keeper's wheel and poles by the gate (as restoring them with their parts does)
+    let n = 0;
+    for (const e of g.ents.all()) if (e.st.rust && Math.hypot(e.x - TOWN_LINE[0], e.y - TOWN_LINE[1]) < 10) { delete e.st.rust; delete e.st.need; delete e.st.needN; n++; }
+    expect(n).toBeGreaterThanOrEqual(2);
+    g.ents.powerDirty = true;
+    secs(g, 2.1);
+    expect(lampLoad(g).net).toBeGreaterThan(0);
+    expect(townworks(g).lit).toBe(true);
+    expect(g.flags.has('lamplighting')).toBe(true);
+  });
 });
 
 describe('the Tram', () => {
