@@ -192,9 +192,17 @@
   and advice data tests; `e2e/shift.mjs`, `e2e/works.mjs`, `e2e/terrainshots.mjs`, new sweep
   scenarios (research scrolled/Fit, works-lines, works-field, works-pole); `e2e/perf.mjs` times the
   night shift. The pacing bot builds L1 and a gleaner (L3 needs Logistics, which it doesn't reach).
+- The indie-critic's Phase 1 build review (PASS WITH FIXES) and its fixes: the wrong input named
+  and diagnosed (`portUses`, `wrong:arm` / `wrong:belt`), arms refreshing their reason, the
+  gantry parking off season, root-cause pulse lamps, one glyph per line, Lines tab polish, "your
+  hands took 3 of the field's 4". DECISIONS #71.
+- 1.1.1 round two, released with 1.1.1 (website + v1.1.1 on GitHub, 2026-10-09): the ranch opens,
+  square bridges, mine lifts past shafts, the map with names, heads and hovers. DECISIONS #70.
+- The owner's direction for everything after: factory first, un-Stardew at a glance (ROADMAP.md
+  3.2, DECISIONS #68); no Builderment-style arm-free lines (#69).
 ## Next
-- The open items at the end of ROADMAP.md Phase 4 (arm redraw first) and the deferred critic
-  list in HANDOFF.md.
+- ROADMAP.md Phase 2 on `works` (the prompt is in HANDOFF.md, "What's next"): the Keeper's Line,
+  re-spec'd first against 3.2.
 - Older ideas: more interior variety (decor items placeable indoors), farmhouse expansion tiers;
   more depth for mid-game automation goals and late-game megaprojects.
 

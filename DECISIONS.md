@@ -218,3 +218,23 @@ recommendations are the decisions.
     morning harvest is the hands'; the Dawn Shift research adds a switch), artisan goods keep their
     input's lowest quality, and every fifth pick of a hand streak rolls one quality step higher.
 67. **Cogbeans ripen in 4 days** (was 8) so "plant more" pays off in the first week; regrow stays 3.
+68. **Factory first, at a glance (the owner, 2026-10-09).** "Hand farming stays sure but also there
+    need to be apparent factory/automation, different than Stardew style." Hand farming is a floor,
+    never the face: the first screen shows machines moving, the first hour has no debris-clearing
+    chores, every beat ends with a machine doing something, the works' HUD shows from minute 0,
+    and by day 5 the farm looks like a works. Every critic review from Phase 2 on runs the Stardew
+    test (name three things Stardew doesn't have in the first 15 minutes). ROADMAP.md 3.2.
+69. **No Builderment-style rework.** The owner asked for "a Builderment vibe"; the suggestion to let
+    machines push output onto a belt in front (arms optional) was declined: "dont add the
+    builderment direction". Lines stay arm-and-belt; belts already deliver into what they run into.
+70. **1.1.1, round two of the playtest.** A villager who is already on (or put on) a doorstep
+    steps straight in (Clem never entered the ranch, so it never opened); bridge decks are squared
+    (`squareBridges` in worldgen, also run on load, never over soil or a structure), and a road
+    sliver along a bank is road again; a shaft that drops you past floor 5, 10, ... unlocks those
+    lifts, and the lift list includes every floor down to the deepest reached; the map labels
+    buildings without overlap (hover for the full name, the door's answer and who is inside) and
+    shows a head for you and every villager.
+71. **The wrong input is named (Phase 1 build review).** Ports say whether a structure uses an item
+    at all (`portUses`); an arm or belt stopped by one is Blocked "The jar can't use stone"
+    (`e.refused`), the diagnosis has `wrong:arm` / `wrong:belt`, and the factory pulse counts
+    root causes (what carries a glyph) rather than machines, so the lamps and the map agree.

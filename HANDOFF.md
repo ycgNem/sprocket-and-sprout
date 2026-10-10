@@ -4,20 +4,24 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 9, 2026, late night): 1.2 "The Works" Phases 0 and 1 are done.** ROADMAP.md is
-now the 1.2 plan (the identity rebuild around automation); the old 1.1 overhaul is ROADMAP-1.1.md.
+**Status (October 9, 2026, late night): 1.2 "The Works" Phases 0 and 1 are done; 1.1.1 is
+released** (the owner pushed `main` and published v1.1.1 with the installers, for a friend's
+playtest). **Next: Phase 2, on `works`** (the prompt is under "What's next"). The owner's newest
+direction: hand farming stays, but the factory must be apparent and un-Stardew-like from the
+first screen (ROADMAP.md 3.2, DECISIONS #68). ROADMAP.md is the 1.2 plan (the identity rebuild
+around automation); the old 1.1 overhaul is ROADMAP-1.1.md.
 - **Phase 0 = 1.1.1 on `main`** (commits `1c0d50e`..`ba760a9`, version bumped): the owner's
   playtest bugs, the overhead pickaxe for all 9 looks, flagstone paths, plank decks, the seam
   audit, painted ground transitions (the farming glitch), placed paths that change the ground;
   then the owner's second round (`ba760a9`): the ranch opens (Clem never stepped inside), square
   bridge decks (`squareBridges`, also run on load), mine lifts a shaft drops you past, the map
   with building names, head icons and hovers (`e2e/mapshot.mjs`).
-  **The owner said ship it (for a friend's playtest), but `git push origin main` was blocked by the
-  auto-mode permission guard (production deploy); the owner runs it.** Installers for this exact
-  `main` are built in `C:\Users\jacks\Documents\sns-p0check\release` (9:51 PM). After the push:
-  `gh release create v1.1.1` with the two .exe files (see the session's final message).
-  A worktree of `main` for checks: `C:\Users\jacks\Documents\sns-p0check` (dev server config
-  "main", port 5175, in .claude/launch.json).
+  **Released**: the owner pushed `main` and ran `gh release create v1.1.1` (installers built from
+  this exact `main` in `C:\Users\jacks\Documents\sns-p0check\release`). `git push` to `main` is a
+  production deploy: the auto-mode permission guard blocks it for Claude, so the owner runs it.
+  A worktree of `main` for checks and hotfixes: `C:\Users\jacks\Documents\sns-p0check` (has
+  `main` checked out; dev server config "main", port 5175, in .claude/launch.json). A hotfix goes
+  there, then `git merge main` on `works`.
 - **Phase 1 on branch `works`** (`2d070fa`, fixes to `ff9b51b`, `main` merged in `f2f1e77`): the
   automation core and the Field Works, built to ROADMAP.md 3.1 + 4. The indie-critic's build review
   was PASS WITH FIXES; all its Criticals and Majors and most Minors are fixed in `ff9b51b` (the
@@ -269,15 +273,27 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
-Phases 0 and 1 of ROADMAP.md (1.2 "The Works") are done. Waiting on the owner: push `main`
-(1.1.1, deploys the website) and `gh release create v1.1.1` with the installers. Next session is
+Phases 0 and 1 of ROADMAP.md (1.2 "The Works") are done and 1.1.1 is released. Next session is
 ROADMAP.md Phase 2, on branch `works`:
 
-> Read ROADMAP.md sections 3.1, 5 and 6, and HANDOFF.md. On `works`: replace both tutorial chains
-> with the Keeper's Line (eight beats), the Now strip, the Keeper's Notebook, the lesson cards,
-> undo, the Professor's visit, Rowan's first order (silver pickles, cogbean oil) on a minimal
-> Orders board, the Skills cards. Make tests/bot.ts play B1-B8. Run the checks, then the
-> indie-critic with the eight questions.
+> Read ROADMAP.md sections 3.1, 3.2, 5 and 6, and HANDOFF.md. On `works`: first re-spec the
+> opening against 3.2 (the keeper's yard as derelict works to bring back, machines moving in the
+> first frame, no debris chores, the factory pulse and Now strip from minute 0; every beat ends
+> with a machine doing something) and get the indie-critic's quick read on it. Then replace both
+> tutorial chains with the Keeper's Line (eight beats), the Now strip, the Keeper's Notebook, the
+> lesson cards, undo, the Professor's visit, Rowan's first order (silver pickles, cogbean oil) on
+> a minimal Orders board, the Skills cards, a `day5-farm` sweep shot. Make tests/bot.ts play
+> B1-B8. Run the checks, then the indie-critic with the eight questions and the Stardew test.
+
+Owner rules to keep in mind (all in DECISIONS.md): cut old systems freely, but hand farming
+(till, plant, water, harvest) stays (#61); the factory must be apparent and un-Stardew-like at a
+glance (#68); no Builderment-style arm-free lines (#69); push `main` and `gh release` only when the
+owner says so (and the owner runs the push). Still open from Phase 1: lamps dimming in a
+brownout, the pace bot building L3, Rush medals below the bot's earnings (Phase 3 re-tune).
+
+Handy for headless probes: write a scratch `e2e/out/<name>.ts` (gitignored) that imports
+`../../src/sim` and run it with `npx tsx e2e/out/<name>.ts` (tsx is in the npx cache). 42 ticks
+are one game minute.
 The "deferred critic list" below is now covered by ROADMAP.md (crop numbers 7.1, re-roles 7.6,
 the Exhibition 7.7, Tock Phase 5, the Post Tube is dropped in favour of consignment 7.4,
 crafting labels Phase 2, the cut list D3-D5).

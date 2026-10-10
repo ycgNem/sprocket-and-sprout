@@ -220,6 +220,36 @@ quality orders, festivals and the quality plot pay for them (4.9).
 ≤ 4 min; first full line ≤ 10 min; first Starved diagnosis on day 2; first machine-harvested crop
 (a gleaner) by day 5; power by day 8; the field gantry by day 30; the Mill keystone by day 20.
 
+### 3.2 Factory first, at a glance (the owner, 2026-10-09)
+
+The owner, after the 1.1.1 playtest round: *"hand farming stays sure but also there need to be
+apparent factory/automation, different than Stardew style."* Hand farming is a floor (DECISIONS
+#61), never the face of the game. The 1.1 verdict was "Stardew with conveyor belts"; a player
+must see the difference in the first minute, not discover it in week two. Rules from Phase 2 on:
+
+1. **The first screen is the works.** A new game opens with machines in frame and something
+   moving (the jar line, an arm, a belt, a wheel or a gear), not a farmhouse, an empty field and
+   debris. Phase 2 should spec the keeper's yard as **derelict works to bring back** (a seized
+   arm, a dead belt run, a cold engine as set dressing the beats restore), and the title screen
+   shows machines.
+2. **No Stardew opening chores.** Clearing weeds, stones and stumps is never an objective in the
+   first hour, and the yard around the works starts clear (`openingTile`). Debris stays a
+   resource, not the first task.
+3. **Every beat ends with a machine doing something.** B1 ends with the post paying for what the
+   jar made; B4 (the plot) ends with the line drawing on it. A farming step always says what it
+   feeds (its `why` line).
+4. **The HUD is the works' HUD from minute 0.** The factory pulse and the Now strip show from B1;
+   money, energy and the calendar are secondary.
+5. **By day 5 the farm looks like a works.** In the pace bot's day-5 screenshot, structures (arms,
+   belts, machines, chests, poles) take more of the farm than tilled rows; the screens sweep gets
+   a `day5-farm` shot to judge it.
+6. **When a new feature could be a farming chore or a machine problem, make it a machine
+   problem** (pillar 1). Farming stays hands-on and rewarding (quality, streaks, the morning
+   harvest); it is the line's supply, not the game's centre.
+7. **The Stardew test** (every critic review from Phase 2 on): play the first 15 minutes fresh
+   and name three things Stardew Valley doesn't have. If the honest one-line description is still
+   "Stardew with conveyor belts", the phase isn't done.
+
 ---
 
 ## 4. The automation redesign (Phase 1, full spec)
@@ -580,6 +610,12 @@ Replaces both tutorial chains in `src/data/goals.ts`. One chain, eight beats, in
 yard on every map (the `OPENING` tile rule stays, `src/sim/opening.ts`). Time targets are real
 minutes at Story speed.
 
+**Revise against 3.2 before building** (added 2026-10-09, after this table was written): the
+table below is the skeleton. Phase 2 first re-specs the yard as the keeper's derelict works (what
+is rusted, what each beat restores), makes sure B1's first frame has machines moving, and keeps
+every beat ending on a machine doing something; get the critic's quick read on the revision
+before building it.
+
 | Beat | Minute | What happens | What it teaches | The "why" line |
 |---|---|---|---|---|
 | **B1 The broken line** | 0-4 | The keeper's note. The jar and crate are there; the arm between them is gone ("sent to the Professor for mending"). Pick the ripe cogbeans, F the jar, carry pickles to the crate by hand. The noon post pays. | Move, F, inventory, the crate, the post, the coin shower. | "Every jar you carry is a jar you didn't plant." |
@@ -834,7 +870,11 @@ Estimates are sessions of the usual length. Every phase ends with: typecheck, `n
 `npm run screens` (0 issues), `node e2e/smoke.mjs` (0 console errors), the build, PROGRESS.md,
 a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
 
-### Phase 0 — Hotfix 1.1.1 and the ground rules (1 session) — DONE 2026-10-09 (on `main`, not pushed: the owner's call)
+### Phase 0 — Hotfix 1.1.1 and the ground rules (1 session) — DONE, RELEASED 2026-10-09 (v1.1.1: website + GitHub release with installers)
+- Round two of the owner's playtest notes went into the same release (`ba760a9`): the ranch opens
+  (a keeper already on the doorstep steps in), square bridge decks (`squareBridges`, run on load
+  too), mine lifts that a shaft drops you past, the map (M) with building names, head icons for
+  you and the villagers, and hovers (hours, who is inside). DECISIONS #70.
 - Bugs 1, 3 (audit + planks), 4, 7, 8, 9, 10 (quick fix), 11, 12, 13 from section 10, plus the
   1.1 leftovers marked 0 (embed size, jar price, crate pop, palette names), and bug 6's interim
   (the bubble avoids `occ`).
@@ -845,7 +885,15 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
 - Done when: the bug table's checks pass; the release is up; the seam audit exists and its
   offender list is in `e2e/out/seams.md`.
 
-### Phase 1 — The automation core and the Field Works (2-3 sessions; the owner asked for it in one) — DONE 2026-10-09 (on `works`)
+### Phase 1 — The automation core and the Field Works (2-3 sessions; the owner asked for it in one) — DONE 2026-10-09 (on `works`, not live until Phase 2's merge)
+- The critic's build review: PASS WITH FIXES. Fixed (`ff9b51b`, `88f097a`): the wrong input is
+  named ("The preserves jar can't use stone") and diagnosed (`wrong:arm` / `wrong:belt`, never
+  "ran dry" with goods in the chest), arms refresh their reason every 0.5 s, the gantry parks off
+  season and tills dead plants under, the pulse lamps count root causes (what carries a glyph),
+  one glyph per broken line, per-day rates in the hover, Lines tab order/markers/selection, the
+  sprout badge, "your hands took 3 of the field's 4". Still open: lamps dimming in a brownout;
+  the pace bot building L3 (it never reaches Logistics); Rush medals sit below the bot's doubled
+  earnings (re-tune in Phase 3).
 - **1a, the core** (4.0-4.8, 4.14): the contract (`src/data/contract.ts`), the six states,
   "waiting for harvest", time in state (60 s rings plus today's and yesterday's totals), per-day
   rates, root-cause glyphs (placeholder marks), the hover line, four pulse lamps, the structure
@@ -873,10 +921,12 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
   entry; the rest is Phase 3), the Skills cards (bug 5), the crafting labels.
 - Old tutorial chains removed; `needFlag`'d quests migrated: saves from 1.x mark the whole old
   chain done if `tutorial_done` is set.
+- **Factory first (3.2)**: the yard as derelict works to bring back, no debris chores in the
+  first hour, the pulse and Now strip from minute 0, a `day5-farm` sweep shot.
 - `tests/bot.ts` plays B1-B8; the 150-seed opening test; the "wreck the yard" test.
 - Done when: the bot finishes B8 by day 5 on 8 seeds; the critic answers 7 of 8 questions from
-  section 5 correctly from a fresh build; sweep 0 issues; **merge to `main` as 2.0 beta**
-  (the website; installers stay 1.1.1).
+  section 5 correctly from a fresh build **and passes the Stardew test (3.2 rule 7)**; sweep 0
+  issues; **merge to `main` as 2.0 beta** (the website; installers stay 1.1.1).
 
 ### Phase 3 — Orders, research stages, the Mill (2 sessions)
 - 7.4 the Orders board (unifying requests, contracts, projects; consignment; per-business
@@ -970,11 +1020,13 @@ Phase 1:
 > Update scripts/pace.ts. Run the checks and a short indie-critic review of the automation.
 
 Phase 2:
-> Read ROADMAP.md sections 5 and 6. On `works`: replace both tutorial chains with the Keeper's
-> Line (eight beats), the Now strip, the Keeper's Notebook, the lesson cards, undo, the
-> Professor's visit, Rowan's first order on a minimal Orders board, the Skills cards. Make
-> tests/bot.ts play B1-B8. Run the checks, then the indie-critic with the eight questions. Merge
-> to main as the 2.0 beta when the owner says so.
+> Read ROADMAP.md sections 3.2, 5 and 6, and HANDOFF.md. On `works`: replace both tutorial chains
+> with the Keeper's Line (eight beats), opening on the keeper's yard as derelict works to bring
+> back (3.2: machines in the first frame, no debris chores, the pulse and Now strip from minute
+> 0), the Keeper's Notebook, the lesson cards, undo, the Professor's visit, Rowan's first order on
+> a minimal Orders board, the Skills cards. Make tests/bot.ts play B1-B8. Run the checks, then the
+> indie-critic with the eight questions and the Stardew test. Merge to main as the 2.0 beta when
+> the owner says so.
 
 Phase 3:
 > Read ROADMAP.md sections 7.1, 7.3, 7.4, 7.5 and 8. On `works`: the Orders board, research
