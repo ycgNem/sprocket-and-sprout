@@ -65,7 +65,7 @@ function saveMap(m: TileMap) {
     ground: rle(m.ground),
     obj: rle(m.obj),
     objData: rle(m.objData),
-    trees: [...m.trees].map(([i, t]) => [i, t.species, t.stage, t.days, t.fruit, t.tapped ? 1 : 0, t.hp]),
+    trees: [...m.trees].map(([i, t]) => [i, t.species, t.stage, t.days, t.fruit, t.tapped ? 1 : 0, t.hp, t.shook ?? -1]),
     forage: [...m.forage],
   };
 }
@@ -76,7 +76,7 @@ function loadMap(m: TileMap, d: any) {
   m.obj.set(unrle(d.obj, n));
   m.objData.set(unrle(d.objData, n));
   m.trees.clear();
-  for (const [i, species, stage, days, fruit, tapped, hp] of d.trees) m.trees.set(i, { species, stage, days, fruit, tapped: !!tapped, hp: hp ?? 10 });
+  for (const [i, species, stage, days, fruit, tapped, hp, shook] of d.trees) m.trees.set(i, { species, stage, days, fruit, tapped: !!tapped, hp: hp ?? 10, shook: shook ?? -1 });
   m.forage = new Map(d.forage);
   m.dirtyChunks.clear();
   m.version++;

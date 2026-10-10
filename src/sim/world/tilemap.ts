@@ -46,6 +46,8 @@ export interface TreeState {
   fruit: number;
   tapped: boolean;
   hp: number;
+  /** the day a shake last tried it for a seed: a wild tree gives one a day at most */
+  shook?: number;
 }
 
 export interface BuildingInfo {

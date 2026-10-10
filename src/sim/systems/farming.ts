@@ -360,11 +360,19 @@ function treesDay(g: Game) {
       t.days++;
     }
     if (t.stage < 4) continue;
-    if (def.fruit && (def.season === season || inGreenhouse(g, i))) {
-      if (t.fruit < 3) t.fruit++;
+    // a beach palm (wild, its coconut its seed) holds one coconut, sets the next every other day,
+    // and only by the sea air of its season, never under the greenhouse glass (the owner's playtest:
+    // coconuts were abused)
+    if (def.fruit && (def.season === season || (inGreenhouse(g, i) && !def.wild))) {
+      if (!def.wild) {
+        if (t.fruit < 3) t.fruit++;
+      } else if (t.fruit < PALM_FRUIT && t.days % 2 === 0) t.fruit++;
     } else if (def.fruit && def.season !== season) t.fruit = 0;
   }
 }
+
+/** coconuts a beach palm holds at once */
+export const PALM_FRUIT = 1;
 
 export function shakeTree(g: Game, i: number): { k: number; n: number }[] {
   const t = g.map.trees.get(i);
@@ -375,8 +383,11 @@ export function shakeTree(g: Game, i: number): { k: number; n: number }[] {
     const q = t.days > 112 ? 2 : t.days > 56 ? 1 : 0;
     out.push({ k: key(def.fruit, q), n: t.fruit });
     t.fruit = 0;
-  } else if (def?.wild && g.rng.next() < 0.1) {
-    out.push({ k: key(def.sapling), n: 1 });
+  } else if (def?.wild && t.shook !== g.dayIndex) {
+    // a wild tree's seed, now and then: one try a day (the owner's playtest: shaking a beach palm
+    // over and over shook down coconut after coconut)
+    t.shook = g.dayIndex;
+    if (g.rng.next() < 0.1) out.push({ k: key(def.sapling), n: 1 });
   }
   return out;
 }
@@ -389,7 +400,8 @@ export function plantSapling(g: Game, x: number, y: number, treeId: string): str
   if (z !== Z.FARM && z !== Z.GREENHOUSE) return 'Plant trees on your farm';
   if (!TILLABLE.has(m.ground[i]) || m.obj[i] || g.ents.at(x, y) || m.buildingAt[i]) return 'Clear the ground first';
   const def = TREE_BY_ID.get(treeId)!;
-  if (!def.wild) {
+  // fruit trees, and the palm that fruits, need the open space; the timber trees can stand close
+  if (!def.wild || def.fruit) {
     for (let yy = y - 1; yy <= y + 1; yy++)
       for (let xx = x - 1; xx <= x + 1; xx++) {
         if (xx === x && yy === y) continue;
