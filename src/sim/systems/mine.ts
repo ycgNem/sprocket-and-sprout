@@ -30,6 +30,9 @@ export const BEAMS_TO_SHORE = 20;
 /** the flags the Deepworks reads and sets (the Waterworks keystone sets `waterworks` in town) */
 export const DEEP_FLAGS = { lift: 'chamber:lift', pump: 'chamber:pump', cart: 'chamber:cart', shored: 'gallery_shored', drained: 'waterworks' } as const;
 export const FLOOD_TEXT = "The way down is under water. The town's old pump house could drain it.";
+/** planks that prop a cracked ceiling's slab up for good (the Earth's placed fix, as the Clayworks'
+ *  gallery takes beams: the critic's confirmation pass) */
+export const PROP_PLANKS = 2;
 /** seconds between a cracked ceiling's rumble and the rocks coming down */
 export const CRACK_FUSE = 1.5;
 /** how long a star-shard's mark glows before the shard lands */
@@ -78,7 +81,7 @@ export interface Hazard {
   /** cracks come down, gas pockets vent and burn off together, by group */
   group: number;
   /** 0 waiting (a gas pocket: quiet), 1 going off (a crack rumbling, a shard's mark glowing, a pocket
-   * hissing as it builds), 2 spent, 3 a pocket venting */
+   * hissing as it builds), 2 spent, 3 a pocket venting, 4 a crack propped with planks (never falls) */
   state: number;
   /** seconds left: a crack's fuse, a shard's wait or glow, a gas pocket's phase */
   t: number;
@@ -1045,12 +1048,36 @@ function takeLamp(g: Game, st: MineState, i: number): boolean {
   return true;
 }
 
+/** a cracked ceiling still to come down at a tile (rumbling or not) */
+const liveCrack = (st: MineState, x: number, y: number) => st.hazards.find((k) => k.kind === 'crack' && k.x === x && k.y === y && (k.state === 0 || k.state === 1));
+
+/** F at a cracked ceiling: planks prop its slab up for good, the whole crack at once */
+function propCrack(g: Game, st: MineState, h: Hazard): boolean {
+  if (g.player.inv.countId('plank') < PROP_PLANKS) {
+    g.toast(`A cracked ceiling: ${PROP_PLANKS} planks would prop it up.`, 'i:plank');
+    g.emit({ t: 'sfx', id: 'error' });
+    return true;
+  }
+  g.player.inv.removeSpec('plank', PROP_PLANKS);
+  for (const k of st.hazards) if (k.kind === 'crack' && k.group === h.group && (k.state === 0 || k.state === 1)) k.state = 4;
+  g.count('cracks_propped');
+  g.emit({ t: 'fx', kind: 'dust', x: h.x + 0.5, y: h.y + 0.3, n: 6 });
+  g.emit({ t: 'sfx', id: 'place' });
+  if (!st.told.has('propped')) {
+    st.told.add('propped');
+    g.toast('Propped: the slab holds, and the way past it stays open.', 'i:plank');
+  }
+  return true;
+}
+
 function mineInteract(g: Game, tx: number, ty: number): boolean {
   const st = mine(g);
   const m = st.map;
   if (!m) return false;
   const li = lampAt(st, ...lampTile(g, tx, ty));
   if (li >= 0) return takeLamp(g, st, li);
+  const crack = liveCrack(st, tx, ty);
+  if (crack) return propCrack(g, st, crack);
   const o = m.o(tx, ty);
   switch (o) {
     case O.LADDER:
@@ -1085,6 +1112,7 @@ export function minePrompt(g: Game, tx: number, ty: number): { verb: string; x: 
   // (a lamp's tile: the one you face, or the next one on when you stand on that)
   const [lx, ly] = lampTile(g, tx, ty);
   if (lampAt(st, lx, ly) >= 0) return { verb: 'Pick up', x: lx + 0.5, y: ly - 0.9 };
+  if (liveCrack(st, tx, ty)) return top('Prop it up', 0.3, `needs ${PROP_PLANKS} planks`);
   switch (m.o(tx, ty)) {
     case O.LADDER: return top('Climb down');
     case O.SHAFT: return top('Jump down');
@@ -1503,16 +1531,17 @@ function tickHazards(g: Game, st: MineState, dt: number) {
   const ptx = Math.floor(p.x), pty = Math.floor(p.y - 0.2);
   let changed = false, inGas = false, lastGas = -1;
   for (const h of st.hazards) {
-    if (h.state === 2) continue;
+    if (h.state === 2 || h.state === 4) continue;
     if (h.kind === 'crack') {
-      if (h.state === 0 && Math.hypot(p.x - (h.x + 0.5), p.y - (h.y + 0.5)) < 2) {
+      // walking under it sets it off (not just coming near: you can stand beside one to prop it)
+      if (h.state === 0 && onTile(g, h.x, h.y, 0.6)) {
         // the ceiling over this group groans: a rumble, then the rocks come down
         for (const k of st.hazards) if (k.kind === 'crack' && k.group === h.group && k.state === 0) { k.state = 1; k.t = CRACK_FUSE; g.emit({ t: 'fx', kind: 'dust', x: k.x + 0.5, y: k.y + 0.3, n: 4 }); }
         g.emit({ t: 'sfx', id: 'thunder', v: 0.35 });
         g.emit({ t: 'shake', amt: 0.12 });
         if (!st.told.has('crack')) {
           st.told.add('crack');
-          g.toast('The cracked ceiling rumbles! Step clear of the cracks.', undefined, C.apricot);
+          g.toast(`The cracked ceiling rumbles! Step clear of the cracks, or prop it up: ${PROP_PLANKS} planks, F at a crack.`, undefined, C.apricot);
         }
       } else if (h.state === 1) {
         h.t -= dt;

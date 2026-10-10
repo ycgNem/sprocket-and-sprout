@@ -209,7 +209,7 @@ export const QUESTS: QuestDef[] = [
     reward: { money: 5000 } },
   // ---------------- Story ----------------
   { id: 's_clock', title: 'The Silent Clock', giver: 'tobias', after: ['k9_bed'],
-    desc: 'The town clocktower stopped decades ago. Mayor Thistle hopes the town can restore it, one project at a time. Visit the clocktower to see the restoration board.',
+    desc: "The town clocktower stopped decades ago. Mayor Thistle hopes the town's works can start it again, one at a time. Visit the clocktower: its door has the Orders board's Works tab.",
     objectives: [{ t: 'visit', loc: 'clocktower' }],
     reward: { money: 100, flag: 'board_seen' } },
   { id: 's_animals', title: 'Feathered Friends', giver: 'clem', after: ['k9_bed'],

@@ -94,6 +94,10 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   // at most three on screen, oldest first; the rest wait their turn (play.ts ages only these three).
   // Held (not drawn, not aging) while a window is open, since windows cover the top of the screen;
   // a quest ribbon owns the middle of the screen for a moment: toasts wait for it
+  // too narrow between the columns (the 960x600 embed): they stack up from above the hotbar, clear
+  // of the Now strip
+  const narrow = colR - colL < 200;
+  let lowY = ui.h - 66;
   for (const t of play.modalOpen || play.app.renderer.juice.banners.length ? [] : play.hud.toasts.slice(0, 3)) {
     const life = toastLife(t.text);
     const a = t.t < life - 0.7 ? 1 : 1 - (t.t - (life - 0.7)) / 0.7;
@@ -101,11 +105,13 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
     const lines = wrapText(t.text, maxW - 14);
     const w = Math.max(...lines.map((l) => textWidth(l))) + 14;
     const h = lines.length * 10 + 5;
-    ui.panel(midX - Math.round(w / 2), toastY, w, h, 'dark', false);
-    occ.push({ x: midX - Math.round(w / 2), y: toastY, w, h });
-    lines.forEach((l, li) => ui.text(l, midX, toastY + 4 + li * 10, t.color ?? C.cream, { align: 'center' }));
+    const y = narrow ? lowY - h : toastY;
+    ui.panel(midX - Math.round(w / 2), y, w, h, 'dark', false);
+    occ.push({ x: midX - Math.round(w / 2), y, w, h });
+    lines.forEach((l, li) => ui.text(l, midX, y + 4 + li * 10, t.color ?? C.cream, { align: 'center' }));
     ui.ctx.globalAlpha = 1;
-    toastY += h + 2;
+    if (narrow) lowY = y - 2;
+    else toastY += h + 2;
   }
   // the Deepworks level
   if (p.where === 'mine') {

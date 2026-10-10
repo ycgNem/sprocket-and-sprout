@@ -5,7 +5,7 @@ import { Game } from '../src/sim/Game';
 import { key } from '../src/sim/inventory';
 import { O, ORE_TYPES, T, type TileMap } from '../src/sim/world/tilemap';
 import {
-  BEAMS_TO_SHORE, CRACK_FUSE, DEEP_FLAGS, FLOOD_TEXT, LAMP_LIGHT, MAX_FLOOR, VENT_HURT, generateFloor, liftLevels, mine, minePrompt, partsText, themeOf,
+  BEAMS_TO_SHORE, CRACK_FUSE, PROP_PLANKS, DEEP_FLAGS, FLOOD_TEXT, LAMP_LIGHT, MAX_FLOOR, VENT_HURT, generateFloor, liftLevels, mine, minePrompt, partsText, themeOf,
   type Hazard, type MineState, type Monster,
 } from '../src/sim/systems/mine';
 import { CHAMBERS, CHAMBER_BY_KIND, OBSERVATIONS, STRATA, VENT_CYCLE, VENT_ON, VENT_TELL, type ChamberKind } from '../src/data/deepworks';
@@ -281,6 +281,32 @@ describe('the Deepworks: works problems in the way down', () => {
 });
 
 describe('the Deepworks: hazards', () => {
+  it("Earth: planks prop a cracked ceiling for good, from beside it (the critic's placed fix)", () => {
+    const g = new Game({ seed: 34 }), st = mine(g);
+    st.enter(g, 2);
+    const crack = st.hazards.find((h) => h.kind === 'crack')!;
+    const group = st.hazards.filter((h) => h.kind === 'crack' && h.group === crack.group);
+    // beside it: nothing comes down
+    stand(g, crack.x, crack.y + 1);
+    run(g, 0.5);
+    expect(group.every((h) => h.state === 0)).toBe(true);
+    // no planks: it says what it needs
+    g.events.length = 0;
+    expect(st.interact(g, crack.x, crack.y)).toBe(true);
+    expect(group.every((h) => h.state === 0)).toBe(true);
+    expect(g.events.some((e) => e.t === 'toast' && /planks would prop it/.test((e as { text: string }).text))).toBe(true);
+    // two planks: the whole crack is propped, and walking under it brings nothing down
+    g.player.inv.add(key('plank'), 3);
+    st.interact(g, crack.x, crack.y);
+    expect(g.player.inv.countId('plank')).toBe(3 - PROP_PLANKS);
+    expect(group.every((h) => h.state === 4)).toBe(true);
+    const hp = g.player.hp;
+    stand(g, crack.x, crack.y);
+    run(g, CRACK_FUSE + 1);
+    expect(g.player.hp).toBe(hp);
+    for (const h of group) expect(st.map!.o(h.x, h.y)).not.toBe(O.ROCK);
+  });
+
   it('Earth: a cracked ceiling rumbles when you come near and comes down 1.5 s later, on you if you stay', () => {
     const g = new Game({ seed: 34 }), st = mine(g);
     st.enter(g, 2);

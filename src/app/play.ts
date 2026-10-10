@@ -71,6 +71,9 @@ export class PlayScreen implements Screen {
   /** a town keystone's scene: the camera at its building for a few seconds (ROADMAP.md 7.5); `card`
    *  false for one replayed after its card already showed */
   scene: { x: number; y: number; t: number; title: string; text: string; icon?: string; card?: boolean } | null = null;
+  /** when the player last pressed a key or a mouse button (ms): a toast within 0.3 s of it answers
+   *  an action ("The watering can is empty") and goes to the front of the queue */
+  actedAt = -1e9;
   /** keystones finished while you were indoors or asleep (a tagged crate at the night post): their
    *  cards showed then, and the camera goes to look the first time you're outdoors (the critic) */
   sceneReplay: { x: number; y: number; title: string }[] = [];
@@ -237,14 +240,21 @@ export class PlayScreen implements Screen {
         return;
       }
     }
+    // what answers an action you just took doesn't wait behind the morning's news
+    const urgent = performance.now() - this.actedAt < 300;
     const ex = this.hud.toasts.find((t) => t.text === text);
     if (ex) {
       ex.t = 0;
+      if (urgent && this.hud.toasts.indexOf(ex) >= 3) {
+        this.hud.toasts.splice(this.hud.toasts.indexOf(ex), 1);
+        this.hud.toasts.unshift(ex);
+      }
       return;
     }
     // a queue: three on screen, the rest wait their turn (a keystone's finish raises five at once,
     // and "New quest" was the one dropped); past eight the oldest waiting ones go
-    this.hud.toasts.push({ text, t: 0, icon, color });
+    if (urgent) this.hud.toasts.unshift({ text, t: 0, icon, color });
+    else this.hud.toasts.push({ text, t: 0, icon, color });
     if (this.hud.toasts.length > 8) this.hud.toasts.splice(3, 1);
   }
 
@@ -314,6 +324,7 @@ export class PlayScreen implements Screen {
       this.sleepFade = Math.min(1, this.sleepFade + dt * 2);
     } else this.sleepFade = Math.max(0, this.sleepFade - dt * 1.5);
 
+    if (input.pressed.size || input.mouse.pressed.some(Boolean) || input.mouse.down[0] || input.mouse.down[2]) this.actedAt = performance.now();
     // ---- a keystone's scene: the camera goes to look, then its card ----
     if (this.scene) {
       this.scene.t += dt;

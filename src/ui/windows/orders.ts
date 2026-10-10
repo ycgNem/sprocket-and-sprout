@@ -171,7 +171,9 @@ function worksRow(ui: UI, play: PlayScreen, o: Order, x: number, y: number, w: n
   const wait = keystoneWait(g, o.def);
   // what it waits for, on up to two lines (the Tram waits for its research and its rail cart)
   const waitLines = wait ? wrapText(`${orderFull(o) ? 'Everything is in' : 'Its goods can go in now'}. The works start once ${wait}.`, w - 90).slice(0, 2) : [];
-  const h = keystone ? 54 + waitLines.length * 10 : 42;
+  // a project's description on up to two lines ("...from your crocks and kegs for the winter.")
+  const descLines = keystone ? [] : wrapText(p?.desc ?? '', w - 160).slice(0, 2);
+  const h = keystone ? 54 + waitLines.length * 10 : 33 + descLines.length * 9;
   ui.panel(x + 4, y, w - 8, h, 'paper', false);
   if (keystone) {
     ui.fill(x + 4, y, 3, h, C.copper);
@@ -182,7 +184,7 @@ function worksRow(ui: UI, play: PlayScreen, o: Order, x: number, y: number, w: n
     waitLines.forEach((l, i) => ui.text(l, x + 12, y + h - 14 - (waitLines.length - i) * 10, orderFull(o) ? C.moss : C.oak));
   } else {
     ui.text(orderTitle(o), x + 12, y + 4, C.ink);
-    ui.text(ellipsize(p?.desc ?? '', w - 160), x + 12, y + 14, C.walnut);
+    descLines.forEach((l, i) => ui.text(l, x + 12, y + 14 + i * 9, C.walnut));
     ui.text(ellipsize(p?.reward.text ?? '', 130), x + w - 12, y + 4, C.oak, { align: 'right' });
   }
   const money = p?.money ?? 0;

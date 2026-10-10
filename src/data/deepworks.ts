@@ -40,7 +40,7 @@ export const STRATA: StratumDef[] = [
     id: 'earth', name: 'Earth', levels: [1, 5], ores: [[0, 6], [7, 3], [4, 3]], rock: 0.2, ore: 0.055, gem: 0.004, ice: 0,
     extra: [['coal', 0.08], ['clay', 0.05]], decor: 'stalagmite', decorP: 0.018, ladder: [0.06, 0.02], art: 0,
     dark: 0.6, lantern: 6, tint: C.ink,
-    intro: 'The Deepworks: Earth (levels 1-5). Copper, clay and coal. Cracked ceilings come down if you linger under them.',
+    intro: 'The Deepworks: Earth (levels 1-5). Copper, clay and coal. Cracked ceilings come down if you walk under them: 2 planks prop one up for good (F beside it).',
   },
   {
     id: 'clayworks', name: 'Clayworks', levels: [6, 10], ores: [[1, 6], [7, 4]], rock: 0.2, ore: 0.055, gem: 0.005, ice: 0,

@@ -165,7 +165,20 @@ export function questTarget(g: Game): { x: number; y: number; label: string; npc
   };
   // the Now strip's current step may say where to go for it (a villager or a place)
   const now = (q.now?.(g, 1) ?? [])[0] as { id: string; index: number } | undefined;
-  const go = now ? QUEST_BY_ID.get(now.id)?.objectives[now.index]?.goto : undefined;
+  const step = now ? QUEST_BY_ID.get(now.id)?.objectives[now.index] : undefined;
+  const go = step?.goto;
+  // a main step studied at the desk points at the nearest desk; one with no place points nowhere,
+  // rather than at a side quest (the critic: "Study Sawmilling" had the compass on the clocktower)
+  if (now && QUEST_BY_ID.get(now.id)?.main && step && !go && step.t !== 'visit' && step.t !== 'talk') {
+    if (step.t !== 'research') return null;
+    let desk: { x: number; y: number } | null = null, dd = Infinity;
+    for (const e of g.ents.others) {
+      if (e.def.kind !== 'lab' || e.ghost) continue;
+      const d = Math.hypot(e.x + 1 - p.x, e.y + 1 - p.y);
+      if (d < dd) [desk, dd] = [{ x: e.x + 1, y: e.y }, d];
+    }
+    return desk ? { x: desk.x, y: desk.y, label: 'The desk' } : null;
+  }
   for (const a of shown) {
     const def = QUEST_BY_ID.get(a.id);
     if (!def) continue;

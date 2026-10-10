@@ -1366,6 +1366,17 @@ export class Renderer {
         px1(C.pebble, px + 2 + Math.floor(hh * 11), py + 12);
         px1(C.stone, px + 3 + Math.floor(hh * 9), py + 13);
         px1(C.pebble, px + 12 - Math.floor(hh * 8), py + 3);
+        if (h.state === 4) {
+          // propped: two timber posts and a cap beam over the crack
+          ctx.fillStyle = PALETTE[C.walnut];
+          ctx.fillRect(px + 2, py - 10, 2, 22);
+          ctx.fillRect(px + 12, py - 10, 2, 22);
+          ctx.fillRect(px + 1, py - 12, 14, 3);
+          ctx.fillStyle = PALETTE[C.oak];
+          ctx.fillRect(px + 2, py - 10, 1, 22);
+          ctx.fillRect(px + 12, py - 10, 1, 22);
+          ctx.fillRect(px + 1, py - 12, 14, 1);
+        }
         if (h.state === 1) {
           // grit trickling down before the slab goes
           for (let k = 0; k < 3; k++) {

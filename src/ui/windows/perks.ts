@@ -7,8 +7,18 @@ import type { UI } from '../ui';
 import { centered, frame } from './common';
 import { registerWindow, WinState } from './index';
 import { key } from '../../sim/inventory';
+import { ITEM_BY_ID } from '../../data/items';
 
 const SKILL_ICON: Record<string, string> = { farming: 'hoe_2', foraging: 'axe_2', mining: 'pick_2', fishing: 'rod_2', combat: 'sword_2', tinkering: 'copper_gear' };
+/** each perk's own picture: the machine or thing it changes (the critic: both cards showed the same gear) */
+const PERK_ICON: Record<string, string> = {
+  engineer: 'mill', clockmaker: 'waterwheel', industrialist: 'blast_furnace', conservator: 'spring_battery',
+  tiller: 'gleaner', rancher: 'harvester', artisan: 'jar', agriculturist: 'cogbean',
+  lumberjack: 'wood', gatherer: 'sawmill', botanist: 'wild_garlic', tapper_pro: 'plank',
+  miner: 'copper_ore', geologist: 'drill_brass', blacksmith: 'furnace', excavator: 'geode',
+  angler: 'silver_dart', trapper: 'fish_trap', steady: 'rod_2', luremaster: 'bait',
+  brute: 'sword_2', defender: 'iron_plate', warrior: 'sword_1', scavenger: 'amethyst',
+};
 
 function drawPerk(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
@@ -27,8 +37,8 @@ function drawPerk(ui: UI, play: PlayScreen, st: WinState): boolean {
     const cx = x + 14 + i * ((W - 28) / 2 + 0), cw = (W - 28) / 2 - 6;
     const hov = ui.hover(cx, y + 30, cw, 108);
     ui.panel(cx, y + 30, cw, 108, hov ? 'brass' : 'paper', false);
-    const icon = SKILL_ICON[pend.skill];
-    if (icon) ui.itemIcon(key(icon), cx + cw / 2 - 8, y + 38, 16);
+    const icon = PERK_ICON[p.id] && ITEM_BY_ID.has(PERK_ICON[p.id]) ? PERK_ICON[p.id] : SKILL_ICON[pend.skill];
+    if (icon) ui.itemIcon(key(icon), cx + cw / 2 - 10, y + 36, 20);
     ui.text(p.name, cx + cw / 2, y + 60, C.ink, { align: 'center' });
     ui.para(p.desc, cx + 8, y + 74, cw - 16, C.walnut, 9);
     if (ui.button('perk' + p.id, cx + cw / 2 - 30, y + 116, 60, 16, 'Choose', { style: 'green' })) {

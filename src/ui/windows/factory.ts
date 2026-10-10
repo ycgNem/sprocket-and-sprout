@@ -3,6 +3,8 @@ import { C } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { ERA_KEYSTONE, ERA_NAMES, RESEARCH, RESEARCH_BY_ID, eraCol } from '../../data/research';
 import { key } from '../../sim/inventory';
+import { QUEST_BY_ID } from '../../data/goals';
+import { nowLines } from '../../sim/systems/quests';
 import { canResearch, researchUnits, setResearch, stageNext, stageObjMet, stageObjText, stages, unlocksOf } from '../../sim/systems/research';
 import { keystoneOpen, keystoneQuest, townEra } from '../../sim/keystones';
 import { powerState } from '../../sim/systems/power';
@@ -99,11 +101,19 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   else if (ui.clicked && spanY && ui.hover(barY.x - 1, barY.y, barY.w + 2, barY.h)) { st.data.bar = 'y'; ui.eat(); }
   if (st.data.bar === 'x') st.data.panX = -Math.max(0, Math.min(1, (ui.mx - barX.x) / barX.w)) * spanX;
   if (st.data.bar === 'y') st.data.panY = -Math.max(0, Math.min(1, (ui.my - barY.y) / barY.h)) * spanY;
-  // the first visit opens on the topic being studied, else on the era the player is in
+  // the first visit opens on the Now step's topic when it's one to study (k11's "Study Sawmilling"
+  // is a Water topic in the Steam era: the critic), else on the topic being studied, else on the
+  // era the player is in
   if (st.data.panX === 0 && st.data.firstEra === undefined) {
-    const era = Math.min(5, RESEARCH_BY_ID.get(g.research.current ?? '')?.era ?? townEra(g));
-    st.data.firstEra = era;
-    if (era > 1) st.data.panX = -(L.start[era] * GAP_X + (era - 1) * BAND_PAD);
+    const now = nowLines(g, 1)[0];
+    const o = now ? QUEST_BY_ID.get(now.id)?.objectives[now.index] : undefined;
+    const topic = o && (o.t === 'research' || o.t === 'stage') && !g.research.done.has(o.id) ? o.id : null;
+    if (topic && !st.data.focus && RESEARCH_BY_ID.has(topic)) st.data.focus = topic;
+    else {
+      const era = Math.min(5, RESEARCH_BY_ID.get(g.research.current ?? '')?.era ?? townEra(g));
+      st.data.firstEra = era;
+      if (era > 1) st.data.panX = -(L.start[era] * GAP_X + (era - 1) * BAND_PAD);
+    }
   }
   // a topic to show (st.data.focus, e.g. from the screenshot sweep): picked, and scrolled to the middle
   if (st.data.focus && RESEARCH_BY_ID.has(st.data.focus)) {

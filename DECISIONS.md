@@ -520,9 +520,16 @@ recommendations are the decisions.
     - *A crate tagged for the Council or the Guild keeps its tag* when a business posts a new order
       (the Mill's finish posted Rowan's bread a moment before the Waterworks and re-tagged a Council
       crate to the Kettle, so its brass went to market); the works are posted before standing orders.
+    - *The Earth stratum's placed fix* (the confirmation pass: levels 1-5 were still Stardew's mine):
+      a cracked ceiling comes down when you walk under it (it was anywhere within 2 tiles), and 2
+      planks prop the whole crack up for good (F beside it; timber posts show over it).
     - Smaller: Guild contracts wait for their know-how as standing orders do; toasts queue (three on
       screen) instead of dropping one; the journal lists the main path first; the Crystal's dark is
       0.93 and colourless; the validate ring is a pixel gauge on the machine; a keystone finished
       indoors or asleep shows its card then and the camera goes to look once you're outdoors; the
-      research window's "(now)" is the town's era (`townEra`), and the era banner names what comes
-      next ("The Steam era begins").
+      research window's "(now)" is the town's era (`townEra`) and it opens on the Now step's topic
+      when that's one to study; the era banner names what comes next ("The Steam era begins"); a toast
+      within 0.3 s of a key or click (the answer to an action) goes to the front of the queue; on a
+      narrow screen toasts stack above the hotbar, clear of the Now strip; a main step at the desk
+      points the compass at the desk (one with no place points nowhere, not at a side quest); the
+      Works tab wraps a project's description; each perk card has its own picture.
