@@ -239,4 +239,21 @@ for (const k of ['cat', 'dog']) for (let c = 0; c < 4; c++) {
   const row = k === 'cat' ? (c === 3 ? 13 : 14) : 13;
   items.push({ out: `pet_${k}_${c}_6`, from: `pet_${k}_${c}_3`, post: [{ dupRow: row }] });
 }
+
+// ---- Tock, the clockwork companion: pet:tock:0:<pose>, the pet format (22x20, feet at [11, 19]) ----
+// Hand-pixeled sources from tock.mjs (raw/tock/), already outlined and palette-exact; every pose is
+// aligned on the stand pose. Walk 0 1 4 5: the legs shuffle and the body bobs while the wind-up key
+// turns (face-on, a quarter, edge-on, a quarter). 2 sits with the key slowing mid-turn; 3 and 6 rest
+// with the lens dark, 6 being its faint standby glow (the renderer alternates them once a second).
+const TOCK = ['plum', 'brass', 'copper', 'teal', '#7a3045', '#ffffff'];
+items.push({ out: 'base_tock_stand', src: 'raw/tock/stand.png', ...PET, outline: false, pal: TOCK });
+for (const p of ['stand_k1', 'stand_k2', 'sit', 'rest']) items.push({ out: `base_tock_${p}`, like: 'base_tock_stand', src: `raw/tock/${p}.png`, alignTo: 'base_tock_stand' });
+const TOCK_LEGS = { at: 17, legs: [[7, 11], [13, 17]] };
+items.push({ out: 'pet_tock_0_0', from: 'base_tock_stand', post: [] });
+items.push({ out: 'pet_tock_0_1', from: 'base_tock_stand_k1', post: [{ walk: { ...TOCK_LEGS, dx: [1, -1], bob: 1 } }] });
+items.push({ out: 'pet_tock_0_4', from: 'base_tock_stand_k2', post: [{ walk: { ...TOCK_LEGS, dx: [-1, 1] } }] });
+items.push({ out: 'pet_tock_0_5', from: 'base_tock_stand_k1', post: [{ walk: { ...TOCK_LEGS, bob: 1 } }] });
+items.push({ out: 'pet_tock_0_2', from: 'base_tock_sit', post: [] });
+items.push({ out: 'pet_tock_0_3', from: 'base_tock_rest', post: [] });
+items.push({ out: 'pet_tock_0_6', from: 'base_tock_rest', post: [{ recolor: { '#0b5e65': '#0b8a8f', '#0b8a8f': '#0eaf9b' } }] });
 export default { ramps, items };

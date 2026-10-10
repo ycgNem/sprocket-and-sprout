@@ -325,6 +325,44 @@
           "petbed"
         ]
       ]
+    },
+    "w36": {
+      "size": 36,
+      "extra": "workshop pieces two floor tiles wide (Phase 5: the Workshop HQ): the drafting table, the workbench, the tool wall",
+      "description": "cozy workshop furniture for a warm rustic steampunk farming game, high top-down 3/4 view showing the top and the front face, chunky readable pixel art, 1 px dark plum outline, light from the upper left, warm reddish-brown and dark timber wood, polished brass fittings, Stardew Valley style, isolated object, no floor, no drop shadow",
+      "groups": [
+        [
+          14,
+          "wide wooden drafting table two floor tiles wide: a large tilted drafting board on a sturdy dark timber stand with four legs, a blue blueprint sheet with pale white lines pinned on the board, a long brass parallel rule across the board, a small brass desk lamp on a bent arm clamped to the top left corner glowing warm, a few rolled blueprints standing in a brass basket at the right end, wider than tall",
+          "drafting"
+        ],
+        [
+          10,
+          "architect's drafting desk, wider than tall: a dark wood frame, a big slanted board covered with a blue blueprint drawing of gears, a brass ruler and a compass lying on it, a brass swing-arm lamp at the top left glowing warm, rolled paper scrolls standing in a bin at the side",
+          "drafting"
+        ],
+        [
+          10,
+          "sturdy wide wooden workbench two floor tiles wide, low: a thick reddish-brown timber top, a small iron bench vice with a brass handle at the left end, brass gears, a hammer and a wrench lying on top, a lower shelf with a wooden toolbox, chunky square legs, much wider than tall",
+          "workbench"
+        ],
+        [
+          10,
+          "tinkerer's workbench, wide and low: a heavy dark wood bench, brass gears and cogs scattered on top, a vice clamped to one end, a copper oil can, a lower shelf holding a crate of parts, much wider than tall",
+          "workbench"
+        ],
+        [
+          10,
+          "pegboard tool wall, flat front view, hanging on a wall: a wide rectangular reddish-brown wooden pegboard panel with rows of small holes, a saw, a hammer, wrenches, screwdrivers with brass handles and pliers hanging on pegs, a couple of brass gears on hooks, twice as wide as tall",
+          "toolwall"
+        ],
+        [
+          10,
+          "tool rack on the wall, flat front view, much wider than tall: a dark wood plank board with pegs holding a hand saw, a hammer, three wrenches of different sizes, a coil of copper wire and a brass gear, simple and readable",
+          "toolwall"
+        ]
+      ],
+      "note": "15 generations. What came back, by eye (the batch drifted from the slot order): 0-23 drafting tables, 24-47 workbenches (24-31 orange tops, 40-47 dark walnut with brass gears and an oil can), 48-55 pegboards and loose tools, 56-63 plank racks. Used: 2 (hf:drafting; lamp redrawn, a parallel rule and a basket of rolled blueprints added, legs shortened) and 45 (hf:workbench; its dark walnut graded to warm timber with srcMap, top and crate shortened). The pegboards (49, 51) came out 32x24, too tall for the wall row: hf:toolwall is hand-pixeled after them (toolwall.mjs)."
     }
   },
   "ids": {
@@ -340,7 +378,9 @@
     "fire animate_image": "2b3eb4cf-d85d-4120-8b37-788f9e1742d5",
     "px/window (pixen)": "69987f98-c92f-48f8-ad77-274973f07953",
     "px/trophy (pixen)": "75c8d3e0-78f9-4989-96c8-3a89b7670aaa",
-    "px/musicbox2 (pixflux img2img)": "f1ecb13c-07a3-447c-be53-c6ff45fd65a5"
+    "px/musicbox2 (pixflux img2img)": "f1ecb13c-07a3-447c-be53-c6ff45fd65a5",
+    "w36": "25df3629-be54-47c8-823f-59166b5c55d0",
+    "pf/toolwall1 (Pro Flash 32x16, rejected: no board, blue tools)": "52378772-23c3-4d0c-86ba-016f408e6273"
   },
   "lessons": [
     "Art fills ~85-90% of the canvas height; width follows the object (b22 armchairs 18 wide at size 22). Asking for \"narrow\" does not narrow it (b28 dressers 24 wide, stoves 20).",
@@ -348,6 +388,9 @@
     "Sizes above 32 cost 15 per 64-slot batch (b36), not 10.",
     "Pro Flash (5 per image) gives an exact canvas such as 16x32: good for narrow wall-run pieces (bookcase, pantry, stove); busy patterns (patchwork) turn to noise at 16 px wide.",
     "Cream (#fde2b4 and the like) has no Resurrect 64 match and lands on taupe or sage: map it per sprite in fixups.json.",
-    "Flame animation: paint seed flames into the empty hearth, animate_image (1 generation, 6 frames), then keep only fire-colored pixels over the dark interior (fire.mjs)."
+    "Flame animation: paint seed flames into the empty hearth, animate_image (1 generation, 6 frames), then keep only fire-colored pixels over the dark interior (fire.mjs).",
+    "A 36 px batch draws 2-tile pieces 30-32 wide but deep (tops 15-17 rows): cutRows in fixups.json shortens a top or legs without touching the props on it.",
+    "Dark walnut (L 16-36) lands on the outline color in the plain snap: grade it with srcMap (exact source colors to a chosen wood ramp) before snapping.",
+    "Pro Flash at 32x16 with a pegboard style image ignored the board and drew loose blue tools (5 generations): hand-pixel short wall pieces instead."
   ]
 }

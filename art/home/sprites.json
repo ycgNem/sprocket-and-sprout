@@ -1,7 +1,7 @@
 {
   "name": "home",
   "kind": "sprites",
-  "meta": {"source":"art/home: PixelLab batches (batches.json) + Pro Flash pieces, hand fix-ups in fixups.json (node art/home/fixups.mjs before importing)"},
+  "meta": {"source":"art/home: PixelLab batches (batches.json) + Pro Flash pieces, hand fix-ups in fixups.json (node art/home/fixups.mjs before importing); the tool wall is hand-pixeled (node art/home/toolwall.mjs)"},
   "sprites": [
     {"match":"hf:chair:0:*","file":"src/chair.png","frame":[16,20],"origin":[0,4],"at":[8,19]},
     {"match":"hf:armchair:0:*","file":"src/armchair0.png","frame":[18,20],"origin":[1,4],"at":[9,19]},
@@ -72,6 +72,9 @@
     {"match":"hf:bed:0:*","file":"src/bed.png","frame":[16,40],"origin":[0,8],"at":[8,39]},
     {"match":"hf:bed:1:*","like":"hf:bed:0:*","recolor":{"#f68181":"#a884f3","#ae2334":"#6b3e75","#9e4539":"#905ea9"}},
     {"match":"hf:shelf:2:*","like":"hf:shelf:1:*"},
-    {"match":"hf:plant:2:*","like":"hf:plant:1:*"}
+    {"match":"hf:plant:2:*","like":"hf:plant:1:*"},
+    {"match":"hf:drafting:0:*","file":"src/drafting.png","frame":[32,28],"origin":[0,12],"at":[16,27]},
+    {"match":"hf:workbench:0:*","file":"src/workbench.png","frame":[32,23],"origin":[0,7],"at":[16,22]},
+    {"match":"hf:toolwall:0:*","file":"src/toolwall.png","frame":[32,16],"origin":[0,9],"at":[16,15]}
   ]
 }

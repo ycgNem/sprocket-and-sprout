@@ -18,7 +18,8 @@ for (const k of BARN) for (let f = 0; f < 4; f++) {
 for (const k of COOP) for (let f = 0; f < 4; f++) for (const b of [0, 1]) add(`an:${k}:${f}:${b}`, `an_${k}_${b}_${f}`, [16, 16], [8, 15]);
 
 // pet:<kind>:<coat>:<pose>  (0 stand, 1 walk, 2 sit, 3 sleep; extras: 4-5 finish a 4-frame walk, 6 sleep breathing in)
-for (const k of ['cat', 'dog']) for (let c = 0; c < 4; c++) for (let p = 0; p < 7; p++) if (has(`pet_${k}_${c}_${p}`)) add(`pet:${k}:${c}:${p}`, `pet_${k}_${c}_${p}`, [22, 20], [11, 19]);
+// tock = the clockwork companion (one coat): 2 sits winding down, 3 and 6 rest with the lens dark / glowing faintly
+for (const k of ['cat', 'dog', 'tock']) for (let c = 0; c < 4; c++) for (let p = 0; p < 7; p++) if (has(`pet_${k}_${c}_${p}`)) add(`pet:${k}:${c}:${p}`, `pet_${k}_${c}_${p}`, [22, 20], [11, 19]);
 
 // bowl:<full>  (drawn at the tile's top-left corner)
 for (const b of [0, 1]) if (has(`bowl_${b}`)) add(`bowl:${b}`, `bowl_${b}`, [16, 16], [0, 0]);
