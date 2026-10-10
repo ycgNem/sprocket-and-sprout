@@ -12,7 +12,6 @@ import { itemTooltip } from '../tooltips';
 import { specIcon } from './menu';
 import { RECIPE_TEACHERS, shortName } from '../../data/cookbook';
 import { NPC_BY_ID } from '../../data/npcs';
-import { ICON } from '../font';
 import { adoptPet, declinePet, petSys, PET_COATS } from '../../sim/systems/pet';
 import { sprite, drawFit } from '../../render/atlas';
 
@@ -51,7 +50,7 @@ function drawCooking(ui: UI, play: PlayScreen, st: WinState): boolean {
       ui.itemIcon(key(out.id), rx + 3, ry + 3, 16, 0, 0.25);
       const t = RECIPE_TEACHERS[out.id];
       ui.text('Unknown recipe', rx + 22, ry + 2, C.oak);
-      ui.text(t ? `${shortName(NPC_BY_ID.get(t.npc)?.name ?? t.npc)} may teach it (${t.hearts}${ICON.heart})` : 'Not learned yet', rx + 22, ry + 12, C.walnut, { maxW: colW - 26 });
+      ui.text(t ? `${shortName(NPC_BY_ID.get(t.npc)?.name ?? t.npc)} may teach it at Trust ${t.hearts}` : 'Not learned yet', rx + 22, ry + 12, C.walnut, { maxW: colW - 26 });
       return;
     }
     ui.fill(rx, ry, colW, 22, can ? C.cream : C.tan, can ? 0.6 : 0.35);
