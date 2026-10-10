@@ -258,6 +258,12 @@ export function updatePower(g: Game, dt: number) {
     }
     e.sat = Math.min(1, (ps.nets.get(e.net)?.sat ?? 0) / gov);
   }
+  // the Sprocket Fair's test bed (src/sim/testbed.ts) has its own grid, which powers everything on
+  // the bed fully; a real world never sets this
+  if (g.sys.bedPower) for (const e of g.ents.consumers) {
+    e.sat = 1;
+    e.off = false;
+  }
   for (const v of powerLoads(g)) v.sat = v.on && v.net ? ps.nets.get(v.net)?.sat ?? 0 : 0;
   // history once per second
   ps.histAcc += dt;

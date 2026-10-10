@@ -1,12 +1,15 @@
-// Activity windows: fishing tension reel, mine elevator, festivals and their minigames.
-import { shortName } from '../../data/cookbook';
+// Activity windows: fishing tension reel, mine elevator, festivals: Lantern Night's fireflies and
+// Frostlight Skate here, the Sprocket Fair's test bed (fair.ts) and the Harvest Haul's auction
+// (auction.ts) in their own files.
 import { C } from '../../data/palette';
-import { FESTIVALS, TOKEN_SHOP } from '../../data/goals';
+import { FESTIVALS } from '../../data/goals';
 import { ITEM_BY_ID } from '../../data/items';
-import { NPC_BY_ID } from '../../data/npcs';
 import { key } from '../../sim/inventory';
 import { fishing } from '../../sim/systems/fishing';
-import { finishActivity } from '../../sim/systems/festivals';
+import { festivalName, finishActivity } from '../../sim/systems/festivals';
+import { drawFair } from './fair';
+import { drawHaul } from './auction';
+import { drawTokenStall } from './stall';
 import { DEEP_FLAGS, FLOOD_LEVEL, FLOOD_TEXT, mine } from '../../sim/systems/mine';
 import { STRATA } from '../../data/deepworks';
 import { sprite, drawSprite, drawItemIcon } from '../../render/atlas';
@@ -108,11 +111,14 @@ interface Game2 { score: number; t: number; [k: string]: any }
 function drawFestival(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
   const f = FESTIVALS.find((x) => x.id === st.arg)!;
+  // the works festivals have windows of their own: the Professor's test bed, the Mayor's auction
+  if (f.activity === 'fair') return drawFair(ui, play, st, f);
+  if (f.activity === 'haul') return drawHaul(ui, play, st, f);
   if (st.data.mode === 'play') return drawMinigame(ui, play, st, f.activity);
   if (st.data.mode === 'done') {
     const w = 260, h = 110;
     const { x, y } = centered(ui, w, h);
-    if (!frame(ui, x, y, w, h, f.name)) return false;
+    if (!frame(ui, x, y, w, h, festivalName(f, true))) return false;
     ui.text(`Score: ${Math.round(st.data.score)}`, x + w / 2, y + 14, C.ink, { align: 'center', scale: 2 });
     ui.para(st.data.msg ?? '', x + 12, y + 40, w - 24, C.walnut);
     if (ui.button('fdone', x + w / 2 - 30, y + h - 26, 60, 18, 'Hooray!', { style: 'green' })) return false;
@@ -120,8 +126,7 @@ function drawFestival(ui: UI, play: PlayScreen, st: WinState): boolean {
   }
   const w = 300, h = 210;
   const { x, y } = centered(ui, w, h);
-  if (!frame(ui, x, y, w, h, f.name)) return false;
-  const host = NPC_BY_ID.get(f.host)!;
+  if (!frame(ui, x, y, w, h, festivalName(f, true))) return false;
   wrapText(f.intro, w - 24).forEach((l, i) => ui.text(l, x + 12, y + 14 + i * 10, C.walnut));
   const played = g.flags.has(`fest_${f.id}_${g.time.year}`);
   ui.text(`Prizes: ${f.prizes.map((p) => `${p.score}+ pts`).join(', ')}`, x + 12, y + 70, C.oak);
@@ -130,21 +135,7 @@ function drawFestival(ui: UI, play: PlayScreen, st: WinState): boolean {
     st.data.game = null;
   }
   ui.text(`Best: ${g.counters['best_' + f.id] ?? 0}`, x + 140, y + 90, C.walnut);
-  // token stall
-  ui.text(`Token stall (${shortName(host.name)}): you have ${g.player.inv.countId('ticket')} tokens`, x + 12, y + 114, C.ink);
-  TOKEN_SHOP.forEach((t, i) => {
-    const sx = x + 12 + (i % 4) * 70, sy = y + 128 + Math.floor(i / 4) * 34;
-    const r = ui.slot(sx, sy, { k: key(t.item), n: 1 });
-    ui.text(`${t.tickets}`, sx + 24, sy + 6, C.walnut);
-    if (r.hover) ui.tip([{ text: ITEM_BY_ID.get(t.item)!.name, color: C.amber }, { text: `${t.tickets} festival tokens`, color: C.pebble }]);
-    if (r.click) {
-      if (g.player.inv.countId('ticket') >= t.tickets) {
-        g.player.inv.removeSpec('ticket', t.tickets);
-        g.give(key(t.item), 1);
-        ui.sfx('buy');
-      } else ui.sfx('error');
-    }
-  });
+  drawTokenStall(ui, play, x + 12, y + 114, f.host);
   return true;
 }
 
@@ -166,30 +157,8 @@ function drawMinigame(ui: UI, play: PlayScreen, st: WinState, kind: string): boo
   const G: Game2 = (st.data.game ??= { score: 0, t: 0 });
   G.t += dt;
   const ax = x + 8, ay = y + 20, aw = W - 16, ah = H - 28;
-  ui.fill(ax, ay, aw, ah, kind === 'skate' ? C.frost : kind === 'firefly' ? C.deepsea : kind === 'kite' ? C.sky : C.grass);
-  const down = ui.input.mouse.down[0] || ui.input.down.has('Space');
-  if (kind === 'kite') {
-    const T = 40;
-    // breeze band drifts up and down
-    G.band = 0.5 + Math.sin(G.t * 0.9) * 0.25 + Math.sin(G.t * 2.3) * 0.08;
-    G.h = G.h ?? 0.5;
-    G.v = (G.v ?? 0) + (down ? 1.3 : -0.9) * dt;
-    G.v *= 0.96;
-    G.h = Math.max(0, Math.min(1, G.h + G.v * dt));
-    const bandH = 0.22;
-    const inBand = Math.abs(G.h - G.band) < bandH / 2;
-    if (inBand) G.score += dt * 30;
-    ui.fill(ax, ay + (G.band - bandH / 2) * ah, aw, bandH * ah, C.aqua);
-    for (let i = 0; i < 5; i++) ui.fill(ax + ((G.t * 60 + i * 61) % aw), ay + (G.band - 0.05 + (i % 2) * 0.1) * ah, 12, 1, C.cream);
-    const kx = ax + aw * 0.6, ky = ay + G.h * ah;
-    ui.fill(kx - 5, ky - 7, 10, 14, inBand ? C.rose : C.blush);
-    ui.fill(kx - 1, ky - 7, 2, 14, C.wine);
-    for (let i = 0; i < 8; i++) ui.fill(kx - 3 - i * 2 + Math.sin(G.t * 6 + i) * 2, ky + 7 + i * 3, 2, 2, C.butter);
-    ui.fill(ax + 20, ay + ah - 6, 2, 6, C.walnut);
-    ui.text(`Hold to pull down, release to rise. ${Math.ceil(T - G.t)}s`, x + 8, y + 7, C.ink);
-    ui.text(`${Math.round(G.score)}`, x + W - 10, y + 7, C.ink, { align: 'right' });
-    if (G.t >= T) endGame(play, st, Math.round(G.score * 1.0));
-  } else if (kind === 'firefly') {
+  ui.fill(ax, ay, aw, ah, kind === 'skate' ? C.frost : C.deepsea);
+  if (kind === 'firefly') {
     const T = 40;
     G.flies = G.flies ?? [];
     if (G.flies.length < 9 && Math.random() < 0.08) G.flies.push({ x: Math.random(), y: Math.random(), vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3, gold: Math.random() < 0.15, life: 3 + Math.random() * 3 });
@@ -214,51 +183,6 @@ function drawMinigame(ui: UI, play: PlayScreen, st: WinState, kind: string): boo
     ui.text(`Click the fireflies! ${Math.ceil(T - G.t)}s`, x + 8, y + 7, C.ink);
     ui.text(`${G.score}`, x + W - 10, y + 7, C.ink, { align: 'right' });
     if (G.t >= T) endGame(play, st, G.score);
-  } else if (kind === 'pumpkin') {
-    G.roll = G.roll ?? 0;
-    G.phase = G.phase ?? 'aim';
-    const laneL = ax + 20, laneR = ax + aw - 20;
-    // target rings at the far end
-    const tx = (laneL + laneR) / 2, ty = ay + 30;
-    for (const [r, c] of [[34, C.cream], [24, C.rose], [14, C.cream], [6, C.rose]] as const) {
-      ui.fill(tx - r, ty - r / 2, r * 2, r, c);
-    }
-    ui.fill(laneL - 2, ay, 2, ah, C.moss);
-    ui.fill(laneR, ay, 2, ah, C.moss);
-    const sx = (laneL + laneR) / 2, sy = ay + ah - 16;
-    if (G.phase === 'aim') {
-      G.aim = Math.sin(G.t * 2.2) * 0.9;
-      for (let i = 0; i < 6; i++) ui.fill(sx + G.aim * i * 6, sy - i * 8, 2, 2, C.ink);
-      if (ui.clicked) { ui.eat(); G.phase = 'power'; G.pt = 0; }
-    } else if (G.phase === 'power') {
-      G.pt += dt;
-      G.power = 0.5 + Math.sin(G.pt * 3) * 0.5;
-      ui.bar(ax + 8, ay + ah - 10, 60, 6, G.power, C.amber);
-      if (ui.clicked) { ui.eat(); G.phase = 'roll'; G.px = sx; G.py = sy; G.vx = G.aim * 40; G.vy = -(60 + G.power * 150); }
-    } else if (G.phase === 'roll') {
-      G.px += G.vx * dt;
-      G.py += G.vy * dt;
-      G.vx *= 0.995;
-      G.vy *= 0.985;
-      if (G.px < laneL + 4 || G.px > laneR - 4) G.vx *= -0.6;
-      if (Math.abs(G.vy) < 6 || G.py < ay + 4) {
-        const d = Math.hypot((G.px - tx) / 34, (G.py - ty) / 17);
-        const pts = d < 0.18 ? 100 : d < 0.42 ? 50 : d < 0.72 ? 25 : d < 1 ? 10 : 0;
-        G.score += pts;
-        G.last = pts;
-        G.roll++;
-        G.phase = G.roll >= 3 ? 'end' : 'aim';
-        ui.sfx(pts >= 50 ? 'levelup' : 'thud');
-      }
-    }
-    const px = G.phase === 'roll' ? G.px : sx, py = G.phase === 'roll' ? G.py : sy;
-    ui.fill(px - 6, py - 5, 12, 10, C.apricot);
-    ui.fill(px - 1, py - 7, 2, 3, C.moss);
-    ui.fill(px - 3, py - 5, 1, 10, C.terracotta);
-    ui.fill(px + 2, py - 5, 1, 10, C.terracotta);
-    ui.text(`Roll ${Math.min(3, G.roll + 1)}/3  ${G.phase === 'aim' ? 'click to aim' : G.phase === 'power' ? 'click for power' : ''}`, x + 8, y + 7, C.ink);
-    ui.text(`${G.score}${G.last !== undefined ? ` (+${G.last})` : ''}`, x + W - 10, y + 7, C.ink, { align: 'right' });
-    if (G.phase === 'end') endGame(play, st, G.score);
   } else if (kind === 'skate') {
     const T = 60;
     G.px = G.px ?? 0.5;

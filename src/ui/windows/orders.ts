@@ -10,7 +10,7 @@ import { ERA_NAMES } from '../../data/research';
 import { GUILD_BONUS_PER_RANK } from '../../data/contracts';
 import { key } from '../../sim/inventory';
 import {
-  bagHelps, boardHandIn, custName, custNpc, daysLeftInWeek, dueText, fits, guildRank, keystoneWait, lineLeft, orderFull, orderTitle, orders, payWorks, rank, repOf,
+  bagHelps, boardHandIn, custName, custNpc, daysLeftInWeek, dueText, fits, guildRank, haulToday, keystoneWait, lineLeft, orderFull, orderTitle, orders, payWorks, rank, repOf,
   specLabel, villagerName, type Order,
 } from '../../sim/systems/orders';
 import type { PlayScreen } from '../../app/play';
@@ -96,9 +96,11 @@ function readiness(g: PlayScreen['g'], o: Order): number {
 function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number): number {
   const g = play.g;
   const os = orders(g);
+  // the Harvest Haul: every standing order pays double today
+  const haul = haulToday(g);
   let yy = y;
   ui.text('Standing orders', x + 6, yy, C.ink);
-  ui.text('Hand them over, or tag a crate (F at it): the post delivers', x + w - 6, yy, C.oak, { align: 'right' });
+  ui.text(haul ? 'The Harvest Haul: every standing order pays double today' : 'Hand them over, or tag a crate (F at it): the post delivers', x + w - 6, yy, haul ? C.amber : C.oak, { align: 'right' });
   yy += 12;
   // the businesses whose orders the bag can fill first, and their fillable orders first
   const standing = os.open.filter((o) => o.kind === 'standing').sort((a, b) => readiness(g, a) - readiness(g, b));
@@ -126,11 +128,14 @@ function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number)
       all.slice(0, 3).forEach((l, i) => ui.text(i === 2 && all.length > 3 ? ellipsize(l + ' ' + all.slice(3).join(' '), tw - 70) : l, tx, yy + 4 + i * 9, C.walnut));
       ui.text(dueText(g, o), x + w - 10, yy + 4, C.oak, { align: 'right' });
       drawLines(ui, o, tx, yy + 39, tw - 120);
-      const pay = def.unit ? `${ICON.coin}${def.unit} each${def.silver ? `, silver ${def.unit * 2}` : ''}` : def.reward?.text ?? '';
-      ui.text(ellipsize(pay, 140), x + w - 10, yy + 39, orderFull(o) ? C.moss : C.oak, { align: 'right' });
+      // what it pays now: the Harvest Haul doubles it today
+      const unit = (o.unit ?? def.unit) * (haul ? 2 : 1);
+      const pay = unit ? `${ICON.coin}${unit} each${def.silver ? `, silver ${unit * 2}` : ''}${haul ? ' today' : ''}` : def.reward?.text ?? '';
+      ui.text(ellipsize(pay, 140), x + w - 10, yy + 39, orderFull(o) ? C.moss : haul ? C.amber : C.oak, { align: 'right' });
       if (ui.hover(x + 4, yy, w - 8, 52)) {
         ui.tip([
           { text: `${custName(cust)}: ${ITEM_BY_ID.get(def.spec)?.name ?? specLabel(def.spec)}`, color: C.amber },
+          ...(haul ? [{ text: 'The Harvest Haul: it pays double today, by hand and by the post.', color: C.butter }] : []),
           { text: 'By hand: hold them and press F at ' + (npc ? villagerName(npc) : custName(cust)) + '.' },
           { text: `By the post: F at your crate, "Ship to" ${custName(cust)}. At noon, 6pm and overnight the post takes what fits this order there first.` },
           { text: `Reputation +${o.rep} when it's filled: ${REP_RANKS[Math.min(5, rank(g, cust) + 1)].name} opens their next order and new stock.`, color: C.pebble },

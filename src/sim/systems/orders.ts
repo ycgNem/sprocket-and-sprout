@@ -13,7 +13,7 @@
 // post (noon, 6pm, overnight) before the market gets the rest. Orders pay above market and never
 // saturate it.
 import { CONTRACT_POOL, GUILD_BONUS_PER_RANK, type ContractDef } from '../../data/contracts';
-import { PROJECTS, PROJECT_BY_ID, REQUEST_POOL } from '../../data/goals';
+import { FESTIVALS, PROJECTS, PROJECT_BY_ID, REQUEST_POOL } from '../../data/goals';
 import { ITEMS, ITEM_BY_ID, matchesSpec } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
 import { C } from '../../data/palette';
@@ -159,9 +159,23 @@ export function dueText(g: Game, o: Order): string {
   return `due ${WEEKDAYS[(g.weekday + d) % 7]}`;
 }
 
-/** coins for n of item k on this order: silver or better pays double where the order says so */
-export function payFor(o: Order, k: ItemKey, n: number): number {
-  return (o.unit ?? 0) * n * (o.silver && kQ(k) >= 1 ? 2 : 1);
+/**
+ * The Harvest Haul (src/data/goals.ts f_haul): the town's trade fair, when every business's standing
+ * order pays double all day, by hand and by the day's posts (noon, 6pm and that night's). Not in
+ * Clockwork Rush, which has no festivals.
+ */
+export function haulToday(g: Game): boolean {
+  if (g.mode === 'rush') return false;
+  const f = FESTIVALS.find((x) => x.activity === 'haul');
+  return !!f && f.season === g.time.season && f.day === g.time.day;
+}
+
+/**
+ * coins for n of item k on this order: silver or better pays double where the order says so, and a
+ * standing order pays double on the Harvest Haul
+ */
+export function payFor(g: Game, o: Order, k: ItemKey, n: number): number {
+  return (o.unit ?? 0) * n * (o.silver && kQ(k) >= 1 ? 2 : 1) * (o.kind === 'standing' && haulToday(g) ? 2 : 1);
 }
 
 const fitsLine = (l: OrderLine, k: ItemKey) => l.have < l.n && matchesSpec(kDef(k), l.spec);
@@ -361,7 +375,7 @@ function deliver(g: Game, o: Order, k: ItemKey, n: number, via: 'hand' | 'post' 
     took += t;
   }
   if (took <= 0) return { took: 0, coins: 0 };
-  const coins = payFor(o, k, took);
+  const coins = payFor(g, o, k, took);
   if (coins && via !== 'post') {
     g.player.money += coins;
     g.earned += coins;

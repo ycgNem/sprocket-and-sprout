@@ -18,6 +18,8 @@ export interface BlueprintItem {
   /** splitter filter key and output priority */
   sf?: number;
   sp?: number;
+  /** the recipe an unlocked machine last ran: a paste ignores it; the Sprocket Fair's bed feeds it that */
+  last?: string;
 }
 
 export interface Blueprint {
@@ -37,6 +39,7 @@ export function copyBlueprint(g: Game, x0: number, y0: number, x1: number, y1: n
       if (e.def.kind === 'building' || e.def.kind === 'megaproject') continue;
       const it: BlueprintItem = { def: e.def.id, dx: e.x - x0, dy: e.y - y0, rot: e.rot };
       if (e.mach?.locked && e.mach.recipe) it.recipe = e.mach.recipe.id;
+      else if (e.mach?.recipe) it.last = e.mach.recipe.id;
       if (e.arm?.filter.length) it.filter = [...e.arm.filter];
       if (e.arm?.limit) it.limit = e.arm.limit;
       if (e.belt && (e.belt.sFilter ?? -1) >= 0) it.sf = e.belt.sFilter;

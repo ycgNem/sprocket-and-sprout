@@ -488,23 +488,17 @@ describe('mine variety', () => {
   });
 });
 
-describe("founder's day", () => {
-  it('reviews the farm each new year and grants candle rewards once', async () => {
+describe("founder's candles (the Sprocket Fair's prizes since 2.0 Phase 5)", () => {
+  it('a new year brings no review any more; the candle rewards are granted once each', async () => {
     const F = await import('../src/sim/systems/founders');
     const { unitPrice } = await import('../src/sim/systems/economy');
     const g = new Game({ seed: 26 });
     g.time.year = 1; g.time.season = 3; g.time.day = 28;
     sleep(g);
     expect(g.time.year).toBe(2);
-    expect(g.flags.has('eval_pending')).toBe(true);
-    g.earned = 300000;
-    for (const s of Object.keys(g.player.skills)) g.player.skills[s] = 9;
-    const ev = F.evaluate(g);
-    expect(ev.score).toBeGreaterThanOrEqual(6);
-    expect(ev.candles).toBeGreaterThanOrEqual(1);
+    // Founder's Day's evaluation is retired: the Fair's ribbons are the year's review
+    expect(g.flags.has('eval_pending')).toBe(false);
     const price = unitPrice(g, key('radish'));
-    g.earned = 2000000;
-    for (const n of npcSys(g).list) n.points = 1300;
     const got = F.claimCandles(g, 3);
     expect(got).toEqual([1, 2, 3]);
     expect(g.player.inv.countId('f_lantern')).toBe(1);

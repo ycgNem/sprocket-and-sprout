@@ -127,7 +127,11 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'partner', name: 'The Brass Locket', desc: 'Find a partner to share your farm with.', cat: 'village', tier: 3, icon: 'heart_charm', ...num('partner', 1) },
   { id: 'requests20', name: 'Good Neighbor', desc: 'Complete 20 town requests from the notice board.', cat: 'village', tier: 2, icon: 'bread', ...num('requests', 20) },
   { id: 'quests15', name: 'Story Time', desc: 'Complete 15 quests.', cat: 'village', tier: 2, icon: 'f_bookcase', ...num('quests', 15) },
+  // the four are the Sprocket Fair, Lantern Night, the Harvest Haul and Frostlight Skate (a save that went
+  // to Kite Day or the Pumpkin Roll counts them as the Fair and the Haul: src/sim/systems/festivals.ts)
   { id: 'festivals', name: 'Festive Spirit', desc: 'Take part in all four festivals.', cat: 'village', tier: 2, icon: 'ticket', ...num('festivals', 4) },
+  { id: 'fair_ribbon', name: 'Blue Ribbon', desc: 'Beat all three entries at the Sprocket Fair with a line of your own.', cat: 'factory', tier: 2, icon: 'f_gilded_clock', ...num('fair_ribbons', 1) },
+  { id: 'auction_win', name: 'Going, Going, Gone', desc: 'Win a lot at auction: the Harvest Haul or Mags\' Sunday lot.', cat: 'village', tier: 1, icon: 'f_globe', ...num('auction_wins', 1) },
   { id: 'contracts5', name: 'Reliable Supplier', desc: 'Fill 5 Trading Guild contracts.', cat: 'village', tier: 1, icon: 'crate_out', ...num('contracts', 5) },
   { id: 'guild5', name: 'Guild Partner', desc: 'Reach the top Trading Guild rank.', cat: 'village', tier: 3, icon: 'f_banner', test: (g) => (g.sys.orders?.rep?.guild ?? 0) >= 20, prog: (g) => [g.sys.orders?.rep?.guild ?? 0, 20] },
   { id: 'projects8', name: 'Restorer', desc: 'Complete 8 restoration projects.', cat: 'village', tier: 2, icon: 'brick', test: (g) => projectsDone(g) >= 8, prog: (g) => [projectsDone(g), 8] },
