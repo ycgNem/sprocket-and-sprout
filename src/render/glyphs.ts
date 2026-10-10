@@ -20,7 +20,8 @@ const KIND_OF: Partial<Record<MState, GlyphKind>> = {
 
 /** a stage's problem comes from its neighbour (so the neighbour carries the glyph) */
 function isSymptom(g: Game, e: Ent): boolean {
-  if (e.state === MState.Starved) return feedersOf(g, e).some((f) => f.state === MState.Starved || f.state === MState.Unpowered || f.state === MState.NeedsFuel);
+  // starved because its feeder is starved, unpowered, or stopped by an item this one can't use
+  if (e.state === MState.Starved) return feedersOf(g, e).some((f) => f.state === MState.Starved || f.state === MState.Unpowered || f.state === MState.NeedsFuel || (f.state === MState.Blocked && f.refused !== undefined));
   if (e.state === MState.Blocked) return takersOf(g, e).some((t) => t.state === MState.Blocked);
   return false;
 }
@@ -60,12 +61,14 @@ export function drawGlyph(ctx: CanvasRenderingContext2D, kind: GlyphKind, x: num
     return;
   }
   if (kind === 'sprout') {
-    // a seedling on a mound: "growing, come back later"
-    px(2, 7, 5, 2, C.walnut);
-    px(4, 3, 1, 4, C.moss);
+    // a seedling on a mound in a pale ink-rimmed badge: "growing, come back later" (reads on soil)
+    px(1, 0, 7, 9, C.ink);
+    px(0, 1, 9, 7, C.ink);
+    px(1, 1, 7, 7, C.cream);
+    px(2, 6, 5, 2, C.walnut);
+    px(4, 3, 1, 3, C.moss);
     px(2, 2, 2, 2, C.leaf);
-    px(5, 1, 2, 2, C.leaf);
-    px(1, 1, 1, 1, C.ink, 0.6);
+    px(5, 2, 2, 2, C.leaf);
     return;
   }
   const fill = kind === 'starved' ? C.amber : kind === 'blocked' ? C.brick : kind === 'power' ? C.sky : C.stone;

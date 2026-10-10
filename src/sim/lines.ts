@@ -3,7 +3,7 @@
 import { ADVICE, adviceText } from '../data/advice';
 import { CROP_BY_ID } from '../data/crops';
 import type { CropDef } from '../data/types';
-import { availableRecipes } from './systems/machines';
+import { availableRecipes, machTakesText } from './systems/machines';
 import { DAY_SECS } from './systems/stats';
 import { ITEMS } from '../data/items';
 import type { Game } from './Game';
@@ -117,7 +117,10 @@ export function fieldSource(g: Game, e: Ent): Ent | null {
 
 /** "Waiting for harvest: next ripe crop in 2 watered days" from the field machine's own line */
 export function harvestWaitText(src: Ent): string {
-  return src.state === MState.Idle && src.why ? `Waiting for harvest: ${src.why[0].toLowerCase()}${src.why.slice(1)}` : 'Waiting for harvest';
+  if (src.state !== MState.Idle || !src.why) return 'Waiting for harvest';
+  // "Ripe: picks at noon (or ...)" reads as "Waiting for harvest at noon"
+  if (src.why.startsWith('Ripe')) return 'Waiting for harvest at noon';
+  return `Waiting for harvest: ${src.why[0].toLowerCase()}${src.why.slice(1)}`;
 }
 
 /** Every structure connected to `start` through ports, both ways (capped). */
@@ -213,6 +216,20 @@ function makersFedBy(nodes: Map<number, PortNode>, src: Ent): Ent[] {
     frontier = next;
   }
   return out;
+}
+
+/** what a structure takes, in words, for the wrong-input advice */
+function takesText(g: Game, e: Ent): string {
+  if (e.mach) return machTakesText(g, e);
+  switch (e.def.kind) {
+    case 'shipbin': return 'anything that sells';
+    case 'planter': return 'seeds and fertilizer';
+    case 'gantry': return 'seeds';
+    case 'fishtrap': return 'bait';
+    case 'generator':
+    case 'drill': return 'wood or coal';
+  }
+  return 'other goods';
 }
 
 function sourceKey(src: Ent | null): string {
@@ -376,7 +393,17 @@ export function diagnose(g: Game, sink: Ent): Diagnosis {
       }
     }
   }
-  // 4. the most upstream maker that starves (the root cause): what it waits for and where from
+  // 4. the wrong input: an arm or belt stopped by an item its taker can't use at all (a hard stop
+  //    that reads as "starved" further down; never "the chest ran dry" with 50 stone in it)
+  if (!key) {
+    const s = [...stages, ...belts].filter((s) => s.e.refused !== undefined && s.e.state === MState.Blocked).sort((a, b) => b.depth - a.depth)[0];
+    const taker = s ? nodes.get(s.e.id)?.outs.find((o) => !o.belt && !o.arm) : undefined;
+    if (s && taker) {
+      const src = s.e.arm ? nodes.get(s.e.id)?.ins[0] : undefined;
+      pick(s, s.e.arm ? 'wrong:arm' : 'wrong:belt', { name: label(taker), item: kDef(s.e.refused!).name.toLowerCase(), src: src ? label(src) : 'chest', takes: takesText(g, taker) });
+    }
+  }
+  // 5. the most upstream maker that starves (the root cause): what it waits for and where from
   if (!key) {
     const starved = stages.filter((s) => isMaker(s.e) && s.shares[MState.Starved] >= 0.3);
     if (starved.length) {
@@ -384,10 +411,12 @@ export function diagnose(g: Game, sink: Ent): Diagnosis {
       const src = sourceOf(nodes, s.e);
       // two or more machines drawing on one starving source share it
       const sharing = src ? makersFedBy(nodes, src).filter((o) => o !== s.e).length : 0;
-      pick(s, sharing ? 'starved:shared' : 'starved:' + sourceKey(src), { name: label(s.e), pct: pct(s.shares[MState.Starved]), item: wantName(s.e), src: src ? label(src) : 'nothing', n: sharing + 1 });
+      // a chest with goods in it didn't run dry: it has none of what's wanted
+      const k = sharing ? 'starved:shared' : sourceKey(src) === 'chest' && src?.inv?.slots.some(Boolean) ? 'starved:chest-other' : 'starved:' + sourceKey(src);
+      pick(s, k, { name: label(s.e), pct: pct(s.shares[MState.Starved]), item: wantName(s.e), src: src ? label(src) : 'nothing', n: sharing + 1 });
     }
   }
-  // 5. the most downstream real block (queues in front of busy machines are Working, not Blocked)
+  // 6. the most downstream real block (queues in front of busy machines are Working, not Blocked)
   if (!key) {
     const blocked = [...stages, ...belts].filter((s) => s.shares[MState.Blocked] >= 0.3).sort((a, b) => a.depth - b.depth);
     if (blocked.length) {
@@ -397,7 +426,7 @@ export function diagnose(g: Game, sink: Ent): Diagnosis {
       pick(s, k === 'shipbin' ? 'blocked:shipbin' : k === 'chest' ? 'blocked:chest' : s.e.belt ? 'blocked:belt' : s.e.arm ? 'blocked:arm' : 'blocked:machine', { name: label(s.e), pct: pct(s.shares[MState.Blocked]), dst: dst ? label(dst) : 'nothing' });
     }
   }
-  // 6. all good: name the slowest maker
+  // 7. all good: name the slowest maker
   if (!key) {
     const makers = stages.filter((s) => isMaker(s.e) && s.capDay > 0);
     if (makers.length) {

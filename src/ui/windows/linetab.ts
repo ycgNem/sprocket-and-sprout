@@ -4,7 +4,7 @@
 import { C } from '../../data/palette';
 import { key, kId } from '../../sim/inventory';
 import type { Ent } from '../../sim/ents';
-import { diagnose, fmtRate, lineSinks } from '../../sim/lines';
+import { diagnose, fmtRate, lineSinks, type Diagnosis } from '../../sim/lines';
 import { MState, STATE_COUNT } from '../../sim/mstate';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
@@ -14,8 +14,7 @@ import { STATE_COL_PAPER } from '../statelines';
 import { ITEM_BY_ID } from '../../data/items';
 
 /** the item a line delivers: what its nearest maker makes, else what the end holds */
-function lineItemOf(g: PlayScreen['g'], sink: Ent): string | null {
-  const d = diagnose(g, sink);
+function lineItemOf(g: PlayScreen['g'], sink: Ent, d = diagnose(g, sink)): string | null {
   const maker = d.stages.filter((s) => s.e.mach?.recipe || s.e.def.kind === 'gleaner' || s.e.def.kind === 'harvester').sort((a, b) => a.depth - b.depth)[0];
   const out = maker?.e.mach?.recipe?.out[0].item;
   if (out) return out;
@@ -23,9 +22,30 @@ function lineItemOf(g: PlayScreen['g'], sink: Ent): string | null {
   return held ? ITEM_BY_ID.get(kId(held.k))?.id ?? null : null;
 }
 
+/** a line's marker in the list: the colour of its problem (a field-limited line is green, healthy none) */
+function markerOf(d: Diagnosis): number | null {
+  if (!d.problem) return null;
+  if (d.key === 'field') return C.leaf;
+  return STATE_COL_PAPER[d.problem.e.state as MState] ?? C.brick;
+}
+
 export function linesTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: number, w: number, h: number): boolean {
   const g = play.g;
-  const sinks = lineSinks(g);
+  // problem lines first (field-limited ones are healthy), then by rate; names made unique
+  const rowsAll = lineSinks(g).map((s) => {
+    const d = diagnose(g, s);
+    const item = lineItemOf(g, s, d);
+    return { s, d, item, label: item ? ITEM_BY_ID.get(item)?.name ?? item : s.def.name };
+  });
+  const bad = (r: { d: Diagnosis }) => (r.d.problem && r.d.key !== 'field' ? 0 : 1);
+  rowsAll.sort((a, b) => bad(a) - bad(b));
+  const seenName = new Map<string, number>();
+  for (const r of rowsAll) {
+    const n = (seenName.get(r.label) ?? 0) + 1;
+    seenName.set(r.label, n);
+    if (n > 1) r.label += ` ${n}`;
+  }
+  const sinks = rowsAll.map((r) => r.s);
   const lx = x + 10, ly = y + 30, lw = 150, lh = h - 40;
   ui.panel(lx, ly, lw, lh, 'inset', false);
   ui.text('Line ends', lx + 4, ly + 3, C.walnut);
@@ -37,18 +57,31 @@ export function linesTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: n
   const rowH = 14;
   const off = ui.scrollOffset('linelist', lx, ly + 13, lw, lh - 13, sinks.length * rowH);
   ui.clip(lx, ly + 13, lw, lh - 13);
-  sinks.forEach((s, i) => {
+  rowsAll.forEach(({ s, d: ds, item, label }, i) => {
     const ry = ly + 14 + i * rowH - off;
     if (ry < ly - rowH || ry > ly + lh) return;
     const sel = st.data.sink === s.id;
     const hov = ui.hover(lx, ry, lw - 4, rowH);
-    if (sel || hov) ui.fill(lx + 1, ry, lw - 5, rowH, sel ? C.butter : C.cream);
+    if (hov && !sel) ui.fill(lx + 1, ry, lw - 5, rowH, C.cream);
+    if (sel) {
+      // a walnut frame reads on the peach panel (butter doesn't)
+      ui.fill(lx + 1, ry, lw - 5, rowH, C.tan, 0.35);
+      ui.fill(lx + 1, ry, lw - 5, 1, C.walnut);
+      ui.fill(lx + 1, ry + rowH - 1, lw - 5, 1, C.walnut);
+      ui.fill(lx + 1, ry, 1, rowH, C.walnut);
+      ui.fill(lx + lw - 5, ry, 1, rowH, C.walnut);
+    }
     // name a line end by what arrives there, so four chests read as four lines
-    const item = lineItemOf(g, s);
     ui.itemIcon(key(item ?? s.def.item), lx + 3, ry + 1, 12);
     const r = g.stats.states.perDay(s, 'in');
-    ui.text(ellipsize(item ? ITEM_BY_ID.get(item)?.name ?? item : s.def.name, 84), lx + 18, ry + 3, C.ink);
-    ui.text(fmtRate(r), lx + lw - 8, ry + 3, r > 0 ? C.moss : C.oak, { align: 'right' });
+    ui.text(ellipsize(label, 76), lx + 18, ry + 3, C.ink);
+    ui.text(fmtRate(r), lx + lw - 14, ry + 3, r > 0 ? C.moss : C.oak, { align: 'right' });
+    // the line's problem, in its state's colour
+    const mk = markerOf(ds);
+    if (mk !== null) {
+      ui.fill(lx + lw - 12, ry + 3, 6, 6, C.ink);
+      ui.fill(lx + lw - 11, ry + 4, 4, 4, mk);
+    }
     if (hov && ui.clicked) {
       ui.eat();
       st.data.sink = s.id;
@@ -62,9 +95,10 @@ export function linesTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: n
   const d = diagnose(g, sink);
   const gx = lx + lw + 8, gy = ly, gw = w - lw - 28, gh = lh;
   ui.panel(gx, gy, gw, gh, 'inset', false);
-  const li = lineItemOf(g, sink);
-  ui.text(ellipsize(`${sink.def.name}${li ? ' (' + (ITEM_BY_ID.get(li)?.name ?? li) + ')' : ''}: ${fmtRate(d.rate)}`, gw - 170), gx + 6, gy + 4, C.ink);
-  ui.text('rate   could do   the day by state', gx + gw - 6, gy + 4, C.oak, { align: 'right' });
+  const li = lineItemOf(g, sink, d);
+  // the rate first, so a long name never clips it
+  ui.text(ellipsize(`${fmtRate(d.rate)} into the ${sink.def.name.toLowerCase()}${li ? ' (' + (ITEM_BY_ID.get(li)?.name ?? li) + ')' : ''}`, gw - 160), gx + 6, gy + 4, C.ink);
+  ui.text('rate  could do  day by state', gx + gw - 6, gy + 4, C.oak, { align: 'right' });
   // diagnosis box at the bottom
   const gapLines = wrapText(d.gap, gw - 44);
   const fixLines = st.data.showFix ? wrapText('Try: ' + d.fix, gw - 44) : [];

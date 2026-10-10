@@ -3,7 +3,7 @@ import type { Game } from './Game';
 import { Dir, Ent } from './ents';
 import { ItemKey, kDef, kId, kStack, Stack } from './inventory';
 import { beltCanInsertFromSide, beltInsertFromSide, beltTake } from './systems/belts';
-import { fuelValue, machAccept, machInsert, machTake } from './systems/machines';
+import { fuelValue, machAccept, machInsert, machTake, machUses } from './systems/machines';
 
 type Pred = (k: ItemKey) => boolean;
 export type MaxFn = number | ((k: ItemKey) => number);
@@ -12,6 +12,8 @@ const mx = (m: MaxFn, k: ItemKey) => (typeof m === "number" ? m : m(k));
 /** Optional hooks registered by later systems (labs, buildings, megaprojects ...). */
 export interface PortHandler {
   accept?: (g: Game, e: Ent, k: ItemKey) => number;
+  /** does it take k at all, given room? (false = the wrong item for it); without it a refusal reads as full */
+  uses?: (g: Game, e: Ent, k: ItemKey) => boolean;
   insert?: (g: Game, e: Ent, k: ItemKey, n: number) => number;
   take?: (g: Game, e: Ent, pred: Pred, max: MaxFn) => Stack | null;
 }
@@ -38,6 +40,28 @@ export function portAccept(g: Game, e: Ent, k: ItemKey, dir: Dir): number {
       return 0;
   }
   return 0;
+}
+
+/**
+ * Does `e` take k at all when it has room? false means the wrong item (a jar offered stone), which
+ * the arms and belts name instead of calling the taker full (ROADMAP.md 4.2).
+ */
+export function portUses(g: Game, e: Ent, k: ItemKey): boolean {
+  const h = PORT_HANDLERS[e.def.kind];
+  if (h?.uses) return h.uses(g, e, k);
+  if (h?.accept) return true;
+  if (e.belt) return true;
+  if (e.mach) return machUses(g, e, k);
+  switch (e.def.kind) {
+    case 'chest':
+      return true;
+    case 'shipbin':
+      return kDef(k).price > 0;
+    case 'generator':
+    case 'drill':
+      return !!e.def.fuel && fuelValue(k) > 0;
+  }
+  return false;
 }
 
 export function portInsert(g: Game, e: Ent, k: ItemKey, n: number, dir: Dir): number {

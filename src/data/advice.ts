@@ -3,7 +3,7 @@
 // on request). Picked by diagnose() in src/sim/lines.ts. Placeholders: {name} the stage, {pct} a
 // share of the day, {item} what a machine waits for, {src} where that comes from, {dst} where an
 // arm drops, {need} the sparks a grid is short, {n} a count, {s} a plural s, {have} / {can} rates
-// per day, {more} how many more plants, {crop} the crop's name.
+// per day, {more} how many more plants, {crop} the crop's name, {takes} what a machine takes.
 // Every fix named here is something the player can build or do today.
 
 export interface Advice {
@@ -39,6 +39,18 @@ export const ADVICE: Record<string, Advice> = {
   'starved:chest': {
     gap: 'The {name} waited for {item} {pct}% of the time: the {src} it draws from ran dry.',
     fix: 'Fill the {src} faster, or give the {name} a second source.',
+  },
+  'starved:chest-other': {
+    gap: 'The {name} waited for {item} {pct}% of the time: the {src} it draws from has none.',
+    fix: 'Put {item} in the {src}, or check the arm\'s filter.',
+  },
+  'wrong:arm': {
+    gap: 'The {name} can\'t use {item}, and the {src} it draws from has nothing else for it.',
+    fix: 'The {name} takes {takes}. Put some in the {src}, or send the {item} to a machine that uses it.',
+  },
+  'wrong:belt': {
+    gap: 'The {name} can\'t use {item}, and one sits at the end of the belt, so nothing behind it gets through.',
+    fix: 'Pick the {item} off the belt (the {name} takes {takes}), then keep it off with a filtering splitter or an arm filter where the belt is loaded.',
   },
   'starved:drill': {
     gap: 'The {name} waited for {item} {pct}% of the time: one drill can\'t keep up.',

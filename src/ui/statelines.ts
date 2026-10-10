@@ -4,7 +4,7 @@ import { C } from '../data/palette';
 import { ITEM_BY_ID } from '../data/items';
 import type { Game } from '../sim/Game';
 import type { Ent } from '../sim/ents';
-import { fmt } from '../sim/lines';
+import { fmt, fmtRate } from '../sim/lines';
 import { MState, stateText } from '../sim/mstate';
 import { armRate } from '../sim/systems/arms';
 import { powerState } from '../sim/systems/power';
@@ -47,22 +47,36 @@ export function structStateLine(g: Game, e: Ent, paper = false): { text: string;
   // a consumer on a short grid says by how much
   if (e.def.powerUse && e.net && !e.off) {
     const n = powerState(g).nets.get(e.net);
-    if (n && n.demand > n.cap + 0.5) text += ` (${Math.ceil(n.demand - n.cap)} sparks short)`;
+    if (n && n.demand > n.cap + 0.5) {
+      const short = `${Math.ceil(n.demand - n.cap)} sparks short`;
+      text = /the grid is short$/.test(text) ? text.replace(/the grid is short$/, `the grid is ${short}`) : `${text} (${short})`;
+    }
   }
   if (e.arm && e.st.wind > 0) text += `  - wound, ${Math.ceil(e.st.wind)}s`;
   return { text, color: (paper ? STATE_COL_PAPER : STATE_COL)[e.state] };
 }
 
-/** what it actually moves: items per minute over the last minute */
+/**
+ * What it actually moves: per minute over the last minute when that's one a minute or more, else
+ * per day from the day's record (ROADMAP.md 4.2: a jar makes 17/day, not "0/min").
+ */
 export function structRateLine(g: Game, e: Ent): string | null {
   const log = g.stats.states;
-  if (e.arm) return `${fmt(log.rate(e, 'out'))}/min carried (up to ${Math.round(armRate(e, g.mods.armHand) * (e.st.wind > 0 ? 2 : 1))})`;
-  if (e.mach) return `${fmt(log.rate(e, 'out'))}/min made`;
-  if (['harvester', 'gleaner', 'gantry'].includes(e.def.kind)) return `${fmt(log.rate(e, 'out'))}/min picked`;
-  if (e.def.kind === 'drill') return `${fmt(log.rate(e, 'out'))}/min dug`;
+  const rate = (dir: 'in' | 'out') => {
+    const r = log.rate(e, dir);
+    if (r >= 1) return `${fmt(r)}/min`;
+    const d = log.perDay(e, dir);
+    return d > 0 ? fmtRate(d) : '';
+  };
+  if (e.arm) return `${rate('out') || '0/min'} carried (up to ${Math.round(armRate(e, g.mods.armHand) * (e.st.wind > 0 ? 2 : 1))}/min)`;
+  const verb = e.mach ? 'made' : ['harvester', 'gleaner', 'gantry'].includes(e.def.kind) ? 'picked' : e.def.kind === 'drill' ? 'dug' : '';
+  if (verb) {
+    const r = rate('out');
+    return r ? `${r} ${verb}` : null;
+  }
   if (e.def.kind === 'chest' || e.def.kind === 'shipbin' || e.def.kind === 'lab' || e.def.kind === 'depot') {
-    const r = log.rate(e, 'in');
-    return r > 0 ? `${fmt(r)}/min arriving` : null;
+    const r = rate('in');
+    return r ? `${r} arriving` : null;
   }
   return null;
 }

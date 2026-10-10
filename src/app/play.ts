@@ -34,7 +34,7 @@ import { MState } from '../sim/mstate';
 import { isSpringArm, isWindable, windArm } from '../sim/systems/arms';
 import { structRateLine, structStateLine } from '../ui/statelines';
 import { WorksView } from './worksview';
-import { PULSE_COL, machineState, pulseEnts } from '../ui/pulse';
+import { PULSE_COL, pulseEnts, pulseOf } from '../ui/pulse';
 import { checkTips } from './tips';
 import { drawFx, Juice, ladderPitch, RIBBON_Y, type Pt } from '../render/juice';
 import { ACH_BY_ID } from '../sim/systems/achievements';
@@ -536,7 +536,9 @@ export class PlayScreen implements Screen {
         return;
       }
       const ik = keyLabel(this.app.input.binds.inspect?.[0] ?? 'KeyI');
-      lines.push({ text: isWindable(e) ? `Right-click: wind it (2x for 30s)  F: open  ${ik}: inspect` : `F or right-click to open, hold ${ik} to inspect the line`, color: C.pebble });
+      // winding needs the key in reach (the same reach as the right-click)
+      const windHint = this.reachOk(e.x, e.y, 2.6) || (e.w > 1 && this.reachOk(e.x + e.w - 1, e.y + e.h - 1, 2.6)) ? 'Right-click: wind it (2x for 30s)' : 'Walk up to it to wind it';
+      lines.push({ text: isWindable(e) ? `${windHint}  F: open  ${ik}: inspect` : `F or right-click to open, hold ${ik} to inspect the line`, color: C.pebble });
       ui.tip(lines.slice(0, 6));
     }
   }
@@ -956,7 +958,7 @@ export class PlayScreen implements Screen {
       ctx.strokeStyle = rgba(PULSE_COL[this.pulseFocus.kind], blink + 0.2);
       ctx.lineWidth = 2;
       for (const e of pulseEnts(g)) {
-        if (machineState(e) !== this.pulseFocus.kind) continue;
+        if (pulseOf(g, e) !== this.pulseFocus.kind) continue;
         ctx.strokeRect(e.x * TILE - 1, e.y * TILE - 1, e.w * TILE + 2, e.h * TILE + 2);
       }
       ctx.lineWidth = 1;

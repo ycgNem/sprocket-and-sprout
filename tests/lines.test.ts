@@ -332,4 +332,91 @@ describe('the field gantry (ROADMAP.md 4.9.1)', () => {
     run(g, 5);
     expect([MState.Starved, MState.Idle]).toContain(gan.state);
   });
+
+  it('parks instead of shuttling when all it could do is sow out of season or over a dead plant', async () => {
+    const { CROP_BY_ID } = await import('../src/data/crops');
+    const { till, plant } = await import('../src/sim/systems/farming');
+    const g = blank();
+    g.research.done.add('r_gantry');
+    place(g, 'waterwheel', 20, 30, 0);
+    place(g, 'pole_wood', 13, 31, 0);
+    place(g, 'pole_wood', 19, 31, 0);
+    const gan = place(g, 'field_gantry', 10, 30, 0);
+    for (let y = 28; y <= 29; y++) {
+      place(g, 'rail', 10, y, 0);
+      place(g, 'rail', 16, y, 0);
+    }
+    // a strip of watered, growing cogbeans but one dead plant, and only winter seeds out of season
+    for (let y = 28; y <= 29; y++) for (let x = 11; x <= 15; x++) {
+      till(g, x, y);
+      const i = g.map.idx(x, y);
+      plant(g, CROP_BY_ID.get('cogbean')!, i);
+      g.soil.get(i)!.water = true;
+    }
+    g.soil.get(g.map.idx(13, 28))!.crop!.dead = true;
+    const off = [...CROP_BY_ID.values()].find((c) => !c.seasons.includes(g.time.season))!;
+    gan.inv!.add(key(off.seed), 5);
+    run(g, 30);
+    expect(gan.st.dir).toBe(0);
+    expect(gan.state).toBe(MState.Idle);
+    // with a seed that grows now, the next pass tills the dead plant under and sows it
+    gan.inv!.add(key('cogbean_seed'), 1);
+    run(g, 20);
+    expect(g.soil.get(g.map.idx(13, 28))!.crop?.dead).toBe(false);
+    expect(gan.inv!.countId('cogbean_seed')).toBe(0);
+  });
+});
+
+describe('the wrong input (critic, Phase 1 build review)', () => {
+  it('a chest of stone behind a jar: the arm names it, one glyph, and the diagnosis never says "ran dry"', async () => {
+    const { glyphFor } = await import('../src/render/glyphs');
+    const g = blank();
+    const chest = place(g, 'chest_wood', 5, 5, 0);
+    chest.inv!.add(key('stone'), 50);
+    const arm = place(g, 'arm_basic', 6, 5, 1);
+    const jar = place(g, 'jar', 7, 5, 0);
+    place(g, 'arm_basic', 8, 5, 1);
+    const crate = place(g, 'chest_wood', 9, 5, 0);
+    run(g, 20);
+    expect(arm.state).toBe(MState.Blocked);
+    expect(arm.why).toBe("The preserves jar can't use stone");
+    expect(glyphFor(g, arm)).toBe('blocked');
+    expect(glyphFor(g, jar)).toBe('dot');
+    const d = diagnose(g, crate);
+    expect(d.key).toBe('wrong:arm');
+    expect(d.gap).toMatch(/can't use stone/);
+    expect(d.gap).not.toMatch(/ran dry/);
+    expect(d.fix).toMatch(/takes any crop or fruit/);
+  });
+
+  it('stone belted into a jar: the belt names it and the arm loading the belt says the belt is full', () => {
+    const g = blank();
+    const chest = place(g, 'chest_wood', 3, 5, 0);
+    chest.inv!.add(key('stone'), 50);
+    const arm = place(g, 'arm_basic', 4, 5, 1);
+    place(g, 'belt_1', 5, 5, 1);
+    const end = place(g, 'belt_1', 6, 5, 1);
+    place(g, 'jar', 7, 5, 0);
+    place(g, 'arm_basic', 8, 5, 1);
+    const crate = place(g, 'chest_wood', 9, 5, 0);
+    run(g, 40);
+    expect(end.state).toBe(MState.Blocked);
+    expect(end.why).toBe("The preserves jar can't use stone");
+    expect(arm.why).not.toMatch(/won't take|can't use/);
+    const d = diagnose(g, crate);
+    expect(d.key).toBe('wrong:belt');
+    expect(d.gap).toMatch(/can't use stone/);
+  });
+
+  it('a machine never fed names what it takes, not a guess', () => {
+    const g = blank();
+    const chest = place(g, 'chest_wood', 5, 5, 0);
+    place(g, 'arm_basic', 6, 5, 1);
+    const jar = place(g, 'jar', 7, 5, 0);
+    run(g, 5);
+    expect(jar.state).toBe(MState.Starved);
+    expect(jar.why).not.toBe('Waiting for input');
+    expect(jar.why).toBe('Waiting for any crop or fruit');
+    void chest;
+  });
 });

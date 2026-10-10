@@ -1,16 +1,18 @@
-// Factory pulse: how many machines are working, starved for input, blocked, or short of power or
-// fuel (the machine contract's states, src/sim/mstate.ts). Four lamps under the chronometer;
-// clicking one rings those machines on the farm.
+// Factory pulse: how many machines are working, and how many root causes are starved for input,
+// blocked, or short of power or fuel (the machine contract's states, src/sim/mstate.ts). The
+// problem lamps count what carries a glyph on the map (ROADMAP.md 4.3: root causes only), so the
+// lamp and the map agree. Four lamps under the chronometer; clicking one rings those structures.
 import { C } from '../data/palette';
 import type { Game } from '../sim/Game';
 import type { Ent } from '../sim/ents';
 import { MState, stateText } from '../sim/mstate';
+import { glyphFor } from '../render/glyphs';
 import type { UI } from './ui';
 import type { PlayScreen } from '../app/play';
 
 export type PulseKind = 'ok' | 'starved' | 'blocked' | 'power';
 export const PULSE_COL: Record<PulseKind, number> = { ok: C.leaf, starved: C.amber, blocked: C.rose, power: C.sky };
-const PULSE_NAME: Record<PulseKind, string> = { ok: 'working', starved: 'waiting for input (starved)', blocked: 'blocked: their goods have nowhere to go', power: 'short of power or fuel' };
+const PULSE_NAME: Record<PulseKind, string> = { ok: 'working', starved: 'starved: where a wait for input starts', blocked: 'blocked: where goods have nowhere to go', power: 'short of power or fuel' };
 
 export function machineState(e: Ent): PulseKind | null {
   switch (e.state) {
@@ -23,12 +25,29 @@ export function machineState(e: Ent): PulseKind | null {
   return null;
 }
 
+/** the makers the Working lamp counts */
+function isMaker(e: Ent): boolean {
+  return !!e.mach || /harvester|planter|drill|lab|tapper|fishtrap|gleaner|gantry/.test(e.def.kind);
+}
+
+/** what one structure adds to the lamps: a working maker, or a root-cause glyph (dots and sprouts count for nothing) */
+export function pulseOf(g: Game, e: Ent): PulseKind | null {
+  const k = glyphFor(g, e);
+  if (k === 'starved') return 'starved';
+  if (k === 'blocked') return 'blocked';
+  if (k === 'power' || k === 'fuel') return 'power';
+  if (k || e.state !== MState.Working || !isMaker(e)) return null;
+  // a maker crawling on a short grid lights the power lamp (ROADMAP.md 4.7)
+  return e.def.powerUse && e.sat < 0.99 ? 'power' : 'ok';
+}
+
+/** every structure the lamps look at */
 export function pulseEnts(g: Game): Ent[] {
   const seen = new Set<number>();
   const out: Ent[] = [];
-  for (const e of [...g.ents.machines, ...g.ents.consumers]) {
-    if (e.ghost || seen.has(e.id) || e.def.kind === 'pole' || e.def.kind === 'arm') continue;
-    if (!e.mach && !/harvester|planter|drill|lab|tapper|fishtrap/.test(e.def.kind)) continue;
+  for (const e of [...g.ents.machines, ...g.ents.consumers, ...g.ents.arms, ...g.ents.others, ...g.ents.gens, ...g.ents.belts]) {
+    if (e.ghost || e.parent || seen.has(e.id) || e.def.kind === 'pole') continue;
+    if (!e.mach && !e.arm && !e.belt && !e.inv && !e.gen && !isMaker(e)) continue;
     seen.add(e.id);
     out.push(e);
   }
@@ -40,11 +59,11 @@ export function drawPulse(ui: UI, play: PlayScreen, x: number, y: number, w: num
   const g = play.g;
   if (g.player.where !== 'world') return 0;
   const ents = pulseEnts(g);
-  if (!ents.length) return 0;
+  if (!ents.some(isMaker)) return 0;
   const n: Record<PulseKind, number> = { ok: 0, starved: 0, blocked: 0, power: 0 };
   const why: Record<PulseKind, Map<string, number>> = { ok: new Map(), starved: new Map(), blocked: new Map(), power: new Map() };
   for (const e of ents) {
-    const s = machineState(e);
+    const s = pulseOf(g, e);
     if (!s) continue;
     n[s]++;
     const label = `${e.def.name}: ${stateText(e).toLowerCase()}`;
@@ -66,7 +85,7 @@ export function drawPulse(ui: UI, play: PlayScreen, x: number, y: number, w: num
     if (blink) ui.fill(cx - 1, y + 3, 9, 1, PULSE_COL[k]);
     ui.text(String(n[k]), cx + 10, y + 4, lit ? C.cream : C.stone);
     if (ui.hover(cx - 2, y, cellW, h)) {
-      const lines = [{ text: `${n[k]} machine${n[k] === 1 ? '' : 's'} ${PULSE_NAME[k]}`, color: PULSE_COL[k] }];
+      const lines = [{ text: k === 'ok' ? `${n[k]} machine${n[k] === 1 ? '' : 's'} working` : `${n[k]} ${PULSE_NAME[k]}`, color: PULSE_COL[k] }];
       for (const [label, c] of [...why[k]].sort((a, b) => b[1] - a[1]).slice(0, 5)) lines.push({ text: `${c} x ${label}`, color: C.pebble });
       if (n[k]) lines.push({ text: 'Click to highlight them on the farm.', color: C.stone });
       ui.tip(lines);

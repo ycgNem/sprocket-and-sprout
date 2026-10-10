@@ -280,7 +280,8 @@ function powerPanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: n
   const plot = (arr: number[], col: number) => {
     for (let i = 1; i < arr.length; i++) {
       const x0 = gx + 2 + ((i - 1) / 59) * (gw - 4), x1 = gx + 2 + (i / 59) * (gw - 4);
-      const y0 = gy + gh - 2 - (arr[i - 1] / max) * (gh - 4), y1 = gy + gh - 2 - (arr[i] / max) * (gh - 4);
+      // the top 12 px hold the legend, clear of the lines
+      const y0 = gy + gh - 2 - (arr[i - 1] / max) * (gh - 14), y1 = gy + gh - 2 - (arr[i] / max) * (gh - 14);
       const steps = Math.max(1, Math.ceil(Math.abs(x1 - x0)));
       for (let s = 0; s <= steps; s++) ui.fill(Math.round(x0 + ((x1 - x0) * s) / steps), Math.round(y0 + ((y1 - y0) * s) / steps), 1, 1, col);
     }

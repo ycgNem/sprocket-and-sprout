@@ -245,7 +245,7 @@ function morningTease(play: PlayScreen, sold: { k: number; n: number }[] = []): 
   let goods = 0;
   for (const e of g.ents.machines) goods += e.mach?.outBuf.reduce((n, o) => n + o.n, 0) ?? 0;
   if (ripe) out.push(`${ripe} crop${ripe > 1 ? 's are' : ' is'} ripe and ready to pick.`);
-  if (goods) out.push(`Your machines made ${goods} good${goods > 1 ? 's' : ''} overnight.`);
+  if (goods) out.push(`${goods} good${goods > 1 ? 's wait' : ' waits'} in your machines.`);
   // crops only grow on watered days: say so before promising a date
   let dry = 0;
   if (!g.isRaining()) for (const s of g.soil.values()) if (s.crop && !s.crop.ready && !s.crop.dead && !s.water) dry++;

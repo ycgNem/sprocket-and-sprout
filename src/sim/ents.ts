@@ -118,6 +118,8 @@ export interface Ent {
   since: number;
   /** a consumer on a switched-off pole (the grid switch): draws no power and does nothing */
   off?: boolean;
+  /** off only because its pole runs the night shift only (so it says so); not saved */
+  offNight?: boolean;
   /** what a Starved machine waits for (item name, for the advice); not saved */
   want?: string;
   /** waiting for its field to ripen (Idle, not Starved): ROADMAP.md 4.2; not saved */
@@ -126,6 +128,10 @@ export interface Ent {
   strip?: [number, number][];
   /** the last item an arm carried (names what a starved machine waits for); not saved */
   lastK?: number;
+  /** an arm or belt stopped by an item its taker can't use at all (the wrong input); not saved */
+  refused?: number;
+  /** when an idle arm last worked out why (sim seconds); not saved */
+  whyAt?: number;
   /** generic per-kind state bag (labs, drills, hives, buildings, ...) */
   st: any;
 }

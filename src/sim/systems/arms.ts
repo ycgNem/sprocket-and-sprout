@@ -4,9 +4,9 @@
 import type { Game } from '../Game';
 import { ArmState, DX, DY, Ent } from '../ents';
 import { ItemKey, kDef, kStack } from '../inventory';
-import { isBusy, MState, setHarvestWait, setQueued, setState } from '../mstate';
+import { isBusy, MState, offText, setHarvestWait, setQueued, setRefused, setState } from '../mstate';
 import { FIELD_KINDS, fieldSource, harvestWaitText } from '../lines';
-import { portAccept, portInsert, portPeek, portTake } from '../ports';
+import { portAccept, portInsert, portPeek, portTake, portUses } from '../ports';
 
 /** seconds of overwind from one turn of the key (F on a spring arm) */
 export const WIND_TIME = 30;
@@ -60,7 +60,7 @@ export function updateArms(g: Game, dt: number) {
     if (a.powered) {
       if (e.off) {
         e.working = false;
-        setState(e, MState.Idle, 'Switched off at the pole', now);
+        setState(e, MState.Idle, offText(e), now);
         continue;
       }
       mul = e.sat;
@@ -115,11 +115,16 @@ export function updateArms(g: Game, dt: number) {
           const avail = portPeek(src).filter((k) => filt.length === 0 || filt.includes(k) || filt.includes(k & ~3));
           if (avail.length) {
             const full = a.limit > 0 && avail.every((k) => room(k) <= 0);
+            // only items the taker can't use at all: the wrong input, named; else it's full
+            const usable = avail.some((k) => portUses(g, dst, k));
             if (full) setState(e, MState.Working, `Queued: stock limit reached in the ${nameOf(dst)}`, now);
+            else if (!usable) setRefused(e, dst, avail[0], kDef(avail[0]).name.toLowerCase(), now);
             else if (isBusy(dst)) setQueued(e, dst, now);
-            else setState(e, MState.Blocked, `The ${nameOf(dst)} won't take ${kDef(avail[0]).name.toLowerCase()}`, now);
+            else setState(e, MState.Blocked, `The ${nameOf(dst)} is full`, now);
           } else if (src.mach && isBusy(src)) setState(e, MState.Idle, `Waiting for the ${nameOf(src)} to finish`, now);
-          else if (g.tickN % 30 === e.id % 30 || e.state === MState.Working) {
+          else if ((e.state !== MState.Starved && !e.fieldWait) || now - (e.whyAt ?? -1) >= 0.5) {
+            // the reason is worked out on entering the state and every half second after that
+            e.whyAt = now;
             const field = FIELD_KINDS.has(src.def.kind) ? src : fieldSource(g, src);
             if (field) setHarvestWait(e, harvestWaitText(field), now);
             else setState(e, MState.Starved, `Waiting: the ${nameOf(src)} has nothing to take`, now);
@@ -162,7 +167,8 @@ export function updateArms(g: Game, dt: number) {
         } else {
           a.wait = 0.1;
           if (n === 0) {
-            if (isBusy(dst)) setQueued(e, dst, now);
+            if (!portUses(g, dst, a.held.k)) setRefused(e, dst, a.held.k, kDef(a.held.k).name.toLowerCase(), now);
+            else if (isBusy(dst)) setQueued(e, dst, now);
             else setState(e, MState.Blocked, `The ${nameOf(dst)} is full`, now);
           }
         }

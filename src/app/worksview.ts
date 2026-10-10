@@ -59,26 +59,28 @@ export class WorksView {
   labels(play: PlayScreen, ui: any, hover: Ent | null) {
     if (!hover || !play.app.input.isDown('inspect')) return;
     const L = this.lineAt(play.g, hover);
+    // boxes hang below their structure (y is the box's top), clear of the glyphs above it
     const box = (text: string[], x: number, y: number, col: number) => {
       const w = Math.max(...text.map((t) => textWidth(t))) + 8, h = text.length * 9 + 4;
-      const bx = Math.round(Math.max(2, Math.min(ui.w - w - 2, x - w / 2))), by = Math.round(Math.max(2, Math.min(ui.h - 70, y - h)));
+      const bx = Math.round(Math.max(2, Math.min(ui.w - w - 2, x - w / 2))), by = Math.round(Math.max(2, Math.min(ui.h - 70 - h, y)));
       ui.fill(bx, by, w, h, C.ink, 0.88);
       ui.fill(bx, by, w, 1, col);
       text.forEach((t, i) => ui.text(t, bx + 4, by + 3 + i * 9, i === 0 ? col : C.cream));
     };
     for (const d of L.diags) {
       const s = d.sink;
-      const at = play.toUI(s.x + s.w / 2, s.y);
-      box([`${s.def.name}: ${fmtRate(d.rate)}`], at.x, at.y - 4, C.amber);
+      const at = play.toUI(s.x + s.w / 2, s.y + s.h);
+      box([`${s.def.name}: ${fmtRate(d.rate)}`], at.x, at.y + 3, C.amber);
       if (d.problem) {
         const p = d.problem.e;
-        const pa = play.toUI(p.x + p.w / 2, p.y + p.h + 0.2);
-        box([...wrapText(d.gap, 180), 'Production (P), Lines: the fixes'], pa.x, pa.y + 40, C.rose);
+        const pa = play.toUI(p.x + p.w / 2, p.y + p.h);
+        // under the sink's own label when the problem is the sink
+        box([...wrapText(d.gap, 180), 'Production (P), Lines: the fixes'], pa.x, pa.y + (p === s ? 17 : 3), C.rose);
       }
     }
     if (!L.diags.length) {
-      const at = play.toUI(hover.x + hover.w / 2, hover.y);
-      box(['This line has no end yet: aim it at a chest or the crate.'], at.x, at.y - 4, C.pebble);
+      const at = play.toUI(hover.x + hover.w / 2, hover.y + hover.h);
+      box(['This line has no end yet: aim it at a chest or the crate.'], at.x, at.y + 3, C.pebble);
     }
   }
 

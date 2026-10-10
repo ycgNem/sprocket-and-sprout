@@ -42,6 +42,18 @@ export function setState(e: Ent, s: MState, why: string, now: number) {
   }
   e.why = why;
   e.fieldWait = false;
+  e.refused = undefined;
+}
+
+/** why a consumer on a switched-off pole does nothing */
+export function offText(e: Ent): string {
+  return e.offNight ? 'Night shift only: runs 2am-6am' : 'Switched off at its pole';
+}
+
+/** an arm or belt stopped by an item its taker can't use at all: Blocked, naming the item */
+export function setRefused(e: Ent, taker: Ent, k: number, item: string, now: number) {
+  setState(e, MState.Blocked, `The ${taker.def.name.toLowerCase()} can't use ${item}`, now);
+  e.refused = k;
 }
 
 /**

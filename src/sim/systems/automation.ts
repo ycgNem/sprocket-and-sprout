@@ -11,7 +11,7 @@ import { PORT_HANDLERS, portAccept, portInsert } from '../ports';
 import { canPlant, canTill, cropTotal, fertilize, harvest, inGreenhouse, plant, till } from './farming';
 import { fuelValue } from './machines';
 import { O, T } from '../world/tilemap';
-import { MState, setState } from '../mstate';
+import { MState, offText, setState } from '../mstate';
 import { dawnOn, fieldIdleText, gantryTick, gleanerTick, pickable } from './fieldworks';
 import { ORE_TYPES } from '../world/tilemap';
 
@@ -57,7 +57,7 @@ function harvesterTick(g: Game, e: Ent, dt: number) {
   const now = g.simTime;
   if (e.off) {
     e.working = false;
-    setState(e, MState.Idle, 'Switched off at the pole', now);
+    setState(e, MState.Idle, offText(e), now);
     return;
   }
   if (e.sat <= 0.01) {
@@ -107,7 +107,7 @@ function planterTick(g: Game, e: Ent, dt: number) {
   const now = g.simTime;
   if (e.off) {
     e.working = false;
-    setState(e, MState.Idle, 'Switched off at the pole', now);
+    setState(e, MState.Idle, offText(e), now);
     return;
   }
   if (e.sat <= 0.01) {
@@ -217,7 +217,7 @@ function drillTick(g: Game, e: Ent, dt: number) {
   } else {
     if (e.off) {
       e.working = false;
-      setState(e, MState.Idle, 'Switched off at the pole', now);
+      setState(e, MState.Idle, offText(e), now);
       return;
     }
     rate *= e.sat;
@@ -310,6 +310,7 @@ registerSystem({
 
 // ---------------- ports ----------------
 PORT_HANDLERS.planter = {
+  uses: (_g, _e, k) => !!kDef(k).plant?.crop || !!kDef(k).fertilizer,
   accept: (_g, e, k) => {
     const d = kDef(k);
     if (!d.plant?.crop && !d.fertilizer) return 0;
@@ -324,6 +325,7 @@ PORT_HANDLERS.planter = {
   },
 };
 PORT_HANDLERS.fishtrap = {
+  uses: (_g, _e, k) => kDef(k).cat === 'bait',
   accept: (_g, e, k) => (kDef(k).cat === 'bait' && !e.st.bait ? 1 : 0),
   insert: (_g, e, k, n) => {
     if (kDef(k).cat !== 'bait' || e.st.bait || n < 1) return 0;
@@ -331,8 +333,8 @@ PORT_HANDLERS.fishtrap = {
     return 1;
   },
 };
-PORT_HANDLERS.tapper = { accept: () => 0 };
-PORT_HANDLERS.harvester = { accept: () => 0 };
+PORT_HANDLERS.tapper = { accept: () => 0, uses: () => false };
+PORT_HANDLERS.harvester = { accept: () => 0, uses: () => false };
 
 // silo is a hay store shared across all silos
 export function hayCap(g: Game) {

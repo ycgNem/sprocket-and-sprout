@@ -1,7 +1,8 @@
 // Belt simulation: two lanes per tile, items keep a minimum spacing and hand off
 // to the next segment. Processed downstream-first so queues compress cleanly.
 import { BeltC, BeltKind, DX, DY, Dir, Ent, Ents, ITEM_SPACING, Lane, leftOf, opposite } from '../ents';
-import { isBusy, MState, setQueued, setState } from '../mstate';
+import { isBusy, MState, setQueued, setRefused, setState } from '../mstate';
+import { kDef } from '../inventory';
 
 /** Recompute next pointers, curves, underground pairing lengths and update order. */
 export function rebuildBelts(ents: Ents) {
@@ -132,6 +133,8 @@ export function laneCanInsert(b: BeltC, lane: number, pos: number): boolean {
  * true when it was taken. Set by the game, which knows how each structure accepts goods.
  */
 export type BeltSink = (dst: Ent, k: number, dir: Dir) => boolean;
+/** does a structure take k at all (false = the wrong input)? src/sim/ports.ts portUses */
+export type BeltUses = (dst: Ent, k: number) => boolean;
 
 function transferOut(ents: Ents, e: Ent, lane: number, k: number, overflow: number, sink?: BeltSink): boolean {
   const b = e.belt!;
@@ -182,7 +185,7 @@ export const BELT_BLOCK_AFTER = 3;
  * whose front hasn't moved for 3 s is Blocked (its chevrons stop), one that moves is Working, an
  * empty one Idle.
  */
-export function updateBelts(ents: Ents, dt: number, sink?: BeltSink, now = 0) {
+export function updateBelts(ents: Ents, dt: number, sink?: BeltSink, now = 0, uses?: BeltUses) {
   if (ents.beltsDirty) rebuildBelts(ents);
   const order = ents.beltOrder;
   for (let oi = 0; oi < order.length; oi++) {
@@ -211,9 +214,16 @@ export function updateBelts(ents: Ents, dt: number, sink?: BeltSink, now = 0) {
         // Belts tick downstream first, so the taker's state is this tick's.
         const taker = b.next ?? (b.kind === BeltKind.UnderIn ? null : ents.rootAt(e.x + DX[e.rot], e.y + DY[e.rot]));
         const t = taker?.parent ?? taker;
-        if (t && (t.belt ? t.state === MState.Working : isBusy(t))) {
+        // an item at the front its taker can't use at all never clears: name it (the wrong input)
+        const wrong = t && !t.belt && uses ? b.lanes.map((L) => L.k[0]).find((k) => k !== undefined && !uses(t, k)) : undefined;
+        if (t && wrong !== undefined) {
+          if (e.state !== MState.Blocked || e.refused !== wrong) setRefused(e, t, wrong, kDef(wrong).name.toLowerCase(), now);
+        } else if (t && (t.belt ? t.state === MState.Working : isBusy(t))) {
           if (e.state !== MState.Working || e.why === '') setQueued(e, t.belt ? null : t, now);
-        } else if (e.state !== MState.Blocked) setState(e, MState.Blocked, 'Backed up: what it runs into takes nothing more', now);
+        } else {
+          const why = !t ? 'Backed up: nothing at its end takes goods' : t.belt ? 'Backed up: the belt ahead is stopped' : `Backed up: the ${t.def.name.toLowerCase()} takes nothing more`;
+          if (e.state !== MState.Blocked || e.why !== why) setState(e, MState.Blocked, why, now);
+        }
       }
     }
   }

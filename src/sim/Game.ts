@@ -5,7 +5,7 @@ import type { Season, Weather, BuffKind } from '../data/types';
 import { TileMap } from './world/tilemap';
 import { generateWorld, PLAYER_START, WORLD_W, WORLD_H, SHIPBIN_POS } from './world/worldgen';
 import { Ents, type Dir, type Ent } from './ents';
-import { portInsert } from './ports';
+import { portInsert, portUses } from './ports';
 import { Inventory, key } from './inventory';
 import { updateBelts } from './systems/belts';
 import { updateArms } from './systems/arms';
@@ -359,7 +359,7 @@ export class Game {
     this.advanceClock(dt);
     if (sdt > 0) {
       if (this.ents.powerDirty || this.tickN % 2 === 0) updatePower(this, sdt * (this.ents.powerDirty ? 1 : 2));
-      updateBelts(this.ents, sdt, this.beltSink, this.simTime);
+      updateBelts(this.ents, sdt, this.beltSink, this.simTime, this.beltUses);
       updateArms(this, sdt);
       updateMachines(this, sdt);
     }
@@ -373,6 +373,8 @@ export class Game {
     if (n > 0 && dst.def.kind === 'shipbin') this.emit({ t: 'crated', k, n, x: dst.x + 0.5, y: dst.y - 0.1, ent: dst.id });
     return n > 0;
   };
+
+  private beltUses = (dst: Ent, k: number): boolean => portUses(this, dst, k);
 
   /** set by the presentation layer while building: the clock slows to a quarter */
   slowClock = false;
@@ -417,7 +419,7 @@ export class Game {
         this.tickN++;
         this.simTime += sdt;
         updatePower(this, sdt);
-        updateBelts(this.ents, sdt, this.beltSink, this.simTime);
+        updateBelts(this.ents, sdt, this.beltSink, this.simTime, this.beltUses);
         updateArms(this, sdt);
         updateMachines(this, sdt);
         for (const s of SYSTEMS) if (s.works && s.tick) s.tick(this, sdt);

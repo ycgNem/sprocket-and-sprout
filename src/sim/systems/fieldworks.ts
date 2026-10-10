@@ -2,14 +2,15 @@
 // crop is an item waiting in the ground. The gleaner (Spring, spring-wound) and the field gantry
 // (Steam, rides its rails) live here; the harvest crane and seed sower are in automation.ts.
 // The morning belongs to the hands: a crop that ripened today waits until noon for the machines.
-import { CROP_BY_SEED, CROP_BY_ID } from '../../data/crops';
+import { CROPS, CROP_BY_SEED, CROP_BY_ID } from '../../data/crops';
+import { SEASON_NAMES, type CropDef } from '../../data/types';
 import type { CropState, Game } from '../Game';
 import { DX, DY, Ent } from '../ents';
 import { key, kDef, kStack, ItemKey } from '../inventory';
 import { takersOf } from '../lines';
-import { MState, setState } from '../mstate';
+import { MState, offText, setState } from '../mstate';
 import { PORT_HANDLERS } from '../ports';
-import { canPlant, canTill, cropTotal, harvest, plant, till } from './farming';
+import { canPlant, canTill, cropTotal, harvest, inGreenhouse, plant, till } from './farming';
 
 /** the hour (game minutes) field machines may pick a crop that ripened this morning */
 export const PICK_FROM = 12 * 60;
@@ -140,24 +141,43 @@ function cropsIn(e: Ent): number {
   return e.inv!.slots.reduce((a, s) => a + (s && !kDef(s.k).plant?.crop && !kDef(s.k).fertilizer ? s.n : 0), 0);
 }
 
-/** is there anything for a pass to do: water, pick, sow? (and is sowing all it lacks seeds for) */
-function gantryWork(g: Game, e: Ent, rows: [number, number][][]): { any: boolean; needSeeds: boolean } {
+/** the first seed in the bin that grows on tile i this season (bare, tilled or under a dead crop) */
+function seedFor(g: Game, e: Ent, i: number): { k: number; cr: CropDef } | null {
+  for (const st of e.inv!.slots) {
+    if (!st || !kDef(st.k).plant?.crop) continue;
+    const cr = CROP_BY_SEED.get(kDef(st.k).id);
+    if (cr && (cr.seasons.includes(g.time.season) || inGreenhouse(g, i) || g.sys.megaBonus?.beacon)) return { k: st.k, cr };
+  }
+  return null;
+}
+
+/** does anything grow outdoors this season (so an empty seed bin is a real want)? */
+const sowingSeason = (g: Game) => CROPS.some((c) => c.seasons.includes(g.time.season));
+
+/**
+ * Is there anything for a pass to do: water, pick, sow? Sowing counts only with a seed that grows
+ * here this season, so a gantry with summer seeds in winter parks instead of shuttling. `needSeeds`:
+ * a bare strip with an empty bin in a sowing season (Starved); `live`: anything growing on it.
+ */
+function gantryWork(g: Game, e: Ent, rows: [number, number][][]): { any: boolean; needSeeds: boolean; live: boolean } {
   const dawn = dawnOn(g, e);
   const seeds = seedsIn(e) > 0;
-  let any = false, needSeeds = false;
+  let any = false, bare = false, live = false;
   for (const row of rows)
     for (const [x, y] of row) {
       if (!g.map.inb(x, y)) continue;
-      const s = g.soil.get(g.map.idx(x, y));
+      const i = g.map.idx(x, y);
+      const s = g.soil.get(i);
       if (s?.crop && !s.crop.dead) {
+        live = true;
         if (!s.water && !g.isRaining() && !s.crop.ready) any = true;
         if (pickable(g, s.crop, dawn)) any = true;
       } else if (s || canTill(g, x, y)) {
-        if (seeds) any = true;
-        else needSeeds = true;
+        if (seedFor(g, e, i)) any = true;
+        else bare = true;
       }
     }
-  return { any, needSeeds };
+  return { any, needSeeds: bare && !seeds && !live && sowingSeason(g), live };
 }
 
 /** work one row of the strip: water, pick, till and sow */
@@ -183,8 +203,10 @@ function gantryRow(g: Game, e: Ent, row: [number, number][]) {
       }
       continue;
     }
-    // sow: till bare ground first, then plant the first seed that fits the season
-    const seed = e.inv!.slots.find((st) => st && kDef(st.k).plant?.crop);
+    // a dead crop is tilled under as the car passes
+    if (s?.crop?.dead) s.crop = null;
+    // sow: till bare ground first, then plant the first seed that grows here this season
+    const seed = seedFor(g, e, i);
     if (!seed) continue;
     if (!s) {
       if (!canTill(g, x, y)) continue;
@@ -192,10 +214,8 @@ function gantryRow(g: Game, e: Ent, row: [number, number][]) {
       s = g.soil.get(i);
       if (!s) continue;
     }
-    if (s.crop) continue;
-    const cr = CROP_BY_SEED.get(kDef(seed.k).id);
-    if (!cr || canPlant(g, cr, i)) continue;
-    plant(g, cr, i);
+    if (s.crop || canPlant(g, seed.cr, i)) continue;
+    plant(g, seed.cr, i);
     s.water = true;
     e.inv!.remove(seed.k, 1);
     g.stats.use(seed.k, 1);
@@ -210,7 +230,7 @@ export function gantryTick(g: Game, e: Ent, dt: number) {
   e.st.pos = Math.min(e.st.pos ?? 0, len);
   if (e.off) {
     e.working = false;
-    setState(e, MState.Idle, 'Switched off at its pole', now);
+    setState(e, MState.Idle, offText(e), now);
     return;
   }
   if (!len) {
@@ -244,7 +264,9 @@ export function gantryTick(g: Game, e: Ent, dt: number) {
     } else if (w.needSeeds) {
       e.want = 'seeds';
       setState(e, MState.Starved, 'Seed bin empty: feed it seeds with an arm', now);
-    } else setState(e, MState.Idle, fieldIdleText(g, e.strip), now);
+    } else if (!w.live && seedsIn(e) > 0) setState(e, MState.Idle, `Its seeds don't grow in ${SEASON_NAMES[g.time.season].toLowerCase()}`, now);
+    else if (!w.live && !sowingSeason(g)) setState(e, MState.Idle, `Nothing grows outdoors in ${SEASON_NAMES[g.time.season].toLowerCase()}`, now);
+    else setState(e, MState.Idle, fieldIdleText(g, e.strip), now);
     return;
   }
   e.working = true;
@@ -275,10 +297,11 @@ export function gantryTick(g: Game, e: Ent, dt: number) {
 // ---------------- ports ----------------
 
 // the gleaner's basket: arms take, nothing goes in
-PORT_HANDLERS.gleaner = { accept: () => 0, insert: () => 0 };
+PORT_HANDLERS.gleaner = { accept: () => 0, insert: () => 0, uses: () => false };
 
 // the gantry's car: crops come out, seeds (and fertilizer) go in
 PORT_HANDLERS.gantry = {
+  uses: (_g, _e, k) => !!kDef(k).plant?.crop,
   accept: (_g, e, k) => {
     const d = kDef(k);
     if (!d.plant?.crop) return 0;

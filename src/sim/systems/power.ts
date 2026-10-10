@@ -108,10 +108,12 @@ export function rebuildPower(g: Game) {
   for (const e of ents.consumers) {
     assign(e);
     if (e.net) ps.nets.get(e.net)!.consumers++;
-    e.off = offPoles.some((p) => {
+    const over = offPoles.filter((p) => {
       const s = p.def.supply ?? 2;
       return e.x < p.x + p.w + s && e.x + e.w > p.x - s && e.y < p.y + p.h + s && e.y + e.h > p.y - s;
     });
+    e.off = over.length > 0;
+    e.offNight = e.off && over.every((p) => p.st.sw === 2);
   }
   for (const e of ents.gens) {
     assign(e);

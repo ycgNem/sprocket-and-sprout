@@ -4,7 +4,7 @@ import type { RecipeDef } from '../../data/types';
 import type { Game } from '../Game';
 import type { Ent, MachC } from '../ents';
 import { ITEM_BY_ID } from '../../data/items';
-import { MState, setHarvestWait, setState } from '../mstate';
+import { MState, offText, setHarvestWait, setState } from '../mstate';
 import { feedersOf, fieldSource, harvestWaitText, hasFeeder } from '../lines';
 import { ItemKey, kDef, kMatches, key, kStack, Stack } from '../inventory';
 
@@ -67,6 +67,35 @@ export function machAccept(g: Game, e: Ent, k: ItemKey, manual = false): number 
     }
   }
   return Math.max(0, best);
+}
+
+/** is k an ingredient of a recipe it may run (or a fuel it burns)? false = the wrong input */
+export function machUses(g: Game, e: Ent, k: ItemKey): boolean {
+  if (e.def.kind === 'beehouse') return false;
+  if (e.def.fuel && fuelValue(k) > 0) return true;
+  return availableRecipes(g, e).some((r) => r.in.some((i) => specMatch(k, i.item)));
+}
+
+const CAT_WORD: Record<string, string> = { crop: 'crop', fruit: 'fruit', forage: 'forage', animal: 'animal product', flower: 'flower', resource: 'resource', fish: 'fish' };
+
+/**
+ * What a machine takes, in words, from the recipes it may run: a few items by name ("wood,
+ * hardwood or driftwood"), a long list by its kinds ("any crop or fruit").
+ */
+export function machTakesText(g: Game, e: Ent): string {
+  const specs = [...new Set(availableRecipes(g, e).flatMap((r) => r.in.map((i) => i.item)))];
+  const name = (s: string) => (s[0] === '#' ? 'any ' + s.slice(1) : (ITEM_BY_ID.get(s)?.name ?? s).toLowerCase());
+  const or = (names: string[]) => (names.length === 1 ? names[0] : names.slice(0, -1).join(', ') + ' or ' + names[names.length - 1]);
+  if (!specs.length) return 'nothing yet';
+  if (specs.length <= 3) return or(specs.map(name));
+  const cats = new Map<string, number>();
+  for (const s of specs) {
+    const c = s[0] === '#' ? '' : ITEM_BY_ID.get(s)?.cat ?? '';
+    if (CAT_WORD[c]) cats.set(c, (cats.get(c) ?? 0) + 1);
+  }
+  const top = [...cats].sort((a, b) => b[1] - a[1]).slice(0, 2);
+  if (top.reduce((a, [, n]) => a + n, 0) >= specs.length * 0.8) return 'any ' + top.map(([c]) => CAT_WORD[c]).join(' or ');
+  return `${name(specs[0])}, ${name(specs[1])} and ${specs.length - 2} more`;
 }
 
 export function machInsert(g: Game, e: Ent, k: ItemKey, n: number, manual = false): number {
@@ -161,8 +190,8 @@ function wantedInput(g: Game, e: Ent): string {
   for (const [k] of m.inBuf) return kDef(k).name.toLowerCase();
   // what the arms aimed at it last carried
   for (const f of feedersOf(g, e)) if (f.lastK !== undefined) return kDef(f.lastK).name.toLowerCase();
-  // never fed: name what it last made from, else nothing in particular (not a guess like 'strawberry')
-  return m.recipe ? name(m.recipe.in[0].item) : 'input';
+  // never fed: name what it last made from, else what it takes
+  return m.recipe ? name(m.recipe.in[0].item) : machTakesText(g, e);
 }
 
 export function updateMachines(g: Game, dt: number) {
@@ -176,7 +205,7 @@ export function updateMachines(g: Game, dt: number) {
     }
     if (e.off) {
       e.working = false;
-      setState(e, MState.Idle, 'Switched off at its pole', now);
+      setState(e, MState.Idle, offText(e), now);
       continue;
     }
     if (!m.crafting) {
