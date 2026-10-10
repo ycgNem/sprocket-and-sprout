@@ -141,10 +141,6 @@
   "flipY": true
  },
  {
-  "out": "bases/path/0.png",
-  "base": "try/bases/path-path-grass.png"
- },
- {
   "out": "bases/water/0.png",
   "base": "try/bases/water-water-grass.png",
   "set": [
@@ -256,29 +252,5 @@
  {
   "out": "bases/deep/v7.png",
   "base": "try/deepv/7.png"
- },
- {
-  "out": "bases/path/v1.png",
-  "base": "try/pathvar/v1.png"
- },
- {
-  "out": "bases/path/v2.png",
-  "base": "try/pathvar/v2.png"
- },
- {
-  "out": "bases/path/v3.png",
-  "base": "try/pathvar/v3.png"
- },
- {
-  "out": "bases/path/v4.png",
-  "base": "try/pathvar/v4.png"
- },
- {
-  "out": "bases/path/v5.png",
-  "base": "try/pathvar/v5.png"
- },
- {
-  "out": "bases/path/v6.png",
-  "base": "try/pathvar/v6.png"
  }
 ]

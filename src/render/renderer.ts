@@ -31,6 +31,7 @@ import { Lighting } from './lighting';
 import { Weather } from './weather';
 import { Ambient } from './ambient';
 import { camShakeOffset, wobbleOffset } from './shake';
+import { drawPlanks, planksUnder } from './planks';
 
 const CH = TileMap.CHUNK;
 /** flat objects baked into the ground that get a shadow, and its width */
@@ -232,7 +233,8 @@ export class Renderer {
       for (let lx = -1; lx <= CH; lx++) {
         const k = this.terrainClass(m, x0 + lx, y0 + ly, theme, soil);
         cls[(ly + 1) * N + lx + 1] = k;
-        wang[(ly + 1) * N + lx + 1] = wangOf(k);
+        // a plank walk on land sits on its land, not on a ring of water (src/render/planks.ts)
+        wang[(ly + 1) * N + lx + 1] = k === 'planks' ? planksUnder(m, x0 + lx, y0 + ly) : wangOf(k);
       }
     const at = (lx: number, ly: number) => cls[(ly + 1) * N + lx + 1];
     const wAt = (lx: number, ly: number) => wang[(ly + 1) * N + lx + 1];
@@ -277,6 +279,11 @@ export class Renderer {
         if (!k) continue;
         if (k in WANG_FALLBACK) {
           if (!wAt(lx, ly)) oldTiles.add(ly * CH + lx);
+          continue;
+        }
+        // plank decks: boards along the run, rails over water, ends at land (src/render/planks.ts)
+        if (k === 'planks' && drawPlanks(m, x, y, season, (n) => sp(n, lx * TILE, ly * TILE))) {
+          oldTiles.delete(ly * CH + lx);
           continue;
         }
         const h = hash2(x, y, 9);

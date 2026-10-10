@@ -114,12 +114,16 @@
   ],
   "path": [
    "bases/path/0.png",
-   "bases/path/v1.png",
-   "bases/path/v2.png",
-   "bases/path/v3.png",
-   "bases/path/v4.png",
-   "bases/path/v5.png",
-   "bases/path/v6.png"
+   "bases/path/1.png",
+   "bases/path/2.png",
+   "bases/path/3.png",
+   "bases/path/4.png",
+   "bases/path/5.png",
+   "bases/path/6.png",
+   "bases/path/7.png",
+   "bases/path/8.png",
+   "bases/path/9.png",
+   "bases/path/10.png"
   ],
   "sand": [
    "bases/sand/0.png",
@@ -226,8 +230,67 @@
    "tiles/ore7/1.png"
   ],
   "planks": [
-   "tiles/planks/9.png",
-   "tiles/planks/10.png"
+   "tiles/planks/0.png",
+   "tiles/planks/1.png",
+   "tiles/planks/2.png"
+  ],
+  "planks_end_e": [
+   "tiles/planks_end_e/0.png"
+  ],
+  "planks_end_n": [
+   "tiles/planks_end_n/0.png"
+  ],
+  "planks_end_s": [
+   "tiles/planks_end_s/0.png"
+  ],
+  "planks_end_w": [
+   "tiles/planks_end_w/0.png"
+  ],
+  "planks_h": [
+   "tiles/planks_h/0.png",
+   "tiles/planks_h/1.png",
+   "tiles/planks_h/2.png"
+  ],
+  "planks_post_ne": [
+   "tiles/planks_post_ne/0.png"
+  ],
+  "planks_post_nw": [
+   "tiles/planks_post_nw/0.png"
+  ],
+  "planks_post_se": [
+   "tiles/planks_post_se/0.png"
+  ],
+  "planks_post_sw": [
+   "tiles/planks_post_sw/0.png"
+  ],
+  "planks_rail_e": [
+   "tiles/planks_rail_e/0.png"
+  ],
+  "planks_rail_n": [
+   "tiles/planks_rail_n/0.png"
+  ],
+  "planks_rail_s": [
+   "tiles/planks_rail_s/0.png"
+  ],
+  "planks_rail_w": [
+   "tiles/planks_rail_w/0.png"
+  ],
+  "planks_side_e": [
+   "tiles/planks_side_e/0.png"
+  ],
+  "planks_side_n": [
+   "tiles/planks_side_n/0.png"
+  ],
+  "planks_side_s": [
+   "tiles/planks_side_s/0.png"
+  ],
+  "planks_side_w": [
+   "tiles/planks_side_w/0.png"
+  ],
+  "planks_v": [
+   "tiles/planks_v/0.png",
+   "tiles/planks_v/1.png",
+   "tiles/planks_v/2.png"
   ],
   "rock": [
    "tiles/rock/0.png",

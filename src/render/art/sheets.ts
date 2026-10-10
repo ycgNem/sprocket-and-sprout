@@ -245,7 +245,11 @@ export function smokePoints(): Record<string, [number, number]> | null {
 }
 
 export function registerSheetSprites() {
-  for (const [path, m] of Object.entries(metas)) {
+  // the first sheet to name a sprite wins: a sheet with a higher meta.priority goes first (a newer
+  // sheet replacing a few frames of an older group), then file order
+  const prio = (m: SheetMeta) => ((m as { meta?: { priority?: number } }).meta?.priority ?? 0);
+  const entries = Object.entries(metas).sort((a, b) => prio(b[1]) - prio(a[1]) || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  for (const [path, m] of entries) {
     const url = urls[path.replace(/\.json$/, '.png')];
     if (!url) {
       console.error('sprite sheet manifest without a PNG', path);

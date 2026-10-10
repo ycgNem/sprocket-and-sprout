@@ -1,0 +1,14 @@
+{
+ "name": "terrain-items",
+ "kind": "sprites",
+ "file": "terrain-items.png",
+ "palette": "Resurrect 64",
+ "meta": {
+  "note": "The placeable Flagstone Path (path_stone): item icon and build-ghost sprite, made from the flagstone ground by art/terrain/tools/flagstone.mjs (art/terrain/build.sh). Sheets register in file-name order and the first match wins, so these take over i:path_stone (icons.*) and st:path_stone:* (factory.*) only once those entries are removed or sheets with meta.priority register first.",
+  "priority": 1
+ },
+ "sprites": [
+  {"match":"i:path_stone","r":[17,0,16,16],"o":[0,0]},
+  {"match":"st:path_stone:*:*:*","r":[0,0,16,20],"o":[0,4]}
+ ]
+}

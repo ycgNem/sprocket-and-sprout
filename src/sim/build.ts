@@ -97,6 +97,14 @@ export function place(g: Game, defId: string, x: number, y: number, rot: Dir, gh
 }
 
 export function afterPlace(g: Game, e: Ent) {
+  // a path is ground, not a structure: it becomes a path or plank tile (the pickaxe lifts it again)
+  if (e.def.kind === 'path') {
+    g.ents.remove(e);
+    g.map.setG(e.x, e.y, e.def.id === 'path_wood' ? T.PLANKS : T.PATH);
+    g.map.objData[g.map.idx(e.x, e.y)] = e.def.id === 'path_brick' ? 2 : 0;
+    g.emit({ t: 'sfx', id: 'place', x: e.x, y: e.y });
+    return;
+  }
   if (e.def.kind === 'underground' && e.belt) pairUnderground(g, e);
   if (e.def.kind === 'tapper') e.st.tree = g.map.idx(e.x, e.y);
   g.emit({ t: 'fx', kind: 'dust', x: e.x + e.w / 2, y: e.y + e.h / 2, n: 8 });

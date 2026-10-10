@@ -209,14 +209,6 @@
   "flipY": true
  },
  {
-  "out": "tiles/planks/9.png",
-  "base": "try/planks/9.png"
- },
- {
-  "out": "tiles/planks/10.png",
-  "base": "try/planks/10.png"
- },
- {
   "out": "tiles/woodfloor/0.png",
   "base": "try/woodfloor/6.png"
  },

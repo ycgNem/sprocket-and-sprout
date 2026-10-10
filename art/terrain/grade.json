@@ -578,39 +578,6 @@
    "fallback": "deep"
   },
   {
-   "name": "path-grass",
-   "in": "raw/path-grass2/tileset.png",
-   "out": "sets/path-grass/tileset.png",
-   "copy": [
-    "raw/path-grass2/tileset.json"
-   ],
-   "classify": [
-    {
-     "material": "rim",
-     "hue": [
-      170,
-      260
-     ],
-     "L": [
-      0,
-      22
-     ]
-    },
-    {
-     "material": "grass",
-     "hue": [
-      100,
-      200
-     ],
-     "sat": [
-      0.5,
-      1
-     ]
-    }
-   ],
-   "fallback": "stone"
-  },
-  {
    "name": "waterv",
    "in": "raw/waterv1",
    "out": "try/waterv",
@@ -621,35 +588,6 @@
    "in": "raw/waterv1",
    "out": "try/deepv",
    "fallback": "deepv"
-  },
-  {
-   "name": "path-dirt",
-   "in": "raw/path-dirt/tileset.png",
-   "out": "sets/path-dirt/tileset.png",
-   "copy": [
-    "raw/path-dirt/tileset.json"
-   ],
-   "classify": [
-    {
-     "material": "stone",
-     "hue": [
-      280,
-      350
-     ]
-    },
-    {
-     "material": "stone",
-     "sat": [
-      0,
-      0.5
-     ]
-    }
-   ],
-   "fallback": "earth",
-   "assign": {
-    "#c26c76": "earth",
-    "#ce6d65": "earth"
-   }
   },
   {
    "name": "water-dirt",
@@ -677,38 +615,6 @@
     }
    ],
    "fallback": "earth"
-  },
-  {
-   "name": "path-sand",
-   "in": "raw/path-sand/tileset.png",
-   "out": "sets/path-sand/tileset.png",
-   "copy": [
-    "raw/path-sand/tileset.json"
-   ],
-   "classify": [
-    {
-     "material": "stone",
-     "hue": [
-      280,
-      350
-     ]
-    },
-    {
-     "material": "sand",
-     "L": [
-      84,
-      101
-     ]
-    },
-    {
-     "material": "sand",
-     "hue": [
-      35,
-      60
-     ]
-    }
-   ],
-   "fallback": "stone"
   }
  ]
 }

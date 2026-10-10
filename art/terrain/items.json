@@ -1,0 +1,17 @@
+{
+ "name": "terrain-items",
+ "kind": "sprites",
+ "meta": {
+  "note": "The placeable Flagstone Path (path_stone): item icon and build-ghost sprite, made from the flagstone ground by art/terrain/tools/flagstone.mjs (art/terrain/build.sh). Sheets register in file-name order and the first match wins, so these take over i:path_stone (icons.*) and st:path_stone:* (factory.*) only once those entries are removed or sheets with meta.priority register first.",
+  "priority": 1
+ },
+ "scale": 1,
+ "defaults": {
+  "place": "none",
+  "keepStrays": true
+ },
+ "sprites": [
+  {"match":"i:path_stone","file":"items/i_path_stone.png","frame":[16,16],"origin":[0,0]},
+  {"match":"st:path_stone:*:*:*","file":"items/st_path_stone.png","frame":[16,20],"origin":[0,4]}
+ ]
+}
