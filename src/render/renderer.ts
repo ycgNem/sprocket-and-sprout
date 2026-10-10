@@ -1577,6 +1577,16 @@ export class Renderer {
         if (pet.emote) this.drawEmote(pet.x, pet.y - (full ? 1.4 : 1.1), pet.emote);
       } });
     }
+    // Tock, the Professor's clockwork helper (src/sim/systems/tock.ts): the pets' walk cycle and poses
+    const tock = g.sys.tock;
+    if (tock?.here && g.player.where === 'world' && onScreen(tock.x, tock.y)) {
+      const night = g.time.min >= 22 * 60;
+      const pose = tock.moving ? [0, 1, 4, 5][Math.floor(tock.walkT * 4.4) % 4] : tock.mode === 'sit' ? 2 : tock.mode === 'wait' && night ? (Math.floor(this.time) % 2 ? 6 : 3) : 0;
+      D.push({ y: tock.y, f: () => {
+        drawSprite(ctx, sprite('shadow:10'), tock.x * TILE, tock.y * TILE);
+        drawSprite(ctx, sprite(`pet:tock:0:${pose}`), tock.x * TILE, tock.y * TILE, 1, tock.dir === 3);
+      } });
+    }
     if (pet && pet.stage === 'adopted' && g.player.where === 'world' && onScreen(pet.bowl[0], pet.bowl[1])) {
       const [bx, by] = pet.bowl;
       D.push({ y: by + 0.3, f: () => drawSprite(ctx, sprite(`bowl:${pet.bowlFull ? 1 : 0}`), bx * TILE, by * TILE) });

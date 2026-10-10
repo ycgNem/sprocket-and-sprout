@@ -13,6 +13,7 @@ import { canTill } from './systems/farming';
 import { machAccept, stationRecipes } from './systems/machines';
 import { wouldGift } from './systems/npcs';
 import { petAt } from './systems/pet';
+import { tockAt } from './systems/tock';
 import { shopOpen } from './systems/town';
 import { SHOPS } from '../data/shops';
 import { curMap } from './systems/player';
@@ -51,6 +52,8 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   if (p.where === 'mine') return minePrompt(g, tx, ty);
   const pet = petAt(g, tx + 0.5, ty + 0.5);
   if (pet) return pet.stage === 'stray' ? { verb: 'Say hello', x: pet.x, y: pet.y - 1 } : pet.petted ? null : { verb: 'Pet ' + pet.name, x: pet.x, y: pet.y - 1 };
+  const tock = tockAt(g, tx + 0.5, ty + 0.5);
+  if (tock) return { verb: 'Tock', x: tock.x, y: tock.y - 1.3 };
   if (p.where === 'house') {
     // a structure placed indoors (Workshop HQ) answers as it does outside
     const he = g.houseEnts.rootAt(tx, ty);

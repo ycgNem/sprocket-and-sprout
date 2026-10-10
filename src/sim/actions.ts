@@ -5,6 +5,7 @@ import { cartHere } from './systems/cart';
 import { knowsRecipe, learnRecipe } from './systems/cookbook';
 import { depotInsert } from './systems/orders';
 import { fillBowl, petAt, petInteract } from './systems/pet';
+import { tockAt, tockInteract } from './systems/tock';
 import { BUFF_INFO } from '../data/buffs';
 import { CROP_BY_ID, CROP_BY_SEED } from '../data/crops';
 import { ITEM_BY_ID } from '../data/items';
@@ -527,6 +528,11 @@ export function interact(g: Game, tx: number, ty: number): boolean {
   const pet = petAt(g, tx + 0.5, ty + 0.5);
   if (pet) {
     petInteract(g, pet);
+    return true;
+  }
+  const tock = tockAt(g, tx + 0.5, ty + 0.5);
+  if (tock) {
+    tockInteract(g, tock);
     return true;
   }
   if (p.where === 'house') {

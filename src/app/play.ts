@@ -4,6 +4,7 @@ import { pendingPerk } from '../sim/perks';
 import { canPlaceDecor, placeDecor } from '../sim/systems/house';
 import { FURN_BY_ID } from '../data/furniture';
 import { petAt, petHearts } from '../sim/systems/pet';
+import { tockAt } from '../sim/systems/tock';
 import { C, PALETTE, rgba } from '../data/palette';
 import { STRUCT_BY_ID } from '../data/structures';
 import { NPC_BY_ID } from '../data/npcs';
@@ -608,6 +609,11 @@ export class PlayScreen implements Screen {
       ui.tip(pt.stage === 'stray'
         ? [{ text: `A stray ${pt.kind}`, color: C.amber }, { text: 'F or right-click to say hello', color: C.pebble }]
         : [{ text: pt.name, color: C.amber }, { text: `Your ${pt.kind}  ` + ICON.heart.repeat(h) + '.'.repeat(5 - h), color: C.rose }, { text: pt.petted ? 'Petted today' : 'F or right-click to pet', color: C.pebble }, { text: pt.bowlFull ? 'Water bowl is full' : 'Water bowl is empty (use the watering can)', color: pt.bowlFull ? C.aqua : C.pebble }]);
+      return;
+    }
+    const tk = tockAt(g, t.fx, t.fy + 0.3);
+    if (tk) {
+      ui.tip([{ text: 'Tock', color: C.amber }, { text: "The Professor's clockwork helper: it turns the key of any spring arm or gleaner it finds run down" }, { text: `${tk.today} key${tk.today === 1 ? '' : 's'} turned today, ${tk.wound} in all`, color: C.pebble }], 200);
       return;
     }
     const bowl = g.sys.pet?.stage === 'adopted' && g.player.where === 'world' ? g.sys.pet.bowl : null;

@@ -639,6 +639,43 @@ function drawDog(coat: number, pose: number): PixBuf {
   return pb;
 }
 
+// ---------- Tock: pet:tock:0:<pose> (22x20, feet at 11,19), the Professor's clockwork helper ----------
+// poses as the pets': 0 stand, 1 4 5 walk, 2 sit (its key winding down), 3 and 6 resting (eye dimmed).
+// A procedural stand-in for the imported art (art/creatures), facing right.
+function drawTock(pose: number): PixBuf {
+  const pb = new PixBuf(22, 20);
+  const rest = pose === 3 || pose === 6, low = pose === 2 || rest ? 2 : 0;
+  const walk = pose === 1 ? 1 : pose === 4 ? -1 : 0;
+  // legs (tucked away sitting or resting)
+  if (!low) {
+    pb.rect(8, 16, 2, 3 - Math.max(0, walk), C.bark);
+    pb.rect(12, 16, 2, 3 - Math.max(0, -walk), C.bark);
+    pb.rect(7, 18 - Math.max(0, walk), 3, 1, C.walnut);
+    pb.rect(12, 18 - Math.max(0, -walk), 3, 1, C.walnut);
+  }
+  // the barrel of a body, a band of rivets round it
+  pb.ellipse(11, 12 + low, 5, 4, C.brass);
+  pb.rect(6, 12 + low, 11, 1, C.copper);
+  for (let x = 7; x <= 15; x += 2) pb.set(x, 12 + low, C.butter);
+  pb.rect(9, 9 + low, 3, 1, C.butter);
+  // the key in its back: turning while it walks, winding down when it sits
+  const kx = 4, ky = 11 + low;
+  pb.rect(kx + 1, ky, 2, 1, C.stone);
+  if (pose === 2 || pose === 4) pb.rect(kx - 1, ky - 2, 2, 5, C.pebble);
+  else pb.rect(kx - 2, ky - 1, 3, 3, C.pebble);
+  // the domed head and its one eye
+  const hx = rest ? 12 : 13, hy = 6 + low;
+  pb.disc(hx, hy, 3.4, C.copper);
+  pb.rect(hx - 2, hy - 2, 2, 1, C.apricot);
+  pb.set(hx + 2, hy, rest ? C.stone : C.amber);
+  pb.set(hx + 2, hy - 1, rest ? C.slate : C.butter);
+  // the little antenna
+  pb.set(hx, hy - 4, C.stone);
+  pb.set(hx, hy - 5, rest ? C.stone : C.amber);
+  pb.outline(C.ink);
+  return pb;
+}
+
 function drawBowl(full: number): PixBuf {
   const pb = new PixBuf(16, 16);
   pb.ellipse(8, 12, 5, 2.6, C.river);
@@ -652,6 +689,10 @@ function drawBowl(full: number): PixBuf {
 export function registerHomeSprites() {
   defSpriteFamily('pet:', (name) => {
     const [, kind, cs, ps] = name.split(':');
+    if (kind === 'tock') {
+      const tb = drawTock(+ps);
+      return { w: 22, h: 20, ox: 11, oy: 19, draw: (ctx) => tb.drawTo(ctx) };
+    }
     const pb = kind === 'dog' ? drawDog(+cs, +ps) : drawCat(+cs, +ps);
     return { w: 16, h: 16, ox: 8, oy: 15, draw: (ctx) => pb.drawTo(ctx) };
   });
