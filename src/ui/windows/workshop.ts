@@ -1,14 +1,15 @@
 // Workshop HQ's windows (ROADMAP.md 7.8): the Ledger (the almanac's job now: yesterday's sales by
 // customer, what's saturated at market, the week ahead) and the Drafting Table (the blueprint
-// library: save the blueprint tool's copy under a name, load one back, rename, delete).
+// library: save the blueprint tool's copy under a name, load one back, rename, delete, see it drawn,
+// and bench-test it on the Sprocket Fair's plate).
 import { C } from '../../data/palette';
 import { ITEMS } from '../../data/items';
 import { SEASON_NAMES } from '../../data/types';
-import { STRUCT_BY_ID } from '../../data/structures';
 import { keyLabel } from '../../engine/input';
 import type { Blueprint } from '../../sim/blueprint';
 import { addBlueprint, cloneBlueprint, drafting, fits, LIB_MAX } from '../../sim/drafting';
-import { kDef } from '../../sim/inventory';
+import { kDef, key } from '../../sim/inventory';
+import { BED } from '../../sim/testbed';
 import { satFactor } from '../../sim/systems/economy';
 import { ledgerDay, type AlmanacBits, type LedgerRow } from '../../sim/systems/house';
 import { custName, villagerName } from '../../sim/systems/orders';
@@ -17,6 +18,7 @@ import type { UI } from '../ui';
 import { ellipsize, wrapText, ICON } from '../font';
 import { centered, frame } from './common';
 import { registerWindow, WinState } from './index';
+import { drawBlueprint, machinesOf } from './fair';
 
 // ---------------- the ledger ----------------
 type Line = { text: string; color: number; indent?: number; icon?: number };
@@ -110,45 +112,49 @@ function drawLedger(ui: UI, play: PlayScreen, st: WinState): boolean {
 }
 
 // ---------------- the drafting table ----------------
-/** a blueprint's tiny plan: one dot per tile, coloured by what stands there */
-function thumb(ui: UI, bp: Blueprint, x: number, y: number, size: number) {
-  ui.fill(x, y, size, size, C.ink);
-  ui.fill(x + 1, y + 1, size - 2, size - 2, C.deepsea);
-  const px = Math.max(1, Math.floor((size - 2) / Math.max(bp.w, bp.h)));
-  const ox = x + 1 + Math.floor((size - 2 - px * bp.w) / 2), oy = y + 1 + Math.floor((size - 2 - px * bp.h) / 2);
-  for (const it of bp.items) {
-    const d = STRUCT_BY_ID.get(it.def);
-    if (!d) continue;
-    const [w, h] = d.rotatable && (it.rot === 1 || it.rot === 3) ? [d.size[1], d.size[0]] : d.size;
-    const col = d.kind === 'belt' || d.kind === 'underground' || d.kind === 'splitter' ? C.brass : d.kind === 'arm' ? C.gold : d.kind === 'chest' ? C.oak
-      : d.kind === 'shipbin' ? C.rose : d.kind === 'machine' || d.kind === 'lab' ? C.mauve : d.kind === 'pole' || d.kind === 'generator' ? C.copper : C.stone;
-    ui.fill(ox + it.dx * px, oy + it.dy * px, Math.max(1, w * px), Math.max(1, h * px), col);
-  }
-}
+const describe = (bp: Blueprint) => `${bp.w}x${bp.h}, ${bp.items.length} piece${bp.items.length === 1 ? '' : 's'}${fits(bp, BED, BED) ? ", fits the Fair's plate" : ''}`;
 
-const describe = (bp: Blueprint) => `${bp.w}x${bp.h}, ${bp.items.length} piece${bp.items.length === 1 ? '' : 's'}${fits(bp, 6, 6) ? ', fits the Fair\'s bed' : ''}`;
-
+/**
+ * The drafting table: the blueprint tool's copy (save it under a name), the library, and the chosen
+ * line drawn with the structure sprites at the largest whole scale that fits, with what you can do
+ * with it: bench-test it on the Sprocket Fair's plate against this year's entries
+ * (src/ui/windows/fair.ts), load it into the blueprint tool, or delete it. `st.arg.sel` reopens on
+ * a line (the bench test's Back).
+ */
 function drawDrafting(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
   const lib = drafting(g).lib;
-  const W = Math.min(ui.w - 20, 400), H = Math.min(ui.h - 30, 280);
+  const W = Math.min(ui.w - 20, 440), H = Math.min(ui.h - 30, 280);
   const { x, y } = centered(ui, W, H);
   if (!frame(ui, x, y, W, H, 'Drafting Table')) {
     ui.focus = null;
     return false;
   }
+  st.data.btn = {};
   const binds = play.app.input.binds;
   const copyKey = keyLabel(binds.copy?.[0] ?? 'KeyV'), pasteKey = keyLabel(binds.paste?.[0] ?? 'KeyB');
   const bp = play.blueprint;
-  // the blueprint tool's copy, and saving it under a name
-  // (clear of the frame's close button)
+  // the chosen line: 'tool' (the blueprint tool's copy) or a library index
+  if (st.data.sel === undefined) st.data.sel = st.arg?.sel ?? (lib.length || !bp?.items.length ? 0 : 'tool');
+  if (st.data.sel === 'tool' && !bp?.items.length) st.data.sel = 0;
+  if (typeof st.data.sel === 'number') st.data.sel = Math.max(0, Math.min(st.data.sel, lib.length - 1));
+  // the blueprint tool's copy, and saving it under a name (clear of the frame's close button)
   ui.panel(x + 10, y + 20, W - 20, 40, 'inset', false);
   if (bp && bp.items.length) {
-    thumb(ui, bp, x + 14, y + 24, 32);
-    ui.text('In the blueprint tool:', x + 52, y + 25, C.ink);
-    ui.text(describe(bp), x + 52, y + 36, C.walnut);
-    st.data.name ??= `Line ${lib.length + 1}`;
     const fx = x + W - 172;
+    if (st.data.sel === 'tool') ui.fill(x + 10, y + 20, 2, 40, C.amber);
+    ui.text('In the blueprint tool:', x + 16, y + 25, C.ink);
+    ui.text(ellipsize(describe(bp), fx - x - 22), x + 16, y + 36, C.walnut);
+    st.data.btn.tool = [x + 12, y + 22, fx - x - 16, 36];
+    if (ui.hover(x + 12, y + 22, fx - x - 16, 36)) {
+      ui.tip([{ text: "The blueprint tool's copy", color: C.amber }, { text: 'Click to see it drawn, and to bench-test it', color: C.pebble }]);
+      if (ui.clicked) {
+        ui.eat();
+        st.data.sel = 'tool';
+        ui.sfx('click');
+      }
+    }
+    st.data.name ??= `Line ${lib.length + 1}`;
     st.data.name = ui.textField('bpname', fx, y + 26, 110, st.data.name, 18);
     const full = lib.length >= LIB_MAX;
     if (ui.button('bpsave', fx + 114, y + 26, 44, 16, 'Save', { style: 'green', disabled: full || !st.data.name.trim(), tip: full ? `The library holds ${LIB_MAX}: delete one first` : 'Save it in the library' })) {
@@ -156,6 +162,7 @@ function drawDrafting(ui: UI, play: PlayScreen, st: WinState): boolean {
         play.toast(`Saved "${lib[lib.length - 1].name}" in the library.`);
         ui.sfx('place');
         st.data.name = undefined;
+        st.data.sel = lib.length - 1;
         ui.focus = null;
       }
     }
@@ -163,48 +170,91 @@ function drawDrafting(ui: UI, play: PlayScreen, st: WinState): boolean {
   } else {
     ui.para(`The blueprint tool is empty. Outside, ${copyKey} and a drag copy a line; come back to save it here.`, x + 16, y + 26, W - 32, C.walnut);
   }
-  // the library
-  ui.text(`The library (${lib.length}/${LIB_MAX})`, x + 12, y + 66, C.amber);
+  // the library (left) and the chosen line, drawn (right)
+  const pw = 112, px = x + W - 10 - pw;
+  const lx = x + 10, lw = px - 8 - lx;
+  ui.text(`The library (${lib.length}/${LIB_MAX})`, lx + 2, y + 66, C.amber);
   const ly = y + 78, lh = H - 78 - 22;
-  ui.panel(x + 10, ly - 2, W - 20, lh + 4, 'inset', false);
-  if (!lib.length) ui.para('Saved lines are listed here, to load back into the blueprint tool and paste, or to bring to the Sprocket Fair.', x + 16, ly + 4, W - 32, C.walnut);
-  const rowH = 26;
-  const off = ui.scrollOffset('bplib', x + 10, ly, W - 20, lh, lib.length * rowH);
-  ui.clip(x + 10, ly, W - 20, lh);
+  ui.panel(lx, ly - 2, lw, lh + 4, 'inset', false);
+  if (!lib.length) ui.para('Saved lines are listed here, to load back into the blueprint tool and paste, to bench-test, or to bring to the Sprocket Fair.', lx + 6, ly + 4, lw - 12, C.walnut);
+  const rowH = 24;
+  const off = ui.scrollOffset('bplib', lx, ly, lw, lh, lib.length * rowH);
+  ui.clip(lx, ly, lw, lh);
   lib.forEach((e, i) => {
     const ry = ly + i * rowH - off;
     if (ry < ly - rowH || ry > ly + lh) return;
-    if (i % 2) ui.fill(x + 12, ry, W - 24, rowH - 1, C.tan, 0.3);
-    thumb(ui, e.bp, x + 14, ry + 2, 22);
+    const sel = st.data.sel === i;
+    st.data.btn['row' + i] = [lx + 2, ry, lw - 4, rowH - 1];
+    const hov = ui.hover(lx + 2, ry, lw - 4, rowH - 1);
+    if (sel) {
+      ui.fill(lx + 2, ry, lw - 4, rowH - 1, C.amber, 0.4);
+      ui.fill(lx + 2, ry, 2, rowH - 1, C.amber);
+    } else if (hov || i % 2) ui.fill(lx + 2, ry, lw - 4, rowH - 1, C.tan, hov ? 0.55 : 0.3);
+    // its machines, as icons
+    const icons = machinesOf(e.bp).slice(0, 3);
+    icons.forEach((id, k) => ui.itemIcon(key(id), lx + 6 + k * 13, ry + 6, 12));
+    const tx = lx + 10 + Math.max(1, icons.length) * 13;
+    const nameW = Math.min(150, lx + lw - tx - 6);
     if (st.data.edit === i) {
-      e.name = ui.textField('bpren' + i, x + 40, ry + 2, 150, e.name, 18) || e.name;
+      e.name = ui.textField('bpren' + i, tx, ry + 2, nameW, e.name, 18) || e.name;
       if (ui.focus !== 'bpren' + i) st.data.edit = undefined;
     } else {
-      ui.text(ellipsize(e.name + (e.from ? `  (${villagerName(e.from)}'s drawing)` : ''), W - 190), x + 40, ry + 3, C.ink);
-      if (ui.hover(x + 40, ry + 1, 150, 10)) ui.tip([{ text: e.name, color: C.amber }, { text: 'Click to rename', color: C.pebble }]);
-      if (ui.clicked && ui.hover(x + 40, ry + 1, 150, 10)) {
-        ui.eat();
+      ui.text(ellipsize(e.name + (e.from ? `  (${villagerName(e.from)}'s drawing)` : ''), lx + lw - tx - 6), tx, ry + 3, C.ink);
+      if (sel && ui.hover(tx, ry + 1, nameW, 10)) ui.tip([{ text: e.name, color: C.amber }, { text: 'Click to rename', color: C.pebble }]);
+    }
+    if (st.data.edit !== i) ui.text(ellipsize(describe(e.bp), lx + lw - tx - 6), tx, ry + 13, C.walnut);
+    if (hov && ui.clicked && st.data.edit !== i) {
+      ui.eat();
+      // a click on the chosen line's name renames it; anywhere else on a row chooses it
+      if (sel && ui.hover(tx, ry + 1, nameW, 10)) {
         st.data.edit = i;
         ui.focus = 'bpren' + i;
-      }
-    }
-    ui.text(describe(e.bp), x + 40, ry + 14, C.walnut);
-    if (ui.button('bpload' + i, x + W - 110, ry + 4, 44, 16, 'Load', { style: 'green', tip: `Into the blueprint tool: outside, ${pasteKey} pastes it` })) {
-      play.blueprint = cloneBlueprint(e.bp);
-      play.toast(`"${e.name}" is in the blueprint tool. Outside, ${pasteKey} pastes it; missing pieces wait as ghosts.`);
-      ui.sfx('open');
-    }
-    const sure = st.data.del === i;
-    if (ui.button('bpdel' + i, x + W - 62, ry + 4, 44, 16, sure ? 'Sure?' : 'Delete', { style: sure ? 'red' : 'flat' })) {
-      if (sure) {
-        lib.splice(i, 1);
+      } else {
+        st.data.sel = i;
         st.data.del = undefined;
-        st.data.edit = undefined;
-        ui.sfx('pickup');
-      } else st.data.del = i;
+        ui.sfx('click');
+      }
     }
   });
   ui.unclip();
+  // the chosen line, drawn, and what to do with it
+  const tool = st.data.sel === 'tool';
+  const chosen = tool ? (bp?.items.length ? { name: 'Your blueprint tool copy', bp } : null) : lib[st.data.sel as number] ?? null;
+  const py = y + 78;
+  if (chosen) {
+    const sc = drawBlueprint(ui, play, chosen.bp, px, py, pw, pw);
+    ui.text(sc ? `Drawn ${sc}:1` : 'Its corner, 1:1', px + pw, y + 66, C.oak, { align: 'right' });
+    let by = py + pw + 4;
+    const fair = fits(chosen.bp, BED, BED);
+    st.data.btn.bench = [px, by, pw, 16];
+    if (ui.button('bpbench', px, by, pw, 16, 'Bench test', { style: 'green', disabled: !fair, tip: fair ? "Runs it on the Sprocket Fair's 6x6 plate for five minutes and scores it against this year's entries" : `${chosen.bp.w}x${chosen.bp.h}: bigger than the Fair's 6x6 plate` })) {
+      ui.focus = null;
+      play.openWindow('bench', { name: chosen.name, bp: chosen.bp, sel: st.data.sel });
+      return true;
+    }
+    by += 18;
+    if (!tool) {
+      const e = chosen as (typeof lib)[number];
+      const i = st.data.sel as number;
+      st.data.btn.load = [px, by, pw, 16];
+      if (ui.button('bpload', px, by, pw, 16, 'Load', { tip: `Into the blueprint tool: outside, ${pasteKey} pastes it` })) {
+        play.blueprint = cloneBlueprint(e.bp);
+        play.toast(`"${e.name}" is in the blueprint tool. Outside, ${pasteKey} pastes it; missing pieces wait as ghosts.`);
+        ui.sfx('open');
+      }
+      by += 18;
+      const sure = st.data.del === i;
+      if (ui.button('bpdel', px, by, pw, 16, sure ? 'Sure? Delete it' : 'Delete', { style: sure ? 'red' : 'flat' })) {
+        if (sure) {
+          lib.splice(i, 1);
+          st.data.del = undefined;
+          st.data.edit = undefined;
+          st.data.sel = Math.max(0, i - 1);
+          ui.sfx('pickup');
+        } else st.data.del = i;
+      }
+    }
+  } else ui.para('Choose a line to see it drawn.', px + 4, py + 4, pw - 8, C.walnut);
   ui.text(`Load puts a line in the blueprint tool; outside, ${pasteKey} pastes it.`, x + 12, y + H - 16, C.oak);
   return true;
 }
