@@ -836,3 +836,62 @@ describe('the Deepworks: lamps light the dark', () => {
     expect(inv.countId('lamp')).toBe(2);
   });
 });
+
+describe("the Deepworks' chests and starstone (the owner's playtest)", () => {
+  it('a chest opened stays opened all day: leaving and coming back no longer fills it again; a save keeps it', () => {
+    // a level with a small chest today
+    let found: { g: Game; floor: number } | null = null;
+    for (const seed of SEEDS) {
+      for (let floor = 1; floor < MAX_FLOOR && !found; floor++) {
+        if (floor % 10 === 0) continue;
+        const g = new Game({ seed });
+        const m = generateFloor(g, floor).map;
+        if (m.obj.some((o, i) => o === O.TREASURE && m.objData[i] === 0)) found = { g, floor };
+      }
+      if (found) break;
+    }
+    expect(found).not.toBeNull();
+    const { g, floor } = found!;
+    const st = mine(g);
+    st.enter(g, floor);
+    const m = st.map!;
+    const i = m.obj.findIndex((o, j) => o === O.TREASURE && m.objData[j] === 0);
+    const [x, y] = [i % m.w, Math.floor(i / m.w)];
+    const before = dropsState(g).list.length;
+    expect(st.interact(g, x, y)).toBe(true);
+    expect(dropsState(g).list.length).toBeGreaterThan(before);
+    // up and back down: the same level, its chest still open
+    st.leave(g);
+    st.enter(g, floor);
+    expect(st.map!.obj[i]).toBe(O.TREASURE);
+    expect(st.map!.objData[i]).toBe(2);
+    g.events.length = 0;
+    const n = dropsState(g).list.length;
+    st.interact(g, x, y);
+    expect(dropsState(g).list.length).toBe(n);
+    expect(toasts(g).some((t) => /Empty/.test(t))).toBe(true);
+    // through a save the same day
+    const look = { skin: 1, hair: 2, hairStyle: 'short' as const, shirt: 3, pants: 4 };
+    const g2 = deserialize(JSON.parse(JSON.stringify(serialize(g, look)))).game;
+    mine(g2).enter(g2, floor);
+    expect(mine(g2).map!.objData[i]).toBe(2);
+    // and the next day the level is a new one with its own luck
+    expect(mine(g).looted.got).toContain('chest:' + floor);
+  });
+
+  it("the bottom's starstone, once broken, isn't there again when you come back that day", () => {
+    const g = new Game({ seed: 7 });
+    const st = mine(g);
+    st.enter(g, MAX_FLOOR);
+    const star = () => st.map!.obj.findIndex((o, j) => o === O.GEM_ROCK && st.map!.objData[j] === 6);
+    expect(star()).toBeGreaterThanOrEqual(0);
+    st.looted = { day: g.dayIndex, got: ['star:' + MAX_FLOOR] };
+    st.leave(g);
+    st.enter(g, MAX_FLOOR);
+    expect(star()).toBe(-1);
+    // a new day, a new level
+    st.looted = { day: g.dayIndex - 1, got: ['star:' + MAX_FLOOR] };
+    st.enter(g, MAX_FLOOR);
+    expect(star()).toBeGreaterThanOrEqual(0);
+  });
+});

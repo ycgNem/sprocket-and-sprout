@@ -132,6 +132,11 @@ export interface MineState {
   clear: [number, number];
   /** one-off notes already said on this visit */
   told: Set<string>;
+  /**
+   * what you took today that a level would otherwise put back when you come back to it (a level is
+   * the same all day): its chest ('chest:<level>'), the bottom's starstone ('star:<level>')
+   */
+  looted: { day: number; got: string[] };
   // api
   solid: (g: Game, x: number, y: number) => boolean;
   useTool: (g: Game, kind: string, tier: number, tx: number, ty: number) => void;
@@ -153,7 +158,7 @@ export function mine(g: Game): MineState {
   if (!g.sys.mine) {
     const st: MineState = {
       floor: 0, map: null, theme: 0, monsters: [], lights: [], deepest: 0, ladder: null, hidden: -1, wispLadder: null, broken: 0, rockHits: new Map(),
-      chambers: [], hazards: [], gallery: null, dark: 0.62, lantern: 6, tint: C.ink, lamps: [], clear: [0, 0], told: new Set(),
+      chambers: [], hazards: [], gallery: null, dark: 0.62, lantern: 6, tint: C.ink, lamps: [], clear: [0, 0], told: new Set(), looted: { day: -1, got: [] },
       solid: mineSolid, useTool: mineTool, attack, interact: mineInteract, enterPrompt, enter: enterFloor, leave, debugDescend,
       lifts: liftLevels, chamberAt: (x, y) => chamberAt(st, x, y), restore: restoreChamber, setLamp,
     };
@@ -733,6 +738,19 @@ export function enterFloor(g: Game, floor: number) {
   const gen = generateFloor(g, floor);
   st.floor = floor;
   st.map = gen.map;
+  // what you took from this level today stays taken (the owner's playtest: a chest filled up again
+  // every time you came back to its level)
+  const gone = st.looted.day === g.dayIndex ? st.looted.got : [];
+  if (gone.length) {
+    const m = gen.map;
+    for (let i = 0; i < m.obj.length; i++) {
+      if (m.obj[i] === O.TREASURE && gone.includes('chest:' + floor)) m.objData[i] = 2;
+      else if (m.obj[i] === O.GEM_ROCK && m.objData[i] === 6 && gone.includes('star:' + floor)) {
+        m.obj[i] = O.NONE;
+        m.objData[i] = 0;
+      }
+    }
+  }
   st.theme = themeOf(floor);
   const S = STRATA[st.theme];
   st.monsters = gen.monsters;
@@ -1159,6 +1177,12 @@ const GRAND_LOOT: Record<number, [string, number][]> = {
 /** what a small chest's ore is, by stratum */
 const CHEST_ORE = ['copper_ore', 'tin_ore', 'iron_ore', 'gold_ore', 'gold_ore', 'starmetal_ore'];
 
+/** something a level gives once a day (its chest, the bottom's starstone): taken, it stays taken today */
+function took(g: Game, st: MineState, what: string) {
+  if (st.looted.day !== g.dayIndex) st.looted = { day: g.dayIndex, got: [] };
+  if (!st.looted.got.includes(what)) st.looted.got.push(what);
+}
+
 function openTreasure(g: Game, st: MineState, x: number, y: number): boolean {
   const m = st.map!;
   const i = m.idx(x, y);
@@ -1188,6 +1212,7 @@ function openTreasure(g: Game, st: MineState, x: number, y: number): boolean {
   }
   m.objData[i] = 2;
   m.setO(x, y, O.TREASURE, 2);
+  took(g, st, 'chest:' + floor);
   g.emit({ t: 'sfx', id: 'chime' });
   g.emit({ t: 'fx', kind: 'sparkle', x: x + 0.5, y: y + 0.5 });
   g.count('treasures');
@@ -1215,6 +1240,7 @@ function rockDrops(g: Game, st: MineState, x: number, y: number, o: O, data: num
   } else if (o === O.GEM_ROCK) {
     const gems = ['amethyst', 'topaz', 'jade', 'ruby', 'sapphire', 'opal', 'starstone'];
     d(gems[data] ?? 'quartz');
+    if (data === 6) took(g, st, 'star:' + floor);
     if (g.rng.next() < 0.3) d('quartz');
   }
   g.addXp('mining', o === O.ORE_ROCK ? 4 + Math.floor(floor / 5) : o === O.GEM_ROCK ? 12 : 1);
@@ -1698,12 +1724,14 @@ registerSystem({
   save(g) {
     // (lamps set down where you saved: a save puts you back at the entrance, so they count as in the bag)
     const st = mine(g);
-    return st.lamps.length ? { deepest: st.deepest, lamps: st.lamps.length } : { deepest: st.deepest };
+    const looted = st.looted.day === g.dayIndex && st.looted.got.length ? { looted: st.looted } : {};
+    return st.lamps.length ? { deepest: st.deepest, lamps: st.lamps.length, ...looted } : { deepest: st.deepest, ...looted };
   },
   load(g, d) {
     // (old saves' 60 floors are halved by the save migration; anything deeper is the bottom)
     mine(g).deepest = Math.min(MAX_FLOOR, d?.deepest ?? 0);
     if (d?.lamps > 0) returnLamps(g, d.lamps);
+    if (d?.looted) mine(g).looted = { day: d.looted.day, got: [...d.looted.got] };
   },
 });
 
