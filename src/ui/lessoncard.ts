@@ -35,7 +35,8 @@ export function drawLessonCard(ui: UI, play: PlayScreen, dt: number) {
   const move = new Set([...(input.binds.left ?? []), ...(input.binds.right ?? []), ...(input.binds.up ?? []), ...(input.binds.down ?? []), ...(input.binds.run ?? [])]);
   const keyed = L.t > MIN_T && [...input.pressed].some((k) => !move.has(k));
   const x = 4, y = Math.max(4, play.hud.leftY ?? 4);
-  const lines = def.text.flatMap((t) => wrapText(t, W - 44));
+  // the two lines are one text: wrapped as a whole, a sentence never breaks where a line of the data does
+  const lines = wrapText(def.text.join(' '), W - 44);
   const h = Math.max(36, 16 + lines.length * 9);
   const clicked = ui.hover(x, y, W, h) && ui.clicked;
   if (keyed || clicked || L.t > MAX_T) {

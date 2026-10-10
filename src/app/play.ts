@@ -53,8 +53,6 @@ import { landmarkAt, landmarkTip, lookAt } from '../sim/systems/townworks';
 export interface Toast { text: string; t: number; icon?: string; color?: number }
 
 const KONAMI = 'ArrowUp,ArrowUp,ArrowDown,ArrowDown,ArrowLeft,ArrowRight,ArrowLeft,ArrowRight,KeyB,KeyA';
-/** how long a placement can be taken back with Ctrl+Z (real seconds) */
-const UNDO_SECS = 10;
 
 export class PlayScreen implements Screen {
   app: App;
@@ -68,6 +66,12 @@ export class PlayScreen implements Screen {
   win: WinState | null = null;
   rot: Dir = 0;
   drag: { x: number; y: number } | null = null;
+  /**
+   * the hotbar slot (and what was in it) that just placed something: the clock's build slow-down
+   * ends with the placement and stays off until another placeable is picked up (critic, Phase 2:
+   * B3's "watch the line" crawled at a quarter speed while the arm stayed selected)
+   */
+  private placedWith: { sel: number; k: number } | null = null;
   mode: 'normal' | 'decon' | 'copy' | 'paste' = 'normal';
   rectStart: { x: number; y: number } | null = null;
   blueprint: Blueprint | null = null;
@@ -89,7 +93,7 @@ export class PlayScreen implements Screen {
   works = new WorksView();
   /** lesson cards waiting to show (src/ui/lessoncard.ts) */
   lessons: LessonQueue = { q: [] };
-  /** your last placements (one drag each), taken back with Ctrl+Z within UNDO_SECS (ROADMAP.md 6.5) */
+  /** your last five placements (one drag each), taken back with Ctrl+Z (ROADMAP.md 6.5) */
   private undoStack: { ids: number[]; t: number }[] = [];
   private lastWhere = '';
   tipT = 0;
@@ -236,6 +240,21 @@ export class PlayScreen implements Screen {
   /** day the profession prompt was dismissed */
   perkSnooze = -1;
 
+  /** Esc with a machine in hand puts it away: the nearest tool (or empty slot) is selected instead */
+  private putAway() {
+    const p = this.g.player;
+    const n = p.inv.slots.length;
+    const hot = Math.min(12, n);
+    let best = -1;
+    for (let d = 1; d < hot && best < 0; d++)
+      for (const i of [p.sel - d, p.sel + d]) {
+        if (i < 0 || i >= hot || best >= 0) continue;
+        const s = p.inv.slots[i];
+        if (!s || !kDef(s.k).places) best = i;
+      }
+    if (best >= 0) p.sel = best;
+  }
+
   heldPlaceable(): string | null {
     const st = this.g.player.inv.slots[this.g.player.sel];
     if (!st || this.g.player.where !== 'world') return null;
@@ -247,7 +266,9 @@ export class PlayScreen implements Screen {
     const app = this.app, g = this.g, input = app.input, r = app.renderer, ui = app.ui;
     this.playtime += dt;
     // building is a planning activity: the clock slows to a quarter while you do it
-    g.slowClock = g.player.where === 'world' && !!(this.mode !== 'normal' || (!this.win && this.heldPlaceable()) || this.win?.id === 'struct');
+    const held = g.player.inv.slots[g.player.sel];
+    if (this.placedWith && (this.placedWith.sel !== g.player.sel || this.placedWith.k !== held?.k)) this.placedWith = null;
+    g.slowClock = g.player.where === 'world' && !!(this.mode !== 'normal' || (!this.win && this.heldPlaceable() && !this.placedWith) || this.win?.id === 'struct');
     // tips belong to the scene they were shown in
     if (g.player.where !== this.lastWhere) {
       this.lastWhere = g.player.where;
@@ -608,6 +629,8 @@ export class PlayScreen implements Screen {
         return;
       }
       if (this.win) this.closeWindow();
+      else if (this.drag) this.drag = null;
+      else if (this.heldPlaceable()) this.putAway();
       else this.openWindow('pause');
       return;
     }
@@ -820,6 +843,8 @@ export class PlayScreen implements Screen {
         }
         g.sys.quests?.notify?.(g, 'build', placed, placeable);
         if (ids.length) {
+          const left = p.inv.slots[p.sel];
+          if (left) this.placedWith = { sel: p.sel, k: left.k };
           this.undoStack.push({ ids, t: this.playtime });
           if (this.undoStack.length > 5) this.undoStack.shift();
           // the first thing you place by hand: undo exists
@@ -894,13 +919,15 @@ export class PlayScreen implements Screen {
   }
 
   /** during "A Helping Hand", an arm held within a tile of the marked spot snaps onto it */
-  /** Ctrl+Z: pick up your last placement (one drag) if it was within UNDO_SECS, with a full refund */
+  /**
+   * Ctrl+Z: pick up your last placement (one drag), with a full refund; the last five are kept, with
+   * no time limit (the critic, Phase 2: a 10-second window was gone before you noticed the mistake)
+   */
   private undo() {
     const g = this.g;
-    while (this.undoStack.length && this.playtime - this.undoStack[this.undoStack.length - 1].t > UNDO_SECS) this.undoStack.pop();
     const last = this.undoStack.pop();
     if (!last) {
-      this.toast(`Nothing to undo (Ctrl+Z takes back a placement within ${UNDO_SECS} seconds).`);
+      this.toast('Nothing to undo (Ctrl+Z takes back your last five placements).');
       return;
     }
     let n = 0, name = '';

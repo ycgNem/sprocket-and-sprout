@@ -56,6 +56,8 @@ export const SHOPS: ShopDef[] = [
     id: 'general', name: 'Thistlewick Mercantile', owner: 'marigold', loc: 'store', open: 540, close: 1020, closedDays: [2],
     greeting: 'Seeds, staples and the latest gossip. What can I get you?',
     stock: [
+      // the crock first: the Keeper's Line sends you here for one (B6), and it was near the bottom
+      { item: 'jar', price: 400, unlock: 'r_preserves' },
       ...seeds(() => true, RARE),
       { item: 'compost', price: 40 }, { item: 'grow_tonic', price: 90, unlock: 'r_fertilizer' }, { item: 'damp_mulch', price: 60, unlock: 'r_fertilizer' },
       { item: 'apple_sapling' }, { item: 'cherry_sapling' }, { item: 'apricot_sapling' }, { item: 'peach_sapling' }, { item: 'pear_sapling' },
@@ -64,7 +66,7 @@ export const SHOPS: ShopDef[] = [
       { item: 'bread', price: 140, unlock: 'flag:bread_town' }, { item: 'flour', price: 110, unlock: 'flag:bread_town' }, { item: 'sugar', price: 120 }, { item: 'oil', price: 220 },
       // reputation stock (the Orders board): Marigold's rare seeds
       { item: 'sunbell_seed', price: 180, unlock: 'rep:marigold:2' }, { item: 'tealeaf_seed', price: 200, unlock: 'rep:marigold:3' }, { item: 'starpetal_seed', price: 520, unlock: 'rep:marigold:5' },
-      { item: 'chest_wood', price: 240 }, { item: 'scarecrow', price: 260 }, { item: 'sign', price: 40 }, { item: 'jar', price: 400, unlock: 'r_preserves' },
+      { item: 'chest_wood', price: 240 }, { item: 'scarecrow', price: 260 }, { item: 'sign', price: 40 },
       ...FURNITURE.filter((f) => f.shop === 'general').map((f) => ({ item: f.id, price: f.price })),
     ],
     buys: ['crop', 'fruit', 'flower', 'forage', 'seed', 'artisan', 'food', 'animal'],

@@ -61,7 +61,7 @@ export const LESSONS: LessonDef[] = [
   { id: 'reputation', title: 'Reputation', pic: 'st:shipping_crate:0:0:0',
     text: ["Each filled order raises a business's trust in you.", 'A new rank opens its next order and new stock.'] },
   { id: 'undo', title: 'Undo', pic: 'i:arm_basic',
-    text: ['Placed something in the wrong spot? Ctrl+Z takes it back', 'within 10 seconds, with a full refund.'] },
+    text: ['Placed something in the wrong spot? Ctrl+Z takes it back', 'with a full refund: your last five placements.'] },
 ];
 
 export const LESSON_BY_ID = new Map(LESSONS.map((l) => [l.id, l]));

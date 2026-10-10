@@ -325,6 +325,15 @@ export function fmtRate(perDay: number): string {
   return perMin > 1 ? `${fmt(perMin)}/min` : `${fmt(perDay)}/day`;
 }
 
+/**
+ * One unit for a table of rates (the critic: the Lines tab mixed /min and /day row by row): per
+ * minute when any of them is above one a minute, else per day. `fmtRateIn` writes a rate in it.
+ */
+export const perMinUnit = (perDays: number[]): boolean => perDays.some((d) => d / (DAY_SECS / 60) > 1);
+export function fmtRateIn(perDay: number, perMin: boolean): string {
+  return perMin ? `${fmt(perDay / (DAY_SECS / 60))}/min` : `${fmt(perDay)}/day`;
+}
+
 /** Walk up from a sink and name the bottleneck (ROADMAP.md 4.8). */
 export function diagnose(g: Game, sink: Ent): Diagnosis {
   const nodes = portGraph(g);

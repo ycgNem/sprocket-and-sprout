@@ -15,7 +15,7 @@ describe.skipIf(!process.env.LONG)('long run', () => {
     // the bot walks the Deepworks down to level 5 and restores the old lift (ROADMAP.md 7.2)
     expect(g.flags.has('chamber:lift')).toBe(true);
     const json = JSON.stringify(serialize(g, { skin: 1, hair: 2, hairStyle: 'short', shirt: 3, pants: 4 }));
-    console.log('save size', (json.length / 1024).toFixed(1), 'KB; earned', g.earned, 'pet', g.sys.pet?.stage, 'guild', g.sys.guild?.unlocked, 'evaluation pending', g.flags.has('eval_pending'));
+    console.log('save size', (json.length / 1024).toFixed(1), 'KB; earned', g.earned, 'pet', g.sys.pet?.stage, 'guild', g.sys.orders?.guild?.unlocked, 'evaluation pending', g.flags.has('eval_pending'));
     const { game: g2 } = deserialize(JSON.parse(json));
     expect(g2.time.year).toBe(2);
     for (let i = 0; i < 600; i++) g2.tick();

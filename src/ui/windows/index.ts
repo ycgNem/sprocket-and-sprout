@@ -1,6 +1,6 @@
 // Window registry. Windows are immediate-mode draw functions returning "keep open".
 import { petSys } from '../../sim/systems/pet';
-import { unlockGuild } from '../../sim/systems/orders';
+import { custNpc, unlockGuild, villagerName } from '../../sim/systems/orders';
 import { FURNITURE } from '../../data/furniture';
 import { C } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
@@ -134,7 +134,7 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
   const s = st.arg;
   const g = play.g;
   const a = play.app.audio, J = play.app.renderer.juice;
-  const sold: { k: number; n: number; price: number; coins?: number }[] = s.sold ?? [];
+  const sold: { k: number; n: number; price: number; coins?: number; to?: string }[] = s.sold ?? [];
   const rows = sold.slice(0, 10);
   const D = st.data as { shown?: number; ticks?: number; done?: boolean; tease?: string[]; stamped?: boolean };
   // the works first: yesterday's bottleneck in numbers and what the night shift made (ROADMAP.md 4.3, 4.14)
@@ -185,6 +185,8 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
     const dx = age < 0.1 && !D.done ? Math.round((1 - age / 0.1) * 12) : 0;
     ui.itemIcon(it.k, x + 18 + dx, yy - 5, 16);
     ui.text(`${ITEMS[it.k >> 2].name} x${it.n}`, x + 38 + dx, yy, C.ink);
+    // an order's delivery says whose order it went to
+    if (it.to) ui.text(`${villagerName(custNpc(it.to) ?? it.to)}'s order`, x + w - 70 + dx, yy, C.walnut, { align: 'right' });
     ui.text(`${ICON.coin}${(it.coins ?? it.price * it.n).toLocaleString()}`, x + w - 20 + dx, yy, C.moss, { align: 'right' });
     yy += ROW;
   });

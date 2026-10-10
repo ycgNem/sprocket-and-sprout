@@ -15,7 +15,7 @@ import type { UI } from '../ui';
 import { centered, frame, invGrid, SLOT } from './common';
 import type { WinState } from './index';
 import { itemTooltip } from '../tooltips';
-import { ICON, ellipsize, wrapText } from '../font';
+import { ICON, ellipsize, textWidth, wrapText } from '../font';
 
 const TABS = ['inventory', 'crafting', 'skills'] as const;
 const CATS = ['All', 'Logistics', 'Power', 'Machines', 'Farming', 'Parts', 'Research', 'Home'] as const;
@@ -183,7 +183,7 @@ function craftingTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: numbe
         const hov = ui.hover(rx, ly, colW - 2, rowH - 1);
         if (sel || hov) ui.fill(rx, ly, colW - 2, rowH - 1, sel ? C.butter : C.tan, sel ? 0.7 : 0.5);
         ui.itemIcon(key(r.out[0].item), rx + 1, ly + 1, 12, 0, can ? 1 : 0.45);
-        ui.text(ellipsize(recipeLabel(r), colW - 20), rx + 16, ly + 4, can ? C.ink : unlocked ? C.oak : C.pebble);
+        ui.text(recipeLabelFit(r, colW - 20), rx + 16, ly + 4, can ? C.ink : unlocked ? C.oak : C.pebble);
         if (hov) {
           const tl = itemTooltip(g, key(r.out[0].item), 1);
           if (!unlocked) {
@@ -250,6 +250,23 @@ export function recipeLabel(r: RecipeDef): string {
     return n > 1 ? `${n} ${name}${name.endsWith('s') ? '' : 's'}` : name;
   };
   return `${base} (${r.in.map((i) => word(i.item, i.n)).join(' + ')})`;
+}
+
+/**
+ * The label in a narrow grid cell: the full one if it fits, else the output's last word with what it
+ * takes ("Bundle (3 crops)"), else just what it takes ("fiber+fruit": the icon says what it makes)
+ * (the critic's re-check: three of the four bundle rows truncated to "Sprout Bundle (plan..")
+ */
+function recipeLabelFit(r: RecipeDef, w: number): string {
+  const full = recipeLabel(r);
+  if (textWidth(full) <= w) return full;
+  const open = full.indexOf(' (');
+  if (open < 0) return ellipsize(full, w);
+  const inputs = full.slice(open + 2, -1);
+  const short = `${full.slice(0, open).split(' ').pop()} (${inputs})`;
+  if (textWidth(short) <= w) return short;
+  const bare = inputs.replace(/ \+ /g, '+');
+  return textWidth(bare) <= w ? bare : ellipsize(bare, w);
 }
 
 export function specIcon(spec: string): string {

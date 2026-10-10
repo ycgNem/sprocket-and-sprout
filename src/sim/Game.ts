@@ -127,7 +127,8 @@ export interface DaySummary {
   season: Season;
   year: number;
   /** coins: the row's exact total (price is the rounded average per unit) */
-  sold: { k: number; n: number; price: number; coins?: number }[];
+  /** `to`: the customer whose order a crate's goods went to (consignment), apart from market sales */
+  sold: { k: number; n: number; price: number; coins?: number; to?: string }[];
   total: number;
   passedOut: boolean;
   penalty: number;
@@ -420,7 +421,10 @@ export class Game {
 
   advanceClock(dt: number) {
     const t = this.time;
+    const before = t.min;
     t.min += (dt / SEC_PER_MIN) * this.clockRate;
+    // midnight: two hours left before you pass out where you stand (the critic's Phase 2 Minor)
+    if (before < 1440 && t.min >= 1440 && !this.sleeping && this.mode !== 'sandbox') this.toast("Midnight. Get to bed by 2am, or you'll pass out where you stand.");
     if (t.min >= DAY_END) {
       t.min = DAY_END;
       this.endDay(!this.sleeping);

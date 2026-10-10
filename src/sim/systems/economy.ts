@@ -159,16 +159,16 @@ function rollDrift(g: Game) {
   if (g.time.season === 3) m.drift.crop = Math.min(1.3, (m.drift.crop ?? 1) + 0.1);
 }
 
-export function shipAll(g: Game): { sold: { k: number; n: number; price: number }[]; total: number } {
+export function shipAll(g: Game): { sold: { k: number; n: number; price: number; to?: string }[]; total: number } {
   const bins = g.ents.others.filter((e) => e.def.kind === 'shipbin' && e.inv);
   // consignment first: a crate tagged for a customer fills their open orders (src/sim/systems/orders.ts)
-  const orders = g.sys.orders?.consign?.(g, bins) as { sold: { k: number; n: number; price: number }[]; total: number } | undefined;
+  const orders = g.sys.orders?.consign?.(g, bins) as { sold: { k: number; n: number; price: number; to?: string }[]; total: number } | undefined;
   const agg = new Map<number, number>();
   for (const b of bins) {
     for (const s of b.inv!.slots) if (s) agg.set(s.k, (agg.get(s.k) ?? 0) + s.n);
     b.inv!.slots.fill(null);
   }
-  const sold: { k: number; n: number; price: number }[] = [...(orders?.sold ?? [])];
+  const sold: { k: number; n: number; price: number; to?: string }[] = [...(orders?.sold ?? [])];
   let total = orders?.total ?? 0;
   for (const [k, n] of agg) {
     const coins = sellStack(g, k, n);
@@ -366,14 +366,16 @@ registerSystem({
     const res = shipAll(g);
     // merge the day's noon/evening collections into the summary (already paid)
     const early = g.sys.postDay ?? { sold: [], total: 0 };
-    const merged = new Map<number, { k: number; n: number; coins: number }>();
-    for (const s of [...early.sold, ...res.sold]) {
-      const e = merged.get(s.k) ?? { k: s.k, n: 0, coins: 0 };
+    // an order's deliveries stay apart from the market's sales of the same goods (the critic, Phase 2)
+    const merged = new Map<string, { k: number; n: number; coins: number; to?: string }>();
+    for (const s of [...early.sold, ...res.sold] as { k: number; n: number; price: number; to?: string }[]) {
+      const id = `${s.k}|${s.to ?? ''}`;
+      const e = merged.get(id) ?? { k: s.k, n: 0, coins: 0, to: s.to };
       e.n += s.n;
       e.coins += s.price * s.n;
-      merged.set(s.k, e);
+      merged.set(id, e);
     }
-    summary.sold = [...merged.values()].map((e) => ({ k: e.k, n: e.n, price: Math.round(e.coins / e.n), coins: Math.round(e.coins) })).sort((a, b) => b.coins - a.coins);
+    summary.sold = [...merged.values()].map((e) => ({ k: e.k, n: e.n, price: Math.round(e.coins / e.n), coins: Math.round(e.coins), to: e.to })).sort((a, b) => b.coins - a.coins);
     summary.total = res.total + early.total;
     // rows are rounded per kind; settle the difference on the biggest row so they add up
     if (summary.sold.length) summary.sold[0].coins! += summary.total - summary.sold.reduce((a, r) => a + (r.coins ?? 0), 0);

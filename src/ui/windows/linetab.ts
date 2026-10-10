@@ -4,7 +4,8 @@
 import { C } from '../../data/palette';
 import { key, kId } from '../../sim/inventory';
 import type { Ent } from '../../sim/ents';
-import { diagnose, fmtRate, lineSinks, type Diagnosis } from '../../sim/lines';
+import { diagnose, fmtRateIn, lineSinks, perMinUnit, type Diagnosis } from '../../sim/lines';
+import { entName } from '../../sim/ents';
 import { MState, STATE_COUNT } from '../../sim/mstate';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
@@ -55,6 +56,7 @@ export function linesTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: n
   }
   if (!sinks.some((s) => s.id === st.data.sink)) st.data.sink = sinks[0].id;
   const rowH = 14;
+  const listMin = perMinUnit(sinks.map((s) => g.stats.states.perDay(s, 'in')));
   const off = ui.scrollOffset('linelist', lx, ly + 13, lw, lh - 13, sinks.length * rowH);
   ui.clip(lx, ly + 13, lw, lh - 13);
   rowsAll.forEach(({ s, d: ds, item, label }, i) => {
@@ -75,7 +77,7 @@ export function linesTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: n
     ui.itemIcon(key(item ?? s.def.item), lx + 3, ry + 1, 12);
     const r = g.stats.states.perDay(s, 'in');
     ui.text(ellipsize(label, 76), lx + 18, ry + 3, C.ink);
-    ui.text(fmtRate(r), lx + lw - 14, ry + 3, r > 0 ? C.moss : C.oak, { align: 'right' });
+    ui.text(fmtRateIn(r, listMin), lx + lw - 14, ry + 3, r > 0 ? C.moss : C.oak, { align: 'right' });
     // the line's problem, in its state's colour
     const mk = markerOf(ds);
     if (mk !== null) {
@@ -96,8 +98,10 @@ export function linesTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: n
   const gx = lx + lw + 8, gy = ly, gw = w - lw - 28, gh = lh;
   ui.panel(gx, gy, gw, gh, 'inset', false);
   const li = lineItemOf(g, sink, d);
+  const stageRate = (s: Diagnosis['stages'][number]) => (s.capDay > 0 || s.e.arm ? s.outDay : s.inDay);
+  const unitMin = perMinUnit([d.rate, ...d.stages.flatMap((s) => [stageRate(s), s.capDay])]);
   // the rate first, so a long name never clips it
-  ui.text(ellipsize(`${fmtRate(d.rate)} into the ${sink.def.name.toLowerCase()}${li ? ' (' + (ITEM_BY_ID.get(li)?.name ?? li) + ')' : ''}`, gw - 160), gx + 6, gy + 4, C.ink);
+  ui.text(ellipsize(`${fmtRateIn(d.rate, unitMin)} into the ${entName(sink).toLowerCase()}${li ? ' (' + (ITEM_BY_ID.get(li)?.name ?? li) + ')' : ''}`, gw - 160), gx + 6, gy + 4, C.ink);
   ui.text('rate  could do  day by state', gx + gw - 6, gy + 4, C.oak, { align: 'right' });
   // diagnosis box at the bottom
   const gapLines = wrapText(d.gap, gw - 44);
@@ -112,11 +116,10 @@ export function linesTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: n
     const isProblem = d.problem?.e === e;
     if (isProblem) ui.fill(gx + 2, ry - 1, gw - 4, 12, C.blush);
     ui.itemIcon(key(e.def.item), gx + 4, ry, 10);
-    const name = e.mach?.recipe ? `${e.def.name} (${ITEM_BY_ID.get(e.mach.recipe.out[0].item)?.name ?? ''})` : e.def.name;
+    const name = e.mach?.recipe ? `${entName(e)} (${ITEM_BY_ID.get(e.mach.recipe.out[0].item)?.name ?? ''})` : entName(e);
     ui.text(ellipsize(name, gw - 190), gx + 17, ry + 2, isProblem ? C.brick : C.ink);
-    const rate = s.capDay > 0 || e.arm ? s.outDay : s.inDay;
-    ui.text(fmtRate(rate), gx + gw - 128, ry + 2, C.moss, { align: 'right' });
-    ui.text(s.capDay > 0 ? fmtRate(s.capDay) : '-', gx + gw - 74, ry + 2, C.oak, { align: 'right' });
+    ui.text(fmtRateIn(stageRate(s), unitMin), gx + gw - 128, ry + 2, C.moss, { align: 'right' });
+    ui.text(s.capDay > 0 ? fmtRateIn(s.capDay, unitMin) : '-', gx + gw - 74, ry + 2, C.oak, { align: 'right' });
     // the day split by state, 60 px
     const bx = gx + gw - 66, bw = 60;
     ui.fill(bx - 1, ry, bw + 2, 9, C.ink);

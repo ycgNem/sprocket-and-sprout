@@ -514,8 +514,8 @@ export const bagHelps = (g: Game, o: Order) => !o.done && g.player.inv.slots.som
  * The post's consignment pass (economy.ts shipAll calls it before selling): each tagged crate's
  * goods that fit its customer's open orders go to them. Returns rows for the post's summary.
  */
-export function consign(g: Game, bins: Ent[]): { sold: { k: number; n: number; price: number }[]; total: number } {
-  const sold: { k: number; n: number; price: number }[] = [];
+export function consign(g: Game, bins: Ent[]): { sold: { k: number; n: number; price: number; to?: string }[]; total: number } {
+  const sold: { k: number; n: number; price: number; to?: string }[] = [];
   let total = 0;
   postBonus = 0;
   for (const b of bins) {
@@ -532,7 +532,8 @@ export function consign(g: Game, bins: Ent[]): { sold: { k: number; n: number; p
         s.n -= r.took;
         total += r.coins;
         // an order paid in goods (Bram's bars) or on completion isn't a per-item sale in the summary
-        if (r.coins) sold.push({ k: s.k, n: r.took, price: Math.round(r.coins / r.took) });
+        // (its own row in the day's summary: "Pickled Cogbeans x12, Rowan's order", not a market sale)
+        if (r.coins) sold.push({ k: s.k, n: r.took, price: Math.round(r.coins / r.took), to: o.cust });
         if (s.n <= 0) break;
       }
       if (s.n <= 0) b.inv.slots[i] = null;
