@@ -73,7 +73,7 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   if (npc) {
     // a festival's host (or co-host) opens it, whatever you hold (talkTo): "Enter the Sprocket Fair"
     const fest = g.sys.festivals?.active;
-    if (fest && (fest.cohost === npc.id || (fest.host === npc.id && (!fest.chatFirst || npc.talked)))) return { verb: `Enter ${fest.the ? 'the ' : ''}${fest.name}`, x: npc.x, y: npc.y - 2 };
+    if (fest && (fest.cohost === npc.id || fest.host === npc.id)) return { verb: `Enter ${fest.the ? 'the ' : ''}${fest.name}`, x: npc.x, y: npc.y - 2 };
     const held = p.inv.slots[p.sel];
     const hd = held ? kDef(held.k) : null;
     const name = questName(npc.id, NPC_BY_ID.get(npc.id)?.name ?? '');

@@ -309,8 +309,6 @@ export interface FestivalDef {
   host: string;
   /** a second villager whose F opens it too (the Mayor opens the Sprocket Fair, as he did Kite Day) */
   cohost?: string;
-  /** the host has a word with you first: F opens the activity once you've chatted with them today */
-  chatFirst?: boolean;
   /** the Sprocket Fair's test bed, Lantern Night's fireflies, the Harvest Haul's auction, Frostlight Skate */
   activity: 'fair' | 'firefly' | 'haul' | 'skate';
   desc: string;

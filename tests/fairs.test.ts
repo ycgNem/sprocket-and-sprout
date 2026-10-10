@@ -247,6 +247,10 @@ describe('the Sprocket Fair test plate', () => {
     expect(startBed(real, LINES.lone).idle).toEqual(['jar']);
     // sifters turning radishes into seed, arms taking the seed away: they destroy value, and the score says so
     expect(score.sift6).toBeLessThan(0);
+    // seed is stock, not goods: cranberry seed (worth more than the berry at the shop) scores nothing either
+    const berries = farm(5);
+    berries.player.inv.add(key('cranberry'), 1);
+    expect(scoreBlueprint(berries, bp(rows(6, 'seed_sifter', { recipe: 'seeds:cranberry' })))).toBeLessThan(0);
   });
 
   it('leaves the real game untouched', () => {
@@ -272,7 +276,7 @@ describe('the Sprocket Fair test plate', () => {
     const recorded: Partial<Record<LineName, number>> = {
       crock1: 68, crock2: 136, crock3: 204, crock4: 271, crock6: 407, gleaned: 68, craned: 68,
       furnace1: 276, furnace2: 552, furnace6: 1656, tin6: 1933, iron6: 2522,
-      mill1: 373, mill3: 1119, mill3grain: 2138, sift6: -708,
+      mill1: 373, mill3: 1119, mill3grain: 2138, sift6: -1355,
     };
     for (const [n, v] of Object.entries(recorded)) near(score[n as LineName], v);
     const [prof, bram, juniper] = fairEntries(1).map((e) => e.score);
@@ -381,7 +385,6 @@ describe('the four festivals', () => {
     const by = Object.fromEntries(FESTIVALS.map((f) => [f.id, f]));
     expect(FESTIVALS.map((f) => f.id).sort()).toEqual(['f_fair', 'f_firefly', 'f_haul', 'f_skate']);
     expect(by.f_fair).toMatchObject({ name: 'Sprocket Fair', season: 0, day: 13, start: 540, end: 1080, host: 'ottoline', activity: 'fair' });
-    expect(by.f_fair.chatFirst).toBeUndefined();
     expect(by.f_firefly).toMatchObject({ name: 'Lantern Night', season: 1, day: 20, host: 'sable', activity: 'firefly' });
     expect(by.f_haul).toMatchObject({ name: 'Harvest Haul', season: 2, day: 15, start: 540, end: 1080, host: 'tobias', activity: 'haul' });
     expect(by.f_skate).toMatchObject({ name: 'Frostlight Skate', season: 3, day: 24, host: 'marigold', activity: 'skate' });

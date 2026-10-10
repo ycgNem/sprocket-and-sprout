@@ -31,7 +31,7 @@ import { canPlace, place, structFootprint } from './build';
 import { fits } from './drafting';
 import { DX, DY, type Ent, type MachC } from './ents';
 import { DT, Game } from './Game';
-import { key, kId, kMatches, sellPrice, type ItemKey } from './inventory';
+import { kDef, key, kId, kMatches, sellPrice, type ItemKey } from './inventory';
 import { takersOf } from './lines';
 import { MState, setState } from './mstate';
 import { availableRecipes } from './systems/machines';
@@ -84,8 +84,12 @@ export interface BedTally {
   cooking: BedGood[];
 }
 
-/** what a good is worth at the Fair: its base price by its quality, nothing from the market */
-export const worth = (k: ItemKey) => sellPrice(k);
+/**
+ * What a good is worth at the Fair: its base price by its quality, nothing from the market. Seed is
+ * stock, not goods, and scores nothing: a sifter makes two cranberry seeds (107 each at the shop's
+ * half price) from one cranberry (43), and six of them won the Gilded Clock.
+ */
+export const worth = (k: ItemKey) => (kDef(k).cat === 'seed' ? 0 : sellPrice(k));
 
 /** where a blueprint sits on the plate: turned if it must be to fit, its pieces centred */
 export function bedLayout(bp: Blueprint): { bp: Blueprint; ox: number; oy: number } {
