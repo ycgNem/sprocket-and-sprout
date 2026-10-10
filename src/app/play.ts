@@ -1380,8 +1380,9 @@ export class PlayScreen implements Screen {
       ctx.strokeStyle = PALETTE[C.amber];
       ctx.strokeRect(dx * TILE + 1.5, dy * TILE + 1.5, TILE - 3, TILE - 3);
     }
-    if (def.kind === 'pole' || def.kind === 'sprinkler' || def.kind === 'harvester' || def.kind === 'planter' || def.kind === 'scarecrow' || def.kind === 'hive') {
-      const r = def.kind === 'pole' ? def.supply ?? 2 : def.kind === 'sprinkler' ? Math.max(1, def.reach ?? 0) : (def.reach ?? 3) + ((def.kind === 'harvester' || def.kind === 'planter') && this.g.hasPerk('rancher') ? 1 : 0);
+    if (def.kind === 'pole' || def.kind === 'sprinkler' || def.kind === 'harvester' || def.kind === 'planter' || def.kind === 'gleaner' || def.kind === 'scarecrow' || def.kind === 'hive') {
+      const field = def.kind === 'harvester' || def.kind === 'planter' || def.kind === 'gleaner';
+      const r = def.kind === 'pole' ? def.supply ?? 2 : def.kind === 'sprinkler' ? Math.max(1, def.reach ?? 0) : (def.reach ?? 3) + (field && this.g.hasPerk('rancher') ? 1 : 0);
       const [w, h] = def.size;
       ctx.fillStyle = rgba(def.kind === 'pole' ? C.sky : C.leaf, 0.14);
       ctx.fillRect((x - r) * TILE, (y - r) * TILE, (w + r * 2) * TILE, (h + r * 2) * TILE);

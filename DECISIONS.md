@@ -504,16 +504,22 @@ recommendations are the decisions.
     - *Professions (the Stardew test failed them: "only the names changed").* Tinkering is listed
       first and gets 5 XP for every batch a machine finishes (level 5 around day 12-13 with the
       Keeper's Line's crocks and the mill; farming reaches it around day 17-18), so its pair is the
-      first choice. Farming's perks work the field machines and the crock instead of raising prices:
-      Field Hand (gleaners, cranes, sowers and the gantry 25% faster) or Long Reach (a gleaner's 5x5,
-      cranes and sowers a tile further) at 5, Seedwright or Crock Master (crocks, kegs and presses 20%
-      faster) at 10. Foraging and mining each trade a sell-price or luck perk for one that runs their
+      first choice: Engineer (machines 10% faster) or Governor (powered machines keep full speed
+      while the grid meets 75% of their demand; it was Clockmaker's arms 15% faster, and arms are
+      never a line's bottleneck: the critic's confirmation pass). Farming's perks work the field
+      machines and the crock instead of raising prices: Field Hand (every fourth pick of a gleaner,
+      crane or gantry brings a crop extra; 25% faster picking bought about 3 seconds a day) or Long
+      Reach (a gleaner's 5x5, cranes and sowers a tile further; the placement ghost shows a
+      gleaner's reach) at 5, Seedwright or Crock Master (crocks, kegs and presses 20% faster) at 10. Foraging and mining each trade a sell-price or luck perk for one that runs their
       machines: Sawyer (sawmills and charcoal kilns 25% faster, was Forager), Drill Rigger (quarry
       drills 25% faster, was Gemcutter), Furnace Hand (furnaces 25% faster, was Smelter's +40% bars).
       Ids are kept. Fishing's and combat's perks are unchanged (Phase 5 may reshape them).
     - *The Works tab lists works under the place they serve* (the Copper Kettle, the clocktower, the
       smithy, the Mercantile, your farm, the quarry), the Winter Pantry is the Kettle's Cellar, and
       finishing every work at one place is no longer a Community Center room with its own bonus.
+    - *A crate tagged for the Council or the Guild keeps its tag* when a business posts a new order
+      (the Mill's finish posted Rowan's bread a moment before the Waterworks and re-tagged a Council
+      crate to the Kettle, so its brass went to market); the works are posted before standing orders.
     - Smaller: Guild contracts wait for their know-how as standing orders do; toasts queue (three on
       screen) instead of dropping one; the journal lists the main path first; the Crystal's dark is
       0.93 and colourless; the validate ring is a pixel gauge on the machine; a keystone finished

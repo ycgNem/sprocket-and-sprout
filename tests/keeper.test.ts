@@ -197,6 +197,27 @@ describe("B8: the keeper's river works", () => {
     expect(g.ents.at(RIVER.meal[0], RIVER.meal[1])!.inv!.countId('barley_flour')).toBeGreaterThan(0);
   });
 
+  it("Governor (the profession): the keeper's browned-out mill runs faster on the same short grid", () => {
+    const run = (perk: boolean) => {
+      const g = new Game({ seed: 51 });
+      skipTo(g, 'k8_river');
+      if (perk) g.player.perks.push('clockmaker');
+      g.player.inv.add(key('copper_bar'), 5);
+      interactStruct(g, g.ents.at(RIVER.wheel[0], RIVER.wheel[1])!);
+      for (const xy of [...RIVER.poles, RIVER.mill, RIVER.bin]) interactStruct(g, g.ents.at(xy[0], xy[1])!);
+      put(g, 'arm_fast', RIVER.binArm, 1);
+      put(g, 'arm_fast', RIVER.outArm, 1);
+      secs(g, 20);
+      const mill = g.ents.at(RIVER.mill[0], RIVER.mill[1])!;
+      return { sat: mill.sat, net: powerState(g).nets.get(mill.net)!.sat };
+    };
+    const plain = run(false), gov = run(true);
+    expect(plain.sat).toBeLessThan(0.8);
+    expect(gov.net).toBeLessThan(1);
+    expect(gov.sat).toBeCloseTo(Math.min(1, gov.net / 0.75), 5);
+    expect(gov.sat).toBeGreaterThan(plain.sat);
+  });
+
   it("Bram's oil: a crock locked mid-batch takes the oil recipe when its batch ends", () => {
     const g = new Game({ seed: 52 });
     skipTo(g, 'k8_river');

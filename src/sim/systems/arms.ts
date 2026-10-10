@@ -52,7 +52,6 @@ export function windArm(g: Game, e: Ent): boolean {
 const nameOf = (e: Ent | null) => (e ? entName(e).toLowerCase() : 'nothing');
 
 export function updateArms(g: Game, dt: number) {
-  const clock = g.hasPerk('clockmaker');
   const ents = g.ents;
   const handBonus = g.mods.armHand;
   const now = g.simTime;
@@ -78,7 +77,7 @@ export function updateArms(g: Game, dt: number) {
       e.st.wind = Math.max(0, e.st.wind - dt);
       mul *= WIND_MUL;
     }
-    const step = dt * a.speed * 2 * mul * (clock ? 1.15 : 1);
+    const step = dt * a.speed * 2 * mul;
     // a powered arm crawling on a starved grid says so, whatever it's doing
     const weak = a.powered && e.sat < 0.25;
     switch (a.state) {

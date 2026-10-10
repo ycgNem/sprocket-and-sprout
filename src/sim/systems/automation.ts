@@ -66,7 +66,7 @@ function harvesterTick(g: Game, e: Ent, dt: number) {
     setState(e, MState.Unpowered, e.net ? 'No power: the grid has nothing to give' : 'No power: place a pole within reach', now);
     return;
   }
-  e.st.cd -= dt * e.sat * (e.def.speed ?? 1) * g.mods.machineSpeed * fieldHand(g);
+  e.st.cd -= dt * e.sat * (e.def.speed ?? 1) * g.mods.machineSpeed;
   if (e.st.cd > 0) return;
   e.st.cd = 0.7;
   if (e.inv!.slots.every((s) => s && s.n >= 99)) {
@@ -82,6 +82,7 @@ function harvesterTick(g: Game, e: Ent, dt: number) {
     if (!pickable(g, s?.crop, dawnOn(g, e))) continue;
     const out = harvest(g, i, g.rng, true);
     if (!out) continue;
+    fieldHand(g, e, out);
     // every third pick leaves a little chaff (fiber) in the hopper
     e.st.chaff = (e.st.chaff ?? 0) + 1;
     if (e.st.chaff >= 3) {
@@ -116,7 +117,7 @@ function planterTick(g: Game, e: Ent, dt: number) {
     setState(e, MState.Unpowered, e.net ? 'No power: the grid has nothing to give' : 'No power: place a pole within reach', now);
     return;
   }
-  e.st.cd -= dt * e.sat * (e.def.speed ?? 1) * g.mods.machineSpeed * fieldHand(g);
+  e.st.cd -= dt * e.sat * (e.def.speed ?? 1) * g.mods.machineSpeed;
   if (e.st.cd > 0) return;
   e.st.cd = 0.9;
   const inv = e.inv!;

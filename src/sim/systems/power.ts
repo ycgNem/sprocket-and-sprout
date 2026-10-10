@@ -249,12 +249,14 @@ export function updatePower(g: Game, dt: number) {
       }
     }
   }
+  // Governor (the profession): machines keep full speed while the grid meets 75% of their demand
+  const gov = g.hasPerk('clockmaker') ? 0.75 : 1;
   for (const e of g.ents.consumers) {
     if (!e.net || e.off) {
       e.sat = 0;
       continue;
     }
-    e.sat = ps.nets.get(e.net)?.sat ?? 0;
+    e.sat = Math.min(1, (ps.nets.get(e.net)?.sat ?? 0) / gov);
   }
   for (const v of powerLoads(g)) v.sat = v.on && v.net ? ps.nets.get(v.net)?.sat ?? 0 : 0;
   // history once per second

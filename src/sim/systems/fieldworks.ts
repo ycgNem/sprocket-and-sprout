@@ -70,8 +70,12 @@ function around(g: Game, e: Ent): [number, number][] {
   return out;
 }
 
-/** Field Hand: the field machines work a quarter faster */
-export const fieldHand = (g: Game) => (g.hasPerk('tiller') ? 1.25 : 1);
+/** Field Hand: every fourth pick of a gleaner, crane or gantry brings one crop extra (into `out`) */
+export function fieldHand(g: Game, e: Ent, out: { k: number; n: number }[]) {
+  if (!g.hasPerk('tiller') || !out.length) return;
+  e.st.picks = ((e.st.picks as number) ?? 0) + 1;
+  if (e.st.picks % 4 === 0) out.push({ k: out[0].k, n: 1 });
+}
 
 /** how far a crane or sower reaches (a tile further with Long Reach) */
 export const fieldReach = (g: Game, e: Ent) => (e.def.reach ?? 3) + (g.hasPerk('rancher') ? 1 : 0);
@@ -84,7 +88,7 @@ export function gleanerTick(g: Game, e: Ent, dt: number) {
     mul = 2;
   }
   e.st.anim = Math.max(0, (e.st.anim ?? 0) - dt);
-  e.st.cd = (e.st.cd ?? 0) - dt * mul * fieldHand(g);
+  e.st.cd = (e.st.cd ?? 0) - dt * mul;
   if (e.st.cd > 0) return;
   e.st.cd = GLEANER_PICK;
   if (itemsIn(e) >= GLEANER_BASKET) {
@@ -100,6 +104,7 @@ export function gleanerTick(g: Game, e: Ent, dt: number) {
     if (!pickable(g, s?.crop, dawn)) continue;
     const out = harvest(g, i, g.rng, true);
     if (!out) continue;
+    fieldHand(g, e, out);
     let n = 0;
     // gleaners pick base quality only: gold and star are for the hands
     for (const st of out) {
@@ -199,6 +204,7 @@ function gantryRow(g: Game, e: Ent, row: [number, number][]) {
       if (!s.crop.ready) s.water = true;
       if (pickable(g, s.crop, dawn) && cropsIn(e) < GANTRY_HOPPER) {
         const out = harvest(g, i, g.rng, true);
+        if (out) fieldHand(g, e, out);
         let n = 0;
         for (const st of out ?? []) {
           const left = e.inv!.add(st.k, st.n);
@@ -278,7 +284,7 @@ export function gantryTick(g: Game, e: Ent, dt: number) {
     return;
   }
   e.working = true;
-  const speed = (e.def.speed ?? 1) * Math.max(0, e.sat) * (dir < 0 ? 1.5 : 1) * fieldHand(g);
+  const speed = (e.def.speed ?? 1) * Math.max(0, e.sat) * (dir < 0 ? 1.5 : 1);
   if (dir > 0) {
     e.st.pos += dt * speed;
     // work each row as the gantry reaches it

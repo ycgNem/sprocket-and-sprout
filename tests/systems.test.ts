@@ -379,10 +379,13 @@ describe('professions', () => {
     expect(P.pendingPerk(g)).toEqual({ skill: 'farming', level: 5 });
     // farming's perks work the field machines; they don't raise sell prices (the critic's Stardew test)
     const before = unitPrice(g, key('radish'));
-    expect(fieldHand(g)).toBe(1);
+    // Field Hand: every fourth pick of a field machine brings a crop extra
+    const gleaner = { st: {} } as Parameters<typeof fieldHand>[1];
+    const picks = (n: number) => { let extra = 0; for (let i = 0; i < n; i++) { const out = [{ k: key('radish'), n: 1 }]; fieldHand(g, gleaner, out); extra += out.length - 1; } return extra; };
+    expect(picks(8)).toBe(0);
     expect(P.choosePerk(g, 'tiller')).toBe(true);
     expect(P.choosePerk(g, 'rancher')).toBe(false); // only one per tier
-    expect(fieldHand(g)).toBe(1.25);
+    expect(picks(8)).toBe(2);
     expect(unitPrice(g, key('radish'))).toBe(before);
     expect(P.pendingPerk(g)).toBeNull();
     g.player.skills.combat = 10;
