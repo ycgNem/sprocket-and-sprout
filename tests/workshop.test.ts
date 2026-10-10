@@ -185,6 +185,7 @@ describe('Workshop HQ: the wing and the drafting table', () => {
         { def: 'chest_wood', dx: 0, dy: 0, rot: 0 },
         { def: 'arm_filter', dx: 1, dy: 0, rot: 1, filter: [key('cogbean')] },
         { def: 'jar', dx: 2, dy: 0, rot: 0, recipe: 'jar:pickles_cogbean' },
+        { def: 'keg', dx: 3, dy: 0, rot: 0, last: 'keg:ale' },
       ],
     };
     expect(addBlueprint(g, 'Pickle line', bp)).toBe(true);
@@ -193,7 +194,7 @@ describe('Workshop HQ: the wing and the drafting table', () => {
     expect(addBlueprint(g, 'Empty', { w: 1, h: 1, items: [] })).toBe(false);
     // the saved copy doesn't follow later edits to the tool's
     bp.items.pop();
-    expect(drafting(g).lib[0].bp.items).toHaveLength(3);
+    expect(drafting(g).lib[0].bp.items).toHaveLength(4);
     addBlueprint(g, 'Thorne: the old press', bp, 'thorne');
     const g2 = reload(g);
     const lib = drafting(g2).lib;
@@ -201,6 +202,8 @@ describe('Workshop HQ: the wing and the drafting table', () => {
     expect(lib[2].from).toBe('thorne');
     expect(lib[0].bp.items[1].filter).toEqual([key('cogbean')]);
     expect(lib[0].bp.items[2].recipe).toBe('jar:pickles_cogbean');
+    // the recipe an unlocked machine last ran rides along, for the Sprocket Fair's bed
+    expect(lib[0].bp.items[3].last).toBe('keg:ale');
     // the item keys are saved as names, so a longer item list later doesn't scramble them
     const raw = JSON.parse(JSON.stringify(serialize(g, look)));
     expect(raw.sys.house.lib[0].bp.items[1].filter).toEqual([['cogbean', 0]]);
