@@ -633,9 +633,32 @@ function dynLights(st: MineState) {
   for (const h of st.hazards) if (h.kind === 'shard' && h.state === 1) st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 2.4, i: 1, c: C.butter, flicker: true, dyn: true });
 }
 
+/**
+ * Leaving a level: what lies within reach goes into the bag on the way (ore from the rock that hid
+ * the ladder), the rest stays behind with the level. (Drops used to follow you down a level and turn
+ * up at the same spot, often in a wall, where a rust-mite could eat them.)
+ */
+function sweepDrops(g: Game) {
+  const ds = dropsState(g), p = g.player;
+  if (p.where !== 'mine') return;
+  ds.list = ds.list.filter((d) => {
+    if (d.map !== 'mine') return true;
+    if (Math.hypot(d.x - p.x, d.y - p.y) < 4) {
+      const got = d.n - p.inv.add(d.k, d.n);
+      if (got > 0) {
+        g.stats.add(d.k, got);
+        g.emit({ t: 'pickup', k: d.k, n: got, x: p.x, y: p.y - 1 });
+        g.sys.collections?.found?.(g, d.k);
+      }
+    }
+    return false;
+  });
+}
+
 export function enterFloor(g: Game, floor: number) {
   const st = mine(g);
   floor = Math.max(1, Math.min(MAX_FLOOR, Math.floor(floor)));
+  sweepDrops(g);
   const gen = generateFloor(g, floor);
   st.floor = floor;
   st.map = gen.map;
@@ -689,6 +712,7 @@ export function enterFloor(g: Game, floor: number) {
 
 function leave(g: Game) {
   const st = mine(g);
+  sweepDrops(g);
   st.map = null;
   st.monsters = [];
   st.hazards = [];
@@ -1038,7 +1062,9 @@ function hitPest(g: Game, st: MineState, cx: number, cy: number, reach: number, 
 }
 
 function strike(g: Game, st: MineState, mo: Monster, fx: number, fy: number) {
-  mo.hp -= 1;
+  // the Brute perk hits harder: a clatter-crab gives way in two
+  const dmg = g.hasPerk('brute') ? 1.5 : 1;
+  mo.hp -= dmg;
   mo.hurt = 0.25;
   if (mo.def.behavior === 'mite') {
     mo.vx = fx * 5;
@@ -1046,7 +1072,10 @@ function strike(g: Game, st: MineState, mo: Monster, fx: number, fy: number) {
   }
   g.emit({ t: 'fx', kind: 'hit', x: mo.x, y: mo.y - 0.5, n: 6 });
   g.emit({ t: 'sfx', id: mo.def.behavior === 'block' ? 'clang' : 'hit' });
-  if (mo.def.behavior === 'block' && mo.hp > 0) g.emit({ t: 'float', text: mo.hp === 1 ? 'one more!' : `${mo.hp} more`, x: mo.x, y: mo.y - 1.4, c: C.cream });
+  if (mo.def.behavior === 'block' && mo.hp > 0) {
+    const left = Math.ceil(mo.hp / dmg);
+    g.emit({ t: 'float', text: left === 1 ? 'one more!' : `${left} more`, x: mo.x, y: mo.y - 1.4, c: C.cream });
+  }
   if (mo.hp <= 0) defeatPest(g, st, mo);
 }
 
@@ -1229,8 +1258,8 @@ function tickPests(g: Game, st: MineState, dt: number) {
 function hurtPlayer(g: Game, dmg: number, fromX: number, fromY: number) {
   const p = g.player;
   if (p.invuln > 0) return;
-  // the combat skill and a defense buff soften the blow
-  const def = (1 - Math.min(0.5, (p.skills.combat ?? 0) * 0.03)) * (1 - 0.12 * g.buffLvl('defense'));
+  // the combat skill, the Warrior perk and a defense buff soften the blow
+  const def = (1 - Math.min(0.5, (p.skills.combat ?? 0) * 0.03)) * (g.hasPerk('warrior') ? 0.75 : 1) * (1 - 0.12 * g.buffLvl('defense'));
   const n = Math.max(1, Math.round(dmg * def));
   p.hp -= n;
   p.invuln = 1;

@@ -136,7 +136,7 @@ export class Lighting {
       for (const b of m.buildings) {
         if (b.x > tx1 || b.x + b.w < tx0 || b.y > ty1 || b.y + b.h < ty0) continue;
         if (b.kind === 'house' || b.kind === 'shop' || b.kind === 'farmhouse') out.push({ x: b.x + b.w / 2, y: b.y + b.h - 0.8, r: 3.5, i: 0.75, c: C.amber, flicker: true });
-        // the lantern by the old mine's mouth
+        // the lantern by the Deepworks' mouth
         else if (b.kind === 'mine') out.push({ x: b.x + b.w / 2, y: b.y + b.h - 0.6, r: 3, i: 0.7, c: C.amber, flicker: true });
       }
       const seen = new Set<number>();

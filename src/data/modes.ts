@@ -13,7 +13,7 @@ export interface ModeDef {
 export const MODES: ModeDef[] = [
   {
     id: 'story', name: 'Story', tag: 'The full Thistlewick tale',
-    lines: ['Revive the old keeper\'s clockwork farm', 'Quests, villagers, festivals, the mine', 'Days end at 2am'],
+    lines: ['Revive the old keeper\'s clockwork farm', 'Quests, villagers, festivals, the Deepworks', 'Days end at 2am'],
   },
   {
     id: 'cozy', name: 'Cozy', tag: 'No rush, no penalties',

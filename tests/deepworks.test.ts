@@ -166,6 +166,18 @@ describe('the Deepworks: thirty levels in six strata', () => {
     expect(generateFloor(g, 3).map.obj.join()).not.toBe(a);
   });
 
+  it("drops stay with their level: what's within reach goes into the bag on the way down", () => {
+    const g = new Game({ seed: 3 }), st = mine(g);
+    st.enter(g, 2);
+    const ore = g.player.inv.countId('copper_ore'), coal = g.player.inv.countId('coal');
+    spawnDrop(g, key('copper_ore'), 2, g.player.x + 1, g.player.y, false, 'mine');
+    spawnDrop(g, key('coal'), 5, g.player.x + 15, g.player.y, false, 'mine');
+    st.enter(g, 3);
+    expect(g.player.inv.countId('copper_ore')).toBe(ore + 2);
+    expect(g.player.inv.countId('coal')).toBe(coal);
+    expect(dropsState(g).list.some((d) => d.map === 'mine')).toBe(false);
+  });
+
   it('a grand chest waits on levels 10, 20 and 30, once each', () => {
     for (const f of [10, 20, 30]) {
       const g = new Game({ seed: 6 }), st = mine(g);
@@ -364,6 +376,30 @@ describe('the Deepworks: pests, not monsters', () => {
     expect(g.counters.slain_clatter_crab).toBe(1);
     run(g, 1.5);
     expect(st.monsters.includes(crab)).toBe(false);
+  });
+
+  it('the combat perks still count: Brute fells a clatter-crab in two hits, Warrior takes the edge off falling rock', () => {
+    const { g, st, mo: crab } = levelWith('block', [12, 13, 17, 14, 18]);
+    g.player.perks.push('brute');
+    const [hx, hy] = crab.home!;
+    st.useTool(g, 'pick', 0, hx, hy);
+    expect(crab.state).toBe(0);
+    st.useTool(g, 'pick', 0, hx, hy);
+    expect(crab.state).toBe(2);
+    // the same crack, with and without Warrior
+    const hurt = (perk: boolean) => {
+      const g2 = new Game({ seed: 34 }), st2 = mine(g2);
+      if (perk) g2.player.perks.push('warrior');
+      st2.enter(g2, 2);
+      const crack = st2.hazards.find((h) => h.kind === 'crack')!;
+      stand(g2, crack.x, crack.y);
+      const hp = g2.player.hp;
+      run(g2, CRACK_FUSE + 0.3);
+      return hp - g2.player.hp;
+    };
+    const plain = hurt(false), warrior = hurt(true);
+    expect(warrior).toBeGreaterThan(0);
+    expect(warrior).toBeLessThan(plain);
   });
 
   it('a wisp hides the ladder: no rock turns it up, one hit shows it', () => {
