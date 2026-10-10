@@ -138,6 +138,12 @@ function planPath(g: Game, n: NPCState, loc: string) {
     n.x = gx + 0.5;
     n.y = gy + 0.9;
   }
+  // already on the doorstep (a keeper who waited out front first) or put there: step straight in.
+  // Without this the keeper stays outside all day and the shop never opens.
+  if (inside && !n.path.length) {
+    n.visible = false;
+    n.moving = false;
+  }
 }
 
 function placeAt(g: Game, n: NPCState, loc: string) {

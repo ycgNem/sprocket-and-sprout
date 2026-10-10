@@ -21,6 +21,9 @@ import { GUILD_RANKS } from '../../data/contracts';
 import { ICON, textWidth, ellipsize } from '../font';
 import { itemTooltip } from '../tooltips';
 import { portrait, heartsRow } from './town';
+import { shopFor, shopStatus } from '../../sim/systems/town';
+import type { NPCState } from '../../sim/systems/npcs';
+import { charArtHeight } from '../../render/art/sheets';
 
 // ---------------- journal ----------------
 function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
@@ -213,26 +216,114 @@ function drawMap(ui: UI, play: PlayScreen, st: WinState): boolean {
   const ox = x + 8, oy = y + 18;
   ui.ctx.imageSmoothingEnabled = false;
   ui.ctx.drawImage(mapCanvas, ox, oy, m.w * s2, m.h * s2);
-  const labels: [string, string][] = [['farmhouse', g.player.farmName + ' Farm'], ['square', 'Town Square'], ['mine_entrance', 'Old Mine'], ['quarry', 'Quarry'], ['lake_dock', 'Mirror Lake'], ['pier', 'Pier'], ['forest_pond', 'Forest Pond'], ['hermit_hut', "Thorne's Hollow"], ['forest_glade', 'Glade'], ['ranch', 'Ranch'], ['fisher_hut', 'Bait & Tackle']];
-  for (const [loc, name] of labels) {
+  const mx = ui.mx, my = ui.my;
+  const blds = m.buildings.filter((b) => MAP_NAME[b.id] !== '');
+  // hovered: the full name, the door's answer and who is inside
+  let hoverB: (typeof blds)[number] | null = null;
+  for (const b of blds) {
+    const bx = ox + b.x * s2, by = oy + b.y * s2;
+    if (mx >= bx && mx < bx + b.w * s2 && my >= by && my < by + b.h * s2) hoverB = b;
+  }
+  if (hoverB) ui.fill(ox + hoverB.x * s2 - 1, oy + hoverB.y * s2 - 1, hoverB.w * s2 + 2, hoverB.h * s2 + 2, C.butter, 0.6);
+  // villagers: a head each (indoors, on their building), the name on hover
+  const inside = (n: { target: string; visible: boolean }) => !n.visible && n.target.endsWith('_in');
+  const dots: { n: NPCState; x: number; y: number }[] = [];
+  const perB = new Map<string, number>();
+  for (const n of npcSys(g).list) {
+    let nx = ox + n.x * s2, ny = oy + n.y * s2;
+    if (inside(n)) {
+      const b = m.buildings.find((bb) => { const l = m.locs.get(n.target); return !!l && l[0] >= bb.x && l[0] < bb.x + bb.w && l[1] >= bb.y && l[1] < bb.y + bb.h; });
+      if (!b) continue;
+      const k = perB.get(b.id) ?? 0;
+      perB.set(b.id, k + 1);
+      nx = ox + (b.x + b.w / 2) * s2 + (k % 3) * 7 - 7;
+      ny = oy + (b.y + b.h / 2) * s2 + Math.floor(k / 3) * 7;
+    } else if (!n.visible) continue;
+    dots.push({ n, x: Math.round(nx), y: Math.round(ny) });
+  }
+  let hoverN: (typeof dots)[number] | null = null;
+  for (const d of dots) {
+    headIcon(ui, d.n.id, d.x, d.y, inside(d.n) ? C.slate : C.lavender);
+    if (Math.abs(mx - d.x) <= 5 && Math.abs(my - d.y) <= 5) hoverN = d;
+  }
+  const p = g.player;
+  if (p.where === 'world') {
+    // you: your own head in a rose badge with a pulsing ring
+    const px = Math.round(ox + p.x * s2), py = Math.round(oy + p.y * s2);
+    if (Math.floor(ui.time * 3) % 2) ui.fill(px - 7, py - 7, 15, 15, C.rose, 0.5);
+    headIcon(ui, 'player', px, py, C.rose);
+    if (Math.abs(mx - px) <= 6 && Math.abs(my - py) <= 6) ui.tip([{ text: `${p.name} (you)`, color: C.amber }]);
+  } else ui.text(p.where === 'mine' ? `You are on mine floor ${g.sys.mine?.floor}` : 'You are at home', x + w / 2, y + h - 10, C.walnut, { align: 'center' });
+  // labels over the heads, never over each other (a 2 px gap): each takes the first free spot
+  // around its place, or waits for a hover. They don't move as villagers walk about.
+  const taken: [number, number, number, number][] = [];
+  const free = (r: [number, number, number, number]) => r[0] >= ox && r[0] + r[2] <= ox + m.w * s2 && r[1] >= oy && r[1] + r[3] <= oy + m.h * s2 && !taken.some((t) => r[0] < t[0] + t[2] + 2 && r[0] + r[2] + 2 > t[0] && r[1] < t[1] + t[3] && r[1] + r[3] > t[1]);
+  const place = (name: string, cx: number, top: number, bottom: number, col: number, left = cx - 2, right = cx + 2): boolean => {
+    const tw = textWidth(name) + 2;
+    for (const [lx, ly] of [[cx - tw / 2, top - 10], [cx - tw / 2, bottom + 1], [right + 1, (top + bottom) / 2 - 4], [left - tw - 1, (top + bottom) / 2 - 4]]) {
+      const r: [number, number, number, number] = [Math.round(lx), Math.round(ly), tw, 9];
+      if (!free(r)) continue;
+      taken.push(r);
+      ui.text(name, r[0] + 1, r[1] + 1, col, { shadow: C.ink });
+      return true;
+    }
+    return false;
+  };
+  // no label covers a shop (its own label goes beside it)
+  for (const b of blds) if (b.kind === 'shop') taken.push([ox + b.x * s2, oy + b.y * s2, b.w * s2, b.h * s2]);
+  // places first (the farm, the square, the lake ...), then every named building
+  const areas: [string, string][] = [['farmhouse', g.player.farmName + ' Farm'], ['square', 'Town Square'], ['mine_entrance', 'Old Mine'], ['quarry', 'Quarry'], ['lake_dock', 'Mirror Lake'], ['pier', 'Pier'], ['forest_pond', 'Forest Pond'], ['forest_glade', 'Glade']];
+  for (const [loc, name] of areas) {
     const l = m.locs.get(loc);
     if (!l) continue;
     const lx = ox + l[0] * s2, ly = oy + l[1] * s2;
     ui.fill(lx - 1, ly - 1, 3, 3, C.ink);
-    ui.text(name, lx, ly - 10, C.cream, { align: 'center', shadow: C.ink });
+    place(name, lx, ly - 1, ly + 2, C.cream);
   }
-  for (const n of npcSys(g).list) if (n.visible) ui.fill(ox + n.x * s2 - 1, oy + n.y * s2 - 1, 2, 2, C.lavender);
-  const p = g.player;
-  if (p.where === 'world') {
-    const px = ox + p.x * s2, py = oy + p.y * s2;
-    if (Math.floor(ui.time * 3) % 2) ui.fill(px - 2, py - 2, 5, 5, C.rose);
-    ui.fill(px - 1, py - 1, 3, 3, C.cream);
-  } else ui.text(`You are on mine floor ${g.sys.mine?.floor}`, x + w / 2, y + h - 10, C.walnut, { align: 'center' });
+  for (const b of blds) {
+    const bx = ox + b.x * s2, by = oy + b.y * s2;
+    place(MAP_NAME[b.id] ?? b.name, bx + (b.w * s2) / 2, by, by + b.h * s2, b.kind === 'shop' ? C.butter : C.frost, bx, bx + b.w * s2);
+  }  if (hoverN) {
+    const n = hoverN.n;
+    const where = inside(n) ? m.buildings.find((bb) => { const l = m.locs.get(n.target); return !!l && l[0] >= bb.x && l[0] < bb.x + bb.w && l[1] >= bb.y && l[1] < bb.y + bb.h; })?.name : null;
+    ui.tip([{ text: NPC_BY_ID.get(n.id)?.name ?? n.id, color: C.lavender }, ...(where ? [{ text: `Inside ${where}`, color: C.pebble }] : [])]);
+  } else if (hoverB) {
+    const lines = [{ text: hoverB.name, color: C.amber }];
+    const shop = shopFor(hoverB.id);
+    if (shop && hoverB.kind === 'shop') {
+      const s = shopStatus(g, shop.id);
+      lines.push({ text: s.text, color: s.open ? C.lime : C.pebble });
+    }
+    const who = dots.filter((d) => inside(d.n) && (() => { const l = m.locs.get(d.n.target); return !!l && l[0] >= hoverB!.x && l[0] < hoverB!.x + hoverB!.w && l[1] >= hoverB!.y && l[1] < hoverB!.y + hoverB!.h; })()).map((d) => NPC_BY_ID.get(d.n.id)?.name ?? d.n.id);
+    if (who.length) lines.push({ text: 'Inside: ' + who.join(', '), color: C.pebble });
+    ui.tip(lines);
+  }
   void mw;
   void mh;
   void st;
   return true;
 }
+
+/** A character's head in an 11 px ink-rimmed badge centred on (cx, cy), at 1:1 (the walking sprite's top). */
+function headIcon(ui: UI, id: string, cx: number, cy: number, ring: number) {
+  const x = cx - 5, y = cy - 5;
+  ui.fill(x + 1, y, 9, 11, C.ink);
+  ui.fill(x, y + 1, 11, 9, C.ink);
+  ui.fill(x + 1, y + 1, 9, 9, ring);
+  const ch = sprite(`ch:${id}:2:0`);
+  if (!ch?.img) return;
+  // the 9x9 at the top of the art, around the anchor column: hair and face
+  const sx = ch.x + ch.ox - 4, sy = ch.y + Math.max(0, ch.oy - charArtHeight(id) - 1) + 1;
+  ui.ctx.drawImage(ch.img, sx, sy, 9, 9, x + 1, y + 1, 9, 9);
+}
+
+/** the map's short building names ('' = no label: the farm's own buildings and plain cottages) */
+const MAP_NAME: Record<string, string> = {
+  store: 'Mercantile', inn: 'Copper Kettle', smithy: 'Smithy', carpenter: 'Joinery', workshop: 'Workshop', clinic: 'Clinic',
+  library: 'Library', mayor_house: 'Manor', ranch: 'Ranch', home_ines: 'Marrow Cottage', home_sable: 'Moss House',
+  home_hazel: 'Quill Cottage', fisher_hut: 'Bait & Tackle', hermit_hut: "Thorne's Hollow", clocktower: 'Clocktower', airship: 'Airship',
+  mine: '', farmhouse: '', greenhouse: '', house_a: '', house_b: '',
+};
 
 // ---------------- notice board ----------------
 function drawBoard(ui: UI, play: PlayScreen, st: WinState): boolean {

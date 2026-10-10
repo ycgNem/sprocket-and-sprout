@@ -27,6 +27,24 @@ export function shopOpen(g: Game, shopId: string): { open: boolean; why?: string
   return { open: true };
 }
 
+/** is a shop's keeper inside it right now (the door opens only then)? */
+export function keeperIn(g: Game, shopId: string): boolean {
+  const shop = SHOPS.find((x) => x.id === shopId)!;
+  const keeper = npcSys(g).byId.get(shop.owner);
+  const inside = g.map.locs.get(shop.loc + '_in');
+  const kt = keeper ? g.map.locs.get(keeper.target) : undefined;
+  return !!keeper && !keeper.visible && !!inside && !!kt && kt[0] === inside[0] && kt[1] === inside[1];
+}
+
+/** what the door would say, in one line (the map's hover) */
+export function shopStatus(g: Game, shopId: string): { open: boolean; text: string } {
+  const shop = SHOPS.find((x) => x.id === shopId)!;
+  const st = shopOpen(g, shop.id);
+  if (!st.open) return { open: false, text: st.why ?? 'Closed.' };
+  if (!keeperIn(g, shop.id)) return { open: false, text: `${shortName(NPC_BY_ID.get(shop.owner)?.name ?? '') ?? 'The keeper'} isn't in right now.` };
+  return { open: true, text: `Open until ${fmt(shop.close)}.` };
+}
+
 export function door(g: Game, b: BuildingInfo) {
   switch (b.kind) {
     case 'farmhouse':
@@ -48,9 +66,7 @@ export function door(g: Game, b: BuildingInfo) {
   if (shop) {
     const st = shopOpen(g, shop.id);
     const keeper = npcSys(g).byId.get(shop.owner);
-    const inside = g.map.locs.get(shop.loc + '_in');
-    const kt = keeper ? g.map.locs.get(keeper.target) : undefined;
-    const keeperHome = !!keeper && !keeper.visible && !!inside && !!kt && kt[0] === inside[0] && kt[1] === inside[1];
+    const keeperHome = keeperIn(g, shop.id);
     if (!st.open || !keeperHome) {
       const who = shortName(NPC_BY_ID.get(shop.owner)?.name ?? '') ?? 'The keeper';
       g.toast(`${shop.name}: ${st.open ? `${who} isn't in right now.` : st.why}`);

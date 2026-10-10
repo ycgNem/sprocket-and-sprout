@@ -9,6 +9,7 @@ import { Game, SYSTEMS } from './Game';
 import { ArmState, BeltKind, Dir, Ent } from './ents';
 import { Inventory, ItemKey, key, kId, kQ, Stack } from './inventory';
 import { TileMap } from './world/tilemap';
+import { squareBridges } from './world/worldgen';
 
 export const SAVE_VERSION = 3;
 const PREFIX = 'sns_save_';
@@ -290,6 +291,8 @@ export function deserialize(raw: any): { game: Game; look: NPCLook } {
     if (e.st.mainBin) g.shipBinId = e.id;
   }
   for (const e of g.ents.others) if (e.st.mainBin) g.shipBinId = e.id;
+  // older worlds were generated with L-shaped bridge decks: square them (never over soil or a structure)
+  squareBridges(g.map, (x, y) => !g.soil.has(g.map.idx(x, y)) && !g.ents.at(x, y));
   g.ents.beltsDirty = true;
   g.ents.powerDirty = true;
   g.counters = d.counters ?? {};

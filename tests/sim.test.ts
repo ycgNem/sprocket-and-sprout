@@ -262,3 +262,84 @@ describe('walkability (1.2 playtest bug 12)', () => {
     }
   });
 });
+
+describe('shopkeepers (owner playtest: the ranch never opened)', () => {
+  it('every keeper is inside for most of the shop\'s opening hours, Clem included', async () => {
+    const { SHOPS } = await import('../src/data/shops');
+    const { shopOpen } = await import('../src/sim/systems/town');
+    const g = new Game({ seed: 5, name: 'T', farmName: 'T' });
+    while (g.weekday !== 4) g.endDay(false);
+    const open = new Map<string, number>(), home = new Map<string, number>();
+    for (let i = 0; i < 60 * 60 * 14; i++) {
+      g.tick();
+      if (i % 300) continue;
+      for (const s of SHOPS) {
+        const k = npcSys(g).byId.get(s.owner);
+        if (!k || !shopOpen(g, s.id).open) continue;
+        open.set(s.id, (open.get(s.id) ?? 0) + 1);
+        const inside = g.map.locs.get(s.loc + '_in'), kt = g.map.locs.get(k.target);
+        if (!k.visible && inside && kt && kt[0] === inside[0] && kt[1] === inside[1]) home.set(s.id, (home.get(s.id) ?? 0) + 1);
+      }
+    }
+    expect(open.get('ranch')).toBeGreaterThan(0);
+    const short = [...open].filter(([id, n]) => (home.get(id) ?? 0) / n < 0.85).map(([id, n]) => ` %`);
+    expect(short).toEqual([]);
+  });
+});
+
+describe('mine lifts (owner playtest: "mine floors don\'t save")', () => {
+  it('a shaft past a lift floor unlocks it, and the deepest floor reached unlocks lifts in old saves', () => {
+    const g = new Game({ seed: 5, name: 'T', farmName: 'T' });
+    mine(g as any);
+    const m = g.sys.mine!;
+    m.enter(g, 4);
+    m.enter(g, 8); // a shaft from 4 drops past 5
+    expect(g.flags.has('elev_5')).toBe(true);
+    // an old save that tumbled past 10 and 15 without the flags
+    m.deepest = 17;
+    g.flags.delete('elev_5');
+    const evs: any[] = [];
+    const emit = g.emit.bind(g);
+    g.emit = (ev: any) => { evs.push(ev); return emit(ev); };
+    m.enterPrompt(g);
+    expect(evs.find((ev) => ev.t === 'ui' && ev.open === 'elevator')?.arg).toEqual([1, 5, 10, 15]);
+  });
+});
+
+describe('bridges (owner playtest: L-shaped decks)', () => {
+  it('every plank deck on every farm layout is a rectangle, and old saves are squared on load', async () => {
+    const { generateWorld, squareBridges } = await import('../src/sim/world/worldgen');
+    const rects = (m: any) => {
+      const seen = new Uint8Array(m.w * m.h);
+      const bad: string[] = [];
+      for (let i = 0; i < m.w * m.h; i++) {
+        if (seen[i] || m.ground[i] !== T.PLANKS) continue;
+        const st = [i];
+        seen[i] = 1;
+        let n = 0, x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1;
+        while (st.length) {
+          const j = st.pop()!;
+          n++;
+          const x = j % m.w, y = Math.floor(j / m.w);
+          x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            const k = m.idx(x + dx, y + dy);
+            if (m.inb(x + dx, y + dy) && !seen[k] && m.ground[k] === T.PLANKS) { seen[k] = 1; st.push(k); }
+          }
+        }
+        if (n !== (x1 - x0 + 1) * (y1 - y0 + 1)) bad.push(`${x0},${y0}`);
+      }
+      return bad;
+    };
+    for (const farm of ['classic', 'riverside', 'ruins', 'highlands', 'wildwood'] as const) expect(rects(generateWorld(12345, farm))).toEqual([]);
+    // an old world's L-shaped deck and its riverside sliver
+    const m = generateWorld(12345);
+    m.setG(103, 88, T.PATH);
+    m.setG(104, 88, T.PATH);
+    for (let y = 85; y <= 87; y++) m.setG(103, y, T.PLANKS);
+    expect(rects(m).length).toBeGreaterThan(0);
+    squareBridges(m);
+    expect(rects(m)).toEqual([]);
+    expect(m.g(103, 86)).toBe(T.PATH);
+  });
+});
