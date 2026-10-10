@@ -1,6 +1,7 @@
-// The Deepworks in the real game: one level per stratum (each with its hazard or pest in view),
-// a works chamber before and after restoring it, every chamber level's machines, and the lift's
-// window. Screenshots go to e2e/out/win/; console errors are printed (0 expected).
+// The Deepworks in the real game: one level per stratum (each with its hazard or pest in view: the
+// Ember's firedamp venting, a star-shard's ringed mark), the Crystal's dark lit by lamps set down on
+// the floor, every chamber level's machines, a chamber's study card, the old lift before and after
+// restoring it, and the lift's window. Screenshots go to e2e/out/win/; console errors are printed (0 expected).
 // Usage: BASE=http://127.0.0.1:5177/ node e2e/minex.mjs
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -28,8 +29,8 @@ await page.evaluate(async () => {
 });
 
 const snap = (dy = -0.8) => page.evaluate((dy) => { const { g } = window.S; const r = window.__app.renderer; r.cam.x = g.player.x; r.cam.y = g.player.y + dy; }, dy);
-/** let the HUD take this level's events, then clear its toasts and achievement banners (each shot shows its own level) */
-const quiet = async () => { await page.waitForTimeout(300); await page.evaluate(() => { const p = window.__app.screen; p.hud.toasts.length = 0; p.achQ.length = 0; }); };
+/** let the HUD take this level's events, then clear its toasts, achievement banners and any card (each shot shows its own level) */
+const quiet = async () => { await page.waitForTimeout(300); await page.evaluate(() => { const p = window.__app.screen; p.hud.toasts.length = 0; p.achQ.length = 0; if (p.win) p.closeWindow(); }); };
 
 /** go to a level and stand a little below its most telling thing; returns what's in view */
 const visit = (level) => page.evaluate((level) => {
@@ -93,6 +94,7 @@ for (const level of [5, 10, 15, 20, 25, 30]) {
   await page.evaluate((level) => {
     const { g } = window.S;
     const st = g.sys.mine;
+    for (const k of ['lift', 'boiler', 'pump', 'lampworks', 'lockers', 'cart', 'star']) g.flags.add('card:' + k);
     st.enter(g, level);
     const c = st.chambers[0], c2 = st.chambers[st.chambers.length - 1];
     g.player.x = (c.x + c2.x + c2.w) / 2;
@@ -104,11 +106,29 @@ for (const level of [5, 10, 15, 20, 25, 30]) {
   await page.screenshot({ path: `e2e/out/win/chamber-${level}.png` });
 }
 
-// the old lift on level 5: F with the parts missing, F with them, then F to ride it
+// a chamber's study card: F at the seized boiler on level 10
+await page.evaluate(() => {
+  const { g } = window.S;
+  const st = g.sys.mine;
+  st.enter(g, 10);
+  const c = st.chambers.find((x) => x.kind === 'boiler');
+  g.player.x = c.x + c.w / 2;
+  g.player.y = c.y + 2.2;
+  g.player.dir = 0;
+  st.interact(g, c.x, c.y);
+});
+await page.waitForTimeout(500);
+const card = await page.evaluate(() => ({ win: window.__app.screen.win?.id ?? null, title: window.__app.screen.win?.arg?.title ?? null }));
+await page.screenshot({ path: 'e2e/out/win/chamber-card.png' });
+console.log('chamber-card.png', JSON.stringify(card));
+await page.evaluate(() => { const p = window.__app.screen; if (p.win) p.closeWindow(); });
+
+// the old lift on level 5: F with the parts missing (its study card says what it takes), F with
+// them, then F to ride it
 const c = await page.evaluate(() => {
   const { g } = window.S;
   const st = g.sys.mine;
-  // (seen afresh: the observation toast shows in this shot)
+  // (seen afresh: the look's chime and sparkle come with the card in this shot)
   g.flags.delete('observed:lift');
   st.enter(g, 5);
   const c = st.chambers.find((x) => x.kind === 'lift');
@@ -124,6 +144,8 @@ await page.waitForTimeout(700);
 await page.screenshot({ path: 'e2e/out/win/chamber-lift-parts.png' });
 await page.evaluate((c) => {
   const { g, key } = window.S;
+  const p = window.__app.screen;
+  if (p.win) p.closeWindow();
   for (const [id, n] of [['plank', 4], ['copper_gear', 2], ['rope', 1]]) g.player.inv.add(key(id), n);
   g.sys.mine.interact(g, c.x, c.y);
 }, c);

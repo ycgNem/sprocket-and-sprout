@@ -11,6 +11,7 @@
 import { C } from '../../data/palette';
 import { ITEM_BY_ID } from '../../data/items';
 import { MONSTERS } from '../../data/creatures';
+import { RESEARCH_BY_ID } from '../../data/research';
 import { CHAMBERS, CHAMBER_BY_KIND, STRATA, VENT_CYCLE, VENT_ON, VENT_TELL, type ChamberKind, type StratumDef } from '../../data/deepworks';
 import type { MonsterDef } from '../../data/types';
 import { Rng } from '../../engine/rng';
@@ -836,18 +837,46 @@ const andList = (xs: string[]) => (xs.length > 1 ? xs.slice(0, -1).join(', ') + 
 export function partsText(kind: ChamberKind): string {
   return andList((CHAMBER_BY_KIND.get(kind)?.restore?.parts ?? []).map(([id, n]) => partText(id, n)));
 }
+/** the parts a chamber still wants from the bag, in words ("2 more planks", "a rope") */
+function missingParts(g: Game, kind: ChamberKind): string[] {
+  const inv = g.player.inv;
+  return (CHAMBER_BY_KIND.get(kind)?.restore?.parts ?? []).filter(([id, n]) => inv.countId(id) < n).map(([id, n]) => partText(id, n - inv.countId(id), inv.countId(id) > 0));
+}
+
+/**
+ * A chamber's study card (F at its machine, and the first walk-up): what the machine is, the
+ * research keystone it teaches, and for the restorable ones the parts it takes or that it runs.
+ */
+export function chamberCard(g: Game, kind: ChamberKind) {
+  const d = CHAMBER_BY_KIND.get(kind)!;
+  const notes: string[] = [];
+  const r = d.teaches ? RESEARCH_BY_ID.get(d.teaches) : undefined;
+  if (r) notes.push(`It teaches ${r.name}, a research keystone.`);
+  if (d.restore && g.flags.has(d.restore.flag)) notes.push(d.restore.running);
+  else if (d.restore) {
+    const need = missingParts(g, kind), all = need.length === d.restore.parts.length && d.restore.parts.every(([id]) => g.player.inv.countId(id) === 0);
+    notes.push(`Restoring it takes ${partsText(kind)}.`);
+    if (!need.length) notes.push('You have every part: press F to restore it.');
+    else if (!all) notes.push(`Still to find: ${andList(need)}.`);
+  }
+  // (the title names the machine, so the card's text starts after "The seized boiler: ...")
+  const text = cap(d.learned.replace(/^[^:]*:\s*/, '')) + (notes.length ? '\n\n' + notes.join(' ') : '');
+  g.emit({ t: 'ui', open: 'message', arg: { title: cap(d.name), text, icon: d.icon } });
+}
 
 // ---------------- interaction ----------------
 export function chamberAt(st: MineState, x: number, y: number): PlacedChamber | null {
   return st.chambers.find((c) => x >= c.x && x < c.x + c.w && y >= c.y && y < c.y + c.h) ?? null;
 }
 
-/** Looking at a chamber's machine: the observation a research keystone reads. True when it's new. */
+/**
+ * Looking at a chamber's machine: the observation a research keystone reads. True when it's new.
+ * (What it teaches is on its study card, chamberCard.)
+ */
 function observe(g: Game, c: PlacedChamber): boolean {
   const flag = 'observed:' + c.kind;
   if (g.flags.has(flag)) return false;
   g.flags.add(flag);
-  g.toast(CHAMBER_BY_KIND.get(c.kind)!.learned, undefined, C.butter);
   g.emit({ t: 'sfx', id: 'chime', v: 0.7 });
   g.emit({ t: 'fx', kind: 'sparkle', x: c.x + c.w / 2, y: c.y - 0.5 });
   g.count('chambers_observed');
@@ -862,7 +891,7 @@ export function restoreChamber(g: Game, kind: ChamberKind): 'done' | 'already' |
   const inv = g.player.inv;
   const missing = d.restore.parts.filter(([id, n]) => inv.countId(id) < n);
   if (missing.length) {
-    const need = missing.map(([id, n]) => partText(id, n - inv.countId(id), inv.countId(id) > 0));
+    const need = missingParts(g, kind);
     // (the whole list again only when the bag already holds some of it)
     const none = missing.length === d.restore.parts.length && missing.every(([id]) => inv.countId(id) === 0);
     g.toast(`${cap(d.name)} needs ${andList(need)} to run again${none ? '' : ` (in all: ${partsText(kind)})`}.`);
@@ -889,19 +918,20 @@ export function restoreChamber(g: Game, kind: ChamberKind): 'done' | 'already' |
   return 'done';
 }
 
+/** F at a chamber's machine: its study card; the running lift rides, a machine with its parts in the bag restores. */
 function chamberInteract(g: Game, c: PlacedChamber): boolean {
   const d = CHAMBER_BY_KIND.get(c.kind)!;
-  const fresh = observe(g, c);
-  if (!d.restore) {
-    if (!fresh) g.toast(d.learned);
+  observe(g, c);
+  g.flags.add('card:' + c.kind);
+  if (d.restore && c.kind === 'lift' && g.flags.has(d.restore.flag)) {
+    g.emit({ t: 'ui', open: 'elevator', arg: [1, ...liftLevels(g)] });
     return true;
   }
-  if (g.flags.has(d.restore.flag)) {
-    if (c.kind === 'lift') g.emit({ t: 'ui', open: 'elevator', arg: [1, ...liftLevels(g)] });
-    else g.toast(d.restore.running);
+  if (d.restore && !g.flags.has(d.restore.flag) && !missingParts(g, c.kind).length) {
+    restoreChamber(g, c.kind);
     return true;
   }
-  restoreChamber(g, c.kind);
+  chamberCard(g, c.kind);
   return true;
 }
 
@@ -1065,9 +1095,11 @@ export function minePrompt(g: Game, tx: number, ty: number): { verb: string; x: 
       if (!c) return null;
       const d = CHAMBER_BY_KIND.get(c.kind)!;
       const at = (verb: string, hint?: string) => ({ verb, x: c.x + c.w / 2, y: c.y - 1.6, hint });
-      if (d.restore && !g.flags.has(d.restore.flag)) return at('Restore ' + d.name, 'needs ' + partsText(c.kind));
+      const study = g.flags.has('observed:' + c.kind) ? 'Look' : 'Study';
+      // (F restores once every part is in the bag; until then it opens the study card)
+      if (d.restore && !g.flags.has(d.restore.flag)) return missingParts(g, c.kind).length ? at(study, 'restoring needs ' + partsText(c.kind)) : at('Restore ' + d.name);
       if (c.kind === 'lift') return at('Ride the lift');
-      return at(g.flags.has('observed:' + c.kind) ? 'Look' : 'Study');
+      return at(study);
     }
   }
   const held = g.player.inv.slots[g.player.sel];
@@ -1567,11 +1599,19 @@ function tickMine(g: Game, dt: number) {
   const m = st.map;
   if (!m) return;
   const p = g.player;
-  // looking at a chamber's machine: walking within 3 tiles of it is enough
+  // looking at a chamber's machine: walking within 3 tiles of it is enough; the first time, its
+  // study card opens (once a kind, `card:<kind>`; one card at a time on the lockers' level)
   for (const c of st.chambers) {
-    if (g.flags.has('observed:' + c.kind)) continue;
+    const looked = g.flags.has('observed:' + c.kind), carded = g.flags.has('card:' + c.kind);
+    if (looked && carded) continue;
     const nx = Math.max(c.x, Math.min(c.x + c.w, p.x));
-    if (Math.hypot(p.x - nx, p.y - (c.y + 0.6)) <= 3) observe(g, c);
+    if (Math.hypot(p.x - nx, p.y - (c.y + 0.6)) > 3) continue;
+    if (!looked) observe(g, c);
+    if (!carded) {
+      g.flags.add('card:' + c.kind);
+      chamberCard(g, c.kind);
+      break;
+    }
   }
   tickPests(g, st, dt);
   tickHazards(g, st, dt);

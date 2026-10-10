@@ -5,12 +5,13 @@ import { Game } from '../src/sim/Game';
 import { key } from '../src/sim/inventory';
 import { O, ORE_TYPES, T, type TileMap } from '../src/sim/world/tilemap';
 import {
-  BEAMS_TO_SHORE, CRACK_FUSE, DEEP_FLAGS, FLOOD_TEXT, LAMP_LIGHT, MAX_FLOOR, VENT_HURT, generateFloor, liftLevels, mine, minePrompt, themeOf,
+  BEAMS_TO_SHORE, CRACK_FUSE, DEEP_FLAGS, FLOOD_TEXT, LAMP_LIGHT, MAX_FLOOR, VENT_HURT, generateFloor, liftLevels, mine, minePrompt, partsText, themeOf,
   type Hazard, type MineState, type Monster,
 } from '../src/sim/systems/mine';
 import { CHAMBERS, CHAMBER_BY_KIND, OBSERVATIONS, STRATA, VENT_CYCLE, VENT_ON, VENT_TELL, type ChamberKind } from '../src/data/deepworks';
 import { MONSTERS } from '../src/data/creatures';
 import { ITEM_BY_ID } from '../src/data/items';
+import { RESEARCH_BY_ID } from '../src/data/research';
 import { C } from '../src/data/palette';
 import { useHeld } from '../src/sim/actions';
 import { serialize, deserialize } from '../src/sim/save';
@@ -21,6 +22,9 @@ const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const run = (g: Game, sec: number) => { for (let i = 0; i < Math.round(sec * 60); i++) g.tick(); };
 const toasts = (g: Game) => g.events.filter((e) => e.t === 'toast').map((e) => (e as { text: string }).text);
 const opened = (g: Game, win: string) => g.events.filter((e) => e.t === 'ui' && (e as { open: string }).open === win) as { arg?: unknown }[];
+/** the message cards opened (a chamber's study card) */
+const cards = (g: Game) => opened(g, 'message').map((e) => e.arg as { title: string; text: string; icon?: string });
+const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 /** stand on a tile (the player's feet are a little below its middle) */
 const stand = (g: Game, x: number, y: number) => { g.player.x = x + 0.5; g.player.y = y + 0.7; g.player.invuln = 0; };
 const isRock = (o: number) => o === O.ROCK || o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.ICE_ROCK;
@@ -517,11 +521,15 @@ describe('the Deepworks: pests, not monsters', () => {
 });
 
 describe('the Deepworks: works chambers', () => {
-  it('walking up to a chamber records what its machine teaches', () => {
+  /** the research each chamber's study card names */
+  const TEACHES: Partial<Record<ChamberKind, string>> = { boiler: 'Steam Power', lampworks: 'Spark Coils', lockers: 'Clockwork Assembly', star: 'Grand Works' };
+
+  it('walking up to a chamber records what its machine teaches and opens its study card, once a kind; F opens it again', () => {
     const g = new Game({ seed: 2 }), st = mine(g);
     for (const f of [5, 10, 15, 20, 25, 30]) {
       st.enter(g, f);
       for (const c of st.chambers) {
+        const d = CHAMBER_BY_KIND.get(c.kind)!;
         // the entry is too far to see from
         expect(g.flags.has('observed:' + c.kind), `${c.kind} from the entry`).toBe(false);
         g.player.x = c.x + c.w / 2;
@@ -529,10 +537,39 @@ describe('the Deepworks: works chambers', () => {
         g.events.length = 0;
         run(g, 0.05);
         expect(g.flags.has('observed:' + c.kind), c.kind).toBe(true);
-        expect(toasts(g)).toContain(CHAMBER_BY_KIND.get(c.kind)!.learned);
+        // the card: the machine's name, what it is, the research it teaches, the parts it takes
+        expect(cards(g).length, c.kind).toBe(1);
+        const [card] = cards(g);
+        expect(card.title).toBe(cap(d.name));
+        expect(card.text.toLowerCase()).toContain(d.learned.replace(/^[^:]*:\s*/, '').toLowerCase());
+        expect(ITEM_BY_ID.has(card.icon!), c.kind + ' icon').toBe(true);
+        if (TEACHES[c.kind]) {
+          expect(card.text, c.kind).toContain(TEACHES[c.kind]);
+          // (the keystone that reads this chamber's look is the one the card names)
+          expect(RESEARCH_BY_ID.get(d.teaches!)?.name).toBe(TEACHES[c.kind]);
+          expect(RESEARCH_BY_ID.get(d.teaches!)?.keystone?.observe?.flag).toBe('observed:' + c.kind);
+        } else expect(d.teaches, c.kind).toBeUndefined();
+        if (d.restore) expect(card.text).toContain(`Restoring it takes ${partsText(c.kind)}.`);
+        // once a kind on its own; F at the machine opens it every time
+        g.events.length = 0;
+        run(g, 0.5);
+        expect(cards(g).length, c.kind + ' again').toBe(0);
+        st.interact(g, c.x, c.y);
+        expect(cards(g).map((x) => x.title), c.kind + ' on F').toEqual([cap(d.name)]);
+        expect(toasts(g).length).toBe(0);
       }
     }
     expect(OBSERVATIONS.every((f) => g.flags.has(f))).toBe(true);
+    expect(g.counters.chambers_observed).toBe(7);
+    // tomorrow's walk-up doesn't open them again
+    g.time.day++;
+    st.enter(g, 10);
+    const boiler = st.chambers[0];
+    g.player.x = boiler.x + boiler.w / 2;
+    g.player.y = boiler.y + 3.2;
+    g.events.length = 0;
+    run(g, 0.1);
+    expect(cards(g).length).toBe(0);
   });
 
   const RESTORES: [ChamberKind, string][] = [['lift', DEEP_FLAGS.lift], ['pump', DEEP_FLAGS.pump], ['cart', DEEP_FLAGS.cart]];
@@ -548,15 +585,26 @@ describe('the Deepworks: works chambers', () => {
     expect(st.interact(g, c.x, c.y)).toBe(true);
     expect(g.flags.has(flag)).toBe(false);
     for (const [id, n] of parts) expect(inv.countId(id), id).toBe(Math.floor(n / 2));
-    expect(toasts(g).some((t) => t.includes('needs'))).toBe(true);
+    // the study card says what it takes and what's still to find
+    expect(cards(g).length).toBe(1);
+    expect(cards(g)[0].text).toContain(`Restoring it takes ${partsText(kind)}.`);
+    expect(cards(g)[0].text).toContain('Still to find: ');
+    expect(minePrompt(g, c.x, c.y)?.verb).not.toMatch(/^Restore/);
     expect(g.flags.has('observed:' + kind)).toBe(true);
     for (const [id, n] of parts) inv.add(key(id), n - Math.floor(n / 2) + 1);
+    // every part in the bag: F restores it
+    expect(minePrompt(g, c.x, c.y)?.verb).toBe('Restore ' + d.name);
+    g.events.length = 0;
     st.interact(g, c.x, c.y);
     expect(g.flags.has(flag)).toBe(true);
+    expect(toasts(g)).toContain(d.restore!.done);
     for (const [id] of parts) expect(inv.countId(id), id).toBe(1);
-    // running: F again takes nothing more
+    // running: F again takes nothing more (the lift rides; the others show their card)
+    g.events.length = 0;
     st.interact(g, c.x, c.y);
     for (const [id] of parts) expect(inv.countId(id), id).toBe(1);
+    if (kind === 'lift') expect(opened(g, 'elevator').length).toBe(1);
+    else expect(cards(g)[0].text).toContain(d.restore!.running);
     expect(st.restore(g, kind)).toBe('already');
   });
 
