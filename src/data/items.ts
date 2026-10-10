@@ -369,7 +369,7 @@ for (const [id, name, price, desc, icon, energy] of food)
 
 // ---------------- Misc ----------------
 it('ticket', 'Festival Token', 'misc', 0, { t: 'ticket', c: [C.rose, C.butter] }, 'Spend at festival stalls.');
-it('heart_charm', 'Brass Locket', 'misc', 0, { t: 'locket', c: [C.brass, C.rose] }, 'Give it to someone you love very much (needs 8 hearts).');
+it('heart_charm', 'Brass Locket', 'misc', 0, { t: 'locket', c: [C.brass, C.rose] }, 'Give it to someone you love very much (needs Trust 8).');
 it('elevator_key', 'Lift Token', 'misc', 0, { t: 'ticket', c: [C.slate, C.brass] }, 'Unused.');
 
 // ---------------- Structures ----------------
