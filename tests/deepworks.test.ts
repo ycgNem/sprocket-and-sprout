@@ -16,6 +16,7 @@ import { C } from '../src/data/palette';
 import { useHeld } from '../src/sim/actions';
 import { serialize, deserialize } from '../src/sim/save';
 import { dropsState, spawnDrop } from '../src/sim/systems/drops';
+import { questSys } from '../src/sim/systems/quests';
 
 const SEEDS = [1, 7, 23, 404, 9001];
 const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
@@ -526,6 +527,10 @@ describe('the Deepworks: works chambers', () => {
 
   it('walking up to a chamber records what its machine teaches and opens its study card, once a kind; F opens it again', () => {
     const g = new Game({ seed: 2 }), st = mine(g);
+    // the keystones' quests are on (a keystone walked by a main quest counts its look from the quest)
+    for (const id of ['k11_boiler', 'k14_spark', 'k16_tram']) questSys(g).active.push({ id, prog: [0, 0, 0, 0, 0, 0], day: 0 });
+    // (the Tram's order goes up with its quest: its toast comes now, not during a walk-up)
+    run(g, 1.1);
     for (const f of [5, 10, 15, 20, 25, 30]) {
       st.enter(g, f);
       for (const c of st.chambers) {
@@ -570,6 +575,21 @@ describe('the Deepworks: works chambers', () => {
     g.events.length = 0;
     run(g, 0.1);
     expect(cards(g).length).toBe(0);
+  });
+
+  it("the boiler seen before \"Down to the Boiler\" isn't Steam Power's look; its card says to come back, and once the quest asks the walk-up counts", () => {
+    const g = new Game({ seed: 3 }), st = mine(g);
+    st.enter(g, 10);
+    const boiler = st.chambers.find((c) => c.kind === 'boiler')!;
+    g.player.x = boiler.x + boiler.w / 2;
+    g.player.y = boiler.y + 3.2;
+    g.events.length = 0;
+    run(g, 0.1);
+    expect(g.flags.has('observed:boiler')).toBe(false);
+    expect(cards(g)[0].text).toContain('Come back to study it once "Down to the Boiler" begins.');
+    questSys(g).active.push({ id: 'k11_boiler', prog: [0, 0, 0, 0], day: g.dayIndex });
+    run(g, 0.1);
+    expect(g.flags.has('observed:boiler')).toBe(true);
   });
 
   const RESTORES: [ChamberKind, string][] = [['lift', DEEP_FLAGS.lift], ['pump', DEEP_FLAGS.pump], ['cart', DEEP_FLAGS.cart]];

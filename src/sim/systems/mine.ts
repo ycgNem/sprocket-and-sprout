@@ -20,6 +20,7 @@ import { key, kDef } from '../inventory';
 import { O, ORE_TYPES, SOLID_OBJ, T, TileMap, Z } from '../world/tilemap';
 import { dropsState, spawnDrop, type Drop } from './drops';
 import { TOOL_POWER } from '../actions';
+import { keystoneQuest, lookCounts } from '../keystones';
 
 export const MAX_FLOOR = 30;
 const MW = 48, MH = 40;
@@ -851,7 +852,12 @@ export function chamberCard(g: Game, kind: ChamberKind) {
   const d = CHAMBER_BY_KIND.get(kind)!;
   const notes: string[] = [];
   const r = d.teaches ? RESEARCH_BY_ID.get(d.teaches) : undefined;
-  if (r) notes.push(`It teaches ${r.name}, a research keystone.`);
+  if (r) {
+    notes.push(`It teaches ${r.name}, a research keystone.`);
+    // seen before its quest asks: say the look will count then
+    const q = keystoneQuest(r.id);
+    if (q && !g.flags.has('observed:' + kind) && !lookCounts(g, 'observed:' + kind)) notes.push(`Come back to study it once "${q.title}" begins.`);
+  }
   if (d.restore && g.flags.has(d.restore.flag)) notes.push(d.restore.running);
   else if (d.restore) {
     const need = missingParts(g, kind), all = need.length === d.restore.parts.length && d.restore.parts.every(([id]) => g.player.inv.countId(id) === 0);
@@ -875,7 +881,8 @@ export function chamberAt(st: MineState, x: number, y: number): PlacedChamber | 
  */
 function observe(g: Game, c: PlacedChamber): boolean {
   const flag = 'observed:' + c.kind;
-  if (g.flags.has(flag)) return false;
+  // a keystone walked by a main quest counts its look only once the quest asks (DECISIONS #94)
+  if (g.flags.has(flag) || !lookCounts(g, flag)) return false;
   g.flags.add(flag);
   g.emit({ t: 'sfx', id: 'chime', v: 0.7 });
   g.emit({ t: 'fx', kind: 'sparkle', x: c.x + c.w / 2, y: c.y - 0.5 });
