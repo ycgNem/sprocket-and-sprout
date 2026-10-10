@@ -1,4 +1,8 @@
-// Seasonal festivals: villagers gather in the decorated square; talk to the host to play.
+// Seasonal festivals: villagers gather in the decorated square; talk to the host to take part.
+// Four (DECISIONS #53): the Sprocket Fair (spring 13: the Professor's test bed, src/sim/fair.ts
+// and testbed.ts), Lantern Night (summer 20), the Harvest Haul (fall 16: the Mayor's auction,
+// src/sim/auction.ts, and double pay for standing orders, orders.ts) and Frostlight Skate (winter 24).
+// Kite Day and the Pumpkin Roll were retired in 2.0; a save that went to them keeps its count.
 import { FESTIVALS } from '../../data/goals';
 import { NPCS } from '../../data/npcs';
 import type { FestivalDef, Season } from '../../data/types';
@@ -8,6 +12,9 @@ import { key } from '../inventory';
 export function festivalOn(season: Season | number, day: number): FestivalDef | null {
   return FESTIVALS.find((f) => f.season === season && f.day === day) ?? null;
 }
+
+/** a festival's name in a sentence: "the Sprocket Fair", "Lantern Night" (start: "The Sprocket Fair") */
+export const festivalName = (f: FestivalDef, start = false) => (f.the ? (start ? 'The ' : 'the ') : '') + f.name;
 
 export function festivalToday(g: Game): FestivalDef | null {
   // Clockwork Rush is all business: no festivals
@@ -37,6 +44,18 @@ function spots(g: Game): Map<string, string> {
   return out;
 }
 
+/** count a festival as taken part in (Festive Spirit counts each one once) */
+function seen(g: Game, f: FestivalDef) {
+  if (g.flags.has('fest_seen_' + f.id)) return;
+  g.flags.add('fest_seen_' + f.id);
+  g.count('festivals');
+}
+
+/**
+ * A festival's activity is over with this score: its prize tier, once a year (Lantern Night's
+ * fireflies, Frostlight Skate's lights; the Harvest Haul's auction scores 1 for bidding, 2 for
+ * winning). The Sprocket Fair pays through src/sim/fair.ts.
+ */
 export function finishActivity(g: Game, f: FestivalDef, score: number) {
   const year = g.time.year;
   const flag = `fest_${f.id}_${year}`;
@@ -51,11 +70,7 @@ export function finishActivity(g: Game, f: FestivalDef, score: number) {
   } else g.give(key('ticket'), 2);
   const best = g.counters['best_' + f.id] ?? 0;
   if (score > best) g.counters['best_' + f.id] = score;
-  // count distinct festivals, not repeat visits
-  if (!g.flags.has('fest_seen_' + f.id)) {
-    g.flags.add('fest_seen_' + f.id);
-    g.count('festivals');
-  }
+  seen(g, f);
   return { prize, first: true };
 }
 
@@ -93,7 +108,24 @@ registerSystem({
       },
     };
     const f = festivalToday(g);
-    if (f) g.toast(`Today is ${f.name}! ${f.desc}`, undefined, 6);
+    if (f) g.toast(`Today is ${festivalName(f)}! ${f.desc}`, undefined, 6);
+  },
+  afterLoad(g) {
+    // 2.0 Phase 5: Kite Day is the Sprocket Fair and the Pumpkin Roll the Harvest Haul. A save that
+    // went to one counts it as the new one (Festive Spirit's count stays as it was, so nothing is lost
+    // or counted twice) and keeps its year's prize; the old best scores (a kite's seconds, a roll's
+    // points) go
+    for (const [from, to] of [['f_kite', 'f_fair'], ['f_pumpkin', 'f_haul']]) {
+      if (g.flags.delete('fest_seen_' + from)) g.flags.add('fest_seen_' + to);
+      for (const fl of [...g.flags]) {
+        if (!fl.startsWith(`fest_${from}_`)) continue;
+        g.flags.delete(fl);
+        g.flags.add(`fest_${to}_${fl.slice(`fest_${from}_`.length)}`);
+      }
+      delete g.counters['best_' + from];
+    }
+    // Founder's Day's review is retired (the Fair's prizes are the year's review): a pending one goes
+    g.flags.delete('eval_pending');
   },
 });
 

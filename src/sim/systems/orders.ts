@@ -13,7 +13,8 @@
 // post (noon, 6pm, overnight) before the market gets the rest. Orders pay above market and never
 // saturate it.
 import { CONTRACT_POOL, GUILD_BONUS_PER_RANK, type ContractDef } from '../../data/contracts';
-import { PROJECTS, PROJECT_BY_ID, REQUEST_POOL } from '../../data/goals';
+import { FESTIVALS, PROJECTS, PROJECT_BY_ID, REQUEST_POOL } from '../../data/goals';
+import { Rng } from '../../engine/rng';
 import { ITEMS, ITEM_BY_ID, matchesSpec } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
 import { C } from '../../data/palette';
@@ -75,6 +76,16 @@ export interface Order {
   /** steady-supply works (ProjectDef.steady): the day's shares in so far, and the day of the last */
   shares?: number;
   shareDay?: number;
+  /** a standing order in a shortage week: twice the size, 25% more an item (the board says so) */
+  short?: boolean;
+}
+
+/** a shortage (Phase 5): the week, the business, what it's short of and how many it wants */
+export interface Shortage {
+  week: number;
+  cust: string;
+  spec: string;
+  n: number;
 }
 
 export interface OrdersState {
@@ -91,6 +102,8 @@ export interface OrdersState {
   guild: { unlocked: boolean; week: number; completed: number };
   /** projects and keystones finished */
   worksDone: string[];
+  /** this week's shortage, if a business has run short (Mags' cart stocks its goods) */
+  short?: Shortage;
 }
 
 const NEVER = 1e9;
@@ -166,9 +179,23 @@ export function dueText(g: Game, o: Order): string {
   return `due ${WEEKDAYS[(g.weekday + d) % 7]}`;
 }
 
-/** coins for n of item k on this order: silver or better pays double where the order says so */
-export function payFor(o: Order, k: ItemKey, n: number): number {
-  return (o.unit ?? 0) * n * (o.silver && kQ(k) >= 1 ? 2 : 1);
+/**
+ * The Harvest Haul (src/data/goals.ts f_haul): the town's trade fair, when every business's standing
+ * order pays double all day, by hand and by the day's posts (noon, 6pm and that night's). Not in
+ * Clockwork Rush, which has no festivals.
+ */
+export function haulToday(g: Game): boolean {
+  if (g.mode === 'rush') return false;
+  const f = FESTIVALS.find((x) => x.activity === 'haul');
+  return !!f && f.season === g.time.season && f.day === g.time.day;
+}
+
+/**
+ * coins for n of item k on this order: silver or better pays double where the order says so, and a
+ * standing order pays double on the Harvest Haul (a shortage's 25% is in its `unit` already)
+ */
+export function payFor(g: Game, o: Order, k: ItemKey, n: number): number {
+  return (o.unit ?? 0) * n * (o.silver && kQ(k) >= 1 ? 2 : 1) * (o.kind === 'standing' && haulToday(g) ? 2 : 1);
 }
 
 const fitsLine = (l: OrderLine, k: ItemKey) => l.have < l.n && matchesSpec(kDef(k), l.spec);
@@ -260,6 +287,37 @@ function postDue(g: Game, monday: boolean) {
     if (n === 0 && !os.seen.includes(def.id)) postStanding(g, def);
     else if (def.weekly && n > 0 && monday) postStanding(g, def);
   }
+}
+
+/** about one week in three, once the Town Mill turns */
+export const SHORT_CHANCE = 1 / 3;
+/** a shortage week's order: twice the size, and 25% more an item */
+export const SHORT_SIZE = 2, SHORT_PAY = 1.25;
+
+/**
+ * Shortages (ROADMAP.md 7.9, Phase 5): on a Monday, about one week in three once the Town Mill
+ * turns, one business with a weekly standing order runs short. This week's order is twice the size
+ * and pays 25% more an item; the board marks it, and Mags' cart stocks the goods (or what they're
+ * made from) at a premium (src/sim/systems/cart.ts, which restocks after this). The order is due on
+ * Friday like any other; when it's filled or lapses the shortage is over. The roll has its own seed
+ * per save and week, so it never moves the world's random numbers. Not in Sandbox or Clockwork Rush.
+ */
+function rollShortage(g: Game) {
+  const os = orders(g);
+  if (g.weekday !== 0 || g.map.w < 100 || g.mode === 'sandbox' || g.mode === 'rush' || !g.flags.has('town_mill')) return;
+  const week = Math.floor(g.dayIndex / 7);
+  if (os.short?.week === week) return;
+  const r = new Rng((g.seed ^ Math.imul(week + 1, 0x9e3779b1) ^ 0x5f3759df) >>> 0);
+  if (r.next() >= SHORT_CHANCE) return;
+  // this Monday's weekly orders (a business's regulars, not a first order, which waits on), nothing in them yet
+  const list = os.open.filter((o) => o.kind === 'standing' && o.day === g.dayIndex && !o.short && (o.unit ?? 0) > 0 && STANDING_BY_ID.get(o.def)?.weekly && filled(g, o.def) > 0 && o.lines[0].have === 0);
+  if (!list.length) return;
+  const o = list[Math.floor(r.next() * list.length)];
+  o.short = true;
+  o.lines[0].n *= SHORT_SIZE;
+  o.unit = Math.round((o.unit ?? 0) * SHORT_PAY);
+  os.short = { week, cust: o.cust, spec: o.lines[0].spec, n: o.lines[0].n };
+  g.toast(`${custName(o.cust)} has run short: this week it wants ${o.lines[0].n} ${specLabel(o.lines[0].spec)} at ${o.unit} coins each. Mags' cart has some, at a price.`, o.lines[0].spec[0] === '#' ? undefined : 'i:' + o.lines[0].spec, C.amber);
 }
 
 /** today's three asks (after "A Second Bed"; 1.x saves from the first morning) */
@@ -368,7 +426,7 @@ function deliver(g: Game, o: Order, k: ItemKey, n: number, via: 'hand' | 'post' 
     took += t;
   }
   if (took <= 0) return { took: 0, coins: 0 };
-  const coins = payFor(o, k, took);
+  const coins = payFor(g, o, k, took);
   if (coins && via !== 'post') {
     g.player.money += coins;
     g.earned += coins;
@@ -693,6 +751,7 @@ registerSystem({
     for (const o of os.open) if (steadyOf(o) && orderFull(o) && o.shareDay !== g.dayIndex) for (const l of o.lines) l.have = 0;
     postWorks(g, true);
     postDue(g, g.weekday === 0);
+    rollShortage(g);
     postToday(g);
     // the Guild writes once you have arms and a few days behind you (from day 1 in Clockwork Rush)
     if (!os.guild.unlocked) {
@@ -734,6 +793,7 @@ registerSystem({
         o.shareDay = g.dayIndex;
       }
     }
+    os.short = d?.short;
     os.seen = d?.seen ?? [...new Set(os.open.filter((o) => o.kind === 'standing').map((o) => o.def).concat(Object.keys(os.filled).filter((id) => STANDING_BY_ID.has(id))))];
   },
 });

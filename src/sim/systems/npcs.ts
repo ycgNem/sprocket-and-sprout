@@ -341,7 +341,8 @@ export function talkTo(g: Game, n: NPCState) {
   // a scripted visit plays its own scene
   if (g.sys.visitTalk?.(g, n)) return;
   const fest = g.sys.festivals?.active;
-  if (fest && fest.host === n.id) {
+  // the host (or co-host) opens the day's activity; a host who chats first does once you've talked today
+  if (fest && (fest.cohost === n.id || (fest.host === n.id && (!fest.chatFirst || n.talked)))) {
     n.met = true;
     g.emit({ t: 'ui', open: 'festival', arg: fest.id });
     return;

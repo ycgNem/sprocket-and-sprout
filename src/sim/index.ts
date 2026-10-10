@@ -22,7 +22,6 @@ import './systems/quests';
 import './systems/orders';
 import './systems/goals';
 import './systems/cookbook';
-import './systems/founders';
 import './systems/festivals';
 import './systems/bots';
 import './systems/achievements';

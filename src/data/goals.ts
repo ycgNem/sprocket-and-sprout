@@ -355,18 +355,24 @@ export const MEGAPROJECTS: MegaprojectDef[] = [
 export const MEGA_BY_ID = new Map(MEGAPROJECTS.map((m) => [m.id, m]));
 
 export const FESTIVALS: FestivalDef[] = [
-  { id: 'f_kite', name: 'Kite Day', season: 0, day: 13, start: 540, end: 1080, host: 'tobias', activity: 'kite',
-    desc: 'The whole town flies kites on the square. Keep your kite riding the gusts!',
-    intro: 'Welcome to Kite Day! Keep your kite in the breeze: hold to pull the line, release to let it rise. The longer it soars, the better!',
-    prizes: [{ score: 300, items: [{ item: 'ticket', n: 5 }], money: 300 }, { score: 600, items: [{ item: 'ticket', n: 10 }, { item: 'strawberry_seed', n: 10 }], money: 800 }, { score: 900, items: [{ item: 'ticket', n: 20 }, { item: 'cherry_sapling', n: 1 }], money: 1500 }] },
+  // the Sprocket Fair (2.0, was Kite Day): bring a line to the Professor's 6x6 test bed (src/sim/testbed.ts,
+  // src/sim/fair.ts); its prizes score in entries beaten, and the candle rewards come once per save
+  // the Professor runs the bed and has a word with you first; the Mayor opens the Fair as he opened Kite
+  // Day (the day plays as it did: the pacing bot's numbers stay put)
+  { id: 'f_fair', name: 'Sprocket Fair', the: true, season: 0, day: 13, start: 540, end: 1080, host: 'ottoline', cohost: 'tobias', chatFirst: true, activity: 'fair',
+    desc: "Bring a line to the Professor's test bed on the square. Whatever it makes in a minute is judged against the town's best.",
+    intro: "Welcome to the Sprocket Fair! Choose a blueprint that fits my 6x6 test bed and I'll build it right here. Full chests, stoked furnaces, a humming grid, then one minute on the clock. What it finishes is judged at market prices against this year's entries.",
+    prizes: [{ score: 1, items: [{ item: 'ticket', n: 5 }], money: 300 }, { score: 2, items: [{ item: 'ticket', n: 10 }], money: 800 }, { score: 3, items: [{ item: 'ticket', n: 20 }], money: 1500 }] },
   { id: 'f_firefly', name: 'Lantern Night', season: 1, day: 20, start: 1080, end: 1440, host: 'sable', activity: 'firefly',
     desc: 'Fireflies and paper lanterns over the summer square. Catch as many fireflies as you can!',
     intro: 'Lantern Night! Click the fireflies before they drift away. Golden ones are worth extra.',
     prizes: [{ score: 15, items: [{ item: 'ticket', n: 5 }], money: 300 }, { score: 30, items: [{ item: 'ticket', n: 10 }, { item: 'sunbell_seed', n: 10 }], money: 900 }, { score: 45, items: [{ item: 'ticket', n: 20 }, { item: 'lamp', n: 4 }], money: 1800 }] },
-  { id: 'f_pumpkin', name: 'Pumpkin Roll', season: 2, day: 16, start: 540, end: 1080, host: 'juniper', activity: 'pumpkin',
-    desc: 'Roll a pumpkin down the lane toward the scoring rings!',
-    intro: 'The Pumpkin Roll! Click once to set your aim, then again to set your power. Closest to the center wins.',
-    prizes: [{ score: 50, items: [{ item: 'ticket', n: 5 }], money: 300 }, { score: 120, items: [{ item: 'ticket', n: 10 }, { item: 'pumpkin_seed', n: 10 }], money: 900 }, { score: 200, items: [{ item: 'ticket', n: 20 }, { item: 'glowmelon_seed', n: 5 }], money: 2000 }] },
+  // the Harvest Haul (2.0, was the Pumpkin Roll): every standing order pays double today (orders.ts),
+  // and the Mayor auctions a rare lot (src/sim/auction.ts). Its prizes: 1 for bidding, 2 for winning
+  { id: 'f_haul', name: 'Harvest Haul', the: true, season: 2, day: 16, start: 540, end: 1080, host: 'tobias', activity: 'haul',
+    desc: "The town's trade fair: every standing order pays double today, and the Mayor auctions a rare lot on the square.",
+    intro: "Welcome, welcome to the Harvest Haul! Every business in town pays double for its standing order today, by hand or by the post. And on the block I have this year's lot. Roxy and Bram have been eyeing it since breakfast.",
+    prizes: [{ score: 1, items: [{ item: 'ticket', n: 10 }], money: 0 }, { score: 2, items: [{ item: 'ticket', n: 20 }], money: 0 }] },
   { id: 'f_skate', name: 'Frostlight Skate', season: 3, day: 24, start: 1020, end: 1380, host: 'marigold', activity: 'skate',
     desc: 'Skate the frozen square collecting floating lights, and dodge the thin ice!',
     intro: 'Frostlight Skate! Use WASD to glide around the rink. Collect the lights, avoid the cracks. You have one minute!',

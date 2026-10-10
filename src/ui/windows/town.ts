@@ -12,6 +12,7 @@ import { key, kDef } from '../../sim/inventory';
 import { buy, buyKit, canAffordKit, crackGeode, dailyLeft, entryPrice, sellToShop, shopBuys, shopStock, startUpgrade, unitPrice, upgradeOptions } from '../../sim/systems/economy';
 import { finishHeartEvent, hearts, npcSys } from '../../sim/systems/npcs';
 import { finishAsk, type Ask } from '../../sim/people';
+import { sundayLot } from '../../sim/systems/cart';
 import { sprite, drawFit } from '../../render/atlas';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
@@ -201,6 +202,8 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
   const listX = x + 10, listY = y + 30, listW = w - 86, listH = 150;
   if (st.data.tab === 'Buy') {
     if (shop.id === 'cart' && !g.sys.cart?.stock?.length) ui.text('Sold out! Mags restocks every Monday.', listX, listY + 4, C.walnut);
+    // Mags' Sunday lot (2.0 Phase 5, src/sim/auction.ts): one lot by auction at the cart on Sundays
+    if (shop.id === 'cart' && sundayLot(g) && ui.button('sunday_lot', x + w - 78, y + 88, 70, 16, 'Sunday lot', { style: 'green', tip: 'Mags auctions one lot on Sundays: bid against Roxy and the Professor' })) play.openWindow('auction', 'cart');
     ui.para(shop.greeting, listX, y + h - 96, listW, C.walnut);
     const stock = shopStock(g, shop.id);
     const rowH = 18;

@@ -254,6 +254,31 @@ const SC = {
     await ev(`(() => { ${S} S.play.closeWindow(); S.play.hud.toasts = []; S.play.hud.pickups = []; S.play.lessons.q = []; const g = S.g; g.player.sel = 0; g.player.x = 63.5; g.player.y = 31.5; const r = window.__app.renderer; r.juice.banners = []; r.cam.zoom = r.cam.targetZoom = 2; })()`);
     await wait(800);
   },
+  // ---- 2.0 Phase 5 (on the bot's day-5 farm, after the shots above) ----
+  // the Sprocket Fair: the Professor's picker with the tool's copy and a library line, then a run's result
+  'fair-pick': async () => ev(`(async () => { const g = S.g; const D = await import('/src/sim/drafting.ts');
+    const it = (def, dx, dy, rot = 0, extra = {}) => ({ def, dx, dy, rot, ...extra });
+    const row = (y) => [it('chest_wood', 0, y), it('arm_basic', 1, y, 1), it('jar', 2, y, 0, { last: 'jar:pickles_cogbean' }), it('arm_basic', 3, y, 1), it('shipping_crate', 4, y)];
+    S.play.blueprint = { items: [...row(0), ...row(1)], w: 5, h: 2 };
+    if (!D.drafting(g).lib.some((e) => e.name === 'Pickle row')) D.addBlueprint(g, 'Pickle row', { items: [0, 1, 2, 3].flatMap(row), w: 5, h: 4 });
+    g.time.season = 0; g.time.day = 13; g.time.min = 10 * 60; S.play.closeWindow(); S.play.hud.toasts = []; S.play.openWindow('festival', 'f_fair'); S.play.win.data.sel = 1; })()`),
+  'fair-result': async () => {
+    await ev(`(async () => { const T = await import('/src/sim/testbed.ts'); const D = await import('/src/sim/drafting.ts'); const d = S.play.win.data;
+      const e = D.drafting(S.g).lib.find((x) => x.name === 'Pickle row'); const run = T.startBed(S.g, e.bp); T.stepBed(run, T.BED_TICKS); d.run = run; d.name = e.name; d.mode = 'run'; })()`);
+    await wait(300);
+    await ev(`(() => { S.play.hud.toasts = []; })()`);
+  },
+  // the Harvest Haul's auction, mid-call: a few bids in, "Going once..."
+  auction: async () => ev(`(async () => { const g = S.g; const A = await import('/src/sim/auction.ts'); S.play.closeWindow(); g.time.season = 2; g.time.day = 16; g.time.min = 10 * 60;
+    g.player.money = Math.max(g.player.money, 30000); g.sys.auctions = {}; const a = A.auctionAt(g, 'haul');
+    for (let i = 0; i < 80 && a.log.length < 5; i++) { if (A.canBid(a, g.player.money)) A.playerBid(a, g.player.money); A.tickAuction(a, 0.25); }
+    a.answer = null; a.call = 'once'; a.t = 0; S.play.openWindow('auction', 'haul'); })()`),
+  // the Orders board on the Haul's day: double pay, and a business short this week
+  'board-haul': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); ${ORDERS}; const o = g.sys.orders.open.find((x) => x.def === 'bram_coal') ?? g.sys.orders.open.find((x) => x.kind === 'standing'); if (o) { o.short = true; o.lines[0].n *= 2; o.unit = Math.round(o.unit * 1.25); } S.play.openWindow('board'); })()`),
+  // Mags' freight cart on a Sunday: her parts, seeds out of season, a sapling, a curio, a shortage's beans, and the Sunday lot
+  broker: async () => ev(`(async () => { const g = S.g; const Cart = await import('/src/sim/systems/cart.ts'); S.play.closeWindow(); g.time.season = 0; g.time.day = 14; g.time.min = 11 * 60;
+    g.player.where = 'world'; const c = Cart.cart(g); const e = Cart.shortStock('pickles_cogbean', 12); if (!c.stock.some((x) => x.item === e.item)) c.stock.push(e);
+    S.play.openWindow('shop', 'cart'); })()`),
 };
 
 for (const [name, fn] of Object.entries(SC)) {

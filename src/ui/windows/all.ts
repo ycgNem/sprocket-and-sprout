@@ -9,7 +9,6 @@ import './panels';
 import './home';
 import './workshop';
 import './perks';
-import './founders';
 import './achievements';
 import './modes';
 import './palette';

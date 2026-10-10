@@ -493,8 +493,6 @@ export class PlayScreen implements Screen {
     }
     for (const pk of this.hud.pickups) pk.t += dt;
     this.hud.pickups = this.hud.pickups.filter((pk) => pk.t < 3);
-    // Founder's Day review on the first morning of each new year
-    if (!this.win && !g.sleeping && g.flags.has('eval_pending')) this.openWindow('evaluation');
     // a new profession to choose (asks again tomorrow if you close it)
     if (!this.win && !g.sleeping && this.perkSnooze !== g.dayIndex && !g.sys.fishing?.busy && g.tickN % 30 === 0 && pendingPerk(g)) this.openWindow('perk');
     // auto-build ghosts with your own inventory when close (tinker's satchel)

@@ -67,8 +67,9 @@ const SC = {
     await page.mouse.up();
     await page.waitForTimeout(300);
   },
+  // Lantern Night's fireflies (Kite Day became the Sprocket Fair in 2.0: e2e/fairs.mjs plays it)
   festival: async () => {
-    await ev(`(() => { const g = S.g; S.play.win = null; S.play.openWindow('festival', 'f_kite'); S.play.win.data.mode = 'play'; })()`);
+    await ev(`(() => { const g = S.g; S.play.win = null; S.play.openWindow('festival', 'f_firefly'); S.play.win.data.mode = 'play'; })()`);
     await page.mouse.move(640, 360);
     await page.mouse.down();
     await page.waitForTimeout(900);

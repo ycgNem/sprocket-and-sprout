@@ -192,8 +192,8 @@ function seasonalMail(g: Game) {
   }
   // a festival tomorrow gets a toast in the morning rather than a letter
   const t = g.time;
-  const fest = g.sys.festivals?.list?.find?.((f: any) => f.season === t.season && f.day === t.day + 1);
-  if (fest) g.toast(`${fest.name} is tomorrow in the town square.`);
+  const fest = g.mode === 'rush' ? null : g.sys.festivals?.list?.find?.((f: any) => f.season === t.season && f.day === t.day + 1);
+  if (fest) g.toast(`${fest.the ? 'The ' : ''}${fest.name} is tomorrow in the town square.`);
 }
 registerSystem({
   name: 'goals',
