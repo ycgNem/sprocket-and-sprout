@@ -1023,12 +1023,16 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
   - [x] M3 rusted belts don't carry the player (`rideBelt`, `src/sim/systems/player.ts`).
   - [x] M4 k9 More Power: a Metalwork step, the Workshop named for copper gears.
   - [x] M5 the worn wheel: 35 sparks, no rain bonus (`genCapacity`, `RIVER.cap`).
-  - [?] M1 (rusted nodes break `fieldSource`; the slow-arm advice counts swing time only and
-    stays quiet when an arm has twice the capacity needed), C1e (a starved crock's advice says it
-    takes any vegetable or fruit), M4's "Needs: Metalwork" on a locked research node, and the four
-    "Sprout Bundle" crafting labels: a helper agent was fixing these in `src/sim/lines.ts`,
-    `src/data/advice.ts`, `src/ui/windows/factory.ts`, `menu.ts`, `statelines.ts`,
-    `tests/lines.test.ts`; check what landed in the last commit and finish what didn't.
+  - [ ] M1a: a rusted node breaks the chain in `fieldSource` (`src/sim/lines.ts` ~100-116, it never
+    checks `st.rust`), so at minute 2 the crock reads Starved, not "Waiting for harvest: rusted".
+  - [ ] M1b: the slow-arm advice (`src/sim/lines.ts` ~385) counts swing time only (Queued time from
+    `setQueued` counts as Working today) and stays quiet when an arm has at least twice the
+    capacity its machine needs (it said "flat out, 100%" for an arm waiting on a busy crock).
+  - [ ] C1e: a starved crock's advice (`src/data/advice.ts`) says it takes any vegetable or fruit.
+  - [ ] M4 UI: a locked research node shows "Needs: Metalwork" (its missing prerequisites) in red
+    where "Press 'Research this'" sits (`src/ui/windows/factory.ts`).
+  - [ ] Minor: the four crafting recipes all labelled "Sprout Bundle" name their input
+    (`src/ui/windows/menu.ts`).
   - [ ] Then: typecheck, tests, the sweep (the board now lists three standing orders: check the
     `board` and `journal-orders` shots), smoke, pace; rebuild `../sns-review` and have the critic
     re-check (the bot acceptance and the eight questions, not a full review).

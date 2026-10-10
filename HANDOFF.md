@@ -303,8 +303,8 @@ Finish Phase 2, then Phase 3 of ROADMAP.md (2.0 "The Works"), on branch `works`:
 
 > Read HANDOFF.md, ROADMAP.md Phase 2 (the critic's must-fix checklist and its Minors), DECISIONS
 > #76-82, then ROADMAP.md sections 3.2, 7.1, 7.3, 7.4, 7.5, 8 and Phase 3. First finish Phase 2 on
-> `works`: the unchecked must-fix items (check what the last commit already has of M1, C1e and
-> "Needs: Metalwork"), make `tests/bot.ts` buy and plant cogbeans for its crocks and play k9 "A
+> `works`: the unchecked must-fix items (M1a, M1b, C1e, "Needs: Metalwork", the Sprout Bundle
+> labels), make `tests/bot.ts` buy and plant cogbeans for its crocks and play k9 "A
 > Second Bed", and pass the acceptance check (`npx vite-node scripts/accept.ts`: crocks Working
 > >= 50% on days 5-7, day-6 income > 0, the mill producing on day 6, seeds 2024, 7, 99); run the
 > checks and the sweep; have the indie-critic re-check (the acceptance and the eight questions).
