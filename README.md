@@ -1,10 +1,26 @@
 # Sprocket & Sprout
 
 A cozy top-down pixel-art farm-factory. You arrive in the valley town of **Thistlewick** to
-take over the old keeper's clockwork farm. Their beans are ripe and their preserves jar still
-works, and within minutes your first Clockwork Arm is carrying jars to the shipping crate.
-With Professor Cogwhistle's research you add belts, mills, water wheels and little brass
+take over the old keeper's clockwork farm. Their works stand rusted around one preserving crock
+still bubbling on its last beans. Bring them back machine by machine: within minutes an arm you
+restored is carrying pickles to the shipping crate, a gleaner picks the field you planted, the
+inn's standing order fills by the post, and the keeper's water wheel turns the grist mill by the
+river. With Professor Cogwhistle's research you add belts, mills, water wheels and little brass
 bumblebots, until the farm runs itself like a music box.
+
+**New in the 2.0 beta ("The Works", on the website; the Windows installers are still 1.1.1):**
+- **The Keeper's Line**, a new opening on every map: rusted works to restore (F), one step at a
+  time in the Now strip, lesson cards the first time something happens, and the Keeper's Notebook
+  (J) to look them up again. By day 5 you have run a line, fed it from a field, found its
+  bottleneck, filled two orders and lived through your first brownout.
+- **Machines you can read**: every machine says what it's doing and why (working, starved,
+  blocked, no power...), the factory lamps under the clock count them, hold I over a line to see
+  its rate and what stops it, and the Lines tab (P) names each line's bottleneck and the fix.
+- **The Orders board** on the square (and J -> Orders): standing orders from the town's
+  businesses, by hand or by tagging the crate "Ship to:", so the post delivers them.
+- **The Field Works**: gleaners and the field gantry harvest for you; the night shift runs the
+  works while you sleep.
+- The Preserves Jar is now the **Preserving Crock**.
 
 The pixel art (terrain, crops, trees, buildings, machines, characters, creatures, icons) was
 generated with PixelLab for this game, snapped to the Resurrect 64 palette and packed into small
@@ -41,7 +57,7 @@ See `HANDOFF.md` for details.
 | `npm run typecheck` | TypeScript only |
 | `npm test` | Vitest unit tests (simulation, data validation, pacing bot) |
 | `node e2e/smoke.mjs` | Playwright smoke test through the real UI (needs the dev server and Chrome) |
-| `npm run screens` | screenshots 43 screens and windows and checks the UI for overlapping or cut-off text; report in `e2e/out/screens/report.md` |
+| `npm run screens` | screenshots 67 screens and windows and checks the UI for overlapping or cut-off text; report in `e2e/out/screens/report.md` |
 | `node e2e/bot.mjs 14` | Playwright bot plays 14 in-game days, screenshots every morning |
 | `node e2e/perf.mjs` | builds a 1300-belt / 260-machine factory and measures frame + tick times |
 | `node e2e/shots.mjs farm,town,npcs,minefloor,factory` | screenshots of scenes and windows |
@@ -55,14 +71,16 @@ See `HANDOFF.md` for details.
 |---|---|
 | Move | WASD / arrows (hold Shift to walk slowly) |
 | Use tool / place / attack | Left mouse (hold to repeat; hold the hoe or can to charge an area) |
-| Talk / harvest / open / collect | Right mouse or F |
+| Talk / harvest / open / collect; at a machine: collect and load | Right mouse or F |
+| Open a machine's window (pick its recipe) | Shift+F |
+| Take back your last placement (within 10 s) | Ctrl+Z |
 | Wind a spring arm or gleaner (2x speed for 30 s) | Right mouse on it |
 | Inspect a line (hold): the line lights up, its rate per day and why it stops | I |
 | Hotbar | 1-0, mouse wheel |
 | Backpack / Crafting | E (or Tab) / C |
 | Research tree | T |
 | Production: Lines (every line's bottleneck), items, power grids | P |
-| Journal (quests, friends, collections, mail) | J |
+| Journal (the Keeper's Notebook, quests, orders, friends, collections, mail) | J |
 | World map | M |
 | Rotate (placing or under the mouse) | R |
 | Pick the structure under the mouse | Q |
@@ -149,7 +167,7 @@ or a Brass Locket.
   as item lanes, downstream-first.
 - Arms: clockwork (spring-wound, no power), brass (fast), reaching, sorting (filter) and bulk,
   with optional stock limits.
-- More than 25 machines with real recipes: kegs, preserves jars, furnaces, ovens, cheese presses,
+- More than 25 machines with real recipes: kegs, preserving crocks, furnaces, ovens, cheese presses,
   looms, seed sifters, compost bins, kilns, bee skeps, grist mills, sawmills, bottlers, bean
   roasters, rock crushers, steam kitchens, blast furnaces, tinker's benches and assemblers.
 - Power: water wheels (on the river), windmills (follow the wind), steam engines (burn fuel),
@@ -164,8 +182,9 @@ or a Brass Locket.
 - A 60-node research tree fed by 5 tiers of research bundles made from farm and factory goods.
 
 **Goals**
-- Guided first week (tutorial quests plus contextual tips), story quests, and daily town
-  requests on the notice board.
+- The Keeper's Line: a guided first five days, one step at a time, then story quests.
+- The Orders board: standing orders from the inn and the smithy (by hand, or consigned through
+  the crate's "Ship to:" tag) that pay above market and build reputation, plus daily town asks.
 - Trading Guild contracts: three bulk orders every week, delivered to a Freight Depot that arms
   can feed. Reputation ranks raise all shipping prices.
 - The Clocktower Restoration Board: 16 projects in 5 areas. Rewards include the greenhouse,

@@ -21,6 +21,8 @@ interface KeeperState {
   visit: number;
   /** the day the cellar last sent seeds for the gleaner's bed (once a day at most) */
   seedDay?: number;
+  /** the day the Professor last sent a spare mainspring (once a day at most) */
+  springDay?: number;
   /** the day B8's safety nets last topped something up (bars, barley, an arm) */
   riverDay?: number;
 }
@@ -178,7 +180,9 @@ registerSystem({
     // seeds planted somewhere other than the gleaner's bed
     const armNeedsSpring = (xy: [number, number]) => !!g.ents.at(xy[0], xy[1])?.st.rust;
     const springsWanted = (k.visit === 2 && active(g, 'k2_springs') && armNeedsSpring(OPENING.armTile)) || (active(g, 'k5_desk') && armNeedsSpring(OPENING.gleanArm));
-    if (springsWanted && g.player.inv.countId('spring') === 0) {
+    // once a day: a spring stashed in a chest (or dropped from a full bag) isn't lost, so no stream of them
+    if (springsWanted && g.player.inv.countId('spring') === 0 && k.springDay !== g.dayIndex) {
+      k.springDay = g.dayIndex;
       g.give(key('spring'), 1);
       g.toast('Prof. Cogwhistle sent another mainspring over. "Try to keep this one!"', 'i:spring');
     }

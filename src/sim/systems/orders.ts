@@ -189,7 +189,9 @@ export function consign(g: Game, bins: Ent[]): { sold: { k: number; n: number; p
   for (const b of bins) {
     const tag = b.st.tag as string | undefined;
     if (!tag || !b.inv) continue;
-    for (let i = 0; i < b.inv.slots.length; i++) {
+    // best quality first, as by hand: silver pays double, so it fills the order before plain goods
+    const order = b.inv.slots.map((_, i) => i).sort((x, y) => kQ(b.inv!.slots[y]?.k ?? 0) - kQ(b.inv!.slots[x]?.k ?? 0));
+    for (const i of order) {
       const s = b.inv.slots[i];
       if (!s) continue;
       for (const o of ordersFor(g, tag, s.k)) {

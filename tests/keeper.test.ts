@@ -7,7 +7,7 @@ import { canPlace, deconstruct, place } from '../src/sim/build';
 import { key } from '../src/sim/inventory';
 import { MState } from '../src/sim/mstate';
 import { OPENING, RIVER } from '../src/sim/opening';
-import { filled, orders } from '../src/sim/systems/orders';
+import { consign, filled, orders } from '../src/sim/systems/orders';
 import { powerState } from '../src/sim/systems/power';
 import { RECIPES } from '../src/data/recipes';
 import { setRecipe } from '../src/sim/systems/machines';
@@ -281,5 +281,66 @@ describe('the eight beats', () => {
     for (let i = 0; i < 61; i++) g2.tick();
     expect(q2.active.some((a) => a.id.startsWith('k'))).toBe(false);
     expect(g2.flags.has('lab')).toBe(true);
+  });
+});
+
+describe('the pre-merge review (2.0 beta)', () => {
+  it('B5 never waits on a rusted belt that is gone: restoring the belts early counts as looking at them', () => {
+    const g = new Game({ seed: 61 });
+    for (const xy of OPENING.belts) interactStruct(g, at(g, xy));
+    for (const xy of OPENING.belts) expect(at(g, xy).st.rust).toBeFalsy();
+    skipTo(g, 'k5_desk');
+    interactStruct(g, at(g, OPENING.desk));
+    g.sys.quests.notify(g, 'craft', 1, 'bundle_green');
+    g.flags.add('study:r_belts');
+    secs(g, 2);
+    // look (3) and try (4) are already met: the strip moves on to the gleaner's arm
+    expect(step(g)).toBe('k5_desk:5');
+  });
+
+  it('a recipe picked mid-batch survives a save and still takes when the batch ends', () => {
+    const g = new Game({ seed: 62 });
+    skipTo(g, 'k8_river');
+    const crock = at(g, OPENING.jar);
+    secs(g, 3);
+    expect(crock.mach!.crafting).toBe(true);
+    setRecipe(g, crock, RECIPES.find((r) => r.id === 'jar:cogbean_oil')!);
+    const { game: g2 } = deserialize(JSON.parse(JSON.stringify(serialize(g, look))));
+    const c2 = at(g2, OPENING.jar);
+    expect(c2.mach!.pending?.r?.id).toBe('jar:cogbean_oil');
+    secs(g2, 70);
+    expect(c2.mach!.recipe?.id).toBe('jar:cogbean_oil');
+    expect(c2.mach!.locked).toBe(true);
+  });
+
+  it("the Professor's spare mainspring comes once a day, not every half second", () => {
+    const g = new Game({ seed: 63 });
+    skipTo(g, 'k5_desk');
+    expect(at(g, OPENING.gleanArm).st.rust).toBeTruthy();
+    // skipping past B2 left the bag without the Professor's springs: the net sent one
+    expect(g.player.inv.countId('spring')).toBe(1);
+    // stashed in a chest it isn't lost: no stream of springs the same day
+    g.player.inv.removeSpec('spring', 1);
+    at(g, OPENING.chest).inv!.add(key('spring'), 1);
+    secs(g, 20);
+    expect(g.player.inv.countId('spring')).toBe(0);
+    // the next morning, one more
+    g.goToBed();
+    for (let n = 0; g.sleeping && n < 60 * 60 * 30; n++) g.tick();
+    secs(g, 1);
+    expect(g.player.inv.countId('spring')).toBe(1);
+  });
+
+  it('the post fills an order silver first, as a hand delivery does', () => {
+    const g = new Game({ seed: 64 });
+    skipTo(g, 'k7_town');
+    const bin = g.ents.get(g.shipBinId)!;
+    bin.st.tag = 'rowan';
+    bin.inv!.add(key('pickles_cogbean'), 4);
+    bin.inv!.add(key('pickles_cogbean', 1), 4);
+    const r = consign(g, [bin]);
+    expect(r.total).toBe(4 * 300 + 2 * 150);
+    expect(bin.inv!.count(key('pickles_cogbean', 1))).toBe(0);
+    expect(bin.inv!.count(key('pickles_cogbean'))).toBe(2);
   });
 });

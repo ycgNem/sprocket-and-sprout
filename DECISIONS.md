@@ -268,3 +268,50 @@ recommendations are the decisions.
     to be reworked when it's built: Bram's bars from an order, the Deepworks after B8, the keeper's
     grain for the mill, a 40-spark wheel so the brownout is real. The keystone after it is the Town
     Mill.
+76. **The Preserves Jar is the Preserving Crock (the owner, 2026-10-10).** The critic flagged
+    Stardew's own machine name at the centre of the new opening; the owner picked "Preserving
+    Crock" ("crock" in text: "Feed the crock", "crock 17/day"). Display names only: the id stays
+    `jar`, so saves, recipes (`jar:*`) and sprites are untouched.
+77. **Orders and consignment, the minimal board (Phase 2, ROADMAP.md 6.0 B7 and 7.4).** The town's
+    noticeboard is the Orders board (also J -> Orders): standing orders from businesses plus
+    today's asks (the old daily requests, unchanged). A standing order is filled by hand at the
+    villager or by consignment: the shipping crate's "Ship to" tag sends what fits that customer's
+    open order at each post (noon, 6pm, overnight) before the market gets the rest. Orders pay
+    above market, never saturate it, and add reputation per customer (Phase 3 turns it into ranks).
+    Rowan's is weekly (6 pickled cogbeans, +2 per reputation point, silver pays double; the first
+    one never lapses); Bram's is a one-off (6 cogbean oil for 5 copper bars and 2 Brass Arms).
+    Cogbean oil sells for 200: per bean it pays less than pickles, per crock-second more, so which
+    recipe to lock is a real choice. The crate's price tag names the most flooded item.
+78. **B8 is the keeper's river works (Phase 2, the critic's rework).** On the river by the farm
+    gate, south of the bridge (the river and the gate road are the same on every map): the
+    keeper's water wheel (rusted; 5 copper bars restore it; worn to 40 sparks), two rusted poles,
+    a rusted grist mill and a rusted grain bin with last autumn's 40 barley. Bram's order pays the
+    bars and two Brass Arms; the mill (50 sparks) and the arms overload the old wheel, so the first
+    grid the player builds browns out for real (the card, the amber power lamp, slow animation,
+    dim lamps). B8 ends when the mill has ground 5 meal in it. The next main step is k9 "More
+    Power" (Water Power at the desk, a second wheel, the mill's grid able to run everything at
+    once), the bridge to the Town Mill keystone of Phase 3. Safety nets resend bars, barley and an
+    arm (once a day) so the beat can't be lost.
+79. **Shift+F opens a machine's window; a recipe click always takes.** F at a machine collects and
+    loads (decision 74), so a player carrying beans could never reach the crock's recipes; Shift+F
+    opens any structure's window, and the key bubble says so where a machine has two recipes for
+    one input. A recipe picked mid-batch waits for the batch ("Next batch: Cogbean Oil") instead of
+    being silently ignored, and the recipes for what the machine holds or the bag carries come
+    first in its list.
+80. **The pace bot builds its own line before it grows its plot (3.2 rule 5).** On day 5 the bot's
+    farm had 39 structure tiles to 51 tilled; the bot now buys its first line's crock and arms once
+    B6 is done and keeps its plot at 12 + 3/day until day 5 (then 12 + 6/day as before), giving
+    43 to 39. `tests/keeper.test.ts` checks it, and the sweep has a `day5-farm` shot.
+81. **Before the 2.0 beta goes live: saves are v4, and new items go last (a pre-merge review).** A
+    review built ten real 1.1.1 saves with the 1.1.1 code (every mode and map, mid-tutorial, a
+    factory saved mid-batch) and loaded them into 2.0: nothing lost or broken. What changed from
+    it: `SAVE_VERSION` is 4 (a no-op migration), so if `main` ever rolls back, 1.1.x refuses a 2.0
+    save cleanly instead of throwing every tick on a research topic it doesn't know; items added
+    after 1.1 sit at the end of the item list (`ITEMS_AFTER_1_1` in `src/data/items.ts`, checked by
+    `tests/data.test.ts`), because a blueprint ghost's filters are saved as raw item keys. Also
+    fixed: restoring a piece counts as looking at it (B5 could softlock if the belts were mended
+    early), goods put in through the crate's window count for B1, a recipe picked mid-batch is
+    saved, the spare mainspring comes once a day (it streamed every half second), consignment
+    fills an order silver first as a hand delivery does, quests start on load (an old save's
+    retired tutorial left the Now strip empty until morning), and Shift+F doesn't open a window
+    while walking slowly. Phase 3's orders migration is v5.

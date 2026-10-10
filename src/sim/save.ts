@@ -11,7 +11,7 @@ import { Inventory, ItemKey, key, kId, kQ, Stack } from './inventory';
 import { TileMap } from './world/tilemap';
 import { squareBridges } from './world/worldgen';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 const PREFIX = 'sns_save_';
 const MAX_SLOTS = 6;
 
@@ -95,7 +95,8 @@ function saveEnt(e: Ent): any {
   if (e.belt?.sPrio) o.sp = e.belt.sPrio;
   if (e.mach) {
     const m = e.mach;
-    o.m = [m.recipe?.id ?? null, m.locked ? 1 : 0, [...m.inBuf].map(([k, n]) => [kj(k), n]), m.outBuf.map(sj), m.crafting ? 1 : 0, m.progress, m.burn, sj(m.fuel), m.made];
+    // pending: a recipe picked mid-batch ('' = back to auto), taken when the batch ends
+    o.m = [m.recipe?.id ?? null, m.locked ? 1 : 0, [...m.inBuf].map(([k, n]) => [kj(k), n]), m.outBuf.map(sj), m.crafting ? 1 : 0, m.progress, m.burn, sj(m.fuel), m.made, m.pending ? m.pending.r?.id ?? '' : null];
   }
   if (e.gen) o.gn = [sj(e.gen.fuel), e.gen.burn];
   if (e.inv) o.v = e.inv.toJSON();
@@ -146,7 +147,7 @@ function loadEnt(g: Game, o: any, idMap: Map<number, Ent>) {
   }
   if (e.mach && o.m) {
     const m = e.mach;
-    const [rid, locked, inBuf, outBuf, crafting, progress, burn, fuel, made] = o.m;
+    const [rid, locked, inBuf, outBuf, crafting, progress, burn, fuel, made, pending] = o.m;
     m.recipe = rid ? RECIPE_BY_ID.get(rid) ?? null : null;
     m.locked = !!locked && !!m.recipe;
     for (const [kk, n] of inBuf) {
@@ -159,6 +160,10 @@ function loadEnt(g: Game, o: any, idMap: Map<number, Ent>) {
     m.burn = burn;
     m.fuel = js(fuel);
     m.made = made ?? 0;
+    if (typeof pending === 'string' && m.crafting) {
+      const r = pending ? RECIPE_BY_ID.get(pending) : null;
+      if (r !== undefined) m.pending = { r };
+    }
   }
   if (e.gen && o.gn) {
     e.gen.fuel = js(o.gn[0]);
@@ -232,6 +237,12 @@ export const MIGRATIONS: Record<number, (d: any) => any> = {
     // v2 -> v3: the palette went from 32 colors to Resurrect 64; look colors are palette indices
     if (d.look) for (const k of ['skin', 'hair', 'shirt', 'pants', 'accent']) if (typeof d.look[k] === 'number') d.look[k] = LEGACY32[d.look[k]] ?? d.look[k];
     d.v = 3;
+    return d;
+  },
+  3: (d) => {
+    // v3 -> v4 (2.0): nothing to convert, new state starts from its defaults on load; the bump makes
+    // 1.1.x refuse a 2.0 save cleanly instead of loading research topics and structures it doesn't know
+    d.v = 4;
     return d;
   },
 };

@@ -421,6 +421,10 @@ registerSystem({
     startAvailable(g);
     rollRequests(g);
   },
+  afterLoad(g) {
+    // a save whose quests were retired (1.x's tutorial chains) starts what it can now, not tomorrow
+    if (g.map.w >= 100) startAvailable(g);
+  },
   dayEnd(g, summary) {
     startAvailable(g, true);
     notify(g, 'sleep', 1);

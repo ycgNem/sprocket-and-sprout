@@ -669,8 +669,10 @@ export class PlayScreen implements Screen {
     }
     if (input.wasPressed('interact')) {
       const [fx, fy] = facingTile(g);
-      // Shift+F opens a structure's window instead of collecting and loading (to lock a recipe)
-      const fe = input.shift && g.player.where === 'world' ? g.ents.rootAt(fx, fy) : null;
+      // Shift+F opens a structure's window instead of collecting and loading (to lock a recipe);
+      // not while walking: Shift is also the walk-slowly key
+      const walking = input.isDown('up') || input.isDown('down') || input.isDown('left') || input.isDown('right');
+      const fe = input.shift && !walking && g.player.where === 'world' ? g.ents.rootAt(fx, fy) : null;
       if (fe && !fe.ghost && !fe.st.rust && (fe.mach || fe.inv || fe.arm || fe.gen || fe.def.kind === 'pole')) this.openWindow('struct', fe.id);
       else interact(g, fx, fy);
     }
@@ -1320,7 +1322,7 @@ export class PlayScreen implements Screen {
   /** the Keeper's Line notices what you look at: the rusted belt run (B5), a stopped machine (B6) */
   private noticeLooked(e: Ent | null) {
     if (!e || !this.g.flags.has('keepers_line')) return;
-    if (e.st.rust) this.g.flags.add('observed:' + e.def.id);
+    if (e.st.rust || e.st.yard) this.g.flags.add('observed:' + e.def.id);
     if (e.state === MState.Starved || e.state === MState.Blocked) this.g.flags.add('read:starved');
   }
 

@@ -41,6 +41,9 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
   if (!frame(ui, x, y, w, h, e.def.name)) return false;
   const inv = p.inv;
   const top = y + 14;
+  // what the crate held before this frame's clicks: goods put in through the window count for the
+  // chain's crate steps, like F with them in hand (B1)
+  const crateWas = kind === 'shipbin' && e.inv ? tally(e.inv) : null;
   let target: Inventory | ((k: number, n: number) => number) | undefined;
   if (STRUCT_PANELS[kind]) {
     st.data.topH = STRUCT_PANELS[kind](ui, play, e, x, top, w, st);
@@ -90,6 +93,12 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
   const py = y + h - playerGridH - 10;
   ui.text(target ? 'Your bag (shift-click: stack, ctrl: one, double: all)' : 'Your bag', x + 14, py - 2, C.walnut);
   invGrid(ui, play, inv, x + 14, py + 8, 12, { target, count: 36 });
+  if (crateWas) {
+    for (const [k, n] of tally(e.inv!)) {
+      const put = n - (crateWas.get(k) ?? 0);
+      if (put > 0) g.sys.quests?.notify?.(g, 'crate', put, kId(k));
+    }
+  }
   // the one sure way to move a full chest: everything inside comes with it
   if (!e.st.fixed && ui.button('pickup_struct', x + w - 64, py - 5, 50, 12, 'Pick up', { style: 'flat', tip: e.inv && !e.inv.isEmpty() ? 'Pick it up with everything inside' : 'Pick it up' })) {
     deconstruct(g, e);
@@ -103,6 +112,13 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
  * what fits their open order at each post, ahead of the market; the line under it names the
  * item the market is most flooded with.
  */
+/** how many of each item key an inventory holds */
+function tally(inv: Inventory): Map<number, number> {
+  const m = new Map<number, number>();
+  for (const s of inv.slots) if (s) m.set(s.k, (m.get(s.k) ?? 0) + s.n);
+  return m;
+}
+
 function crateTags(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: number) {
   const g = play.g;
   const opts = [{ npc: '', place: 'Market' }, ...tagChoices(g)];

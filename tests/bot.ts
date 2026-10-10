@@ -219,9 +219,10 @@ export class Bot {
       }
     }
     g.player.inv.slots = g.player.inv.slots.map((s) => (s && s.n > 0 ? s : null));
-    // water
+    // water (the keeper's patch and the gleaner's bed feed the line: unwatered, it starves for days)
     const can = this.toolId('can');
-    for (const [x, y] of this.plot) {
+    const yardBeds = keeperPatch.length ? [...keeperPatch, ...OPENING.bed, ...OPENING.bedRipe] : [];
+    for (const [x, y] of [...yardBeds, ...this.plot]) {
       const s = g.soil.get(g.map.idx(x, y));
       if (!s || s.water || !s.crop || g.isRaining()) continue;
       if (g.player.water <= 0) {

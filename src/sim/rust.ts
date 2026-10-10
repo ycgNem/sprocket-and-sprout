@@ -61,6 +61,8 @@ export function restore(g: Game, e: Ent): boolean {
   g.ents.version++;
   // the keeper's desk brings research with it: sprout bundles can be crafted, the Workshop sells desks
   if (e.def.kind === 'lab') g.flags.add('lab');
+  // nobody restores a thing without looking it over: B5's "look" stage can't wait on a rusted belt that's gone
+  g.flags.add('observed:' + e.def.id);
   setState(e, MState.Idle, 'Restored', g.simTime);
   g.emit({ t: 'restored', ent: e.id, x: e.x + e.w / 2, y: e.y + e.h / 2 });
   g.emit({ t: 'sfx', id: 'place', x: e.x, y: e.y });

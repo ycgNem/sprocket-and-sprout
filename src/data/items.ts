@@ -381,6 +381,15 @@ for (const out of Object.keys(RECIPE_TEACHERS)) {
 }
 
 // ---------------- Index ----------------
+/**
+ * Items added after 1.1 go last, in this order, so every older item keeps its index: a few saved
+ * things (a blueprint ghost's arm and splitter filters) hold raw item keys. A new item goes here.
+ */
+export const ITEMS_AFTER_1_1 = ['cogbean_oil', 'gleaner', 'rail', 'field_gantry'];
+for (const id of ITEMS_AFTER_1_1) {
+  const i = list.findIndex((d) => d.id === id);
+  if (i >= 0) list.push(...list.splice(i, 1));
+}
 export const ITEMS: ItemDef[] = list;
 export const ITEM_BY_ID = new Map<string, ItemDef>();
 export const ITEM_INDEX = new Map<string, number>();

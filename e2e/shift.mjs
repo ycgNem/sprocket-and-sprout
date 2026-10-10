@@ -49,7 +49,8 @@ const geo = () => page.evaluate(() => {
   const SLOT = 20, w = 340, kind = e.def.kind;
   const playerGridH = 3 * (SLOT + 2) + 14;
   let topH = 100;
-  if (e.inv && ['chest', 'shipbin', 'building', 'harvester', 'planter', 'fishtrap', 'tapper', 'drill'].includes(kind)) topH = 24 + Math.ceil(e.inv.size / 12) * (SLOT + 2) + 16;
+  // the crate adds a row for its "Ship to:" tags
+  if (e.inv && ['chest', 'shipbin', 'building', 'harvester', 'planter', 'fishtrap', 'tapper', 'drill', 'gleaner', 'gantry'].includes(kind)) topH = 24 + Math.ceil(e.inv.size / 12) * (SLOT + 2) + 16 + (kind === 'shipbin' ? 30 : 0);
   if (e.mach) topH = 150;
   if (['lab', 'chest', 'depot', 'building', 'megaproject', 'pond', 'hive', 'splitter', 'decor'].includes(kind)) topH = st.data.topH ?? 150;
   const h = topH + playerGridH + 24;

@@ -135,3 +135,17 @@ describe('the machine contract (ROADMAP.md 4.1)', () => {
     }
   });
 });
+
+describe('item indices (saves from 1.1.1)', () => {
+  it("every 1.1.1 item keeps its index; newer items come after them", async () => {
+    // a blueprint ghost's arm and splitter filters are saved as raw item keys (index * 4 + quality)
+    const { ITEMS_AFTER_1_1 } = await import('../src/data/items');
+    const old = ITEMS.slice(0, ITEMS.length - ITEMS_AFTER_1_1.length).map((d) => d.id);
+    expect(old.length).toBe(533);
+    expect(ITEMS.slice(old.length).map((d) => d.id)).toEqual(ITEMS_AFTER_1_1);
+    // FNV-1a of the 1.1.1 id list, in order: an item inserted mid-list changes it (add new items to ITEMS_AFTER_1_1)
+    let h = 0x811c9dc5;
+    for (const c of new TextEncoder().encode(old.join(','))) h = Math.imul(h ^ c, 0x01000193) >>> 0;
+    expect(h).toBe(0x560de8);
+  });
+});
