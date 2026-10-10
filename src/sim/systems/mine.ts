@@ -259,10 +259,15 @@ export function enterFloor(g: Game, floor: number) {
     st.deepest = floor;
     g.sys.quests?.notify?.(g, 'floor', floor);
   }
-  if (floor % 5 === 0 && !g.flags.has('elev_' + floor)) {
-    g.flags.add('elev_' + floor);
-    g.toast(`Floor ${floor}: the old lift works here! You can ride down to this floor from the entrance.`);
+  // every lift down to here works, including floors a shaft dropped you past (owner playtest:
+  // "mine floors don't save" was a tumble from floor 4 to 8 that never unlocked the floor-5 lift)
+  let unlocked = 0;
+  for (let f = 5; f <= floor; f += 5) {
+    if (g.flags.has('elev_' + f)) continue;
+    g.flags.add('elev_' + f);
+    unlocked = f;
   }
+  if (unlocked) g.toast(`Floor ${unlocked}: the old lift works there! You can ride down to it from the entrance.`);
   if (st.infested) g.toast('Monsters swarm this floor! Defeat them all to find the way down.', undefined, C.rose);
   g.emit({ t: 'sfx', id: 'door' });
   g.emit({ t: 'ui', open: 'fade' });
@@ -282,7 +287,9 @@ function leave(g: Game) {
 
 function enterPrompt(g: Game) {
   const floors = [1];
-  for (let f = 5; f <= MAX_FLOOR; f += 5) if (g.flags.has('elev_' + f)) floors.push(f);
+  // older saves that tumbled past a lift floor: the deepest floor reached unlocks every lift above it
+  const deepest = mine(g).deepest;
+  for (let f = 5; f <= MAX_FLOOR; f += 5) if (g.flags.has('elev_' + f) || f <= deepest) floors.push(f);
   g.emit({ t: 'ui', open: 'elevator', arg: floors });
 }
 

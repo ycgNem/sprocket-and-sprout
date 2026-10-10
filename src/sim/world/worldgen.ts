@@ -407,10 +407,67 @@ export function generateWorld(seed: number, farm: FarmKind = 'classic'): TileMap
   Ob(SHIPBIN_POS[0] + 2, SHIPBIN_POS[1], O.MAILBOX);
   shapeFarm(m, seed, farm, FARM, plantTree);
 
+  squareBridges(m);
   // artifact spots everywhere outdoors (respawn daily too)
   for (let k = 0; k < 40; k++) spawnArtifact(m, rng);
 
   return m;
+}
+
+const isWaterT = (t: number) => t === T.RIVER || t === T.LAKE || t === T.POND || t === T.OCEAN || t === T.DEEP;
+
+/**
+ * Bridges are rectangles (owner playtest 1.1.1: decks came out L-shaped where a wavy river bank cut
+ * a road's rows at different places, and a road running along the bank left a one-tile plank strip).
+ * First a one-tile-wide plank run outside the farm with no water past both its ends is a road
+ * clipping the bank, and becomes road; then every plank run that touches water is squared to its
+ * bounding box. `free(x, y)` says a land tile may be decked (no soil, object or structure on it).
+ * Idempotent: saves run it on load.
+ */
+export function squareBridges(m: TileMap, free: (x: number, y: number) => boolean = () => true) {
+  for (const phase of ['slivers', 'square'] as const) {
+    const seen = new Uint8Array(m.w * m.h);
+    for (let i = 0; i < m.w * m.h; i++) {
+      if (seen[i] || m.ground[i] !== T.PLANKS) continue;
+      // one 4-connected plank run
+      const run: number[] = [];
+      const stack = [i];
+      seen[i] = 1;
+      let x0 = m.w, y0 = m.h, x1 = -1, y1 = -1, wet = false;
+      while (stack.length) {
+        const j = stack.pop()!;
+        run.push(j);
+        const x = j % m.w, y = Math.floor(j / m.w);
+        x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = x + dx, ny = y + dy;
+          if (!m.inb(nx, ny)) continue;
+          const k = m.idx(nx, ny);
+          if (isWaterT(m.ground[k])) wet = true;
+          if (!seen[k] && m.ground[k] === T.PLANKS) {
+            seen[k] = 1;
+            stack.push(k);
+          }
+        }
+      }
+      if (!wet) continue;
+      if (phase === 'slivers') {
+        if (run.some((j) => m.zone[j] === Z.FARM) || (x1 > x0 && y1 > y0) || run.length < 2) continue;
+        // a real crossing of a one-tile stream has the stream past both its ends
+        const vert = x1 === x0;
+        const wetAt = (x: number, y: number) => m.inb(x, y) && isWaterT(m.g(x, y));
+        const crossing = vert ? wetAt(x0, y0 - 1) && wetAt(x0, y1 + 1) : wetAt(x0 - 1, y0) && wetAt(x1 + 1, y0);
+        if (!crossing) for (const j of run) m.ground[j] = T.PATH;
+        continue;
+      }
+      for (let y = y0; y <= y1; y++)
+        for (let x = x0; x <= x1; x++) {
+          const k = m.idx(x, y), t = m.ground[k];
+          if (t === T.PLANKS || t === T.CLIFF || t === T.CLIFFTOP) continue;
+          if (isWaterT(t) || ((t === T.PATH || t === T.SAND || t === T.GRASS || t === T.DIRT || t === T.TOWNGRASS) && !m.obj[k] && !m.buildingAt[k] && free(x, y))) m.ground[k] = T.PLANKS;
+        }
+    }
+  }
 }
 
 export function plantTree(m: TileMap, x: number, y: number, species: string, stage: number) {
