@@ -175,6 +175,8 @@ export interface TerrainArt {
   decal(cls: string, h: number, season: number): string | null;
   hasBase(cls: string): boolean;
   hasTile(cls: string): boolean;
+  /** is there a Wang set for this pair of classes (either way round)? */
+  hasSet(a: string, b: string): boolean;
 }
 
 let terrain: TerrainArt | null = null;
@@ -198,6 +200,7 @@ function defTerrainSheet(url: string, m: TerrainMeta) {
   terrain = {
     hasBase: (c) => !!m.bases[c]?.length,
     hasTile: (c) => !!m.tiles[c]?.length,
+    hasSet: (a, b) => m.sets.some((s) => (s.lower === a && s.upper === b) || (s.lower === b && s.upper === a)),
     tile(c, h, s) {
       const v = vi(m.tiles[c], h);
       return v < 0 ? null : `tt:${c}:${v}:${s}`;

@@ -32,6 +32,7 @@ import { Weather } from './weather';
 import { Ambient } from './ambient';
 import { camShakeOffset, wobbleOffset } from './shake';
 import { drawPlanks, planksUnder } from './planks';
+import { blendVertex, needsBlend } from './blend';
 
 const CH = TileMap.CHUNK;
 /** flat objects baked into the ground that get a shadow, and its width */
@@ -252,6 +253,10 @@ export class Renderer {
         // a corner without a Wang class takes the most common class around it
         const common = known.sort((a, b) => known.filter((k) => k === b).length - known.filter((k) => k === a).length)[0];
         const [nw, ne, sw, se] = cs.map((k) => k ?? common);
+        // meetings with no transition art (flagstone and water, tilled soil and a path, three terrains
+        // at once) are painted rather than cut square (src/render/blend.ts)
+        const corners = [nw!, ne!, sw!, se!];
+        if (needsBlend(art.hasSet, corners) && blendVertex(art, corners, x0 + vx, y0 + vy, season, ctx, vx * TILE - 8, vy * TILE - 8)) continue;
         const name = art.vertex(nw!, ne!, sw!, se!, hash2(x0 + vx, y0 + vy, 7), season);
         if (name) sp(name, vx * TILE - 8, vy * TILE - 8);
         else missing.push([vx, vy]);
