@@ -174,7 +174,7 @@ rec('keg', [s('barley', 3)], [s('stout', 1)], 100, undefined, 'keg:stout');
 rec('keg', [s('hops', 2)], [s('pale_ale', 1)], 120, undefined, 'keg:pale_ale');
 rec('keg', [s('#honey', 1)], [s('mead', 1)], 120, undefined, 'keg:mead');
 
-// ---------------- Preserves jar ----------------
+// ---------------- Preserving crock (id 'jar') ----------------
 for (const [id] of FRUIT_LIST) rec('jar', [s(id, 1)], [s(`jam_${id}`, 1)], 60, undefined, `jar:jam_${id}`);
 for (const [id] of VEG_LIST) rec('jar', [s(id, 1)], [s(`pickles_${id}`, 1)], 60, undefined, `jar:pickles_${id}`);
 rec('jar', [s('cogbean', 2)], [s('cogbean_oil', 1)], 90, 'flag:recipe_cogbean_oil', 'jar:cogbean_oil');

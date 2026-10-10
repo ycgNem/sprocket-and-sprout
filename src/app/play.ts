@@ -31,6 +31,7 @@ import { unlockAch } from '../sim/systems/achievements';
 import { drawAchBanner, AchBanner } from '../ui/windows/achievements';
 import { recordAch } from './profile';
 import { OPENING } from '../sim/systems/modes';
+import { RIVER } from '../sim/opening';
 import { O, T } from '../sim/world/tilemap';
 import { MState } from '../sim/mstate';
 import { isSpringArm, isWindable, windArm } from '../sim/systems/arms';
@@ -450,7 +451,7 @@ export class PlayScreen implements Screen {
     const facingDown = key !== 'Click' && g.player.dir === 2;
     const at = this.toUI(pr.x, facingDown ? Math.max(pr.y, fy) + 1.05 : pr.y);
     const kw = textWidth(key) + 6, vw = textWidth(pr.verb);
-    const w = kw + vw + 10, h = 15;
+    const w = Math.max(kw + vw + 10, pr.hint ? textWidth(pr.hint) + 8 : 0), h = pr.hint ? 24 : 15;
     let below = key === 'Click' || facingDown;
     // the two places the bubble can hang: under the thing, or over it (top edges, UI px)
     const belowY = Math.round((below ? at.y : this.toUI(pr.x, fy + 1.05).y) + 3);
@@ -492,6 +493,7 @@ export class PlayScreen implements Screen {
     ui.fill(x + 3, y + 10, kw, 1, C.pebble);
     ui.text(key, x + 6, y + 3, C.ink);
     ui.text(pr.verb, x + kw + 7, y + 4, C.cream);
+    if (pr.hint) ui.text(pr.hint, x + 4, y + 14, C.pebble);
     ui.ctx.globalAlpha = 1;
   }
 
@@ -667,7 +669,10 @@ export class PlayScreen implements Screen {
     }
     if (input.wasPressed('interact')) {
       const [fx, fy] = facingTile(g);
-      interact(g, fx, fy);
+      // Shift+F opens a structure's window instead of collecting and loading (to lock a recipe)
+      const fe = input.shift && g.player.where === 'world' ? g.ents.rootAt(fx, fy) : null;
+      if (fe && !fe.ghost && !fe.st.rust && (fe.mach || fe.inv || fe.arm || fe.gen || fe.def.kind === 'pole')) this.openWindow('struct', fe.id);
+      else interact(g, fx, fy);
     }
     if (input.wasPressed('build')) this.openWindow(g.mode === 'sandbox' ? 'palette' : 'menu', 'crafting');
   }
@@ -913,6 +918,8 @@ export class PlayScreen implements Screen {
     const out: { x: number; y: number; rot: Dir | null }[] = [];
     if (has('k3_hands')) out.push({ x: OPENING.feedArm[0], y: OPENING.feedArm[1], rot: 0 });
     if (has('k6_bottleneck')) out.push({ x: OPENING.jar2Feed[0], y: OPENING.jar2Feed[1], rot: null }, { x: OPENING.jar2Out[0], y: OPENING.jar2Out[1], rot: null });
+    // B8: Bram's Brass Arms load the mill from the grain bin and empty it into the meal chest
+    if (has('k8_river')) out.push({ x: RIVER.binArm[0], y: RIVER.binArm[1], rot: 1 }, { x: RIVER.outArm[0], y: RIVER.outArm[1], rot: 1 });
     return out.filter((s) => !g.ents.at(s.x, s.y));
   }
 
@@ -1094,6 +1101,30 @@ export class PlayScreen implements Screen {
         if (free(OPENING.jar2Out)) at(OPENING.jar2Out);
         for (const [x, y] of OPENING.jar2Belts) if (free([x, y])) mark(x, y);
         break;
+      case 'k7_town:1': {
+        // the crate, whose "Ship to" tag the post follows, until it's tagged
+        const bin = g.ents.get(g.shipBinId);
+        if (bin && !bin.st.tag) mark(bin.x, bin.y);
+        break;
+      }
+      case 'k8_river:0': {
+        // first a crock locked to oil (its window), then the crate tagged for the Smithy
+        const oil = g.ents.machines.some((e) => e.def.id === 'jar' && e.mach?.locked && e.mach.recipe?.out[0].item === 'cogbean_oil');
+        const bin = g.ents.get(g.shipBinId);
+        if (!oil) at(g.ents.at(OPENING.jar2[0], OPENING.jar2[1]) ? OPENING.jar2 : OPENING.jar);
+        else if (bin && bin.st.tag !== 'bram') mark(bin.x, bin.y);
+        break;
+      }
+      case 'k8_river:1':
+        if (rusted(RIVER.wheel)) mark(RIVER.wheel[0], RIVER.wheel[1], 2, 2);
+        break;
+      case 'k8_river:2':
+        for (const xy of [...RIVER.poles, RIVER.bin]) if (rusted(xy)) at(xy);
+        if (rusted(RIVER.mill)) mark(RIVER.mill[0], RIVER.mill[1], 2, 2);
+        break;
+      case 'k8_river:3':
+        for (const xy of [RIVER.binArm, RIVER.outArm]) if (free(xy)) at(xy);
+        break;
     }
     // a villager or place the quest wants you to reach, when it's on screen
     const tg = questTarget(g);
@@ -1153,7 +1184,7 @@ export class PlayScreen implements Screen {
   /** a countdown over the shipping crate to the next post collection (noon, 6pm) */
   private drawPostTimer(ui: any) {
     const g = this.g;
-    if (this.modalOpen || g.player.where !== 'world' || g.sleeping) return;
+    if (this.modalOpen || g.player.where !== 'world' || g.sleeping || this.app.renderer.juice.banners.length) return;
     const bin = g.ents.get(g.shipBinId);
     if (!bin) return;
     if (!this.onScreenUI(this.toUI(bin.x + 0.5, bin.y + 0.5), ui, 0)) return;

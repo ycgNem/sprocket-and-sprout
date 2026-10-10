@@ -274,7 +274,7 @@ art('honey', 'Wildflower Honey', 100, { t: 'jar', c: [C.amber, C.brass] }, 'Gold
 for (const [fl, nm, mult] of [['tulip', 'Tulip', 1.4], ['sunflower', 'Sunflower', 1.6], ['sunbell', 'Sunbell', 2.2], ['starpetal', 'Starpetal', 4], ['meadow_daisy', 'Daisy', 1.2], ['elderflower', 'Elderflower', 1.5], ['ice_crocus', 'Crocus', 2]] as const)
   art(`honey_${fl}`, `${nm} Honey`, Math.round(100 * mult), { t: 'jar', c: [C.amber, C.brass, -1, C.rose] }, `Honey flavored by ${nm.toLowerCase()} blossoms.`, ['honey'], 25);
 // the opening's second product (ROADMAP.md 4.10, taught by Rowan in Phase 2): one input, two recipes
-art('cogbean_oil', 'Cogbean Oil', 120, { t: 'bottle', c: [C.lime, C.brass] }, 'Pressed from cogbeans in a jar. Keeps gears quiet and salads bright.');
+art('cogbean_oil', 'Cogbean Oil', 200, { t: 'bottle', c: [C.lime, C.brass] }, 'Pressed from cogbeans in a crock. Keeps gears quiet and salads bright.');
 art('mead', 'Mead', 300, { t: 'bottle', c: [C.amber, C.brass] }, 'Honey wine. Sweet and strong.', ['drink'], 25);
 art('ale', 'Wheat Ale', 200, { t: 'mug', c: [C.amber, C.cream] }, 'Golden and foamy.', ['drink'], 25);
 art('stout', 'Barley Stout', 240, { t: 'mug', c: [C.bark, C.tan] }, 'Dark, roasty and rich.', ['drink'], 30);

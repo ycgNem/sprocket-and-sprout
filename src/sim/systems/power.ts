@@ -4,6 +4,7 @@ import type { Game } from '../Game';
 import type { Ent } from '../ents';
 import { MState, setState } from '../mstate';
 import { fuelValue } from './machines';
+import { rustTick } from '../rust';
 
 export interface NetStats {
   id: number;
@@ -44,7 +45,9 @@ function center(e: Ent): [number, number] {
 export function rebuildPower(g: Game) {
   const ps = powerState(g);
   const ents = g.ents;
-  const poles = ents.poles;
+  // a rusted pole carries nothing until it's restored (ROADMAP.md 6.0)
+  const poles = ents.poles.filter((p) => !p.st.rust);
+  for (const p of ents.poles) if (p.st.rust) p.net = 0;
   const parent = poles.map((_, i) => i);
   const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i])));
   ps.wires = [];
@@ -124,7 +127,8 @@ export function rebuildPower(g: Game) {
 
 /** Current maximum output of a generator. */
 export function genCapacity(g: Game, e: Ent): number {
-  const base = e.def.powerGen ?? 0;
+  // the keeper's old wheel is worn: st.cap (40) instead of a new wheel's 60
+  const base = (e.st.cap as number | undefined) ?? e.def.powerGen ?? 0;
   switch (e.def.id) {
     case 'waterwheel':
       return base * (g.time.season === 3 ? 0.6 : g.isRaining() ? 1.25 : 1);
@@ -163,6 +167,11 @@ export function updatePower(g: Game, dt: number) {
     n.demand += (e.working ? e.def.powerUse ?? 0 : e.def.powerIdle ?? 0) * powerMul;
   }
   for (const e of g.ents.gens) {
+    if (e.st.rust) {
+      if (e.gen) e.gen.cap = e.gen.out = 0;
+      rustTick(e, g.simTime);
+      continue;
+    }
     if (!e.net) {
       if (e.gen) setState(e, MState.Idle, 'Not wired to a pole', g.simTime);
       continue;
@@ -188,6 +197,7 @@ export function updatePower(g: Game, dt: number) {
     const surplus = n.cap - n.demand;
     for (const e of g.ents.gens) {
       if (e.net !== n.id) continue;
+      if (e.st.rust) continue;
       if (e.def.kind === 'accumulator') {
         const share = e.st.cap / Math.max(1, n.storeCap);
         if (surplus > 0) e.st.stored = Math.min(e.st.cap, e.st.stored + Math.min(surplus, 150) * share * dt);

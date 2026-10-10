@@ -143,8 +143,9 @@ export class Lighting {
           if (!e || seen.has(e.id) || e.ghost) continue;
           seen.add(e.id);
           const L = e.def.light;
-          if (e.def.kind === 'lamp') out.push({ x: e.x + 0.5, y: e.y - 0.4, r: L?.r ?? 6, i: 1, c: C.amber, flicker: true });
-          else if (L && e.working) out.push({ x: e.x + e.w / 2, y: e.y + e.h / 2, r: L.r, i: 0.9, c: L.color, flicker: true });
+          // in a brownout the grid's lamps and powered machines dim with its share (ROADMAP.md 4.7)
+          if (e.def.kind === 'lamp') out.push({ x: e.x + 0.5, y: e.y - 0.4, r: L?.r ?? 6, i: 0.3 + 0.7 * gridShare(g, e.x, e.y), c: C.amber, flicker: true });
+          else if (L && e.working) out.push({ x: e.x + e.w / 2, y: e.y + e.h / 2, r: L.r, i: 0.9 * (e.def.powerUse ? 0.3 + 0.7 * e.sat : 1), c: L.color, flicker: true });
           else if (e.def.kind === 'hive' || e.def.id === 'mist_tower' || e.def.kind === 'lab') out.push({ x: e.x + e.w / 2, y: e.y, r: 2, i: 0.5, c: C.aqua });
         }
       // glowing crops
@@ -159,4 +160,12 @@ export class Lighting {
     }
     return out;
   }
+}
+
+/** the satisfaction of the grid whose pole area covers a tile (1 off any grid: an oil lantern) */
+function gridShare(g: Game, x: number, y: number): number {
+  const ps = g.sys.power as { cover: Int32Array; nets: Map<number, { sat: number }> } | undefined;
+  if (!ps || ps.cover.length !== g.map.w * g.map.h) return 1;
+  const id = ps.cover[y * g.map.w + x];
+  return id ? ps.nets.get(id)?.sat ?? 1 : 1;
 }

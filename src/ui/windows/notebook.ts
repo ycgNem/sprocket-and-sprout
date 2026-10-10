@@ -104,5 +104,6 @@ export function drawNotebook(ui: UI, play: PlayScreen, st: WinState, bx: number,
       ui.text(k ? keyLabel(k) : '-', x + colW - 8, y, C.ink, { align: 'right' });
     });
     ui.text('Ctrl+Z takes back your last placement within 10 seconds.', cx, cy + col * 10 + 4, C.oak);
+    ui.text(`Shift+${keyLabel(play.app.input.binds.interact?.[0] ?? 'KeyF')} opens a machine's window (to lock a recipe) instead of loading it.`, cx, cy + col * 10 + 14, C.oak);
   }
 }

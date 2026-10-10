@@ -16,6 +16,7 @@ import { structStateLine } from '../statelines';
 import { RESEARCH_BY_ID } from '../../data/research';
 import { deconstruct } from '../../sim/build';
 import { PORT_HANDLERS } from '../../sim/ports';
+import { ordersFor, tagChoices } from '../../sim/systems/orders';
 
 /** Extra struct panels registered by later systems (labs, buildings, hives, megaprojects...). */
 export const STRUCT_PANELS: Record<string, (ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: number, st: WinState) => number> = {};
@@ -31,7 +32,7 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
   const playerGridH = 3 * (SLOT + 2) + 14;
   let topH = 100;
   if (e.inv && (kind === 'chest' || kind === 'shipbin' || kind === 'building' || kind === 'harvester' || kind === 'planter' || kind === 'fishtrap' || kind === 'tapper' || kind === 'drill' || kind === 'gleaner' || kind === 'gantry'))
-    topH = 24 + Math.ceil(e.inv.size / 12) * (SLOT + 2) + 16;
+    topH = 24 + Math.ceil(e.inv.size / 12) * (SLOT + 2) + 16 + (kind === 'shipbin' ? 30 : 0);
   if (e.mach) topH = 150;
   if (kind === 'pole' || kind === 'generator' || kind === 'accumulator') topH = 140;
   if (STRUCT_PANELS[kind]) topH = st.data.topH ?? 150;
@@ -78,6 +79,7 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
       let total = 0;
       for (const s of e.inv.slots) if (s) total += (g.sys.market?.priceOf?.(g, s.k) ?? kDef(s.k).price) * s.n;
       ui.text(`Worth ${ICON.coin}${total.toLocaleString()}`, x + w - 14, top + 2, C.moss, { align: 'right' });
+      crateTags(ui, play, e, x, top + 16 + Math.ceil(e.inv.size / 12) * (SLOT + 2), w);
     }
   } else if (e.arm) {
     armPanel(ui, play, e, x, top, w);
@@ -94,6 +96,43 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
     return false;
   }
   return true;
+}
+
+/**
+ * The crate's consignment tag and its price tag (ROADMAP.md 6.0 B7): "Ship to" a customer sends
+ * what fits their open order at each post, ahead of the market; the line under it names the
+ * item the market is most flooded with.
+ */
+function crateTags(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: number) {
+  const g = play.g;
+  const opts = [{ npc: '', place: 'Market' }, ...tagChoices(g)];
+  ui.text('Ship to:', x + 14, y + 3, C.walnut);
+  let bx = x + 56;
+  for (const o of opts) {
+    const bw = textWidth(o.place) + 12;
+    const on = ((e.st.tag as string | undefined) ?? '') === o.npc;
+    const open = o.npc ? ordersFor(g, o.npc) : [];
+    const tip = o.npc
+      ? `At each post (noon, 6pm, overnight) goods that fit ${o.place}'s open order go there first${open.length ? '' : ' (none open right now)'}. The rest is sold at market.`
+      : 'Everything goes to market at each post.';
+    if (ui.button('ctag' + o.npc, bx, y, bw, 13, o.place, { style: 'flat', active: on, tip })) {
+      if (o.npc) e.st.tag = o.npc;
+      else delete e.st.tag;
+    }
+    bx += bw + 4;
+  }
+  if (opts.length === 1) ui.text('Orders from the town show up here once posted.', bx + 4, y + 3, C.oak);
+  // the price tag: the item in the crate the market is most flooded with
+  let worst: { k: number; f: number } | null = null;
+  for (const s of e.inv!.slots) {
+    if (!s) continue;
+    const f = (g.sys.market?.satOf?.(g, s.k >> 2) as number | undefined) ?? 1;
+    if (!worst || f < worst.f) worst = { k: s.k, f };
+  }
+  if (worst && worst.f < 0.95) {
+    const price = g.sys.market?.priceOf?.(g, worst.k) ?? kDef(worst.k).price;
+    ui.text(ellipsize(`${kDef(worst.k).name}: ${ICON.coin}${price} each, ${Math.round((1 - worst.f) * 100)}% down: you shipped a lot lately.`, w - 28), x + 14, y + 17, C.brick);
+  } else if (worst) ui.text('Prices are steady. Ship a lot of one thing and its price drops for a while.', x + 14, y + 17, C.oak);
 }
 
 function machinePanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: number, st: WinState): (k: number, n: number) => number {
@@ -159,9 +198,13 @@ function machinePanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w:
   ui.text(`Made so far: ${m.made}`, x + w - 14, iy + 26, C.oak, { align: 'right' });
   // recipe list
   const ry = iy + 40;
-  const all = stationRecipes(m.station).filter((r) => g.unlocked(r.unlock));
+  // what it holds or you carry first, so a choice like pickles or oil is in the first row
+  const near = (r: RecipeDef) => r.in.some((i) => [...m.inBuf.keys()].some((k) => kDef(k).id === i.item || (i.item[0] === '#' && kDef(k).tags?.includes(i.item.slice(1)))) || (i.item[0] !== '#' && g.player.inv.countId(i.item) > 0));
+  const all = stationRecipes(m.station).filter((r) => g.unlocked(r.unlock)).sort((a, b) => (near(b) ? 1 : 0) - (near(a) ? 1 : 0));
   const locked = stationRecipes(m.station).length - all.length;
-  ui.text(m.locked ? 'Recipe (locked in)' : all.some((r) => r.in.length > 1) ? 'Recipes (pick one for multi-ingredient goods)' : 'Recipes (picked automatically from inputs)', x + 14, ry, C.walnut);
+  const nextName = m.pending ? (m.pending.r ? ITEM_BY_ID.get(m.pending.r.out[0].item)?.name ?? '' : 'picked by itself') : '';
+  if (m.pending) ui.text(`Next batch: ${nextName}`, x + 14, ry, C.rust);
+  else ui.text(m.locked ? 'Recipe (locked in)' : all.some((r) => r.in.length > 1) ? 'Recipes (pick one for multi-ingredient goods)' : 'Recipes (picked automatically from inputs)', x + 14, ry, C.walnut);
   if (m.locked && ui.button('unlock', x + w - 70, ry - 3, 56, 12, 'Auto', { style: 'flat', tip: 'Let the machine pick recipes from its inputs' })) setRecipe(g, e, null);
   const cols = 13;
   const listY = ry + 10;
@@ -172,12 +215,12 @@ function machinePanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w:
   all.forEach((r: RecipeDef, i) => {
     const sx = x + 14 + (i % cols) * (SLOT + 2), sy = listY + Math.floor(i / cols) * (SLOT + 2) - off;
     if (sy < listY - SLOT || sy > listY + areaH) return;
-    const res = ui.slot(sx, sy, { k: key(r.out[0].item), n: r.out[0].n }, { selected: m.recipe?.id === r.id && m.locked });
+    const res = ui.slot(sx, sy, { k: key(r.out[0].item), n: r.out[0].n }, { selected: m.pending ? m.pending.r?.id === r.id : m.recipe?.id === r.id && m.locked });
     if (res.hover) {
       const ing = r.in.map((i) => `${i.n}x ${i.item[0] === '#' ? 'any ' + i.item.slice(1) : ITEM_BY_ID.get(i.item)!.name}`).join(' + ');
       ui.tip([{ text: ITEM_BY_ID.get(r.out[0].item)!.name, color: C.amber }, { text: ing || 'Nothing needed' }, { text: `${r.time}s per batch` + (r.out.length > 1 ? ', with bonus outputs' : ''), color: C.pebble }, { text: 'Click to lock this recipe in', color: C.pebble }]);
     }
-    if (res.click) setRecipe(g, e, m.locked && m.recipe?.id === r.id ? null : r);
+    if (res.click) setRecipe(g, e, (m.pending ? m.pending.r?.id === r.id : m.locked && m.recipe?.id === r.id) ? null : r);
   });
   ui.unclip();
   // the contract: batch time, buffers, what it runs on
@@ -240,6 +283,7 @@ function powerPanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: n
     const cap = e.gen.cap;
     ui.text(`Output now: ${Math.round(e.gen.out)} / ${Math.round(cap)} sparks`, x + 14, y + 2, C.ink);
     if (e.def.id === 'windmill') ui.text(`Wind today: ${Math.round(g.wind * 100)}%`, x + 200, y + 2, C.walnut);
+    if (e.def.id === 'waterwheel' && e.st.cap) ui.text(`The keeper's old wheel: worn to ${e.st.cap} (a new one makes ${e.def.powerGen})`, x + w - 14, y + 2, C.walnut, { align: 'right' });
     if (e.def.id === 'sunlens') ui.text(`Daylight: ${Math.round(Math.max(0, g.daylight) * 100)}%`, x + 200, y + 2, C.walnut);
     if (e.def.fuel) {
       ui.text('Fuel', x + 270, y + 14, C.oak);

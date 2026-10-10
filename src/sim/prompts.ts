@@ -9,7 +9,7 @@ import type { Game } from './Game';
 import { kDef } from './inventory';
 import { cartHere } from './systems/cart';
 import { canTill } from './systems/farming';
-import { machAccept } from './systems/machines';
+import { machAccept, stationRecipes } from './systems/machines';
 import { wouldGift } from './systems/npcs';
 import { petAt } from './systems/pet';
 import { shopOpen } from './systems/town';
@@ -22,6 +22,19 @@ export interface Prompt {
   /** where the bubble points (tile coords: the top centre of the thing) */
   x: number;
   y: number;
+  /** a second, smaller line: another key that does something here */
+  hint?: string;
+}
+
+/** a machine with two known recipes for one input (the crock: pickles or oil) picks one by lock */
+function recipeChoice(g: Game, station: string): boolean {
+  const seen = new Set<string>();
+  for (const r of stationRecipes(station)) {
+    if (!g.unlocked(r.unlock) || r.in.length !== 1) continue;
+    if (seen.has(r.in[0].item)) return true;
+    seen.add(r.in[0].item);
+  }
+  return false;
 }
 
 
@@ -78,13 +91,15 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
     const at = (verb: string): Prompt => ({ verb, x: e.x + e.w / 2, y: e.y - 0.2 });
     if (e.st.rust) return at('Restore');
     if (d.kind === 'scarecrow') return at('Chat');
-    if (e.mach?.outBuf.length) return at('Collect');
     const held = p.inv.slots[p.sel];
+    // Shift+F opens any machine's window, where a recipe is locked in
+    const choice = e.mach && d.kind !== 'beehouse' && recipeChoice(g, e.mach.station) ? 'Shift+F: recipes' : undefined;
+    if (e.mach?.outBuf.length) return { ...at('Collect'), hint: choice };
     if (d.kind === 'shipbin') return held && kDef(held.k).price > 0 && !kDef(held.k).tool ? at('Ship ' + kDef(held.k).name) : at('Open crate');
     if (d.kind === 'depot') return at(held ? 'Deliver' : 'Open');
     if (e.mach && d.kind !== 'beehouse') {
       const loadable = p.inv.slots.some((sl) => sl && !kDef(sl.k).tool && !kDef(sl.k).weapon && !kDef(sl.k).fuel && machAccept(g, e, sl.k, true) > 0);
-      return at(loadable || !e.mach.crafting ? 'Load' : 'Open');
+      return loadable ? { ...at('Load'), hint: choice } : at('Open');
     }
     if ((d.kind === 'tapper' || d.kind === 'fishtrap' || d.kind === 'harvester' || d.kind === 'drill') && e.inv && !e.inv.isEmpty()) return at('Collect');
     if (d.kind === 'belt' || d.kind === 'underground' || d.kind === 'splitter' || d.kind === 'path' || d.kind === 'fence' || d.kind === 'rail') return null;
@@ -137,6 +152,9 @@ const clock = (min: number) => `${((Math.floor(min / 60) + 11) % 12) + 1}${min %
  * can reach now (outdoors, or in their open shop), else the first one with when they open, or
  * a place you still need to visit. Null when nothing needs walking to.
  */
+/** what the guide arrow and the compass call a quest's places */
+const LOC_LABEL: Record<string, string> = { board: 'Orders board', river_works: "The keeper's wheel", mine_entrance: 'The mine' };
+
 export function questTarget(g: Game): { x: number; y: number; label: string; npc?: string } | null {
   if (g.player.where !== 'world') return null;
   const q = g.sys.quests;
@@ -161,7 +179,7 @@ export function questTarget(g: Game): { x: number; y: number; label: string; npc
       const goHere = !!go && a.id === now!.id && i === now!.index;
       if (goHere && !g.sys.npcs?.byId?.get(go)) {
         const l = g.map.locs.get(go!);
-        if (l) consider(l[0] + 0.5, l[1] - 0.5, go![0].toUpperCase() + go!.slice(1), Math.hypot(l[0] - p.x, l[1] - p.y) + 2);
+        if (l) consider(l[0] + 0.5, l[1] - 0.5, LOC_LABEL[go!] ?? go![0].toUpperCase() + go!.slice(1), Math.hypot(l[0] - p.x, l[1] - p.y) + 2);
         return;
       }
       // a step that sends you to a villager (to buy, to deliver) points at them like a talk

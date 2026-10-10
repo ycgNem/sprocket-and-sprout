@@ -79,6 +79,8 @@ export interface MachC {
   q: number;
   /** cumulative products (for UI) */
   made: number;
+  /** a recipe picked mid-batch: it takes over when the batch is done (null = back to auto) */
+  pending?: { r: RecipeDef | null };
 }
 
 export interface GenC {

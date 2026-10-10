@@ -77,6 +77,7 @@ async function shot(name) {
 
 const clearArea = `(x0, y0, x1, y1) => { const g = window.__game; for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) g.map.setO(x, y, window.__O.NONE); }`;
 const S = `window.S = { g: window.__game, play: window.__play, key: (id, q = 0) => window.__itemIndex.get(id) * 4 + q };`;
+const ORDERS = `(() => { const os = S.g.sys.orders; if (!os.open.length) { os.open.push({ id: 'rowan_pickles', n: 6, have: 4, due: S.g.dayIndex + 2, day: S.g.dayIndex }, { id: 'bram_oil', n: 6, have: 1, due: S.g.dayIndex + 365, day: S.g.dayIndex }); os.posted.push('rowan_pickles', 'bram_oil'); os.rep.rowan = 1; } })()`;
 const ALL_TIPS = ['tip_welcome', 'tip_hoe', 'tip_seeds', 'tip_can', 'tip_place', 'tip_lab', 'tip_belts', 'tip_machine', 'tip_power', 'tip_mine', 'tip_fish', 'tip_blueprint', 'tip_energy', 'tip_night', 'tip_home', 'tip_stray', 'tip_depot', 'tip_furniture', 'tip_perkhint', 'tip_quickstack', 'tip_bots'];
 
 // name -> async setup. Run in order; each starts from where the previous left off.
@@ -101,6 +102,8 @@ const SC = {
   // ---- Phase 3 overlays (the ribbon and streak are drawn through the UI kit, so audited) ----
   // facing down at a ripe bean: the key bubble hangs below it, clear of the player
   'prompt-harvest': async () => ev(`(() => { for (const t of ${JSON.stringify(ALL_TIPS)}) S.g.flags.add(t); S.play.hud.toasts = []; S.play.lessons.q = []; const g = S.g; g.player.x = 57.5; g.player.y = 25.9; g.player.dir = 2; })()`),
+  // facing the keeper's crock with beans in the bag once oil is known: "F Load" with "Shift+F: recipes"
+  'prompt-recipes': async () => ev(`(() => { const g = S.g; g.flags.add('recipe_cogbean_oil'); g.player.inv.add(S.key('cogbean'), 6); g.player.x = 54.5; g.player.y = 24.8; g.player.dir = 0; })()`),
   // zoomed in, a quest ribbon and a running harvest streak at the same time
   'streak-ribbon': async () => {
     await ev(`(() => { const r = S.play.app.renderer; window.__z = r.cam.targetZoom; r.cam.zoom = r.cam.targetZoom = 4; S.g.emit({ t: 'quest', title: 'Things That Move Themselves', money: 300, items: [] }); })()`);
@@ -126,6 +129,10 @@ const SC = {
   chest: async () => ev(`(() => { const g = S.g; (${clearArea})(50, 26, 56, 30); const e = window.__build.place(g, 'chest_wood', 54, 27, 0); e.inv.add(S.key('wood'), 300); e.inv.add(S.key('copper_ore'), 40); e.inv.add(S.key('strawberry', 2), 12); g.player.x = 54.5; g.player.y = 29; S.play.openWindow('struct', e.id); })()`),
   lab: async () => ev(`(() => { const g = S.g; (${clearArea})(44, 26, 60, 34); g.flags.add('lab'); const e = window.__build.place(g, 'lab', 50, 28, 0); e.inv.add(S.key('bundle_green'), 6); g.research.current = 'r_belts'; g.player.x = 51; g.player.y = 31; S.play.openWindow('struct', e.id); })()`),
   power: async () => ev(`(() => { const g = S.g; (${clearArea})(44, 26, 60, 36); g.research.done.add('r_milling'); window.__build.place(g, 'windmill', 46, 28, 0); window.__build.place(g, 'pole_wood', 49, 29, 0); const mill = window.__build.place(g, 'mill', 50, 29, 0); mill.mach.inBuf.set(S.key('wheat'), 2); g.player.x = 48; g.player.y = 33; for (let i = 0; i < 300; i++) g.tick(); S.play.openWindow('struct', g.ents.at(49, 29).id); })()`),
+  // the crate's "Ship to" tag (consignment) and its price tag on a flooded item
+  'crate-tag': async () => ev(`(() => { const g = S.g; ${ORDERS}; const bin = g.ents.get(g.shipBinId); bin.st.tag = 'rowan'; bin.inv.add(S.key('pickles_cogbean'), 12); bin.inv.add(S.key('radish'), 5); g.sys.market.sat[window.__itemIndex.get('pickles_cogbean')] = 90; g.player.x = bin.x + 0.5; g.player.y = bin.y + 1.8; S.play.openWindow('struct', bin.id); })()`),
+  // a crock locked to oil mid-batch: "Next batch: Cogbean Oil"
+  'crock-oil': async () => ev(`(async () => { const g = S.g; const { RECIPES } = await import('/src/data/recipes.ts'); const M = await import('/src/sim/systems/machines.ts'); const e = g.ents.at(54, 23); e.mach.inBuf.set(S.key('cogbean'), 4); for (let i = 0; i < 120 && !e.mach.crafting; i++) g.tick(); M.setRecipe(g, e, RECIPES.find((r) => r.id === 'jar:cogbean_oil')); g.player.x = 54.5; g.player.y = 24.8; S.play.openWindow('struct', e.id); })()`),
   coop: async () => ev(`(() => { const g = S.g; (${clearArea})(60, 26, 72, 40); const e = window.__build.place(g, 'coop_1', 62, 28, 0); g.player.money = 99999; g.sys.animals.buy(g, 'chicken'); g.sys.animals.buy(g, 'chicken'); e.st.hay = 12; e.inv.add(S.key('egg', 1), 3); g.time.min = 11 * 60; for (let i = 0; i < 120; i++) g.tick(); g.player.x = 64; g.player.y = 33; S.play.openWindow('struct', e.id); })()`),
   build: async () => {
     await ev(`(() => { const g = S.g; S.play.closeWindow(); (${clearArea})(48, 26, 60, 32); g.research.done.add('r_belts'); g.player.inv.slots[11] = { k: S.key('belt_1'), n: 50 }; g.player.sel = 11; g.player.x = 52; g.player.y = 30; const r = window.__app.renderer; r.cam.x = g.player.x; r.cam.y = g.player.y - 0.6; })()`);
@@ -148,11 +155,13 @@ const SC = {
   'roxy-chat': async () => ev(`(() => { const g = S.g; const n = g.sys.npcs.byId.get('roxy'); n.met = true; n.points = 900; window.__npcs.openDialog(g, n, "Evening, gorgeous. Yes, I mean you. Don't look behind you, there's nobody there.", undefined, 0); })()`),
   map: async () => ev(`(() => { S.play.openWindow('map'); })()`),
   restoration: async () => ev(`(() => { S.play.openWindow('restoration'); })()`),
-  board: async () => ev(`(() => { S.play.openWindow('board'); })()`),
+  // the Orders board: two standing orders and today's asks
+  board: async () => ev(`(() => { ${ORDERS}; S.play.openWindow('board'); })()`),
   museum: async () => ev(`(() => { S.g.player.inv.add(S.key('amethyst'), 1); S.g.player.inv.add(S.key('old_cog'), 1); S.play.openWindow('museum'); })()`),
   friends: async () => ev(`(() => { let i = 0; for (const n of S.g.sys.npcs.list) { n.met = true; n.points = (i++ * 377) % 1500; } S.play.openWindow('journal'); S.play.win.data.tab = 'friends'; })()`),
   collections: async () => ev(`(() => { S.play.openWindow('journal'); S.play.win.data.tab = 'collect'; S.play.win.data.sub = 'fish'; })()`),
   journal: async () => ev(`(() => { S.play.openWindow('journal'); })()`),
+  'journal-orders': async () => ev(`(() => { ${ORDERS}; S.play.openWindow('journal', 'orders'); S.play.win.data.tab = 'orders'; })()`),
   achievements: async () => ev(`(() => { S.play.openWindow('achievements'); })()`),
   mail: async () => ev(`(() => { S.play.openWindow('mail'); })()`),
   stats: async () => ev(`(() => { const g = S.g; for (let i = 0; i < 400; i++) { g.stats.add(S.key('wood'), 1); g.stats.add(S.key('stone'), 2); g.stats.use(S.key('wood'), 1); g.tick(); } S.play.openWindow('stats'); })()`),
@@ -174,6 +183,13 @@ const SC = {
   'works-pole': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); (${clearArea})(44, 26, 60, 36); const B = window.__build; g.research.done.add('r_milling');
     B.place(g, 'windmill', 46, 28, 0); const p = B.place(g, 'pole_wood', 49, 29, 0); const m1 = B.place(g, 'mill', 50, 29, 0); m1.mach.inBuf.set(S.key('wheat'), 50); const m2 = B.place(g, 'mill', 50, 31, 0); m2.mach.inBuf.set(S.key('wheat'), 50);
     g.player.x = 48; g.player.y = 33; for (let i = 0; i < 300; i++) g.tick(); S.play.openWindow('struct', p.id); })()`),
+  // B8: the keeper's river works by the farm gate, rusted, from the gate road
+  'river-works': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); S.play.lessons.q = []; g.player.sel = 0; g.time.min = 10 * 60; g.player.where = 'world'; g.player.x = 87.5; g.player.y = 46.7; g.player.dir = 2; })()`),
+  // restored, with Bram's Brass Arms: the mill turns slowly in a brownout (and the card says so)
+  'river-brownout': async () => {
+    await ev(`(() => { const g = S.g; for (let y = 47; y < 53; y++) for (let x = 83; x < 92; x++) { const e = g.ents.rootAt(x, y); if (e) { delete e.st.rust; delete e.st.need; delete e.st.needN; } } g.ents.powerDirty = true; g.ents.version++; window.__build.place(g, 'arm_fast', 85, 50, 1); window.__build.place(g, 'arm_fast', 88, 50, 1); for (let i = 0; i < 60 * 15; i++) g.tick(); })()`);
+    await wait(600);
+  },
   perk: async () => ev(`(() => { S.g.player.skills.farming = 5; S.play.openWindow('perk'); })()`),
   pause: async () => ev(`(() => { S.play.openWindow('pause'); })()`),
   settings: async () => ev(`(() => { S.play.openWindow('pause'); S.play.win.data.settings = true; })()`),
@@ -192,6 +208,22 @@ const SC = {
   'summary-end': async () => ev(`(() => { S.play.win.t = 9; })()`),
   // a record day with more than ten kinds sold, a quest done and two teaser lines
   'summary-record': async () => ev(`(() => { S.play.closeWindow(); const ids = ['radish', 'strawberry', 'wine_grape', 'wood', 'stone', 'copper_ore', 'cogbean', 'egg', 'wheat', 'amethyst', 'old_cog', 'bundle_green']; const sold = ids.map((id, i) => ({ k: S.key(id), n: 3 + i, price: 20 + i * 7, coins: (3 + i) * (20 + i * 7) })); const total = sold.reduce((a, s) => a + s.coins, 0); S.play.openWindow('summary', { season: 0, day: 12, year: 1, sold, total, best: 1000, passedOut: false, penalty: 0, quests: ['Double the Line'] }); S.play.win.data.tease = ['12 crops are ripe and ready to pick.', 'Your machines made 4 goods overnight.']; S.play.win.t = 9; })()`),
+  // 3.2 rule 5: the pace bot's farm on day 5 should read as a works (structures over tilled rows)
+  'day5-farm': async () => {
+    await ev(`(async () => {
+      const { Bot } = await import('/tests/bot.ts');
+      const g = new window.__Game({ seed: 2024, name: 'Bot', farmName: 'Bolt' });
+      for (const t of ${JSON.stringify(ALL_TIPS)}) g.flags.add(t);
+      const bot = new Bot(g);
+      for (let d = 0; d < 5; d++) bot.playDay();
+      if (g.player.where === 'house') g.sys.house.leave(g);
+      g.time.min = 11 * 60; g.weather = 'sun';
+      window.__app.startGame(g, { skin: 22, hair: 49, hairStyle: 'braids', shirt: 30, pants: 46, accent: 56 });
+    })()`);
+    await wait(1200);
+    await ev(`(() => { ${S} S.play.closeWindow(); S.play.hud.toasts = []; S.play.hud.pickups = []; S.play.lessons.q = []; const g = S.g; g.player.sel = 0; g.player.x = 63.5; g.player.y = 31.5; const r = window.__app.renderer; r.juice.banners = []; r.cam.zoom = r.cam.targetZoom = 2; })()`);
+    await wait(800);
+  },
 };
 
 for (const [name, fn] of Object.entries(SC)) {

@@ -1,4 +1,4 @@
-// Journal (quests, friends, collections, mail), world map, notice board, restoration board, museum.
+// Journal (notebook, quests, orders, friends, collections, mail), world map, restoration board, museum.
 import { C, PALETTE } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { NPCS, NPC_BY_ID } from '../../data/npcs';
@@ -8,7 +8,7 @@ import { QUEST_BY_ID } from '../../data/goals';
 import { SEASON_NAMES } from '../../data/types';
 import { key } from '../../sim/inventory';
 import { hearts, npcSys, giftTaste } from '../../sim/systems/npcs';
-import { acceptRequest, objText, questSys } from '../../sim/systems/quests';
+import { objText, questSys } from '../../sim/systems/quests';
 import { donate, donateMuseum, goals, museumAccepts, MUSEUM_TOTAL, payProject, projectNeed, projectReady, readMail } from '../../sim/systems/goals';
 import { tileColor } from '../hud';
 import type { PlayScreen } from '../../app/play';
@@ -25,6 +25,7 @@ import { shopFor, shopStatus } from '../../sim/systems/town';
 import type { NPCState } from '../../sim/systems/npcs';
 import { charArtHeight } from '../../render/art/sheets';
 import { drawNotebook } from './notebook';
+import { drawOrders } from './orders';
 
 // ---------------- journal ----------------
 function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
@@ -33,7 +34,7 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
   const { x, y } = centered(ui, w, h);
   if (!frame(ui, x, y, w, h, 'Journal')) return false;
   st.data.tab = st.data.tab ?? st.arg ?? 'quests';
-  const tabs = [['notebook', 'Notebook'], ['quests', 'Quests'], ['friends', 'Friends'], ['collect', 'Collections'], ['feats', 'Achievements'], ['mail', 'Mail']];
+  const tabs = [['notebook', 'Notebook'], ['quests', 'Quests'], ['orders', 'Orders'], ['friends', 'Friends'], ['collect', 'Collections'], ['feats', 'Achievements'], ['mail', 'Mail']];
   let jump = false;
   const tw = Math.min(70, Math.floor((w - 20) / tabs.length));
   tabs.forEach(([id, label], i) => {
@@ -50,6 +51,7 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
   const bx = x + 10, by = y + 30, bw = w - 20, bh = h - 40;
   ui.panel(bx, by, bw, bh, 'inset', false);
   if (st.data.tab === 'notebook') drawNotebook(ui, play, st, bx, by, bw, bh);
+  else if (st.data.tab === 'orders') drawOrders(ui, play, bx + 2, by + 2, bw - 4, bh - 4);
   else if (st.data.tab === 'quests') {
     const q = questSys(g);
     const gs = g.sys.guild;
@@ -328,37 +330,6 @@ const MAP_NAME: Record<string, string> = {
   mine: '', farmhouse: '', greenhouse: '', house_a: '', house_b: '',
 };
 
-// ---------------- notice board ----------------
-function drawBoard(ui: UI, play: PlayScreen, st: WinState): boolean {
-  const g = play.g;
-  const q = questSys(g);
-  // the Keeper's Line's B7: the town's orders have been read
-  g.flags.add('board:read');
-  const w = 380, h = 220;
-  const { x, y } = centered(ui, w, h);
-  if (!frame(ui, x, y, w, h, 'Notice Board')) return false;
-  ui.text('Help wanted! Bring the items to the person who asked.', x + 14, y + 12, C.walnut);
-  q.requests.forEach((r, i) => {
-    const ry = y + 28 + i * 58;
-    const d = NPC_BY_ID.get(r.npc)!;
-    ui.panel(x + 12, ry, w - 24, 54, 'paper', false);
-    portrait(ui, r.npc, x + 16, ry + 4, 32, 0);
-    ui.text(d.name, x + 64, ry + 5, C.ink);
-    ui.para(`"${r.text}"`, x + 64, ry + 15, w - 160, C.walnut, 9);
-    ui.itemIcon(key(r.item), x + 64, ry + 34, 14);
-    ui.text(`${r.n} x ${ITEM_BY_ID.get(r.item)!.name}   Reward: ${ICON.coin}${r.reward} + friendship`, x + 82, ry + 38, C.oak);
-    if (r.done) ui.text('Done!', x + w - 30, ry + 6, C.moss, { align: 'right' });
-    else if (q.current === i) ui.text('Accepted', x + w - 30, ry + 6, C.amber, { align: 'right' });
-    else if (ui.button('acc' + i, x + w - 76, ry + 4, 56, 16, 'Accept', { style: 'green' })) {
-      const err = acceptRequest(g, i);
-      if (err) play.toast(err);
-    }
-  });
-  if (!q.requests.length) ui.text('No requests today.', x + 14, y + 40, C.oak);
-  void st;
-  return true;
-}
-
 // ---------------- restoration ----------------
 function drawRestoration(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
@@ -442,7 +413,6 @@ function drawMuseum(ui: UI, play: PlayScreen, st: WinState): boolean {
 
 registerWindow('journal', { draw: drawJournal });
 registerWindow('map', { draw: drawMap });
-registerWindow('board', { draw: drawBoard });
 registerWindow('restoration', { draw: drawRestoration });
 registerWindow('museum', { draw: drawMuseum });
 registerWindow('mail', { draw: (ui, play, st) => { st.data.tab = 'mail'; return drawJournal(ui, play, st); } });

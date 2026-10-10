@@ -6,7 +6,12 @@ import { interactStruct } from '../src/sim/actions';
 import { canPlace, deconstruct, place } from '../src/sim/build';
 import { key } from '../src/sim/inventory';
 import { MState } from '../src/sim/mstate';
-import { OPENING } from '../src/sim/opening';
+import { OPENING, RIVER } from '../src/sim/opening';
+import { filled, orders } from '../src/sim/systems/orders';
+import { powerState } from '../src/sim/systems/power';
+import { RECIPES } from '../src/data/recipes';
+import { setRecipe } from '../src/sim/systems/machines';
+import { T, Z } from '../src/sim/world/tilemap';
 import { questSys } from '../src/sim/systems/quests';
 import { serialize, deserialize } from '../src/sim/save';
 import { QUESTS } from '../src/data/goals';
@@ -32,7 +37,7 @@ const step = (g: Game) => {
 describe("the Keeper's Line data", () => {
   it('every beat says why it matters, names its steps for the Now strip, and lives on the main path', () => {
     const chain = QUESTS.filter((q) => q.id.startsWith('k'));
-    expect(chain.map((q) => q.id)).toEqual(['k1_line', 'k2_springs', 'k3_hands', 'k4_grow', 'k5_desk', 'k6_bottleneck', 'k7_town', 'k8_deeper']);
+    expect(chain.map((q) => q.id)).toEqual(['k1_line', 'k2_springs', 'k3_hands', 'k4_grow', 'k5_desk', 'k6_bottleneck', 'k7_town', 'k8_river', 'k9_power']);
     for (const q of chain) {
       expect(q.why, q.id).toBeTruthy();
       expect(q.main, q.id).toBe(true);
@@ -85,13 +90,143 @@ describe('rust and restore', () => {
   });
 });
 
+/** skip to a beat: everything before it done, the chain's quests started */
+const skipTo = (g: Game, id: string) => {
+  const q = questSys(g);
+  const ids = QUESTS.filter((x) => x.id.startsWith('k')).map((x) => x.id);
+  q.done.push(...ids.slice(0, ids.indexOf(id)));
+  q.active = [];
+  g.sys.quests.notify(g, 'sleep', 0);
+  secs(g, 2);
+};
+/** run the clock to the next post (noon or 6pm) */
+const toPost = (g: Game) => {
+  const t = g.time.min < 720 ? 720 : 1080;
+  g.time.min = t - 0.05;
+  secs(g, 1);
+};
+
+describe('B7: the Orders board and consignment', () => {
+  it("Rowan's standing order is posted with B7 and fills from a crate tagged for the inn, silver first", () => {
+    const g = new Game({ seed: 41 });
+    skipTo(g, 'k7_town');
+    expect(step(g)).toBe('k7_town:0');
+    expect(orders(g).open.map((o) => o.id)).toEqual(['rowan_pickles']);
+    expect(g.flags.has('lesson:consign')).toBe(true);
+    g.flags.add('board:read');
+    secs(g, 2);
+    expect(step(g)).toBe('k7_town:1');
+    const bin = g.ents.get(g.shipBinId)!;
+    bin.st.tag = 'rowan';
+    bin.inv!.add(key('pickles_cogbean'), 4);
+    bin.inv!.add(key('pickles_cogbean', 1), 4);
+    const before = g.player.money;
+    toPost(g);
+    // six to Rowan (silver pays double), the other two to market
+    expect(filled(g, 'rowan_pickles')).toBe(1);
+    expect(orders(g).rep.rowan).toBe(1);
+    expect(bin.inv!.isEmpty()).toBe(true);
+    expect(g.player.money - before).toBeGreaterThanOrEqual(2 * 300 + 4 * 150);
+    expect(questSys(g).done).toContain('k7_town');
+    expect(g.flags.has('recipe_cogbean_oil')).toBe(true);
+    secs(g, 1);
+    expect(g.flags.has('lesson:recipes')).toBe(true);
+  });
+
+  it('a hand delivery at the inn fills it too; an untagged crate sells everything at market', () => {
+    const g = new Game({ seed: 42 });
+    skipTo(g, 'k7_town');
+    const bin = g.ents.get(g.shipBinId)!;
+    bin.inv!.add(key('pickles_cogbean'), 3);
+    toPost(g);
+    expect(orders(g).open[0].have).toBe(0);
+    expect(bin.inv!.isEmpty()).toBe(true);
+    g.player.inv.add(key('pickles_cogbean'), 7);
+    expect(questSys(g).tryDeliver(g, 'rowan', key('pickles_cogbean'))).toBe(true);
+    expect(filled(g, 'rowan_pickles')).toBe(1);
+    expect(g.player.inv.countId('pickles_cogbean')).toBe(1);
+  });
+});
+
+describe("B8: the keeper's river works", () => {
+  it('stand rusted on the river by the farm gate on every map, the wheel half in the water', () => {
+    const farms = ['classic', 'riverside', 'ruins', 'highlands', 'wildwood'];
+    for (let seed = 1; seed <= 25; seed++) {
+      const g = new Game({ seed, farm: farms[seed % farms.length] as any });
+      const wheel = g.ents.at(RIVER.wheel[0], RIVER.wheel[1])!;
+      expect(wheel?.def.id, `seed ${seed}`).toBe('waterwheel');
+      expect(wheel.st.rust).toBe(1);
+      expect(g.map.g(RIVER.wheel[0] + 1, RIVER.wheel[1])).toBe(T.RIVER);
+      expect(g.map.g(RIVER.wheel[0] + 1, RIVER.wheel[1] + 1)).toBe(T.RIVER);
+      expect(g.map.g(RIVER.wheel[0], RIVER.wheel[1])).not.toBe(T.RIVER);
+      for (const xy of [...RIVER.poles, RIVER.mill, RIVER.bin]) expect(g.ents.at(xy[0], xy[1])?.st.rust, `seed ${seed} ${xy}`).toBe(1);
+      expect(g.ents.at(RIVER.bin[0], RIVER.bin[1])!.inv!.countId('barley')).toBe(40);
+      for (const xy of [RIVER.binArm, RIVER.outArm]) expect(canPlace(g, 'arm_fast', xy[0], xy[1], 1).ok, `seed ${seed}`).toBe(true);
+    }
+  });
+
+  it('a rusted wheel and poles carry nothing; the mended wheel gives 40, and the mill browns out', () => {
+    const g = new Game({ seed: 51 });
+    skipTo(g, 'k8_river');
+    expect(orders(g).open.map((o) => o.id)).toContain('bram_oil');
+    const wheel = g.ents.at(RIVER.wheel[0], RIVER.wheel[1])!;
+    secs(g, 2);
+    expect(wheel.gen!.cap).toBe(0);
+    // the wheel needs Bram's five bars
+    g.player.inv.add(key('copper_bar'), 3);
+    interactStruct(g, wheel);
+    expect(wheel.st.rust).toBe(1);
+    g.player.inv.add(key('copper_bar'), 2);
+    interactStruct(g, wheel);
+    expect(wheel.st.rust).toBeUndefined();
+    expect(g.player.inv.countId('copper_bar')).toBe(0);
+    for (const xy of [...RIVER.poles, RIVER.mill, RIVER.bin]) interactStruct(g, g.ents.at(xy[0], xy[1])!);
+    put(g, 'arm_fast', RIVER.binArm, 1);
+    put(g, 'arm_fast', RIVER.outArm, 1);
+    secs(g, 20);
+    const mill = g.ents.at(RIVER.mill[0], RIVER.mill[1])!;
+    const net = powerState(g).nets.get(mill.net)!;
+    expect(net.cap).toBe(40);
+    expect(mill.mach!.made).toBeGreaterThan(0);
+    expect(mill.sat).toBeLessThan(0.8);
+    expect(g.flags.has('lesson:brownout')).toBe(true);
+    expect(g.ents.at(RIVER.meal[0], RIVER.meal[1])!.inv!.countId('barley_flour')).toBeGreaterThan(0);
+  });
+
+  it("Bram's oil: a crock locked mid-batch takes the oil recipe when its batch ends", () => {
+    const g = new Game({ seed: 52 });
+    skipTo(g, 'k8_river');
+    const crock = at(g, OPENING.jar);
+    secs(g, 3);
+    expect(crock.mach!.crafting).toBe(true);
+    setRecipe(g, crock, RECIPES.find((r) => r.id === 'jar:cogbean_oil')!);
+    expect(crock.mach!.pending).toBeTruthy();
+    secs(g, 70);
+    expect(crock.mach!.locked).toBe(true);
+    expect(crock.mach!.recipe?.id).toBe('jar:cogbean_oil');
+  });
+});
+
 describe('the eight beats', () => {
-  it('the bot plays B1-B7 on its own within three days', () => {
+  it("the bot plays the whole Keeper's Line, B1-B8, by day 5 on the eight pacing seeds", () => {
+    for (const seed of [2024, 7, 99, 1, 2, 3, 4, 5]) {
+      const g = new Game({ seed, name: 'Bot', farmName: 'Bolt' });
+      const bot = new Bot(g);
+      for (let d = 0; d < 5 && !questSys(g).done.includes('k8_river'); d++) bot.playDay();
+      const done = questSys(g).done;
+      for (const id of ['k1_line', 'k2_springs', 'k3_hands', 'k4_grow', 'k5_desk', 'k6_bottleneck', 'k7_town', 'k8_river']) expect(done, `seed ${seed} ${id}`).toContain(id);
+    }
+  }, 600000);
+
+  it('3.2 rule 5: by day 5 the farm is more works than tilled rows', () => {
     const g = new Game({ seed: 2024, name: 'Bot', farmName: 'Bolt' });
     const bot = new Bot(g);
-    for (let d = 0; d < 3 && !questSys(g).done.includes('k7_town'); d++) bot.playDay();
-    const done = questSys(g).done;
-    for (const id of ['k1_line', 'k2_springs', 'k3_hands', 'k4_grow', 'k5_desk', 'k6_bottleneck', 'k7_town']) expect(done, id).toContain(id);
+    for (let d = 0; d < 5; d++) bot.playDay();
+    const farm = (i: number) => g.map.zone[i] === Z.FARM;
+    let works = 0;
+    for (const e of g.ents.all()) if (!e.ghost && !e.parent && farm(g.map.idx(e.x, e.y))) works += e.w * e.h;
+    const tilled = [...g.soil.keys()].filter(farm).length;
+    expect(works).toBeGreaterThan(tilled);
   }, 120000);
 
   it("B6: the second jar on its own empty chest starves within a minute, on every seed and map", () => {

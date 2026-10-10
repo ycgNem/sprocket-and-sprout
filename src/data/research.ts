@@ -7,7 +7,7 @@ const cost = (n: number, ...b: string[]): Stack[] => b.map((item) => ({ item, n 
 
 export const RESEARCH: ResearchDef[] = [
   // ---- Tier 1: Sprout bundles ----
-  { id: 'r_preserves', name: 'Preserving', desc: 'Jars of summer for the winter.', icon: 'jar', cost: cost(5, G), unitTime: 6, prereq: [], pos: [0, 0] },
+  { id: 'r_preserves', name: 'Preserving', desc: 'Crocks that keep summer for the winter.', icon: 'jar', cost: cost(5, G), unitTime: 6, prereq: [], pos: [0, 0] },
   { id: 'r_belts', name: 'Conveyance', desc: 'A canvas belt on rollers. Items that move themselves!', icon: 'belt_1', cost: cost(2, G), unitTime: 45, prereq: [], pos: [0, 2] },
   { id: 'r_fertilizer', name: 'Soil Science', desc: 'Richer composts, tonics and mulches.', icon: 'rich_compost', cost: cost(6, G), unitTime: 6, prereq: [], pos: [0, 4] },
   { id: 'r_metallurgy', name: 'Metalwork', desc: 'Coils, plates and springs from smelted bars.', icon: 'copper_coil', cost: cost(5, G), unitTime: 6, prereq: [], pos: [0, 6] },

@@ -115,9 +115,12 @@ function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
         const e = g.ents.rootAt(o.at[0], o.at[1]);
         return !!e && !e.st.rust;
       }
+      if (o.rect) return rustedIn(g, o.rect).left === 0;
       const of = g.ents.all().filter((e) => !e.ghost && e.def.id === o.struct);
       return of.length > 0 && of.every((e) => !e.st.rust);
     }
+    case 'order': return prog >= 1 || (g.sys.orders?.filled?.[o.id] ?? 0) >= 1;
+    case 'grid': return gridCovers(g, o.struct);
     case 'flag': return g.flags.has(o.flag);
     case 'feeds': {
       const nodes = portGraph(g);
@@ -128,12 +131,49 @@ function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
   }
 }
 
+/** structures in a rect (x, y, w, h): how many there are and how many are still rusted */
+export function rustedIn(g: Game, r: [number, number, number, number]): { all: number; left: number } {
+  const seen = new Set<number>();
+  let all = 0, left = 0;
+  for (let y = r[1]; y < r[1] + r[3]; y++)
+    for (let x = r[0]; x < r[0] + r[2]; x++) {
+      const e = g.ents.rootAt(x, y);
+      if (!e || e.ghost || seen.has(e.id)) continue;
+      seen.add(e.id);
+      if (!e.st.yard) continue;
+      all++;
+      if (e.st.rust) left++;
+    }
+  return { all, left };
+}
+
+/** a switched-on machine of this kind whose grid can power everything on it at once */
+export function gridCovers(g: Game, struct: string): boolean {
+  const ps = g.sys.power as { nets: Map<number, { cap: number }> } | undefined;
+  for (const e of g.ents.machines) {
+    if (e.def.id !== struct || e.ghost || e.st.rust || e.off || !e.net) continue;
+    const n = ps?.nets.get(e.net);
+    if (!n) continue;
+    const full = g.ents.consumers.filter((c) => c.net === e.net && !c.off && !c.st.rust).reduce((a, c) => a + (c.def.powerUse ?? 0), 0);
+    if (n.cap >= full - 0.5) return true;
+  }
+  return false;
+}
+
 export function objText(g: Game, o: ObjectiveDef, prog: number): string {
   const item = (id: string) => (id[0] === '#' ? id.slice(1) + ' goods' : ITEM_BY_ID.get(id)?.name ?? id);
   // a hand-written label for the Now strip, with the count when there is one to show
   if (o.label) {
     const n = 'n' in o ? o.n : 0;
     if (o.t === 'have') return `${o.label} (${Math.min(o.n, g.player.inv.countSpec(o.item))}/${o.n})`;
+    if (o.t === 'restore' && o.rect) {
+      const r = rustedIn(g, o.rect);
+      return `${o.label} (${r.all - r.left}/${r.all})`;
+    }
+    if (o.t === 'order') {
+      const open = (g.sys.orders?.open as { id: string; n: number; have: number }[] | undefined)?.find((x) => x.id === o.id);
+      return open ? `${o.label} (${open.have}/${open.n})` : o.label;
+    }
     return n > 1 && o.t !== 'build' ? `${o.label} (${Math.min(prog, n)}/${n})` : o.label;
   }
   switch (o.t) {
@@ -166,6 +206,8 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
     case 'made': return `Make ${o.n} batches in a ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct} (${Math.min(prog, o.n)}/${o.n})`;
     case 'feeds': return `Feed a ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct} with an arm`;
     case 'armload': return `An arm feeds the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct} (${Math.min(prog, o.n)}/${o.n})`;
+    case 'order': return `Fill the order: ${o.id}`;
+    case 'grid': return `Enough power for the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct}'s grid`;
   }
 }
 
@@ -227,6 +269,7 @@ function notify(g: Game, type: string, n: number, extra?: string, opts?: { auto?
           break;
         case 'made': if (o.struct === extra && (!o.other || opts?.other)) a.prog[i] += n; break;
         case 'armload': if (o.struct === extra) a.prog[i] += n; break;
+        case 'order': if (o.id === extra) a.prog[i] = 1; break;
         default: break;
       }
     });
@@ -329,6 +372,8 @@ function tryDeliver(g: Game, npcId: string, k: number): boolean {
     poll(g);
     return true;
   }
+  // a standing order of theirs that takes it (src/sim/systems/orders.ts)
+  if (g.sys.orders?.hand?.(g, npcId, k)) return true;
   const r = q.current >= 0 ? q.requests[q.current] : null;
   if (!r || r.done || r.npc !== npcId) return false;
   const d = kDef(k);

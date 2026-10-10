@@ -1,5 +1,5 @@
 // Lesson cards (ROADMAP.md 6.4): two lines and a 24x24 picture, the first time a situation happens.
-// Never modal: the card hangs under the Now strip, waits while a window is open, and goes after a
+// Never modal: the card hangs under the Now strip, waits while a window or ribbon is up, and goes after a
 // key (not a movement key) once it has been up a moment, after a click, or by itself. The
 // Keeper's Notebook keeps every card seen.
 import { C } from '../data/palette';
@@ -26,7 +26,8 @@ export function queueLesson(play: PlayScreen, id: string) {
 /** Draw the front card (if any) at the left column; `dt` ages it unless a window is open. */
 export function drawLessonCard(ui: UI, play: PlayScreen, dt: number) {
   const L = play.lessons.q[0];
-  if (!L || play.modalOpen || play.g.sleeping) return;
+  // a ribbon ("The noon post!") owns the top of the screen for a moment: the card waits for it
+  if (!L || play.modalOpen || play.g.sleeping || play.app.renderer.juice.banners.length) return;
   const def = LESSON_BY_ID.get(L.id)!;
   L.t += dt;
   const input = play.app.input;

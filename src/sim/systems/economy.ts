@@ -38,6 +38,7 @@ export function market(g: Game): Market {
   m.shipped ??= {};
   m.mult = (gg: Game, idx: number) => priceMult(gg, idx);
   m.priceOf = (gg: Game, k: number) => unitPrice(gg, k);
+  m.satOf = (gg: Game, idx: number) => satFactor(gg, idx);
   return m as Market;
 }
 
@@ -47,6 +48,12 @@ export function market(g: Game): Market {
  */
 function satScale(d: ItemDef) {
   return Math.max(25, Math.round(5000 / Math.max(1, d.price))) * (d.cat === 'artisan' ? 2 : 1);
+}
+
+/** what shipping a lot of an item lately does to its price alone (1 = none, 0.5 = halved) */
+export function satFactor(g: Game, idx: number): number {
+  const d = ITEMS[idx];
+  return d ? 1 / (1 + (market(g).sat[idx] ?? 0) / satScale(d)) : 1;
 }
 
 export function priceMult(g: Game, idx: number): number {
@@ -95,6 +102,8 @@ export function sellStack(g: Game, k: number, n: number, factor = 1): number {
     m.sat[idx] = (m.sat[idx] ?? 0) + c;
     left -= c;
   }
+  // the first time shipping a lot of one thing knocks a fifth off its price: the "Saturation" card
+  if (1 / (1 + (m.sat[idx] ?? 0) / satScale(ITEMS[idx])) <= 0.8) lesson(g, 'saturation');
   const id = ITEMS[idx].id;
   m.shipped[id] = (m.shipped[id] ?? 0) + n;
   g.stats.use(k, n);
@@ -152,13 +161,15 @@ function rollDrift(g: Game) {
 
 export function shipAll(g: Game): { sold: { k: number; n: number; price: number }[]; total: number } {
   const bins = g.ents.others.filter((e) => e.def.kind === 'shipbin' && e.inv);
+  // consignment first: a crate tagged for a customer fills their open orders (src/sim/systems/orders.ts)
+  const orders = g.sys.orders?.consign?.(g, bins) as { sold: { k: number; n: number; price: number }[]; total: number } | undefined;
   const agg = new Map<number, number>();
   for (const b of bins) {
     for (const s of b.inv!.slots) if (s) agg.set(s.k, (agg.get(s.k) ?? 0) + s.n);
     b.inv!.slots.fill(null);
   }
-  const sold: { k: number; n: number; price: number }[] = [];
-  let total = 0;
+  const sold: { k: number; n: number; price: number }[] = [...(orders?.sold ?? [])];
+  let total = orders?.total ?? 0;
   for (const [k, n] of agg) {
     const coins = sellStack(g, k, n);
     total += coins;

@@ -15,7 +15,7 @@ export function drawNowStrip(ui: UI, play: PlayScreen, y: number): number {
   // a ribbon ("Quest complete!") owns the top of the screen for a moment; the next step follows it
   if (play.app.renderer.juice.banners.length) return y;
   // side steps only once the Keeper's Line is done (or on saves that never had it)
-  const side = !g.flags.has('keepers_line') || !!g.sys.quests?.done?.includes('k8_deeper');
+  const side = !g.flags.has('keepers_line') || !!g.sys.quests?.done?.includes('k8_river');
   const lines: NowLine[] = g.sys.quests?.now?.(g, side ? 3 : 1) ?? [];
   if (!lines.length) return y;
   const [main, ...rest] = lines;

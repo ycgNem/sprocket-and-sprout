@@ -22,7 +22,7 @@ export const TIPS: Tip[] = [
     id: 'welcome', big: true, title: 'Welcome to Thistlewick!',
     // a moment in, so the first thing you see is the keeper's works running
     when: (p) => p.g.dayIndex === 0 && p.playtime > 2.5,
-    text: 'Welcome to Thistlewick, {name}! The old keeper\'s works are yours. Most of it rusted while the farm stood empty, but the preserves jar still runs.\n\nKeep it fed: WASD to walk, F to pick the ripe cogbeans and to load the jar. The line at the top left always says what\'s next, and the arrow shows where.\n\nI\'ll be over with something for that seized arm. Esc shows every control. - Prof. Cogwhistle',
+    text: 'Welcome to Thistlewick, {name}! The old keeper\'s works are yours. Most of it rusted while the farm stood empty, but the preserving crock still runs.\n\nKeep it fed: WASD to walk, F to pick the ripe cogbeans and to load the crock. The line at the top left always says what\'s next, and the arrow shows where.\n\nI\'ll be over with something for that seized arm. Esc shows every control. - Prof. Cogwhistle',
   },
   { id: 'hoe', when: (p) => held(p)?.tool?.kind === 'hoe' && !p.g.sys.quests?.active?.some((a: { id: string }) => a.id === 'k1_line'), title: '', text: 'Click grass or dirt near you to till it. Bare farm soil is the easiest to work.' },
   { id: 'seeds', when: (p) => held(p)?.cat === 'seed', title: '', text: 'Click tilled soil to plant. Seeds only grow in their season; the tooltip tells you which.' },

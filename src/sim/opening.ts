@@ -44,15 +44,80 @@ export const OPENING = {
   yard: { x: 47, y: 20, w: 17, h: 10 },
 };
 
+/**
+ * B8's river works (ROADMAP.md 6.0): the keeper's old water wheel on the river by the farm gate,
+ * rusted, with its two poles, the grist mill and the grain bin that still holds last autumn's
+ * barley. The first walk to town (B6) crosses the bridge just north of it. The river and the gate
+ * road are the same on every map; the rect is cleared when it's laid out.
+ */
+export const RIVER = {
+  /** the wheel, 2x2: its east half stands in the river (x 91 is water on y 47-50 on every map) */
+  wheel: [90, 48] as XY,
+  /** pole A beside the wheel (its area takes in the wheel, the mill and the out-arm), pole B by the bin */
+  poles: [[89, 48], [85, 48]] as XY[],
+  /** the grist mill, 2x2 */
+  mill: [86, 50] as XY,
+  /** the grain bin (a chest of barley) west of the mill, and the meal chest east of it */
+  bin: [84, 50] as XY,
+  meal: [89, 50] as XY,
+  /** where Bram's two Brass Arms go: bin -> mill, mill -> meal chest (both face east) */
+  binArm: [85, 50] as XY,
+  outArm: [88, 50] as XY,
+  /** the guide's spot for "the keeper's wheel" (on the path down from the gate road) */
+  spot: [87, 47] as XY,
+  /** the whole works: cleared, and no weed or storm debris lands here later */
+  rect: { x: 83, y: 47, w: 8, h: 6 },
+  /** the old wheel's output: worn, it makes 40 sparks where a new wheel makes 60 */
+  cap: 40,
+};
+
 const inRect = (r: { x: number; y: number; w: number; h: number }, x: number, y: number) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
 
 /**
- * A tile of the keeper's yard. Daily weeds and storm debris never land there, or a step of the
- * Keeper's Line could say "Clear the ground first" (and 3.2 rule 2: no debris chores).
+ * A tile of the keeper's yard or river works. Daily weeds and storm debris never land there, or a
+ * step of the Keeper's Line could say "Clear the ground first" (and 3.2 rule 2: no debris chores).
  */
 export function openingTile(g: Game, x: number, y: number): boolean {
   if (!g.flags.has('keepers_line') && !g.flags.has('tinker_start')) return false;
-  return inRect(OPENING.yard, x, y);
+  return inRect(OPENING.yard, x, y) || (g.flags.has('keepers_line') && inRect(RIVER.rect, x, y));
+}
+
+/** the river works' rect as an objective wants it (x, y, w, h) */
+export const RIVER_RECT: [number, number, number, number] = [RIVER.rect.x, RIVER.rect.y, RIVER.rect.w, RIVER.rect.h];
+
+/**
+ * Lay out the keeper's river works (a new game, or a Keeper's Line save from before they existed).
+ * False, and nothing placed, when something of the player's already stands in the rect.
+ */
+export function buildRiverWorks(g: Game): boolean {
+  if (g.flags.has('river_works')) return true;
+  const R = RIVER.rect;
+  for (let y = R.y; y < R.y + R.h; y++)
+    for (let x = R.x; x < R.x + R.w; x++) if (g.ents.at(x, y) || g.map.buildingAt[g.map.idx(x, y)]) return false;
+  g.flags.add('river_works');
+  for (let y = R.y; y < R.y + R.h; y++)
+    for (let x = R.x; x < R.x + R.w; x++) {
+      const i = g.map.idx(x, y);
+      if (g.map.ground[i] === T.RIVER) continue;
+      clearTile(g, x, y);
+      g.soil.delete(i);
+    }
+  const wheel = g.ents.add('waterwheel', RIVER.wheel[0], RIVER.wheel[1], 0);
+  wheel.st.cap = RIVER.cap;
+  rustStruct(wheel, 'copper_bar', 5);
+  for (const [x, y] of RIVER.poles) rustStruct(g.ents.add('pole_wood', x, y, 0));
+  rustStruct(g.ents.add('mill', RIVER.mill[0], RIVER.mill[1], 0));
+  const bin = g.ents.add('chest_wood', RIVER.bin[0], RIVER.bin[1], 0);
+  bin.inv?.add(key('barley'), 40);
+  rustStruct(bin);
+  g.ents.add('chest_wood', RIVER.meal[0], RIVER.meal[1], 0);
+  for (let y = R.y; y < R.y + R.h; y++)
+    for (let x = R.x; x < R.x + R.w; x++) {
+      const e = g.ents.rootAt(x, y);
+      if (e) e.st.yard = 1;
+    }
+  g.ents.powerDirty = true;
+  return true;
 }
 
 /** clear a tile of objects and trees, leaving the ground as it was (or as `ground`) */
@@ -98,7 +163,9 @@ export function buildYard(g: Game) {
   jar.mach?.inBuf.set(key('cogbean'), 3);
   // the keeper's cellar: two dozen beans, so day 1's line never runs dry (the cellar sends a
   // dozen more each morning through day 4)
-  g.ents.add('chest_wood', OPENING.chest[0], OPENING.chest[1], 0).inv?.add(key('cogbean'), 24);
+  const cellar = g.ents.add('chest_wood', OPENING.chest[0], OPENING.chest[1], 0);
+  cellar.inv?.add(key('cogbean'), 24);
+  cellar.st.yard = 1;
   // the rest of the works, rusted
   rustStruct(g.ents.add('arm_basic', OPENING.armTile[0], OPENING.armTile[1], 0), 'spring');
   for (const [x, y] of OPENING.belts) rustStruct(g.ents.add('belt_1', x, y, 3));
@@ -112,6 +179,8 @@ export function buildYard(g: Game) {
   // the keeper's last sprout bundle, still in the desk
   desk.inv?.add(key('bundle_green'), 1);
   for (const e of g.ents.all()) if (e.st.rust || e.st.keeper) e.st.yard = 1;
+  // B8's rusted river works by the farm gate
+  buildRiverWorks(g);
   // start beside the jar, facing it
   g.player.x = OPENING.start[0] + 0.5;
   g.player.y = OPENING.start[1] + 0.8;

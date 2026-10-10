@@ -69,7 +69,7 @@ const defs: S[] = [
   // ---------------- Hand-era machines (no power) ----------------
   { id: 'keg', name: 'Keg', kind: 'machine', size: [1, 1], solid: true, station: 'keg', speed: 1, price: 120,
     desc: 'Ferments fruit into wine, vegetables into tonics and grain into ale.' },
-  { id: 'jar', name: 'Preserves Jar', kind: 'machine', size: [1, 1], solid: true, station: 'jar', speed: 1, price: 80,
+  { id: 'jar', name: 'Preserving Crock', kind: 'machine', size: [1, 1], solid: true, station: 'jar', speed: 1, price: 80,
     desc: 'Turns fruit into jam and vegetables into pickles.' },
   { id: 'furnace', name: 'Stone Furnace', kind: 'machine', size: [1, 1], solid: true, station: 'smelter', speed: 1, fuel: true, light: { r: 3, color: C.amber }, price: 60,
     desc: 'Smelts ore into bars and sand into glass. Burns wood or coal.' },

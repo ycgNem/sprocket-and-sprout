@@ -9,16 +9,25 @@ import { lesson } from './lessons';
 
 export const isRusted = (e: Ent | null | undefined): boolean => !!e?.st?.rust;
 
-/** "Rusted: F to restore (needs a mainspring)" */
-export function rustText(e: Ent): string {
-  const need = e.st.need ? ITEM_BY_ID.get(e.st.need)?.name.toLowerCase() : null;
-  return need ? `Rusted: F to restore (needs a ${need})` : 'Rusted: F to restore';
+/** the part a rusted structure needs, in words: "a mainspring", "5 copper bars" */
+export function needText(e: Ent): string | null {
+  if (!e.st.need) return null;
+  const name = ITEM_BY_ID.get(e.st.need)?.name.toLowerCase() ?? e.st.need;
+  const n = e.st.needN ?? 1;
+  return n > 1 ? `${n} ${name}s` : `a ${name}`;
 }
 
-/** Rust a structure (the yard's set dressing), optionally needing a part to come back. */
-export function rustStruct(e: Ent, need?: string) {
+/** "Rusted: F to restore (needs a mainspring)" */
+export function rustText(e: Ent): string {
+  const need = needText(e);
+  return need ? `Rusted: F to restore (needs ${need})` : 'Rusted: F to restore';
+}
+
+/** Rust a structure (the keeper's set dressing), optionally needing n of a part to come back. */
+export function rustStruct(e: Ent, need?: string, n = 1) {
   e.st.rust = 1;
   if (need) e.st.need = need;
+  if (need && n > 1) e.st.needN = n;
   e.working = false;
   setState(e, MState.Idle, rustText(e), 0);
 }
@@ -35,15 +44,21 @@ export function rustTick(e: Ent, now: number): boolean {
 export function restore(g: Game, e: Ent): boolean {
   if (!e.st.rust) return false;
   const need = e.st.need as string | undefined;
-  if (need && g.player.inv.countId(need) <= 0) {
-    const name = ITEM_BY_ID.get(need)?.name.toLowerCase() ?? need;
-    g.toast(`The ${e.def.name.toLowerCase()}'s spring has snapped: it needs a ${name}.`);
+  const n = (e.st.needN as number | undefined) ?? 1;
+  const have = need ? g.player.inv.countId(need) : 0;
+  if (need && have < n) {
+    const what = e.def.kind === 'arm' ? `The ${e.def.name.toLowerCase()}'s spring has snapped: it needs ${needText(e)}.` : `The keeper's ${e.def.name.toLowerCase()} needs ${needText(e)} to come back${n > 1 ? ` (you have ${have})` : ''}.`;
+    g.toast(what);
     g.emit({ t: 'sfx', id: 'error' });
     return true;
   }
-  if (need) g.player.inv.removeSpec(need, 1);
+  if (need) g.player.inv.removeSpec(need, n);
   delete e.st.rust;
   delete e.st.need;
+  delete e.st.needN;
+  // a restored pole, wheel or machine changes the grid and the port graph
+  g.ents.powerDirty = true;
+  g.ents.version++;
   // the keeper's desk brings research with it: sprout bundles can be crafted, the Workshop sells desks
   if (e.def.kind === 'lab') g.flags.add('lab');
   setState(e, MState.Idle, 'Restored', g.simTime);

@@ -3,10 +3,10 @@
 // every step completable. The yard itself is laid out by src/sim/opening.ts.
 import { NPC_BY_ID } from '../../data/npcs';
 import { Game, registerSystem } from '../Game';
-import { key } from '../inventory';
+import { key, kDef } from '../inventory';
 import { lesson } from '../lessons';
 import { MState } from '../mstate';
-import { OPENING } from '../opening';
+import { buildRiverWorks, OPENING, RIVER } from '../opening';
 import { questSys } from './quests';
 import { npcSys, type NPCState } from './npcs';
 
@@ -21,6 +21,8 @@ interface KeeperState {
   visit: number;
   /** the day the cellar last sent seeds for the gleaner's bed (once a day at most) */
   seedDay?: number;
+  /** the day B8's safety nets last topped something up (bars, barley, an arm) */
+  riverDay?: number;
 }
 
 function keeper(g: Game): KeeperState {
@@ -34,7 +36,10 @@ function hooks(g: Game) {
   // while the visit is on, she walks to the yard (src/sim/systems/npcs.ts currentTarget)
   g.sys.visitSpot = (gg: Game, id: string) => (id === PROF && keeper(gg).visit === 1 ? 'prof_visit' : null);
   g.sys.visitTalk = profTalk;
-  if (g.map.w > 100) g.map.locs.set('prof_visit', VISIT_SPOT);
+  if (g.map.w > 100) {
+    g.map.locs.set('prof_visit', VISIT_SPOT);
+    g.map.locs.set('river_works', RIVER.spot);
+  }
 }
 
 /** B2 begins: she comes in from the road east of the yard */
@@ -101,6 +106,40 @@ function scanLessons(g: Game) {
   for (const e of g.ents.others) if (e.def.kind === 'gleaner' && !e.st.rust && e.working) lesson(g, 'field');
 }
 
+/**
+ * B8's safety nets (ROADMAP.md 6.5: no step can be made unwinnable), at most once a day: Bram's
+ * bars spent before the wheel was mended, the grain bin emptied or its barley sold, Bram's arms lost.
+ */
+function riverNets(g: Game, k: KeeperState) {
+  if (!active(g, 'k8_river') || k.riverDay === g.dayIndex) return;
+  const wheel = g.ents.at(RIVER.wheel[0], RIVER.wheel[1]);
+  const bramDone = (g.sys.orders?.filled?.bram_oil ?? 0) > 0;
+  const inv = g.player.inv;
+  if (bramDone && wheel?.st.rust && inv.countId('copper_bar') < (wheel.st.needN ?? 5)) {
+    k.riverDay = g.dayIndex;
+    g.give(key('copper_bar'), (wheel.st.needN ?? 5) - inv.countId('copper_bar'));
+    g.toast(`Bram sent over bars for the old wheel's axle. "Don't melt these ones down!"`, 'i:copper_bar');
+    return;
+  }
+  const mill = g.ents.at(RIVER.mill[0], RIVER.mill[1]);
+  const bin = g.ents.at(RIVER.bin[0], RIVER.bin[1]);
+  if (bramDone && mill && !mill.st.rust && bin?.inv && !bin.st.rust) {
+    const barley = (bin.inv.countId('barley')) + (mill.mach ? [...mill.mach.inBuf].reduce((a, [kk, n]) => a + (kDef(kk).id === 'barley' ? n : 0), 0) : 0) + inv.countId('barley');
+    if (barley < 5) {
+      k.riverDay = g.dayIndex;
+      bin.inv.add(key('barley'), 10);
+      g.toast("There was another sack of barley at the bottom of the keeper's grain bin.", 'i:barley');
+      return;
+    }
+    const brass = g.ents.arms.filter((e) => e.def.id === 'arm_fast' && !e.ghost).length + inv.countId('arm_fast');
+    if (brass === 0) {
+      k.riverDay = g.dayIndex;
+      g.give(key('arm_fast'), 1);
+      g.toast('Bram sent another brass arm for the mill. "Mind where you put this one."', 'i:arm_fast');
+    }
+  }
+}
+
 /** the second jar, if one has been placed (any jar that isn't the keeper's) */
 function secondJar(g: Game) {
   return g.ents.machines.find((e) => e.def.id === 'jar' && !e.st.keeper && !e.ghost) ?? null;
@@ -117,6 +156,8 @@ registerSystem({
     // saves from 1.x never enter the Keeper's Line; their old tutorial quests are gone, so the desk
     // they would have been lent is theirs (the Workshop sells desks, bundles can be crafted)
     if (!g.flags.has('keepers_line') && g.map.w > 100) g.flags.add('lab');
+    // a Keeper's Line save from before the river works existed gets them now (B8 needs them)
+    if (g.flags.has('keepers_line') && g.map.w > 100) buildRiverWorks(g);
   },
   dayStart(g) {
     hooks(g);
@@ -150,6 +191,9 @@ registerSystem({
     // Rush starts with Conveyance known: B5's "pick the topic" step is already done
     if (g.research.done.has('r_belts')) g.flags.add('study:r_belts');
     if (q.done.includes('k3_hands')) lesson(g, 'line');
+    // Rowan's thanks for B7 is the cogbean oil recipe: one input, two recipes
+    if (q.done.includes('k7_town')) lesson(g, 'recipes');
+    riverNets(g, k);
     if (g.flags.has('study:r_belts')) lesson(g, 'stages');
     // B6's "find out why it stopped": a second jar that never starved (its chest had beans to
     // spare) has nothing to read, so making its pickles counts instead

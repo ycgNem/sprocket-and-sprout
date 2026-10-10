@@ -338,8 +338,8 @@ export type ObjectiveDef = ObjectiveBase & (
   /** goods put into the shipping crate (deposit time, not the post's); `auto`: only by arm or belt,
    *  and a hand load of a machine starts the count again (the line must run by itself) */
   | { t: 'crate'; item: string; n: number; auto?: boolean }
-  /** a rusted structure brought back: the one at a tile, or every rusted one of a kind */
-  | { t: 'restore'; struct?: string; at?: [number, number] }
+  /** a rusted structure brought back: the one at a tile, every rusted one of a kind, or all in a rect (x, y, w, h) */
+  | { t: 'restore'; struct?: string; at?: [number, number]; rect?: [number, number, number, number] }
   /** a flag the sim or the UI sets when something happens (read the diagnosis, a bean rode a belt) */
   | { t: 'flag'; flag: string }
   /** batches finished by machines of a kind; `other`: not the keeper's own (st.keeper) */
@@ -347,7 +347,11 @@ export type ObjectiveDef = ObjectiveBase & (
   /** a machine of a kind with an arm or belt aimed at it; `other`: not the keeper's own */
   | { t: 'feeds'; struct: string; other?: boolean }
   /** items an arm has put into a machine of a kind (B3: the arm, not the hands, fed the jar) */
-  | { t: 'armload'; struct: string; n: number });
+  | { t: 'armload'; struct: string; n: number }
+  /** a standing order filled (src/sim/systems/orders.ts), by hand or by the post */
+  | { t: 'order'; id: string }
+  /** a machine of this kind (switched on) whose grid can power everything on it at once: no brownout */
+  | { t: 'grid'; struct: string });
 
 export interface QuestDef {
   id: string;

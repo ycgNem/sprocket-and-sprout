@@ -10,7 +10,7 @@ import { interactStruct, useTool } from '../src/sim/actions';
 import { buy, shopStock, entryPrice } from '../src/sim/systems/economy';
 import { craft, canCraft } from '../src/sim/crafting';
 import { canPlace, place } from '../src/sim/build';
-import { machInsert } from '../src/sim/systems/machines';
+import { machInsert, setRecipe } from '../src/sim/systems/machines';
 import { npcSys } from '../src/sim/systems/npcs';
 import { mine } from '../src/sim/systems/mine';
 import { O, T, Z } from '../src/sim/world/tilemap';
@@ -19,6 +19,7 @@ import { RESEARCH } from '../src/data/research';
 import { questSys } from '../src/sim/systems/quests';
 import { shopOpen } from '../src/sim/systems/town';
 import { OPENING } from '../src/sim/systems/modes';
+import { RIVER } from '../src/sim/opening';
 
 export interface DayLog {
   day: number;
@@ -35,7 +36,8 @@ export interface DayLog {
 
 const SECOND = 60; // ticks
 /** the keeper's yard is the Keeper's Line's: the bot's own fields and builds stay out of it */
-const inYard = (x: number, y: number) => x >= OPENING.yard.x && x < OPENING.yard.x + OPENING.yard.w && y >= OPENING.yard.y && y < OPENING.yard.y + OPENING.yard.h;
+const inRect = (r: { x: number; y: number; w: number; h: number }, x: number, y: number) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+const inYard = (x: number, y: number) => inRect(OPENING.yard, x, y) || inRect(RIVER.rect, x, y);
 /** what the bot keeps in its bag for the works (tests/bot.ts works()) */
 const WORKS_PARTS = new Set(['jar', 'arm_basic', 'chest_wood', 'gleaner', 'splitter_1', 'belt_1', 'plank', 'rope', 'copper_gear']);
 
@@ -200,13 +202,15 @@ export class Bot {
         const keep = d.cat === 'crop' || d.cat === 'fruit' ? (researching ? 8 : 3) : 0;
         // the works first: the L1 jar line takes up to a day's worth of vegetables and fruit
         const lineIn = this.lineIn !== null ? g.ents.get(this.lineIn) : g.ents.at(OPENING.chest[0], OPENING.chest[1]);
-        if (lineIn?.inv && (d.cat === 'crop' || d.cat === 'fruit') && sl.n > keep) {
+        // the keeper's crock locked to oil (B8) takes cogbeans only: anything else would jam its arm
+        const crock = g.ents.at(OPENING.jar[0], OPENING.jar[1]);
+        const beansOnly = this.lineIn === null && !!crock?.mach?.locked;
+        if (lineIn?.inv && (d.cat === 'crop' || d.cat === 'fruit') && sl.n > keep && (!beansOnly || d.id === 'cogbean')) {
           const room = Math.max(0, 17 - lineIn.inv.slots.reduce((a, s) => a + (s ? s.n : 0), 0));
           const give = Math.min(room, sl.n - keep);
           sl.n -= give - lineIn.inv.add(sl.k, give);
         }
-        const forRowan = this.step() === 'k7_town:1' && matchesSpec(d, '#preserve') ? 6 : 0;
-        const n = Math.max(0, sl.n - Math.max(keep, forRowan));
+        const n = Math.max(0, sl.n - keep);
         if (n > 0) {
           bin.inv!.add(sl.k, n);
           sl.n -= n;
@@ -515,6 +519,21 @@ export class Bot {
     }
   }
 
+  /** once the Keeper's Line has its second crock, buy the parts of the bot's own L1 line in town */
+  buyLineParts() {
+    const g = this.g;
+    if (this.lineIn !== null || !questSys(g).done.includes('k6_bottleneck') || g.player.money < 2500) return;
+    const get = (shopId: string, id: string, n: number) => {
+      if (g.player.inv.countId(id) >= n || !shopOpen(g, shopId).open) return;
+      const e = shopStock(g, shopId).find((x) => x.item === id);
+      if (e) buy(g, e, n - g.player.inv.countId(id));
+    };
+    get('general', 'jar', 1);
+    // the Workshop opens at 10
+    if (g.time.min < 600 && g.player.inv.countId('arm_basic') < 2) this.wait((600 - g.time.min) * 0.7 + 1);
+    get('workshop', 'arm_basic', 2);
+  }
+
   placeNearHouse(id: string) {
     const g = this.g;
     for (let y = 24; y < 34; y++)
@@ -535,13 +554,15 @@ export class Bot {
   stash() {
     const g = this.g;
     // tools, and the parts of the works the bot is still building
-    let chests = g.ents.others.filter((e) => e.def.id === 'chest_wood');
+    // the keeper's chests (the cellar, the river works) and the B6 crock's feed chest are lines, not storage
+    const store = (e: { def: { id: string }; st: Record<string, any>; x: number; y: number }) => e.def.id === 'chest_wood' && !e.st.yard && !(e.x === OPENING.jar2Chest[0] && e.y === OPENING.jar2Chest[1]);
+    let chests = g.ents.others.filter(store);
     if (g.player.inv.slots.filter(Boolean).length > 24 && g.player.inv.countId('wood') >= 20) {
       const r = RECIPES.find((x) => x.out[0].item === 'chest_wood')!;
       if (canCraft(g, r)) {
         craft(g, r, 1);
         this.placeNearHouse('chest_wood');
-        chests = g.ents.others.filter((e) => e.def.id === 'chest_wood');
+        chests = g.ents.others.filter(store);
       }
     }
     const essentials = new Set(['copper_ore', 'copper_bar', 'coal', 'fiber', 'bundle_green', 'copper_gear', 'plank', 'wood', 'stone']);
@@ -775,44 +796,74 @@ export class Bot {
           break;
         }
         case 'k7_town:0':
-          if (!town) return;
-          // reading the board on the square
-          this.walkTo(126, 65);
+          // the Orders board: J opens it anywhere (a player at the square reads the noticeboard)
+          if (town) this.walkTo(126, 65);
           g.flags.add('board:read');
           break;
         case 'k7_town:1': {
-          // the line's pickles: out of the crate before the post takes them, and out of the jars
-          const gather = () => {
-            const bin = g.ents.get(g.shipBinId);
-            if (bin?.inv) for (let i = 0; i < bin.inv.slots.length; i++) {
-              const sl = bin.inv.slots[i];
-              if (sl && matchesSpec(kDef(sl.k), '#preserve')) {
-                g.player.inv.add(sl.k, sl.n);
-                bin.inv.slots[i] = null;
-              }
-            }
-            for (const e of g.ents.machines) if (e.def.id === 'jar' && e.mach) for (const st of e.mach.outBuf.splice(0)) g.player.inv.add(st.k, st.n);
-          };
-          gather();
-          if (!town) {
-            // wait by the crate for the line to make the rest
-            for (let t = 0; t < 40 && g.player.inv.countSpec('#preserve') < 6 && !g.sleeping; t++) {
-              this.wait(10);
-              gather();
-            }
-            return;
+          // consignment: tag the crate for the Copper Kettle and let the posts carry the line's
+          // pickles there; pickles in the bag go in the crate too
+          const bin = g.ents.get(g.shipBinId)!;
+          if (bin.st.tag !== 'rowan') {
+            this.F([bin.x, bin.y]);
+            g.sys.dialogue = null;
+            bin.st.tag = 'rowan';
           }
-          if (g.player.inv.countSpec('#preserve') < 6) return;
-          const rowan = npcSys(g).byId.get('rowan')!;
-          const i = g.player.inv.slots.findIndex((sl) => sl && matchesSpec(kDef(sl.k), '#preserve'));
-          g.player.sel = i;
-          q.tryDeliver(g, 'rowan', g.player.inv.slots[i]!.k);
-          void rowan;
+          for (let i = 0; i < g.player.inv.slots.length; i++) {
+            const sl = g.player.inv.slots[i];
+            if (!sl || kDef(sl.k).id !== 'pickles_cogbean') continue;
+            const left = bin.inv!.add(sl.k, sl.n);
+            g.player.inv.slots[i] = left ? { k: sl.k, n: left } : null;
+          }
+          return;
+        }
+        case 'k8_river:0': {
+          // Bram's oil: both crocks locked to the oil recipe, the second fed from the cellar, the
+          // crate tagged for the Smithy
+          const oil = RECIPES.find((r) => r.id === 'jar:cogbean_oil')!;
+          for (const xy of [OPENING.jar, OPENING.jar2]) {
+            const e = g.ents.at(xy[0], xy[1]);
+            if (!e?.mach || (e.mach.locked && e.mach.recipe?.id === oil.id) || e.mach.pending?.r?.id === oil.id) continue;
+            // Shift+F opens its window; the oil recipe is clicked in (mid-batch it takes over next batch)
+            this.walkTo(xy[0], xy[1] + 1);
+            setRecipe(g, e, oil);
+          }
+          const box = g.ents.at(OPENING.jar2Chest[0], OPENING.jar2Chest[1]);
+          const cellar = g.ents.at(OPENING.chest[0], OPENING.chest[1]);
+          if (box?.inv && cellar?.inv && box.inv.countId('cogbean') < 6) {
+            const n = Math.min(8, Math.floor(cellar.inv.countId('cogbean') / 2));
+            cellar.inv.removeSpec('cogbean', n);
+            box.inv.add(key('cogbean'), n);
+          }
+          const bin = g.ents.get(g.shipBinId)!;
+          if (bin.st.tag !== 'bram') bin.st.tag = 'bram';
+          return;
+        }
+        case 'k8_river:1':
+          // Bram's order is filled: the crocks go back to pickles (more coins per bean) and the crate
+          // back to the Copper Kettle's weekly order
+          for (const xy of [OPENING.jar, OPENING.jar2]) {
+            const e = g.ents.at(xy[0], xy[1]);
+            if (e?.mach?.locked) setRecipe(g, e, null);
+          }
+          g.ents.get(g.shipBinId)!.st.tag = 'rowan';
+          this.F(RIVER.wheel);
           if (this.step() === s) return;
           break;
-        }
+        case 'k8_river:2':
+          for (const xy of [...RIVER.poles, RIVER.mill, RIVER.bin]) if (g.ents.at(xy[0], xy[1])?.st.rust) this.F(xy);
+          break;
+        case 'k8_river:3':
+          this.put('arm_fast', RIVER.binArm, 1);
+          this.put('arm_fast', RIVER.outArm, 1);
+          if (this.step() === s) return;
+          break;
+        case 'k8_river:4':
+          this.waitPast(s, 240);
+          if (this.step() === s) return;
+          break;
         default:
-          // B8 and anything the bot doesn't script is left to the rest of its day
+          // the steps after the Keeper's Line are left to the rest of the bot's day
           return;
       }
     }
@@ -826,13 +877,15 @@ export class Bot {
     if (g.player.where === 'house') g.sys.house.leave(g);
     this.keeperLine();
     this.farmMorning();
-    this.expandPlot(Math.min(80, 12 + day * 6));
+    // the works first (ROADMAP.md 3.2 rule 5): the plot grows slowly until the bot's own line is up
+    this.expandPlot(Math.min(80, day < 5 ? 12 + day * 3 : 12 + day * 6));
     this.farmMorning();
     // afternoon in town
     if (g.time.min < 9 * 60) this.wait(Math.max(0, (9 * 60 - g.time.min) * 0.7));
     this.walkTo(120, 60);
     this.talk();
     this.shop();
+    this.buyLineParts();
     this.keeperLine(true);
     this.walkTo(56, 30);
     this.keeperLine();

@@ -67,12 +67,15 @@ describe('derelict greenhouse', () => {
 });
 
 describe('key prompts', () => {
-  it('names what F does: harvest ripe beans, enter the farmhouse, load the jar', () => {
+  it('names what F does: harvest ripe beans, enter the farmhouse, open or load the crock', () => {
     const g = new Game({ seed: 5 });
     const [bx, by] = bean(g, 0);
     expect(promptAt(g, bx, by)?.verb).toBe('Harvest');
     const door = g.map.buildings.find((b) => b.kind === 'farmhouse')!;
     expect(promptAt(g, door.door[0], door.y + door.h - 1)?.verb).toBe('Enter');
+    // F opens the crock's window until you carry something it takes; then F loads it
+    expect(promptAt(g, OPENING.jar[0], OPENING.jar[1])?.verb).toBe('Open');
+    g.player.inv.add(key('cogbean'), 2);
     expect(promptAt(g, OPENING.jar[0], OPENING.jar[1])?.verb).toBe('Load');
   });
 

@@ -3,6 +3,7 @@ import './index';
 import './town';
 import './factory';
 import './journal';
+import './orders';
 import './activities';
 import './panels';
 import './home';

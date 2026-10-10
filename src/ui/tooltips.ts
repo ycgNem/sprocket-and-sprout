@@ -68,7 +68,7 @@ export function itemTooltip(g: Game, k: number, n = 1, extra: TipLine[] = []): T
 
 export function stationName(st: string): string {
   const names: Record<string, string> = {
-    keg: 'Keg', jar: 'Preserves Jar', smelter: 'Furnace', oven: 'Oven', press: 'Cheese Press', loom: 'Loom', seeds: 'Seed Sifter', compost: 'Compost Bin',
+    keg: 'Keg', jar: 'Preserving Crock', smelter: 'Furnace', oven: 'Oven', press: 'Cheese Press', loom: 'Loom', seeds: 'Seed Sifter', compost: 'Compost Bin',
     charcoal: 'Charcoal Kiln', kiln: 'Brick Kiln', bees: 'Bee Skep', mill: 'Grist Mill', sawmill: 'Sawmill', bottler: 'Bottler', assembler: "Tinker's Bench",
     crusher: 'Rock Crusher', roaster: 'Bean Roaster',
   };

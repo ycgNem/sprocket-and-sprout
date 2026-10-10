@@ -47,7 +47,7 @@ describe('L1: chest -> arm -> jar -> arm -> crate', () => {
     expect(problems(g)).toEqual([]);
     const d = diagnose(g, crate);
     expect(d.key).toBe('ok');
-    expect(d.gap).toMatch(/preserves jar/i);
+    expect(d.gap).toMatch(/preserving crock/i);
     expect(d.gap).toMatch(/17\/day|16\.8\/day/);
   });
 });
@@ -232,7 +232,7 @@ describe('L5: a gleaner on a cogbean field -> arm -> jar -> arm -> crate', () =>
     expect(problems(g)).toEqual([]);
     const d = diagnose(g, crate);
     expect(d.key).toBe('field');
-    expect(d.gap).toMatch(/cogbean field gives 3\.5\/day; the preserves jar can use 17/);
+    expect(d.gap).toMatch(/cogbean field gives 3\.5\/day; the preserving crock can use 17/);
     expect(d.fix).toMatch(/27 more cogbean plants within a picker/);
   });
 
@@ -379,7 +379,7 @@ describe('the wrong input (critic, Phase 1 build review)', () => {
     const crate = place(g, 'chest_wood', 9, 5, 0);
     run(g, 20);
     expect(arm.state).toBe(MState.Blocked);
-    expect(arm.why).toBe("The preserves jar can't use stone");
+    expect(arm.why).toBe("The preserving crock can't use stone");
     expect(glyphFor(g, arm)).toBe('blocked');
     expect(glyphFor(g, jar)).toBe('dot');
     const d = diagnose(g, crate);
@@ -401,7 +401,7 @@ describe('the wrong input (critic, Phase 1 build review)', () => {
     const crate = place(g, 'chest_wood', 9, 5, 0);
     run(g, 40);
     expect(end.state).toBe(MState.Blocked);
-    expect(end.why).toBe("The preserves jar can't use stone");
+    expect(end.why).toBe("The preserving crock can't use stone");
     expect(arm.why).not.toMatch(/won't take|can't use/);
     const d = diagnose(g, crate);
     expect(d.key).toBe('wrong:belt');

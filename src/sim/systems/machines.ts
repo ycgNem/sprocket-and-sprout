@@ -293,6 +293,7 @@ export function updateMachines(g: Game, dt: number) {
       if (e.st.quick > 0) e.st.quick--;
       m.crafting = false;
       m.progress = 0;
+      if (m.pending) setRecipe(g, e, m.pending.r);
       g.emit({ t: 'fx', kind: 'puff', x: e.x + e.w / 2, y: e.y });
       // the play screen turns this into a hop, an output pop and a note (each machine has its own)
       g.emit({ t: 'made', ent: e.id, item: r.out[0].item, x: e.x + e.w / 2, y: e.y });
@@ -353,9 +354,17 @@ function nearbyFlower(g: Game, x: number, y: number, r: number): string | null {
 }
 
 /** Player selects a recipe in the machine UI. */
+/**
+ * Lock a machine to a recipe (null: back to picking by itself). Mid-batch, the pick waits for the
+ * batch to finish, so the click always takes (the window shows "next batch").
+ */
 export function setRecipe(g: Game, e: Ent, r: RecipeDef | null) {
   const m = e.mach!;
-  if (m.crafting) return;
+  if (m.crafting) {
+    m.pending = { r };
+    return;
+  }
+  m.pending = undefined;
   m.recipe = r;
   m.locked = !!r;
   // return incompatible buffered items to the player
