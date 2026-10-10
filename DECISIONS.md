@@ -488,3 +488,32 @@ recommendations are the decisions.
     a keystone's chamber seen before its quest asks says to come back then (DECISIONS #94). Starfall's
     shard marks get a dark-and-butter ring that grows as the shard nears, so they read on its speckled
     floor. Pests still never hurt (DECISIONS #88), and the lift still stops at the works chambers.
+99. **The critic's re-check of Phases 3+4: PASS WITH FIXES, and the fixes (2026-10-10).** The one
+    path and the Town Mill passed; three Majors and the Stardew test's professions were fixed:
+    - *The next town keystone shows from its era's first quest.* The Waterworks' order goes up with
+      k11, whose first step is now the look at the shuttered pump house (k13 keeps Dyes & Pastes and
+      the order), and Lamplighting's with k14. The Now strip shows the quest's title and step over
+      the step ("Down to the Boiler (1/5)"), and its ? opens the quest in the journal. The why lines
+      of k10-k17 lead with the reason, not "Try: stage 2." or a bundle count.
+    - *A loaded save shows no first-morning news.* The constructor's dayStart ran on an empty game
+      when loading (no flags, so the Keeper's Line read as a 1.x save) and its toasts and lesson cards
+      stayed; deserialize drops them. Quest progress is sized to the quest's steps on load.
+    - *Any oil fills the Waterworks* (`#oil`: cogbean oil from a crock counts, as sunflower and
+      rapeseed oil do), so it no longer waits for summer's crops (it came only from a mill's press,
+      DECISIONS #96).
+    - *Professions (the Stardew test failed them: "only the names changed").* Tinkering is listed
+      first and gets 5 XP for every batch a machine finishes (level 5 around day 12-13 with the
+      Keeper's Line's crocks and the mill; farming reaches it around day 17-18), so its pair is the
+      first choice. Farming's perks work the field machines and the crock instead of raising prices:
+      Field Hand (gleaners, cranes, sowers and the gantry 25% faster) or Long Reach (a gleaner's 5x5,
+      cranes and sowers a tile further) at 5, Seedwright or Crock Master (crocks, kegs and presses 20%
+      faster) at 10. Ids are kept. The other skills' perks are unchanged (Phase 5 may reshape them).
+    - *The Works tab lists works under the place they serve* (the Copper Kettle, the clocktower, the
+      smithy, the Mercantile, your farm, the quarry), the Winter Pantry is the Kettle's Cellar, and
+      finishing every work at one place is no longer a Community Center room with its own bonus.
+    - Smaller: Guild contracts wait for their know-how as standing orders do; toasts queue (three on
+      screen) instead of dropping one; the journal lists the main path first; the Crystal's dark is
+      0.93 and colourless; the validate ring is a pixel gauge on the machine; a keystone finished
+      indoors or asleep shows its card then and the camera goes to look once you're outdoors; the
+      research window's "(now)" is the town's era (`townEra`), and the era banner names what comes
+      next ("The Steam era begins").

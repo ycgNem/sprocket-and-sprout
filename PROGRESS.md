@@ -283,10 +283,23 @@
   - After the fixes: the bot reaches the Mill on days 15-18 (8 of 8 seeds); a chain-walk test takes
     k11 to k17; tests 222; the sweep is clean at both sizes; `e2e/minex.mjs` and
     `e2e/townworks.mjs` pass. Pacing: Story 65.7k, Rush 66.0k.
+- The critic's re-check of Phases 3+4: PASS WITH FIXES (no Criticals; three Majors; the Stardew
+  test 1 pass, 2 half, 1 fail on professions). Fixed (DECISIONS #99):
+  - the Waterworks' order goes up with k11 (its look is k11's first step), Lamplighting's with k14;
+    the Now strip shows the quest's title and step, its ? opens the quest, and the why lines say why.
+  - a loaded save no longer replays its first morning's toasts and lesson cards.
+  - any oil fills the Waterworks (the crock's cogbean oil counts), so it needn't wait for summer.
+  - professions: Tinkering first, 5 XP a machine batch (level 5 around day 12-13, before farming's
+    17-18); farming's perks work the field machines and the crock (Field Hand, Long Reach,
+    Seedwright, Crock Master), no sell-price perks.
+  - the Works tab names the places works serve (not Pantry/Workshop/Fields), no room-complete bonus.
+  - smaller: Guild contracts wait for know-how; toasts queue; the journal lists the main path first;
+    the Crystal is properly dark; the validate ring is a pixel gauge on the machine; a keystone
+    finished overnight pans the camera when you step outside; "(now)" in research is the town's era
+    and the era banner names the next era.
 
 ## Next
-- Phase 5 (people, events, HQ) of ROADMAP.md; see HANDOFF.md "What's next" (the critic's re-check
-  of Phases 3-4 and anything it left).
+- Phase 5 (people, events, HQ) of ROADMAP.md; see HANDOFF.md "What's next".
 - Older ideas: more interior variety (decor items placeable indoors), farmhouse expansion tiers;
   more depth for mid-game automation goals and late-game megaprojects.
 
