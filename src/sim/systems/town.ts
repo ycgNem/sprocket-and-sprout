@@ -52,7 +52,8 @@ export function door(g: Game, b: BuildingInfo) {
       enterHouse(g);
       return;
     case 'tower':
-      g.emit({ t: 'ui', open: 'restoration' });
+      // the clocktower's door opens the Orders board's Works tab (the town works)
+      g.emit({ t: 'ui', open: 'board', arg: 'works' });
       g.emit({ t: 'sfx', id: 'door' });
       return;
     case 'mine':

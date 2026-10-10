@@ -114,6 +114,19 @@ export const QUESTS: QuestDef[] = [
       { t: 'made', struct: 'mill', n: 5, full: true, label: 'Grind 5 meal at full power', why: 'A grid in a brownout slows the mill: more supply, or less demand (spring arms draw no sparks).' },
     ],
     reward: { money: 800 } },
+  // the Water era's town keystone (ROADMAP.md 7.3, Phase 3): the town's own mill, end to end
+  { id: 'k10_mill', title: 'The Town Mill', giver: 'tobias', tutorial: true, main: true, after: ['k9_power'], needFlag: 'keepers_line',
+    why: "A keystone is the town's: look at it, try it small, keep it running, study it, then build it.",
+    desc: "The town's old mill stands silent on the river at the west end of Main Street. Mayor Thistle would give a great deal to hear it turn again: the Kettle has had no flour of its own in thirty years. Milling is the keystone: your mill is the town's in miniature.",
+    hint: 'Milling is studied with copper bundles. Two mills, or a thresher feeding one, keep 3 a minute. The Works tab is on the Orders board (the square, or the clocktower door).',
+    objectives: [
+      { t: 'flag', flag: 'observed:town_mill', label: "Look at the town's silent mill", why: 'On the river at the west end of Main Street. Look: stage 1 of the keystone.', goto: 'town_mill' },
+      { t: 'count', key: 'made:mill', n: 20, label: 'Grind 20 meal or flour on your grid', why: 'Try: stage 2. Your mill is the town mill in miniature.' },
+      { t: 'flag', flag: 'validated:r_milling', label: 'Keep a mill making 3 a minute for 2 minutes', why: 'Keep it running: stage 3. Two mills, or more barley than one can grind.' },
+      { t: 'research', id: 'r_milling', label: 'Study Milling at the desk', why: 'Study: stage 4. 20 sprout and 20 copper bundles.' },
+      { t: 'order', id: 'w_town_mill', label: 'Fill the Town Mill on the Works tab', why: '120 flour or barley meal, 40 planks and 8 copper gears: hand them in at the board, or tag a crate for the Town Council.' },
+    ],
+    reward: { money: 1500, items: [{ item: 'bundle_copper', n: 10 }] } },
   // ---------------- Story ----------------
   { id: 's_clock', title: 'The Silent Clock', giver: 'tobias', after: ['k9_bed'],
     desc: 'The town clocktower stopped decades ago. Mayor Thistle hopes the town can restore it, one project at a time. Visit the clocktower to see the restoration board.',

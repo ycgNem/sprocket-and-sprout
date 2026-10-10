@@ -37,7 +37,7 @@ const step = (g: Game) => {
 describe("the Keeper's Line data", () => {
   it('every beat says why it matters, names its steps for the Now strip, and lives on the main path', () => {
     const chain = QUESTS.filter((q) => q.id.startsWith('k'));
-    expect(chain.map((q) => q.id)).toEqual(['k1_line', 'k2_springs', 'k3_hands', 'k4_grow', 'k5_desk', 'k6_bottleneck', 'k7_town', 'k8_river', 'k9_bed', 'k9_power']);
+    expect(chain.map((q) => q.id)).toEqual(['k1_line', 'k2_springs', 'k3_hands', 'k4_grow', 'k5_desk', 'k6_bottleneck', 'k7_town', 'k8_river', 'k9_bed', 'k9_power', 'k10_mill']);
     for (const q of chain) {
       expect(q.why, q.id).toBeTruthy();
       expect(q.main, q.id).toBe(true);
@@ -111,7 +111,7 @@ describe('B7: the Orders board and consignment', () => {
     const g = new Game({ seed: 41 });
     skipTo(g, 'k7_town');
     expect(step(g)).toBe('k7_town:0');
-    expect(orders(g).open.map((o) => o.id)).toEqual(['rowan_pickles']);
+    expect(orders(g).open.filter((o) => o.kind === 'standing').map((o) => o.def)).toEqual(['rowan_pickles']);
     expect(g.flags.has('lesson:consign')).toBe(true);
     g.flags.add('board:read');
     secs(g, 2);
@@ -139,7 +139,7 @@ describe('B7: the Orders board and consignment', () => {
     const bin = g.ents.get(g.shipBinId)!;
     bin.inv!.add(key('pickles_cogbean'), 3);
     toPost(g);
-    expect(orders(g).open[0].have).toBe(0);
+    expect(orders(g).open.find((o) => o.def === 'rowan_pickles')!.lines[0].have).toBe(0);
     expect(bin.inv!.isEmpty()).toBe(true);
     g.player.inv.add(key('pickles_cogbean'), 7);
     expect(questSys(g).tryDeliver(g, 'rowan', key('pickles_cogbean'))).toBe(true);
@@ -168,7 +168,7 @@ describe("B8: the keeper's river works", () => {
   it('a rusted wheel and poles carry nothing; the mended wheel gives 35 in any weather, and the mill browns out', () => {
     const g = new Game({ seed: 51 });
     skipTo(g, 'k8_river');
-    expect(orders(g).open.map((o) => o.id)).toContain('bram_oil');
+    expect(orders(g).open.map((o) => o.def)).toContain('bram_oil');
     const wheel = g.ents.at(RIVER.wheel[0], RIVER.wheel[1])!;
     secs(g, 2);
     expect(wheel.gen!.cap).toBe(0);

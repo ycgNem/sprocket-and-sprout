@@ -6,6 +6,9 @@ import { Game, registerSystem } from '../Game';
 import { key } from '../inventory';
 import { goals, send } from './goals';
 import { hearts, npcSys } from './npcs';
+import { worksDone } from './orders';
+
+const projectsDone = (g: Game) => worksDone(g).filter((id) => id.startsWith('p_')).length;
 
 export interface Criterion { label: string; pts: number; got: boolean }
 
@@ -26,8 +29,8 @@ export function evaluate(g: Game): { list: Criterion[]; score: number; max: numb
     { label: '200 belts humming', pts: 1, got: g.ents.belts.length >= 200 },
     { label: '40 machines at work', pts: 1, got: g.ents.machines.length >= 40 },
     { label: '30 research topics studied', pts: 1, got: g.research.done.size >= 30 },
-    { label: `Restored half the town (${Math.ceil(PROJECTS.length / 2)} projects)`, pts: 1, got: gs.doneProjects.length >= Math.ceil(PROJECTS.length / 2) },
-    { label: 'Restored the whole town', pts: 1, got: gs.doneProjects.length >= PROJECTS.length },
+    { label: `Restored half the town (${Math.ceil(PROJECTS.length / 2)} projects)`, pts: 1, got: projectsDone(g) >= Math.ceil(PROJECTS.length / 2) },
+    { label: 'Restored the whole town', pts: 1, got: projectsDone(g) >= PROJECTS.length },
     { label: 'Built a Grand Work', pts: 1, got: gs.mega.length >= 1 },
     { label: '20 museum donations', pts: 1, got: gs.museum.length >= 20 },
     { label: '20 kinds of fish caught', pts: 1, got: Object.keys(gs.fish).length >= 20 },

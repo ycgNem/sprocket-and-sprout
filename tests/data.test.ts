@@ -149,3 +149,85 @@ describe('item indices (saves from 1.1.1)', () => {
     expect(h).toBe(0x560de8);
   });
 });
+
+describe('orders and keystones (Phase 3)', () => {
+  const cond = async () => {
+    const { STRUCT_BY_ID } = await import('../src/data/structures');
+    const { BUSINESS_BY_ID } = await import('../src/data/orders');
+    return (c: string) => {
+      if (c.startsWith('flag:')) return c.length > 5;
+      if (c.startsWith('quest:') || c.startsWith('on:')) return QUESTS.some((q) => q.id === c.slice(c.indexOf(':') + 1));
+      if (c.startsWith('rep:')) {
+        const [, biz, r] = c.split(':');
+        return BUSINESS_BY_ID.has(biz) && Number(r) >= 0 && Number(r) <= 5;
+      }
+      if (c.startsWith('made:')) return STRUCT_BY_ID.has(c.slice(5));
+      if (c.startsWith('crafted:')) return ITEM_BY_ID.has(c.slice(8));
+      return RESEARCH_BY_ID.has(c);
+    };
+  };
+
+  it('every standing order names a business, a real item, its pay and words; ids are unique', async () => {
+    const { STANDING, BUSINESS_BY_ID, REP_RANKS } = await import('../src/data/orders');
+    const ok = await cond();
+    const ids = new Set<string>();
+    for (const s of STANDING) {
+      expect(ids.has(s.id), s.id).toBe(false);
+      ids.add(s.id);
+      expect(BUSINESS_BY_ID.has(s.biz), `${s.id} biz`).toBe(true);
+      expect(specOk(s.spec), `${s.id} spec ${s.spec}`).toBe(true);
+      expect(s.n, s.id).toBeGreaterThan(0);
+      expect(s.unit > 0 || !!s.reward, `${s.id} pays`).toBe(true);
+      expect(s.rank ?? 0, s.id).toBeLessThan(REP_RANKS.length);
+      for (const c of s.after ?? []) expect(ok(c), `${s.id} after ${c}`).toBe(true);
+      for (const it of s.reward?.items ?? []) expect(ITEM_BY_ID.has(it.item), `${s.id} reward ${it.item}`).toBe(true);
+      expect(s.text.length && s.thanks.length, s.id).toBeTruthy();
+      // an order pays at least what the market would (orders never saturate it, and ask more of you)
+      if (s.unit && s.spec[0] !== '#') expect(s.unit, `${s.id} pays over market`).toBeGreaterThanOrEqual(ITEM_BY_ID.get(s.spec)!.price);
+    }
+    // every business but the Guild and the Council has a first order and one for each of the next three ranks
+    for (const b of ['rowan', 'bram', 'juniper', 'ottoline', 'ines', 'wren', 'marigold', 'clem', 'roxy'])
+      for (const r of [0, 1, 2, 3]) expect(STANDING.some((s) => s.biz === b && (s.rank ?? 0) === r), `${b} rank ${r}`).toBe(true);
+  });
+
+  it('every keystone works order and project asks for real items; keystones wait on real things and set a flag', async () => {
+    const { KEYSTONE_WORKS } = await import('../src/data/orders');
+    const ok = await cond();
+    for (const k of KEYSTONE_WORKS) {
+      for (const i of k.items) expect(specOk(i.item), `${k.id} ${i.item}`).toBe(true);
+      for (const c of k.after) expect(ok(c), `${k.id} after ${c}`).toBe(true);
+      expect(k.flag, k.id).toBeTruthy();
+      expect(k.era, k.id).toBeGreaterThanOrEqual(2);
+    }
+    for (const p of PROJECTS) for (const i of p.items) expect(specOk(i.item), `${p.id} ${i.item}`).toBe(true);
+    for (const r of REQUEST_POOL) expect(ITEM_BY_ID.has(r.item) && NPCS.some((n) => n.id === r.npc), `${r.npc} ${r.item}`).toBe(true);
+    const { CONTRACT_POOL } = await import('../src/data/contracts');
+    for (const c of CONTRACT_POOL) expect(specOk(c.spec), c.id).toBe(true);
+  });
+
+  it('every research keystone has stages that can happen: a flag to look, real counters to try, a real item to hold', async () => {
+    const ok = await cond();
+    const keys = RESEARCH.filter((r) => r.keystone);
+    expect(keys.map((r) => r.id).sort()).toEqual(['r_assembly2', 'r_belts', 'r_bots', 'r_grandworks', 'r_milling', 'r_power', 'r_spark', 'r_steam']);
+    for (const r of keys) {
+      const k = r.keystone!;
+      expect(k.observe?.flag.startsWith('observed:'), `${r.id} observe`).toBe(true);
+      for (const o of k.experiment ?? []) {
+        if (o.t === 'count') expect(ok(o.key), `${r.id} ${o.key}`).toBe(true);
+        expect(o.label, r.id).toBeTruthy();
+      }
+      if (k.validate) {
+        expect(specOk(k.validate.item), `${r.id} validate ${k.validate.item}`).toBe(true);
+        expect(k.validate.perMin, r.id).toBeGreaterThan(0);
+        expect(k.validate.minutes, r.id).toBeGreaterThan(0);
+      }
+    }
+    // every era has bands with nodes, and only its own bundles or fewer
+    for (const r of RESEARCH) expect(r.era, r.id).toBeGreaterThanOrEqual(1);
+  });
+
+  it("shop entries opened by reputation name a business and a rank", async () => {
+    const ok = await cond();
+    for (const s of SHOPS) for (const e of s.stock) if (e.unlock?.startsWith('rep:')) expect(ok(e.unlock), `${s.id} ${e.item} ${e.unlock}`).toBe(true);
+  });
+});

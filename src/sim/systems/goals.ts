@@ -1,7 +1,7 @@
-// Long-term goals: the clocktower restoration board, megaprojects, museum donations,
-// collection log, and the mailbox.
+// Long-term goals: megaprojects, museum donations, the collection log and the mailbox. (The
+// restoration projects are the Orders board's Works now: src/sim/systems/orders.ts.)
 import { shortName } from '../../data/cookbook';
-import { MEGAPROJECTS, MEGA_BY_ID, PROJECTS, PROJECT_BY_ID } from '../../data/goals';
+import { MEGAPROJECTS, MEGA_BY_ID, PROJECTS } from '../../data/goals';
 import { ITEMS, ITEM_BY_ID, matchesSpec } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
 import { C } from '../../data/palette';
@@ -21,8 +21,6 @@ export interface Letter {
 }
 
 export interface GoalSys {
-  projects: Record<string, Record<string, number>>;
-  doneProjects: string[];
   mega: string[];
   museum: string[];
   shipped: Record<string, number>;
@@ -34,83 +32,8 @@ export interface GoalSys {
 }
 
 export function goals(g: Game): GoalSys {
-  if (!g.sys.goals) g.sys.goals = { projects: {}, doneProjects: [], mega: [], museum: [], shipped: {}, fish: {}, found: [], mail: [] } as GoalSys;
+  if (!g.sys.goals) g.sys.goals = { mega: [], museum: [], shipped: {}, fish: {}, found: [], mail: [] } as GoalSys;
   return g.sys.goals;
-}
-
-// ---------------- restoration board ----------------
-export function projectNeed(g: Game, pid: string, spec: string): number {
-  const p = PROJECT_BY_ID.get(pid)!;
-  const want = p.items.find((i) => i.item === spec)?.n ?? 0;
-  return Math.max(0, want - (goals(g).projects[pid]?.[spec] ?? 0));
-}
-
-/** Donate as many of item k as useful to a project. Returns amount taken. */
-export function donate(g: Game, pid: string, k: number, n: number): number {
-  const gs = goals(g);
-  if (gs.doneProjects.includes(pid)) return 0;
-  const p = PROJECT_BY_ID.get(pid)!;
-  const d = kDef(k);
-  let taken = 0;
-  for (const it of p.items) {
-    if (!matchesSpec(d, it.item)) continue;
-    const need = projectNeed(g, pid, it.item);
-    const t = Math.min(need, n - taken);
-    if (t <= 0) continue;
-    gs.projects[pid] ??= {};
-    gs.projects[pid][it.item] = (gs.projects[pid][it.item] ?? 0) + t;
-    taken += t;
-  }
-  if (taken) {
-    g.emit({ t: 'sfx', id: 'insert' });
-    checkProject(g, pid);
-  }
-  return taken;
-}
-
-export function projectReady(g: Game, pid: string) {
-  const p = PROJECT_BY_ID.get(pid)!;
-  return p.items.every((i) => projectNeed(g, pid, i.item) <= 0);
-}
-
-function checkProject(g: Game, pid: string) {
-  const gs = goals(g);
-  const p = PROJECT_BY_ID.get(pid)!;
-  if (!projectReady(g, pid) || gs.doneProjects.includes(pid)) return;
-  if (p.money && g.player.money < p.money) {
-    g.toast(`All items are in! ${p.name} also needs ${p.money} coins.`);
-    return;
-  }
-  finishProject(g, pid);
-}
-
-export function payProject(g: Game, pid: string) {
-  const p = PROJECT_BY_ID.get(pid)!;
-  if (!projectReady(g, pid) || !p.money || g.player.money < p.money) return;
-  g.player.money -= p.money;
-  finishProject(g, pid);
-}
-
-function finishProject(g: Game, pid: string) {
-  const gs = goals(g);
-  const p = PROJECT_BY_ID.get(pid)!;
-  gs.doneProjects.push(pid);
-  for (const it of p.reward.items ?? []) g.give(key(it.item), it.n);
-  if (p.reward.flag) g.flags.add(p.reward.flag);
-  g.toast(`Restoration complete: ${p.name}! ${p.reward.text}`, undefined, 6);
-  g.emit({ t: 'sfx', id: 'chime' });
-  g.emit({ t: 'fx', kind: 'magic', x: g.player.x, y: g.player.y - 1, n: 30 });
-  g.count('projects');
-  // completing an area
-  const area = PROJECTS.filter((x) => x.area === p.area);
-  if (area.every((x) => gs.doneProjects.includes(x.id))) {
-    g.toast(`The ${p.area} restoration is finished! The town feels brighter.`, undefined, 6);
-    g.flags.add('area_' + p.area.toLowerCase());
-    if (p.area === 'Fields') g.player.maxEnergy += 30;
-  }
-  if (pid === 'p_clock') {
-    send(g, 'clock', { from: 'tobias', title: 'The Clock Strikes!', text: 'For the first time in thirty years, the clocktower struck the hour this morning. The whole town gathered in the square. Thank you, from all of Thistlewick. Come see us. - Mayor Tobias Thistle' });
-  }
 }
 
 // ---------------- megaprojects ----------------
@@ -316,7 +239,8 @@ registerSystem({
   },
   load(g, d) {
     const gs = goals(g);
-    Object.assign(gs, { projects: {}, doneProjects: [], mega: [], museum: [], shipped: {}, fish: {}, found: [], mail: [], ...d });
+    const { projects: _p, doneProjects: _d, ...rest } = d ?? {};
+    Object.assign(gs, { mega: [], museum: [], shipped: {}, fish: {}, found: [], mail: [], ...rest });
   },
   afterLoad(g) {
     applyMega(g);

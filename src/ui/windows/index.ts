@@ -1,6 +1,6 @@
 // Window registry. Windows are immediate-mode draw functions returning "keep open".
 import { petSys } from '../../sim/systems/pet';
-import { guild, postContracts } from '../../sim/systems/contracts';
+import { unlockGuild } from '../../sim/systems/orders';
 import { FURNITURE } from '../../data/furniture';
 import { C } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
@@ -351,7 +351,7 @@ function drawDebug(ui: UI, play: PlayScreen, st: WinState): boolean {
   row(['kit', 'Factory kit', () => giveKit(g)], ['res', 'Resources', () => giveRes(g)]);
   row(['perf', 'Perf scene', () => runPerfScene(play)], ['tp', 'Warp: town', () => { g.player.x = 133.5; g.player.y = 64.5; g.player.where = 'world'; }]);
   row(['tpq', 'Warp: quarry', () => { g.player.x = 178.5; g.player.y = 40.5; g.player.where = 'world'; }], ['tpf', 'Warp: farm', () => { g.player.x = 49.5; g.player.y = 24.5; g.player.where = 'world'; }]);
-  row(['pet', 'Stray pet', () => { const p = petSys(g); if (p.stage === 'none') { p.stage = 'stray'; p.map = 'world'; const [hx, hy] = g.map.loc('farmhouse'); p.x = hx - 1.5; p.y = hy + 2.5; } g.toast('A stray waits by the farmhouse.'); }], ['guild', 'Guild + depot', () => { g.research.done.add('r_belts'); g.research.done.add('r_arms'); const gs = guild(g); if (!gs.unlocked) { gs.unlocked = true; postContracts(g); } g.give(key('freight_depot'), 1); }]);
+  row(['pet', 'Stray pet', () => { const p = petSys(g); if (p.stage === 'none') { p.stage = 'stray'; p.map = 'world'; const [hx, hy] = g.map.loc('farmhouse'); p.x = hx - 1.5; p.y = hy + 2.5; } g.toast('A stray waits by the farmhouse.'); }], ['guild', 'Guild + depot', () => { g.research.done.add('r_belts'); g.research.done.add('r_arms'); unlockGuild(g, false); g.give(key('freight_depot'), 1); }]);
   row(['home', 'Renovate', () => { for (const f of ['home_kitchen', 'home_featherbed', 'home_pantry', 'home_hearth']) g.flags.add(f); g.toast('Farmhouse fully renovated.'); }], ['furn', 'Furniture', () => { for (const f of FURNITURE) g.give(key(f.id), 1, false); g.toast('One of every furniture piece added.'); }]);
   row(['year', 'Founders day', () => { g.flags.add('eval_pending'); }], ['locket', 'Locket', () => g.give(key('heart_charm'), 1)]);
   row(['mine', 'Mine +5 fl', () => g.sys.mine?.debugDescend?.(g, 5)], ['hearts', 'Friends +2h', () => { for (const n of g.sys.npcs?.list ?? []) n.points = Math.min(2500, (n.points ?? 0) + 500); }]);

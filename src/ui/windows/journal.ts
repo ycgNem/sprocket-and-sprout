@@ -3,21 +3,18 @@ import { C, PALETTE } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { NPCS, NPC_BY_ID } from '../../data/npcs';
 import { FISH } from '../../data/fish';
-import { PROJECTS } from '../../data/goals';
 import { QUEST_BY_ID } from '../../data/goals';
 import { SEASON_NAMES } from '../../data/types';
 import { key } from '../../sim/inventory';
 import { hearts, npcSys, giftTaste } from '../../sim/systems/npcs';
 import { objText, questSys } from '../../sim/systems/quests';
-import { donate, donateMuseum, goals, museumAccepts, MUSEUM_TOTAL, payProject, projectNeed, projectReady, readMail } from '../../sim/systems/goals';
+import { donateMuseum, goals, museumAccepts, MUSEUM_TOTAL, readMail } from '../../sim/systems/goals';
 import { tileColor } from '../hud';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { centered, frame } from './common';
 import { registerWindow, WinState } from './index';
 import { sprite, drawFit } from '../../render/atlas';
-import { daysLeftInWeek, guildRank, specLabel } from '../../sim/systems/contracts';
-import { GUILD_RANKS } from '../../data/contracts';
 import { ICON, textWidth, ellipsize } from '../font';
 import { itemTooltip } from '../tooltips';
 import { portrait, heartsRow } from './town';
@@ -51,23 +48,11 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
   const bx = x + 10, by = y + 30, bw = w - 20, bh = h - 40;
   ui.panel(bx, by, bw, bh, 'inset', false);
   if (st.data.tab === 'notebook') drawNotebook(ui, play, st, bx, by, bw, bh);
-  else if (st.data.tab === 'orders') drawOrders(ui, play, bx + 2, by + 2, bw - 4, bh - 4);
+  else if (st.data.tab === 'orders') drawOrders(ui, play, bx + 2, by + 2, bw - 4, bh - 4, st);
   else if (st.data.tab === 'quests') {
     const q = questSys(g);
-    const gs = g.sys.guild;
-    const guildH = gs?.unlocked ? 24 + gs.list.length * 10 : 0;
-    let yy = by + 6 - ui.scrollOffset('jq', bx, by, bw, bh, 40 + guildH + q.active.length * 60 + q.done.length * 10);
+    let yy = by + 6 - ui.scrollOffset('jq', bx, by, bw, bh, 40 + q.active.length * 60 + q.done.length * 10);
     ui.clip(bx, by, bw, bh);
-    if (gs?.unlocked) {
-      ui.text(`Trading Guild contracts (${daysLeftInWeek(g)} day${daysLeftInWeek(g) === 1 ? '' : 's'} left)`, bx + 8, yy, C.ink);
-      ui.text(GUILD_RANKS[guildRank(g)].name, bx + bw - 8, yy, C.oak, { align: 'right' });
-      yy += 11;
-      for (const c of gs.list) {
-        ui.text(`${c.done ? '+' : '-'} ${specLabel(c.spec)}: ${c.have}/${c.need}  (${ICON.coin}${c.reward.toLocaleString()})`, bx + 14, yy, c.done ? C.moss : C.walnut);
-        yy += 10;
-      }
-      yy += 8;
-    }
     for (const a of q.active) {
       const d = QUEST_BY_ID.get(a.id);
       if (!d) continue;
@@ -330,63 +315,6 @@ const MAP_NAME: Record<string, string> = {
   mine: '', farmhouse: '', greenhouse: '', house_a: '', house_b: '',
 };
 
-// ---------------- restoration ----------------
-function drawRestoration(ui: UI, play: PlayScreen, st: WinState): boolean {
-  const g = play.g;
-  const gs = goals(g);
-  const w = Math.min(ui.w - 20, 440), h = Math.min(ui.h - 30, 300);
-  const { x, y } = centered(ui, w, h);
-  if (!frame(ui, x, y, w, h, 'Clocktower Restoration Board')) return false;
-  const areas = [...new Set(PROJECTS.map((p) => p.area))];
-  st.data.area = st.data.area ?? areas[0];
-  areas.forEach((a, i) => {
-    const done = PROJECTS.filter((p) => p.area === a).every((p) => gs.doneProjects.includes(p.id));
-    if (ui.button('ra' + a, x + 10 + i * Math.floor((w - 40) / areas.length), y + 10, Math.floor((w - 40) / areas.length) - 4, 14, (done ? '+ ' : '') + a, { active: st.data.area === a })) st.data.area = a;
-  });
-  // on the bag strip's label line: higher up, a short window's fourth project covers it
-  ui.text(`${gs.doneProjects.length}/${PROJECTS.length} projects restored`, x + w - 12, y + h - 50, C.walnut, { align: 'right' });
-  const list = PROJECTS.filter((p) => p.area === st.data.area);
-  let yy = y + 30;
-  for (const p of list) {
-    const done = gs.doneProjects.includes(p.id);
-    ui.panel(x + 10, yy, w - 20, 46, done ? 'brass' : 'paper', false);
-    ui.text(p.name + (done ? '  - restored!' : ''), x + 16, yy + 4, C.ink);
-    ui.text(p.desc, x + 16, yy + 13, C.walnut);
-    p.items.forEach((it, i) => {
-      const need = projectNeed(g, p.id, it.item);
-      const ix = x + 16 + i * 46, iy = yy + 24;
-      const icon = it.item[0] === '#' ? ({ '#preserve': 'jam_strawberry', '#wine': 'wine_grape' } as any)[it.item] ?? 'fiber' : it.item;
-      ui.slot(ix, iy, { k: key(icon), n: 1 }, { size: 18, dim: need > 0 });
-      ui.text(`${it.n - need}/${it.n}`, ix + 20, iy + 6, need <= 0 ? C.moss : C.walnut);
-      if (ui.hover(ix, iy, 40, 18)) ui.tip([{ text: it.item[0] === '#' ? 'Any ' + it.item.slice(1) : ITEM_BY_ID.get(it.item)!.name, color: C.amber }, { text: done ? 'Done' : 'Click a matching item in your bag below to donate it', color: C.pebble }]);
-    });
-    if (p.money) ui.text(`+ ${ICON.coin}${p.money}`, x + w - 120, yy + 30, C.oak);
-    if (!done && p.money && projectReady(g, p.id) && ui.button('pay' + p.id, x + w - 70, yy + 26, 54, 15, 'Pay', { style: 'green', disabled: g.player.money < p.money })) payProject(g, p.id);
-    ui.text('Reward: ' + p.reward.text, x + w - 16, yy + 4, done ? C.moss : C.oak, { align: 'right' });
-    yy += 50;
-  }
-  // inventory strip for donating
-  const iy = y + h - 48;
-  ui.text('Your bag: click an item to donate it to this area', x + 10, iy - 2, C.walnut);
-  const inv = g.player.inv;
-  for (let i = 0; i < 36; i++) {
-    const sx = x + 10 + (i % 18) * 23, sy = iy + 8 + Math.floor(i / 18) * 20;
-    const s = inv.slots[i];
-    const useful = s && list.some((p) => !gs.doneProjects.includes(p.id) && p.items.some((it) => projectNeed(g, p.id, it.item) > 0 && (it.item === ITEMS[s.k >> 2].id || (it.item[0] === '#' && ITEMS[s.k >> 2].tags?.includes(it.item.slice(1))))));
-    const r = ui.slot(sx, sy, s, { size: 19, dim: !!s && !useful });
-    if (r.hover && s) ui.tip(itemTooltip(g, s.k, s.n).slice(0, 2));
-    if (r.click && s && useful) {
-      for (const p of list) {
-        const t = donate(g, p.id, s.k, s.n);
-        if (t) {
-          inv.remove(s.k, t);
-          break;
-        }
-      }
-    }
-  }
-  return true;
-}
 
 // ---------------- museum ----------------
 function drawMuseum(ui: UI, play: PlayScreen, st: WinState): boolean {
@@ -414,6 +342,5 @@ function drawMuseum(ui: UI, play: PlayScreen, st: WinState): boolean {
 
 registerWindow('journal', { draw: drawJournal });
 registerWindow('map', { draw: drawMap });
-registerWindow('restoration', { draw: drawRestoration });
 registerWindow('museum', { draw: drawMuseum });
 registerWindow('mail', { draw: (ui, play, st) => { st.data.tab = 'mail'; return drawJournal(ui, play, st); } });

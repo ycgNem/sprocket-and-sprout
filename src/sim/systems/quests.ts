@@ -1,7 +1,8 @@
-// Quests: tutorial chain, story quests, daily town requests. Progress via notify() hooks + polling.
+// Quests: the tutorial chain and story quests. Progress via notify() hooks + polling. (Today's town
+// asks are orders now: src/sim/systems/orders.ts.)
 import { questName } from '../../data/cookbook';
 import { CROP_BY_ID } from '../../data/crops';
-import { QUESTS, QUEST_BY_ID, REQUEST_POOL } from '../../data/goals';
+import { QUESTS, QUEST_BY_ID } from '../../data/goals';
 import { ITEM_BY_ID, ITEMS, matchesSpec } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
 import { STRUCT_BY_ID } from '../../data/structures';
@@ -18,26 +19,13 @@ export interface ActiveQuest {
   day: number;
 }
 
-export interface Request {
-  npc: string;
-  item: string;
-  n: number;
-  text: string;
-  reward: number;
-  taken: boolean;
-  done: boolean;
-}
-
 export interface QuestSys {
   active: ActiveQuest[];
   done: string[];
-  requests: Request[];
-  /** request quest currently accepted */
-  current: number;
 }
 
 export function questSys(g: Game): QuestSys & Record<string, any> {
-  if (!g.sys.quests) g.sys.quests = { active: [], done: [], requests: [], current: -1 };
+  if (!g.sys.quests) g.sys.quests = { active: [], done: [] };
   const q = g.sys.quests;
   q.notify = notify;
   q.tracker = tracker;
@@ -296,7 +284,6 @@ function notify(g: Game, type: string, n: number, extra?: string, opts?: { auto?
       }
     });
   }
-  // requests progress is checked on delivery
   if (type !== 'have') poll(g);
 }
 
@@ -341,37 +328,7 @@ function tracker(g: Game) {
     if (!def) continue;
     out.push({ title: def.title, lines: def.objectives.map((o, i) => ({ text: objText(g, o, a.prog[i]), done: objDone(g, o, a.prog[i]) })) });
   }
-  if (q.current >= 0 && q.requests[q.current] && !q.requests[q.current].done) {
-    const r = q.requests[q.current];
-    out.unshift({ title: `Request: ${questName(r.npc, NPC_BY_ID.get(r.npc)!.name)}`, lines: [{ text: `Bring ${r.n} ${ITEM_BY_ID.get(r.item)!.name} (${Math.min(r.n, g.player.inv.countId(r.item))}/${r.n})`, done: g.player.inv.countId(r.item) >= r.n }] });
-  }
   return out;
-}
-
-// ---------------- requests ----------------
-function rollRequests(g: Game) {
-  const q = questSys(g);
-  const pool = REQUEST_POOL.filter((r) => !r.seasons || r.seasons.includes(g.time.season));
-  const keep = q.current >= 0 && q.requests[q.current] && !q.requests[q.current].done ? q.requests[q.current] : null;
-  q.requests = keep ? [keep] : [];
-  q.current = keep ? 0 : -1;
-  const used = new Set<string>(keep ? [keep.npc] : []);
-  for (let tries = 0; tries < 20 && q.requests.length < 3; tries++) {
-    const r = g.rng.pick(pool);
-    if (used.has(r.npc)) continue;
-    used.add(r.npc);
-    const price = ITEM_BY_ID.get(r.item)!.price;
-    q.requests.push({ npc: r.npc, item: r.item, n: r.n, text: r.text, reward: Math.round(price * r.n * 2.2 + 120), taken: false, done: false });
-  }
-}
-
-export function acceptRequest(g: Game, i: number) {
-  const q = questSys(g);
-  if (q.current >= 0 && q.requests[q.current] && !q.requests[q.current].done) return 'Finish your current request first.';
-  q.current = i;
-  q.requests[i].taken = true;
-  g.emit({ t: 'sfx', id: 'quest' });
-  return null;
 }
 
 function tryDeliver(g: Game, npcId: string, k: number): boolean {
@@ -394,27 +351,8 @@ function tryDeliver(g: Game, npcId: string, k: number): boolean {
     poll(g);
     return true;
   }
-  // a standing order of theirs that takes it (src/sim/systems/orders.ts)
-  if (g.sys.orders?.hand?.(g, npcId, k)) return true;
-  const r = q.current >= 0 ? q.requests[q.current] : null;
-  if (!r || r.done || r.npc !== npcId) return false;
-  const d = kDef(k);
-  if (d.id !== r.item) return false;
-  if (g.player.inv.countId(r.item) < r.n) {
-    g.toast(`${questName(npcId, NPC_BY_ID.get(npcId)!.name)} needs ${r.n} ${d.name}. You have ${g.player.inv.countId(r.item)}.`);
-    return true;
-  }
-  g.player.inv.removeSpec(r.item, r.n);
-  r.done = true;
-  g.player.money += r.reward;
-  g.earned += r.reward;
-  const n = npcSys(g).byId.get(npcId)!;
-  addPoints(g, n, 150);
-  g.count('requests');
-  g.emit({ t: 'sfx', id: 'quest' });
-  g.emit({ t: 'fx', kind: 'coins', x: g.player.x, y: g.player.y - 1 });
-  g.emit({ t: 'ui', open: 'dialog', arg: { npc: npcId, name: NPC_BY_ID.get(npcId)!.name, pages: [`You're a lifesaver, ${g.player.name}! Here: ${r.reward} coins, as promised.`], hearts: hearts(n) } });
-  return true;
+  // an order of theirs that takes it: today's ask or a standing order (src/sim/systems/orders.ts)
+  return !!g.sys.orders?.hand?.(g, npcId, k);
 }
 
 registerSystem({
@@ -441,7 +379,6 @@ registerSystem({
     if (g.map.w < 100) return;
     questSys(g);
     startAvailable(g);
-    rollRequests(g);
   },
   afterLoad(g) {
     // a save whose quests were retired (1.x's tutorial chains) starts what it can now, not tomorrow
@@ -456,14 +393,12 @@ registerSystem({
   },
   save(g) {
     const q = questSys(g);
-    return { active: q.active, done: q.done, requests: q.requests, current: q.current };
+    return { active: q.active, done: q.done };
   },
   load(g, d) {
     const q = questSys(g);
     q.active = (d.active ?? []).filter((a: ActiveQuest) => QUEST_BY_ID.has(a.id));
     q.done = d.done ?? [];
-    q.requests = (d.requests ?? []).filter((r: Request) => ITEM_BY_ID.has(r.item));
-    q.current = d.current ?? -1;
   },
 });
 

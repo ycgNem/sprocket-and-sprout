@@ -3,7 +3,7 @@ import { C } from '../data/palette';
 import { stockPond } from './systems/ponds';
 import { cartHere } from './systems/cart';
 import { knowsRecipe, learnRecipe } from './systems/cookbook';
-import { contractInsert } from './systems/contracts';
+import { depotInsert } from './systems/orders';
 import { fillBowl, petAt, petInteract } from './systems/pet';
 import { BUFF_INFO } from '../data/buffs';
 import { CROP_BY_ID, CROP_BY_SEED } from '../data/crops';
@@ -734,7 +734,7 @@ export function interactStruct(g: Game, e: Ent): boolean {
     return true;
   }
   if (d.kind === 'depot' && held) {
-    const used = contractInsert(g, held.k, held.n);
+    const used = depotInsert(g, held.k, held.n);
     if (used) {
       p.inv.remove(held.k, used);
       g.emit({ t: 'sfx', id: 'ship' });

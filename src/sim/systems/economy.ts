@@ -3,7 +3,7 @@
 import { C } from '../../data/palette';
 import { foundersBonus } from './founders';
 import type { ItemDef } from '../../data/types';
-import { guildBonus } from './contracts';
+import { guildBonus } from './orders';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { BUILDING_KITS, SHOP_BY_ID, TOOL_UPGRADE_COST } from '../../data/shops';
 import type { ItemCategory, ShopEntry } from '../../data/types';

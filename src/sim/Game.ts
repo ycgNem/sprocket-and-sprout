@@ -2,6 +2,7 @@
 import { Rng } from '../engine/rng';
 import type { GameMode, FarmKind } from '../data/modes';
 import type { Season, Weather, BuffKind } from '../data/types';
+import { rankOf } from '../data/orders';
 import { TileMap } from './world/tilemap';
 import { generateWorld, PLAYER_START, WORLD_W, WORLD_H, SHIPBIN_POS } from './world/worldgen';
 import { Ents, type Dir, type Ent } from './ents';
@@ -320,6 +321,11 @@ export class Game {
     if (!u) return true;
     if (u.startsWith('flag:')) return this.flags.has(u.slice(5));
     if (u.startsWith('quest:')) return this.flags.has('quest_done:' + u.slice(6));
+    // 'rep:<business>:<rank>': a business's reputation rank on the Orders board (src/data/orders.ts)
+    if (u.startsWith('rep:')) {
+      const [, biz, r] = u.split(':');
+      return rankOf(this.sys.orders?.rep?.[biz] ?? 0) >= Number(r);
+    }
     return this.research.done.has(u);
   }
 

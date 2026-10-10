@@ -56,6 +56,10 @@ export const LESSONS: LessonDef[] = [
     text: ['A crock makes pickles or oil from the same beans. It picks', 'pickles by itself: Shift+F opens it, click oil to lock it in.'] },
   { id: 'wind', title: 'The spring key', pic: 'i:spring',
     text: ['Right-click a spring arm or a gleaner to wind it:', 'twice as fast for 30 seconds. Never a chore.'] },
+  { id: 'works', title: 'The town works', pic: 'i:construction_site',
+    text: ["The Orders board's Works tab: the town's own keystones.", 'Hand goods in there, or tag a crate for the Town Council.'] },
+  { id: 'reputation', title: 'Reputation', pic: 'st:shipping_crate:0:0:0',
+    text: ["Each filled order raises a business's trust in you.", 'A new rank opens its next order and new stock.'] },
   { id: 'undo', title: 'Undo', pic: 'i:arm_basic',
     text: ['Placed something in the wrong spot? Ctrl+Z takes it back', 'within 10 seconds, with a full refund.'] },
 ];

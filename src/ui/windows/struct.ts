@@ -121,23 +121,25 @@ function tally(inv: Inventory): Map<number, number> {
 
 function crateTags(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: number) {
   const g = play.g;
-  const opts = [{ npc: '', place: 'Market' }, ...tagChoices(g)];
+  const opts = [{ cust: '', place: 'Market' }, ...tagChoices(g)];
   ui.text('Ship to:', x + 14, y + 3, C.walnut);
-  let bx = x + 56;
-  for (const o of opts) {
-    const bw = textWidth(o.place) + 12;
-    const on = ((e.st.tag as string | undefined) ?? '') === o.npc;
-    const open = o.npc ? ordersFor(g, o.npc) : [];
-    const tip = o.npc
-      ? `At each post (noon, 6pm, overnight) goods that fit ${o.place}'s open order go there first${open.length ? '' : ' (none open right now)'}. The rest is sold at market.`
-      : 'Everything goes to market at each post.';
-    if (ui.button('ctag' + o.npc, bx, y, bw, 13, o.place, { style: 'flat', active: on, tip })) {
-      if (o.npc) e.st.tag = o.npc;
-      else delete e.st.tag;
-    }
-    bx += bw + 4;
-  }
-  if (opts.length === 1) ui.text('Orders from the town show up here once posted.', bx + 4, y + 3, C.oak);
+  // one customer at a time, stepped with the arrows: the town grows past a row of buttons
+  const at = Math.max(0, opts.findIndex((o) => o.cust === ((e.st.tag as string | undefined) ?? '')));
+  const o = opts[at];
+  const set = (i: number) => {
+    const n = opts[(i + opts.length) % opts.length];
+    if (n.cust) e.st.tag = n.cust;
+    else delete e.st.tag;
+  };
+  const open = o.cust ? ordersFor(g, o.cust) : [];
+  const tip = o.cust
+    ? `At each post (noon, 6pm, overnight) goods that fit ${o.place}'s open orders go there first${open.length ? ` (${open.length} open)` : ' (none open right now)'}. The rest is sold at market.`
+    : 'Everything goes to market at each post.';
+  const bw = Math.min(w - 120, Math.max(90, textWidth(o.place) + 16));
+  if (opts.length > 1 && ui.button('ctagp', x + 56, y, 14, 13, '<', { style: 'flat' })) set(at - 1);
+  if (ui.button('ctag', x + 72, y, bw, 13, ellipsize(o.place, bw - 8), { style: 'flat', active: !!o.cust, tip })) set(at + 1);
+  if (opts.length > 1 && ui.button('ctagn', x + 74 + bw, y, 14, 13, '>', { style: 'flat' })) set(at + 1);
+  if (opts.length === 1) ui.text('Orders from the town show up here once posted.', x + 96 + bw, y + 3, C.oak);
   // the price tag: the item in the crate the market is most flooded with
   let worst: { k: number; f: number } | null = null;
   for (const s of e.inv!.slots) {

@@ -623,7 +623,8 @@ export class PlayScreen implements Screen {
     if (input.wasPressed('craft')) this.openWindow('menu', 'crafting');
     if (input.wasPressed('research')) this.openWindow('research');
     if (input.wasPressed('stats')) this.openWindow('stats');
-    if (input.wasPressed('journal')) this.openWindow('journal');
+    // J opens on the Orders board while the Keeper's Line asks you to read it (k7, B7)
+    if (input.wasPressed('journal')) this.openWindow('journal', this.g.sys.quests?.active?.some((a: { id: string }) => a.id === 'k7_town') ? 'orders' : undefined);
     if (input.wasPressed('map')) this.openWindow('map');
     if (input.wasPressed('achievements')) this.openWindow('achievements');
     for (let i = 0; i < 10; i++) if (input.wasPressed(('hot' + (i + 1)) as any)) g.player.sel = i;
@@ -674,7 +675,16 @@ export class PlayScreen implements Screen {
       const walking = input.isDown('up') || input.isDown('down') || input.isDown('left') || input.isDown('right');
       const fe = input.shift && !walking && g.player.where === 'world' ? g.ents.rootAt(fx, fy) : null;
       if (fe && !fe.ghost && !fe.st.rust && (fe.mach || fe.inv || fe.arm || fe.gen || fe.def.kind === 'pole')) this.openWindow('struct', fe.id);
-      else interact(g, fx, fy);
+      else if (!interact(g, fx, fy) && g.player.where === 'world') {
+        // the Orders board answers F from any side: it's a post you walk around, not a door
+        const px = Math.floor(g.player.x), py = Math.floor(g.player.y);
+        board: for (let dy = -1; dy <= 1; dy++)
+          for (let dx = -1; dx <= 1; dx++)
+            if (g.map.o(px + dx, py + dy) === O.NOTICEBOARD) {
+              interact(g, px + dx, py + dy);
+              break board;
+            }
+      }
     }
     if (input.wasPressed('build')) this.openWindow(g.mode === 'sandbox' ? 'palette' : 'menu', 'crafting');
   }

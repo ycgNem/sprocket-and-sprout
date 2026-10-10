@@ -224,14 +224,14 @@ describe('arms and machines', () => {
 
 describe('guild contracts', () => {
   it('an arm feeds the freight depot, completing a contract pays and raises rank', async () => {
-    const C = await import('../src/sim/systems/contracts');
+    const O = await import('../src/sim/systems/orders');
     const g = blank();
-    const gs = C.guild(g);
-    gs.unlocked = true;
-    C.postContracts(g);
-    expect(gs.list.length).toBe(3);
+    O.unlockGuild(g, false);
+    const os = O.orders(g);
+    expect(os.open.filter((o) => o.kind === 'guild').length).toBe(3);
     // replace with a known contract for the test
-    gs.list[0] = { id: 'c_test', spec: 'plank', label: 'Test planks', need: 20, have: 0, reward: 1000, rep: 2, done: false };
+    const c = os.open.find((o) => o.kind === 'guild')!;
+    Object.assign(c, { def: 'c_test', lines: [{ spec: 'plank', n: 20, have: 0 }], pay: 1000, rep: 2, done: false });
     const chest = place(g, 'chest_wood', 5, 5, 0);
     chest.inv!.add(key('plank'), 30);
     chest.inv!.add(key('stone'), 10);
@@ -239,13 +239,13 @@ describe('guild contracts', () => {
     place(g, 'freight_depot', 7, 4, 0);
     const money = g.player.money;
     run(g, 90);
-    expect(gs.list[0].done).toBe(true);
+    expect(c.done).toBe(true);
     expect(g.player.money).toBe(money + 1000);
     expect(chest.inv!.count(key('plank'))).toBe(10);
     // the depot refuses things no contract wants
     expect(chest.inv!.count(key('stone'))).toBe(10);
-    expect(C.guildRank(g)).toBe(1);
-    expect(C.guildBonus(g)).toBeCloseTo(0.03);
+    expect(O.guildRank(g)).toBe(1);
+    expect(O.guildBonus(g)).toBeCloseTo(0.03);
   });
 });
 

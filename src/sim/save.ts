@@ -2,6 +2,10 @@
 // so saves survive content additions. Maps are run-length encoded.
 import { ITEM_INDEX } from '../data/items';
 import { LEGACY32 } from '../data/palette';
+import { CONTRACT_POOL } from '../data/contracts';
+import { PROJECT_BY_ID } from '../data/goals';
+import { BUSINESS_BY_NPC, STANDING_BY_ID } from '../data/orders';
+import { PRUNED_IDS } from '../data/research';
 import { RECIPE_BY_ID } from '../data/recipes';
 import { STRUCT_BY_ID } from '../data/structures';
 import type { NPCLook, Season, Weather } from '../data/types';
@@ -11,7 +15,7 @@ import { Inventory, ItemKey, key, kId, kQ, Stack } from './inventory';
 import { TileMap } from './world/tilemap';
 import { squareBridges } from './world/worldgen';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 const PREFIX = 'sns_save_';
 const MAX_SLOTS = 6;
 
@@ -245,7 +249,96 @@ export const MIGRATIONS: Record<number, (d: any) => any> = {
     d.v = 4;
     return d;
   },
+  4: (d) => migrateV5(d),
 };
+
+/**
+ * v4 -> v5 (2.0 Phases 3 and 4): one Orders board (the daily requests, the Guild's state and the
+ * restoration projects move into it), the research eras (the retired flat-buff nodes become era
+ * rewards) and the Deepworks (60 floors became 30 levels).
+ */
+export function migrateV5(d: any): any {
+  const sys = (d.sys ??= {});
+  const old = sys.orders ?? {};
+  const day = Math.max(0, (d.time?.year ?? 1) - 1) * 112 + (d.time?.season ?? 0) * 28 + Math.max(0, (d.time?.day ?? 1) - 1);
+  const os: any = { open: [], filled: { ...(old.filled ?? {}) }, rep: { ...(old.rep ?? {}) }, posted: [], seen: [], uid: 1, guild: { unlocked: false, week: -1, completed: 0 }, worksDone: [] };
+  const push = (o: any) => os.open.push({ ...o, uid: os.uid++ });
+  // Phase 2's standing orders keep their place (an order then held its def id in `id` and one count)
+  for (const o of old.open ?? []) {
+    const def = STANDING_BY_ID.get(o.id);
+    if (!def) continue;
+    push({ kind: 'standing', def: def.id, cust: def.biz, lines: [{ spec: def.spec, n: o.n ?? def.n, have: o.have ?? 0 }], day: o.day ?? day, due: o.due ?? day + 7, unit: def.unit, silver: def.silver, rep: def.big ? 2 : 1 });
+  }
+  for (const id of old.posted ?? []) {
+    const def = STANDING_BY_ID.get(id);
+    if (!def) continue;
+    if (!os.seen.includes(id)) os.seen.push(id);
+    if (!os.posted.includes(def.biz)) os.posted.push(def.biz);
+  }
+  // the Trading Guild: its rank and this week's contracts
+  const gs = sys.contracts;
+  if (gs) {
+    os.guild = { unlocked: !!gs.unlocked, week: gs.week ?? -1, completed: gs.completed ?? 0 };
+    if (gs.rep) os.rep.guild = gs.rep;
+    if (gs.unlocked) os.posted.push('guild');
+    const sunday = day + ((6 - (day % 7)) + 7) % 7;
+    for (const c of gs.list ?? []) {
+      if (!c?.spec) continue;
+      const tier = CONTRACT_POOL.find((x) => x.id === c.id)?.tier ?? 0;
+      push({ kind: 'guild', def: c.id, cust: 'guild', lines: [{ spec: c.spec, n: c.need, have: Math.min(c.need, c.have ?? 0) }], day, due: sunday, pay: c.reward, rep: c.rep ?? 1 + tier, done: !!c.done });
+    }
+    delete sys.contracts;
+  }
+  // the restoration projects: their progress and the finished ones are the Works now
+  const goals = sys.goals;
+  if (goals) {
+    os.worksDone = [...(goals.doneProjects ?? [])].filter((id: string) => PROJECT_BY_ID.has(id));
+    for (const [pid, prog] of Object.entries((goals.projects ?? {}) as Record<string, Record<string, number>>)) {
+      const p = PROJECT_BY_ID.get(pid);
+      if (!p || os.worksDone.includes(pid)) continue;
+      push({ kind: 'works', def: pid, cust: 'council', lines: p.items.map((it) => ({ spec: it.item, n: it.n, have: Math.min(it.n, prog?.[it.item] ?? 0) })), day, due: 1e9, rep: 0 });
+    }
+    delete goals.projects;
+    delete goals.doneProjects;
+  }
+  // today's requests: an accepted, unfinished one stays on the board as a Today ask until midnight
+  const q = sys.quests;
+  if (q) {
+    const r = q.current >= 0 ? q.requests?.[q.current] : null;
+    if (r && !r.done && r.item) {
+      push({ kind: 'today', def: `req:${r.npc}:${r.item}`, cust: r.npc, lines: [{ spec: r.item, n: r.n, have: 0 }], day, due: day, pay: r.reward, rep: BUSINESS_BY_NPC.has(r.npc) ? 1 : 0, text: r.text });
+      if (!os.posted.includes(r.npc)) os.posted.push(r.npc);
+    }
+    delete q.requests;
+    delete q.current;
+  }
+  sys.orders = os;
+  // a crate tagged for a customer keeps its tag (customers are still the villagers' ids)
+  // research: the retired flat-buff nodes are era rewards now, kept under their old ids
+  const res = d.research;
+  if (res) {
+    const done: string[] = res.done ?? [];
+    res.rewards = [...new Set([...(res.rewards ?? []), ...done.filter((id) => PRUNED_IDS.has(id))])];
+    res.done = done.filter((id) => !PRUNED_IDS.has(id));
+    if (res.current && PRUNED_IDS.has(res.current)) res.current = null;
+    for (const id of Object.keys(res.progress ?? {})) if (PRUNED_IDS.has(id)) delete res.progress[id];
+  }
+  const flags: string[] = (d.flags ??= []);
+  // 1.x saves never had the Town Mill keystone: their bread kept coming
+  if (!flags.includes('keepers_line') && !flags.includes('bread_town')) flags.push('bread_town');
+  // the Deepworks: 60 floors became 30 levels, lifts every 5 (a lift ridden before is the old lift, restored)
+  const mine = sys.mine;
+  if (mine?.deepest) mine.deepest = Math.ceil(mine.deepest / 2);
+  const lifts = flags.filter((f) => /^elev_\d+$/.test(f));
+  if (lifts.length) {
+    const next = new Set(flags.filter((f) => !/^elev_\d+$/.test(f)));
+    for (const f of lifts) next.add('elev_' + Math.max(5, Math.round(Number(f.slice(5)) / 10) * 5));
+    next.add('chamber:lift');
+    d.flags = [...next];
+  }
+  d.v = 5;
+  return d;
+}
 
 export function migrate(d: any): any {
   let v = d.v ?? 1;

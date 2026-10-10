@@ -19,14 +19,15 @@ await ev(`(async () => {
   window.S = { g };
   const B = await import('/src/sim/build.ts');
   const I = await import('/src/sim/inventory.ts');
-  const Ct = await import('/src/sim/systems/contracts.ts');
+  const Ct = await import('/src/sim/systems/orders.ts');
   const { O, Z } = await import('/src/sim/world/tilemap.ts');
   g.research.done.add('r_belts'); g.research.done.add('r_arms');
-  const gs = Ct.guild(g); gs.unlocked = true; Ct.postContracts(g);
-  gs.list[0].have = Math.floor(gs.list[0].need * 0.6);
+  Ct.unlockGuild(g, false);
+  const list = Ct.orders(g).open.filter((o) => o.kind === 'guild');
+  list[0].lines[0].have = Math.floor(list[0].lines[0].n * 0.6);
   for (let y = 26; y < 34; y++) for (let x = 54; x < 66; x++) { g.map.setO(x, y, O.NONE); g.map.zone[g.map.idx(x, y)] = Z.FARM; g.soil.delete(g.map.idx(x, y)); }
   const chest = B.place(g, 'chest_wood', 56, 29, 0);
-  chest.inv.add(I.key(gs.list[1].spec[0] === '#' ? 'radish' : gs.list[1].spec), 200);
+  chest.inv.add(I.key(list[1].lines[0].spec[0] === '#' ? 'radish' : list[1].lines[0].spec), 200);
   B.place(g, 'arm_basic', 57, 29, 1);
   window.__dep = B.place(g, 'freight_depot', 58, 28, 0);
   g.player.x = 60; g.player.y = 31.5; g.time.min = 10 * 60;
@@ -36,6 +37,6 @@ await page.screenshot({ path: `${out}/depot.png` });
 await ev(`window.__app.screen.openWindow('struct', window.__dep.id)`);
 await page.waitForTimeout(700);
 await page.screenshot({ path: `${out}/panel.png` });
-console.log(JSON.stringify(await ev(`S.g.sys.guild.list.map((c) => [c.spec, c.have, c.need, c.reward])`)));
+console.log(JSON.stringify(await ev(`S.g.sys.orders.open.filter((o) => o.kind === 'guild').map((c) => [c.lines[0].spec, c.lines[0].have, c.lines[0].n, c.pay])`)));
 console.log('errors', errors.slice(0, 10));
 await browser.close();

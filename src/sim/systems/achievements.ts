@@ -51,6 +51,8 @@ const keysWith = (g: Game, pre: string) => Object.keys(g.counters).filter((k) =>
 const made = (g: Game, id: string) => g.stats.series.get(ITEM_INDEX.get(id) ?? -1)?.totalProd ?? 0;
 const kinds2 = (g: Game, id: string) => g.ents.all().filter((e) => !e.ghost && e.def.id === id).length;
 const kinds = (g: Game, kind: string) => g.ents.all().filter((e) => !e.ghost && e.def.kind === kind).length;
+/** restoration projects finished (the Orders board's Works) */
+const projectsDone = (g: Game) => ((g.sys.orders?.worksDone ?? []) as string[]).filter((id) => id.startsWith('p_')).length;
 const num = (k: string, goal: number) => ({ test: (gg: Game) => c(gg, k) >= goal, prog: (gg: Game): [number, number] => [c(gg, k), goal] });
 const NON_LEGEND_FISH = FISH.filter((f: any) => !f.legendary).map((f: any) => f.id as string);
 
@@ -67,7 +69,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'giant', name: 'Gargantuan', desc: 'Grow a giant crop.', cat: 'farm', tier: 2, icon: 'melon', ...num('giant', 1) },
   { id: 'starq', name: 'Star Quality', desc: 'Harvest a star-quality crop.', cat: 'farm', tier: 2, icon: 'strawberry', ...num('harvest_star', 1) },
   { id: 'trees100', name: 'Timber!', desc: 'Chop down 100 trees.', cat: 'farm', tier: 2, icon: 'axe_2', ...num('trees_chopped', 100) },
-  { id: 'greenhouse', name: 'Glass Half Full', desc: 'Restore the old greenhouse.', cat: 'farm', tier: 2, icon: 'glass', test: (g) => (g.sys.goals?.doneProjects ?? []).includes('p_greenhouse') },
+  { id: 'greenhouse', name: 'Glass Half Full', desc: 'Restore the old greenhouse.', cat: 'farm', tier: 2, icon: 'glass', test: (g) => (g.sys.orders?.worksDone ?? []).includes('p_greenhouse') },
   { id: 'rancher', name: 'Rancher', desc: 'Raise 10 animals.', cat: 'farm', tier: 2, icon: 'egg', test: (g) => (g.sys.animals?.list?.length ?? 0) >= 10, prog: (g) => [g.sys.animals?.list?.length ?? 0, 10] },
   { id: 'animalpets', name: 'Petting Zoo', desc: 'Pet your animals 100 times.', cat: 'farm', tier: 1, icon: 'wool', ...num('animal_pets', 100) },
 
@@ -120,8 +122,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'quests15', name: 'Story Time', desc: 'Complete 15 quests.', cat: 'village', tier: 2, icon: 'f_bookcase', ...num('quests', 15) },
   { id: 'festivals', name: 'Festive Spirit', desc: 'Take part in all four festivals.', cat: 'village', tier: 2, icon: 'ticket', ...num('festivals', 4) },
   { id: 'contracts5', name: 'Reliable Supplier', desc: 'Fill 5 Trading Guild contracts.', cat: 'village', tier: 1, icon: 'crate_out', ...num('contracts', 5) },
-  { id: 'guild5', name: 'Guild Partner', desc: 'Reach the top Trading Guild rank.', cat: 'village', tier: 3, icon: 'f_banner', test: (g) => (g.sys.guild?.rep ?? 0) >= 20, prog: (g) => [g.sys.guild?.rep ?? 0, 20] },
-  { id: 'projects8', name: 'Restorer', desc: 'Complete 8 restoration projects.', cat: 'village', tier: 2, icon: 'brick', test: (g) => (g.sys.goals?.doneProjects?.length ?? 0) >= 8, prog: (g) => [g.sys.goals?.doneProjects?.length ?? 0, 8] },
+  { id: 'guild5', name: 'Guild Partner', desc: 'Reach the top Trading Guild rank.', cat: 'village', tier: 3, icon: 'f_banner', test: (g) => (g.sys.orders?.rep?.guild ?? 0) >= 20, prog: (g) => [g.sys.orders?.rep?.guild ?? 0, 20] },
+  { id: 'projects8', name: 'Restorer', desc: 'Complete 8 restoration projects.', cat: 'village', tier: 2, icon: 'brick', test: (g) => projectsDone(g) >= 8, prog: (g) => [projectsDone(g), 8] },
   { id: 'clock', name: 'The Clock Strikes', desc: 'Restart the town clocktower.', cat: 'village', tier: 3, icon: 'clockwork_core', test: (g) => g.flags.has('clock_fixed') },
 
   // ---------------- Home & Life ----------------

@@ -37,9 +37,10 @@ await page.evaluate(async () => {
   for (let y = 24; y <= 40; y++) for (let x = 40; x <= 66; x++) { g.map.setO(x, y, window.__O.NONE); g.soil.delete(g.map.idx(x, y)); }
   g.research.done.add('r_preserves');
   g.flags.add('lab');
-  const gs = (g.sys.guild ??= { unlocked: true, rep: 0, list: [] });
-  gs.unlocked = true;
-  gs.list = [{ id: 'test', spec: 'stone', label: 'Test stone', need: 99999, have: 0, reward: 1, rep: 0, done: false }];
+  const os = g.sys.orders;
+  os.guild.unlocked = true;
+  os.open = os.open.filter((o) => o.kind !== 'guild');
+  os.open.push({ uid: 9999, kind: 'guild', def: 'test', cust: 'guild', lines: [{ spec: 'stone', n: 99999, have: 0 }], day: 0, due: 1e9, pay: 1, rep: 0 });
 });
 
 // UI geometry of the struct window (mirrors drawStruct / the panels): screen px of a slot
@@ -85,7 +86,7 @@ const CASES = [
   { id: 'crate', item: 'radish', has: () => page.evaluate(() => window.__game.ents.get(window.__game.shipBinId).inv.countId('radish')) },
   { id: 'jar', x: 48, y: 26, item: 'cogbean', has: () => page.evaluate(() => { const e = window.__game.ents.get(window.__play.win.arg); let n = 0; for (const [k, v] of e.mach.inBuf) n += v; return n + (e.mach.crafting ? 1 : 0); }) },
   { id: 'lab', x: 52, y: 26, item: 'bundle_green', has: () => page.evaluate(() => { const e = window.__game.ents.get(window.__play.win.arg); return e.inv.countId('bundle_green'); }) },
-  { id: 'freight_depot', x: 58, y: 26, item: 'stone', has: () => page.evaluate(() => window.__game.sys.guild.list[0].have) },
+  { id: 'freight_depot', x: 58, y: 26, item: 'stone', has: () => page.evaluate(() => window.__game.sys.orders.open.find((o) => o.def === 'test').lines[0].have) },
 ];
 for (const c of CASES) {
   await open(c.id, c.x, c.y);

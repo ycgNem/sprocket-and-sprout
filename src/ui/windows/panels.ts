@@ -18,8 +18,9 @@ import { STRUCT_PANELS } from './struct';
 import { itemTooltip } from '../tooltips';
 import { PORT_HANDLERS } from '../../sim/ports';
 import { ICON } from '../font';
-import { contractInsert, daysLeftInWeek, guild, guildRank, specLabel } from '../../sim/systems/contracts';
-import { GUILD_BONUS_PER_RANK, GUILD_RANKS } from '../../data/contracts';
+import { daysLeftInWeek, depotInsert, guildRank, orderTitle, orders, repOf, specLabel } from '../../sim/systems/orders';
+import { GUILD_BONUS_PER_RANK } from '../../data/contracts';
+import { REP_RANKS } from '../../data/orders';
 import { specIcon } from './menu';
 
 /** row height of the coop/barn animal list (fits the 28x26 barn animals at 1:1) */
@@ -193,34 +194,37 @@ STRUCT_PANELS.megaproject = (ui, play, e, x, y, w, st) => {
 
 STRUCT_PANELS.depot = (ui, play, e, x, y, w, st) => {
   const g = play.g;
-  const gs = guild(g);
-  st.data.target = (k: number, n: number) => contractInsert(g, k, n);
-  const rank = guildRank(g);
-  const next = GUILD_RANKS[rank + 1];
-  ui.text(`Guild rank: ${GUILD_RANKS[rank].name}  (+${Math.round(rank * GUILD_BONUS_PER_RANK * 100)}% shipping)`, x + 14, y + 2, C.ink);
+  const os = orders(g);
+  st.data.target = (k: number, n: number) => depotInsert(g, k, n);
+  const r = guildRank(g);
+  const next = REP_RANKS[r + 1];
+  const rep = repOf(g, 'guild');
+  ui.text(`Guild rank: ${REP_RANKS[r].name}  (+${Math.round(r * GUILD_BONUS_PER_RANK * 100)}% shipping)`, x + 14, y + 2, C.ink);
   if (next) {
-    ui.bar(x + 14, y + 12, 150, 4, (gs.rep - GUILD_RANKS[rank].rep) / (next.rep - GUILD_RANKS[rank].rep), C.amber);
-    ui.text(`${gs.rep}/${next.rep} rep to ${next.name}`, x + 170, y + 10, C.walnut);
+    ui.bar(x + 14, y + 12, 150, 4, (rep - REP_RANKS[r].rep) / (next.rep - REP_RANKS[r].rep), C.amber);
+    ui.text(`${rep}/${next.rep} rep to ${next.name}`, x + 170, y + 10, C.walnut);
   }
   const left = daysLeftInWeek(g);
-  ui.text(`New contracts every Monday. ${left === 1 ? 'Last day this week!' : left + ' days left this week.'}`, x + 14, y + 20, left === 1 ? C.brick : C.oak);
-  if (!gs.unlocked) {
+  ui.text(`New contracts every Monday (also on the Orders board). ${left === 1 ? 'Last day this week!' : left + ' days left this week.'}`, x + 14, y + 20, left === 1 ? C.brick : C.oak);
+  const list = os.open.filter((o) => o.kind === 'guild');
+  if (!os.guild.unlocked || !list.length) {
     ui.para('The Guild has not posted any contracts yet.', x + 14, y + 34, w - 28, C.walnut);
     return 60;
   }
-  gs.list.forEach((c, i) => {
+  list.forEach((c, i) => {
     const yy = y + 32 + i * 30;
+    const l = c.lines[0];
     ui.panel(x + 12, yy, w - 24, 28, 'paper', false);
-    const icon = c.spec[0] === '#' ? specIcon(c.spec) : c.spec;
+    const icon = l.spec[0] === '#' ? specIcon(l.spec) : l.spec;
     ui.itemIcon(key(icon), x + 17, yy + 6, 16);
-    ui.text(c.label, x + 38, yy + 3, c.done ? C.moss : C.ink);
-    ui.text(`${specLabel(c.spec)}: ${c.have}/${c.need}`, x + 38, yy + 12, C.walnut);
-    ui.bar(x + 38, yy + 21, w - 140, 4, c.have / c.need, c.done ? C.leaf : C.moss);
-    ui.text(c.done ? 'Filled!' : `${ICON.coin}${c.reward.toLocaleString()}`, x + w - 18, yy + 4, c.done ? C.moss : C.amber, { align: 'right' });
+    ui.text(orderTitle(c), x + 38, yy + 3, c.done ? C.moss : C.ink);
+    ui.text(`${specLabel(l.spec)}: ${l.have}/${l.n}`, x + 38, yy + 12, C.walnut);
+    ui.bar(x + 38, yy + 21, w - 140, 4, l.have / l.n, c.done ? C.leaf : C.moss);
+    ui.text(c.done ? 'Filled!' : `${ICON.coin}${(c.pay ?? 0).toLocaleString()}`, x + w - 18, yy + 4, c.done ? C.moss : C.amber, { align: 'right' });
     ui.text(`+${c.rep} rep`, x + w - 18, yy + 14, C.oak, { align: 'right' });
-    if (ui.hover(x + 12, yy, w - 24, 28)) ui.tip([{ text: c.label, color: C.amber }, { text: `Deliver ${c.need} ${specLabel(c.spec).toLowerCase()}` }, { text: 'Arms can feed the depot directly. Shift-click items in your bag below, or right-click the depot while holding them.', color: C.pebble }]);
+    if (ui.hover(x + 12, yy, w - 24, 28)) ui.tip([{ text: orderTitle(c), color: C.amber }, { text: `Deliver ${l.n} ${specLabel(l.spec).toLowerCase()}` }, { text: 'Arms can feed the depot directly. Shift-click items in your bag below, or right-click the depot while holding them.', color: C.pebble }]);
   });
-  return 32 + gs.list.length * 30 + 4;
+  return 32 + list.length * 30 + 4;
 };
 
 STRUCT_PANELS.splitter = (ui, play, e, x, y, w) => {

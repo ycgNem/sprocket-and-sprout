@@ -19,7 +19,6 @@ import './systems/mine';
 import './systems/quests';
 import './systems/orders';
 import './systems/goals';
-import './systems/contracts';
 import './systems/cookbook';
 import './systems/founders';
 import './systems/festivals';
