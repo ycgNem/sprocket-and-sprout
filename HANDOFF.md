@@ -163,13 +163,14 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 152 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5, the Keeper's Line)
+npm test                                   # 222 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5, the Keeper's Line, orders, eras and the k11-k17 chain, the Deepworks, the town keystones, save v5)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
 npx vite-node scripts/pace.ts story rush   # economy: the bot's 28-day earnings on 8 seeds (a few minutes)
 npx vite-node scripts/accept.ts            # the critic's Phase 2 acceptance: crocks working on days 5-7, day-6 income, the mill
+npx vite-node scripts/mill20.ts            # Phase 3's done-when: the day each main quest finished, per seed (the Mill by day 20)
 npm run build                              # production build, about 1.2 MB JS (386 KB gzipped) + ~520 KB of PNG sheets
 node e2e/smoke.mjs http://localhost:5173/  # real UI smoke, 0 console errors expected
-npm run screens                            # 67-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 for another size
+npm run screens                            # 71-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 for another size
 node e2e/coverage.mjs                      # every sprite name vs imported art (6415/6415 = 100% expected)
 node e2e/sprites.mjs <name> ...            # imported vs procedural sprites side by side
 BASE=http://localhost:5173/ node e2e/flow.mjs  # real input: two-step new game, farm, house, bed, reload
@@ -180,22 +181,23 @@ BASE=http://localhost:5173/ node e2e/works.mjs     # the automation core on scre
 BASE=http://localhost:5173/ node e2e/terrainshots.mjs   # bridges, a farm plot, the square: painted ground transitions
 node e2e/seams.mjs                         # Wang-set seam audit -> e2e/out/seams.md (165 offenders listed for Phase 6)
 BASE=http://localhost:5173/ node e2e/perf.mjs      # 1,300 belts / 260 machines: < 1 ms a tick, the night shift < 3 s
+BASE=http://localhost:5173/ node e2e/minex.mjs     # the Deepworks: a level of every stratum, vents, set-down lamps, a chamber card, the lift
+BASE=http://localhost:5173/ node e2e/townworks.mjs # the town keystones on screen: the mill, the lamps on your power, the fountain, the tram
 ```
 
-Last results (October 10, 2026, before the critic's supply fixes; re-run them): everything
-above passes with 0 console errors; the sweep is 67 shots / 0 issues at 1280x720; at 1366x620 it flags two "covered"
-labels in the research tree that the screenshot doesn't show (clipped nodes; the window wasn't
-touched in Phase 2). `e2e/shift.mjs` 185/185; `e2e/perf.mjs` 0.32 ms a tick, the night shift
+Last results (October 10, 2026, night, after the critic's Phase 3+4 fixes): typecheck, 222 tests,
+the year-long run, `mill20` 8/8 (days 15-18), `minex` and `townworks` pass with 0 console errors;
+the sweep is 71 shots / 0 issues at 1280x720 and at 1366x620. (From before Phase 3, not re-run:) `e2e/shift.mjs` 185/185; `e2e/perf.mjs` 0.32 ms a tick, the night shift
 1.5 s. `e2e/qa.mjs` logs "missing sprite i:hoe_0" warnings: its contact sheet asks tools for an
 icon name they don't use (harmless).
 
-Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 10, branch `works`):
+Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 10, night, branch `works`):
+- Story: average 65.7k coins (62.3k to 68.8k); Clockwork Rush 66.0k (64.7k to 68.6k). The Rush
+  medals are 40k / 75k / 110k (DECISIONS #97). Phase 2's numbers, for history:
 - Story: average 42.2k coins (39.6k to 45.4k). Before Phase 2: 20.9k; 1.1: 10.7k.
 - Clockwork Rush: average 39.9k (38.1k to 43.4k). Before Phase 2: 23.1k; 1.1: 13.0k.
 - Why it doubled: the jar line runs from minute 3 (the Keeper's Line), the bot builds its own
   crock line on day 2-3, fills Rowan's and Bram's orders, and waters the beds that feed its line.
-  **The Rush medals (20k / 40k / 65k) now sit at about 0.5x / 1.0x / 1.6x the bot: re-tune them
-  with the economy in Phase 3.**
 - Day 1 earns about 4.1k.
 - Adding or removing a villager changes how many random rolls happen per tick, so per-seed results
   shift (weather, drops). Judge balance on the 8-seed average, never on one seed. A seed that
