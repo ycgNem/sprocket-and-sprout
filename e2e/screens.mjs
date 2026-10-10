@@ -296,6 +296,16 @@ const SC = {
     await wait(300);
     await ev(`(() => { S.play.hud.toasts = []; })()`);
   },
+  // a bench test with something to say: a furnace row that runs its chest's stack of ore dry, and a stray crock left off
+  'bench-notes': async () => {
+    await ev(`(async () => { const T = await import('/src/sim/testbed.ts'); const g = S.g; S.play.closeWindow(); g.player.inv.add(S.key('copper_ore'), 1);
+      const it = (def, dx, dy, rot = 0, extra = {}) => ({ def, dx, dy, rot, ...extra });
+      const bp = { w: 5, h: 3, items: [it('chest_wood', 0, 0), it('arm_basic', 1, 0, 1), it('furnace', 2, 0, 0, { recipe: 'smelt:copper' }), it('arm_basic', 3, 0, 1), it('shipping_crate', 4, 0), it('jar', 2, 2)] };
+      const name = 'A furnace row and a stray crock'; S.play.openWindow('bench', { name, bp, sel: 0 });
+      const d = S.play.win.data; const run = T.startBed(g, bp); T.stepBed(run, T.BED_TICKS); d.run = run; d.name = name; d.bp = bp; d.mode = 'run'; })()`);
+    await wait(300);
+    await ev(`(() => { S.play.hud.toasts = []; })()`);
+  },
   // the Orders board four days before the Fair: its notice pinned over the orders
   'board-fair': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.time.season = 0; g.time.day = 10; g.time.min = 9 * 60; ${ORDERS}; S.play.openWindow('board'); })()`),
   // the Harvest Haul's auction, mid-call: a few bids in, "Going once..."

@@ -21,7 +21,7 @@ import { kDef, key } from '../../sim/inventory';
 import { villagerName } from '../../sim/systems/orders';
 import { festivalName } from '../../sim/systems/festivals';
 import { itemPos } from '../../sim/systems/belts';
-import { BED, BED_TICKS, bedDone, bedScore, bedTally, startBed, stepBed, type BedRun, type BedTally } from '../../sim/testbed';
+import { BED, BED_STOCK, BED_TICKS, bedDone, bedScore, bedTally, ranDry, startBed, stepBed, type BedRun, type BedTally } from '../../sim/testbed';
 import { MState } from '../../sim/mstate';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
@@ -312,6 +312,8 @@ function bedNotes(ui: UI, run: BedRun, x: number, y: number, w: number, maxY: nu
   if (run.skipped.length) notes.push(`Can't stand on the plate (a river, a vein, a tree, or over the edge): ${counted(run.skipped)}.`);
   if (run.missing.length) notes.push(`No stock for: ${run.missing.map(name).join(', ')} (none at home, or worth nothing).`);
   if (run.noBasket) notes.push('A gleaner or crane that never picked has no basket.');
+  const dry = ranDry(run);
+  if (dry.length) notes.push(`Ran dry: ${dry.map(name).join(', ')} (a feeding chest starts with a stack of ${BED_STOCK}).`);
   for (const n of notes) {
     const h = ui.para(n, x, y, w, C.brick, 9);
     if (y + h > maxY) break;

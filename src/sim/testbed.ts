@@ -2,11 +2,12 @@
 // review). Bring a line as a blueprint and the square's 6x6 plate builds it in a throwaway world
 // (`new Game({ blank })`: nothing in the real one changes), then runs it for five minutes of works
 // time:
-// - every chest that feeds a machine starts with 99 of what that machine runs on (its locked
-//   recipe's inputs, else the recipe it last ran, else the first one it can run), if your farm has
-//   some of it (in the bag, a chest, a crate or a machine, growing in a field, or ever shipped or
+// - every chest that feeds a machine starts with a stack (99) of what that machine runs on (its
+//   locked recipe's inputs, else the recipe it last ran, else the first one it can run), if your farm
+//   has some of it (in the bag, a chest, a crate or a machine, growing in a field, or ever shipped or
 //   found) and it is worth something: the plate runs your line on your goods, not on ore you never
-//   dug (and not on junk such as tin cans);
+//   dug (and not on junk such as tin cans). A fast machine can run its stack dry before the bell (a
+//   furnace on copper ore at 4:24); the result says so;
 // - fuel burners start with 20 coal, and the plate's own grid powers everything fully (power.ts reads
 //   `sys.bedPower`), so generators stand idle there;
 // - a gleaner or a harvest crane picks from a basket of the crop it last picked at home, at its own
@@ -63,6 +64,8 @@ export interface BedRun {
   idle: string[];
   /** inputs the chests didn't get: none at home, or worth nothing (item ids) */
   missing: string[];
+  /** what the chests were stocked with: chest id and item id */
+  stocked: { e: number; id: string }[];
   /** gleaners and cranes with no crop to pick: they never picked one at home */
   noBasket: number;
   /** goods made and used up on the plate, by item key (quality kept), as the machines make and use them */
@@ -195,8 +198,10 @@ function stock(run: BedRun, home: Set<string>) {
       }
     }
     for (const id of want) {
-      if (home.has(id) && (ITEM_BY_ID.get(id)?.price ?? 0) > 0) e.inv.add(key(id), BED_STOCK);
-      else if (!run.missing.includes(id)) run.missing.push(id);
+      if (home.has(id) && (ITEM_BY_ID.get(id)?.price ?? 0) > 0) {
+        e.inv.add(key(id), BED_STOCK);
+        run.stocked.push({ e: e.id, id });
+      } else if (!run.missing.includes(id)) run.missing.push(id);
     }
   }
   const coal = key('coal');
@@ -238,7 +243,7 @@ export function startBed(real: Game, blueprint: Blueprint): BedRun {
   g.player.x = g.player.y = -10;
   g.sys.bedPower = true;
   g.sys.bedBasket = basketPick;
-  const run: BedRun = { g, ticks: 0, skipped: [], idle: [], missing: [], noBasket: 0, made: new Map(), used: new Map() };
+  const run: BedRun = { g, ticks: 0, skipped: [], idle: [], missing: [], stocked: [], noBasket: 0, made: new Map(), used: new Map() };
   for (const it of buildOrder(bp.items)) {
     const x = ox + it.dx, y = oy + it.dy;
     if (!STRUCT_BY_ID.has(it.def) || !canPlace(g, it.def, x, y, it.rot, { ignoreZone: true }).ok) {
@@ -302,6 +307,13 @@ export function stepBed(run: BedRun, ticks: number) {
 }
 
 export const bedDone = (run: BedRun) => run.ticks >= BED_TICKS;
+
+/** the stock the line has used to the last (item ids): a chest it was stocked in stands empty of it */
+export function ranDry(run: BedRun): string[] {
+  const out: string[] = [];
+  for (const s of run.stocked) if (!out.includes(s.id) && (run.g.ents.get(s.e)?.inv?.countId(s.id) ?? 0) === 0) out.push(s.id);
+  return out;
+}
 
 /** the item a batch used for one of its recipe's inputs (a tag's: what the machine is being fed) */
 function inputKey(m: MachC, spec: string): ItemKey | null {

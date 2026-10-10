@@ -24,11 +24,11 @@ export interface FairEntry {
  * Year 1 is tuned on the plate against the pacing bot's farms on spring 13 (seeds 2024, 7 and 99) and
  * sample lines (tests/fairs.test.ts records them): a crock of pickled cogbeans adds 68 coins a minute
  * (the keeper's line copied, a gleaner's crock line), two crocks 136, four 271; a furnace row of copper
- * 276 (its 99 ore last the run), six rows 1,656, six of tin 1,933; the keeper's river mill copied 373;
- * three grist mills on barley 1,119, on grain 2,138, on beets 2,366; six furnace rows of iron 2,522. So
- * any first line beats the Professor, a dense spring line (four crocks, a furnace row, the river mill)
- * beats Bram, and Juniper waits for the Mill era's lines (grist mills on grain or beets, sawmills) or a
- * smelting line on iron from the Frost.
+ * 276 (its chest's stack of ore runs dry at 4:24), six rows 1,656, six of tin 1,933; the keeper's
+ * river mill copied 373; three grist mills on barley 1,119, on grain 2,138, on beets 2,366; three
+ * sawmills 2,930; six furnace rows of iron 2,522. So any first line beats the Professor, a dense
+ * spring line (four crocks, a furnace row, the river mill) beats Bram, and Juniper waits for the Mill
+ * era's lines (grist mills on grain or beets, sawmills) or a smelting line on iron from the Frost.
  */
 export const FAIR_ENTRIES: FairEntry[] = [
   { who: 'ottoline', what: 'pickled cogbeans from her old crock', base: 50 },

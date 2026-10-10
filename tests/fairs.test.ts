@@ -9,7 +9,7 @@ import '../src/sim';
 import { DAY_END, Game, SYSTEMS } from '../src/sim/Game';
 import { key, kDef, sellPrice } from '../src/sim/inventory';
 import { copyBlueprint, type Blueprint, type BlueprintItem } from '../src/sim/blueprint';
-import { BED_COAL, BED_MINUTES, BED_STOCK, BED_TICKS, bedScore, bedTally, homeGoods, scoreBlueprint, startBed, stepBed } from '../src/sim/testbed';
+import { BED_COAL, BED_MINUTES, BED_STOCK, BED_TICKS, bedScore, bedTally, homeGoods, ranDry, scoreBlueprint, startBed, stepBed } from '../src/sim/testbed';
 import { CLOCK_YEAR, FAIR_ENTRIES, FAIR_TOP_YEAR, fairEntries, fairPlace, fairResult } from '../src/sim/fair';
 import { FESTIVALS } from '../src/data/goals';
 import { NPCS } from '../src/data/npcs';
@@ -171,6 +171,11 @@ describe('the Sprocket Fair test plate', () => {
     expect(mills.skipped).toEqual([]);
     stepBed(mills, 120);
     for (const m of mills.g.ents.machines) expect(m.sat).toBe(1);
+    // a stack a chest: a furnace on copper (3 ore every 8 s) runs it dry before the bell, and the result says so
+    stepBed(run, BED_TICKS);
+    expect(ranDry(run)).toEqual(['copper_ore']);
+    stepBed(mills, BED_TICKS);
+    expect(ranDry(mills)).toEqual([]);
     // gold ore the farm never dug isn't stocked (the furnaces locked to gold make nothing), nor junk worth nothing
     expect(score.gold6).toBe(0);
     expect(startBed(real, LINES.gold6).missing).toEqual(['gold_ore']);
