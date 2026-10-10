@@ -26,6 +26,11 @@ fixed (DECISIONS #99): the Waterworks' order goes up with k11 and the Now strip 
 any oil counts, Tinkering comes first and levels from machine output, the professions run
 machines (Governor, Field Hand, Long Reach, Crock Master, Sawyer, Drill Rigger, Furnace Hand)
 instead of raising prices, and the Earth stratum's cracked ceilings take plank props.
+**Where it stopped:** the user's request (Phase 2's remainder, then all of Phases 3 and 4) is done
+and committed on `works` (the last code commit is `72ff71b`). The fixes made after the critic's confirmation pass (`928a07c`..
+`72ff71b`: the Council crate's tag, the profession pairs, the plank props, the 960x600 layout) are
+tested (every check below) but the critic hasn't seen them yet; Phase 5's full review covers them.
+Next is Phase 5 ("What's next" below).
 **The owner deferred the 2.0 beta merge**; don't merge to `main` or push unless the owner says so.
 The owner's rules since Phase 1: hand farming stays, but the factory is the face (ROADMAP.md 3.2,
 DECISIONS #68); one path for every player, no "pick a direction" card (#72); the Preserves Jar is
@@ -35,7 +40,7 @@ the Preserving Crock (#76). ROADMAP.md is the 2.0 plan; ROADMAP-1.1.md the finis
   `npx vite-node scripts/mill20.ts`); `data.test.ts` validates every order and keystone;
   `e2e/minex.mjs` walks all six strata; the year-long bot restores the lift; the Tram runs on a
   reloaded game (`tests/townworks.test.ts`); a chain-walk test takes k11 to k17
-  (`tests/eras.test.ts`); the sweep is clean at 1280x720 and 1366x620. Pacing (28 days, 8 seeds):
+  (`tests/eras.test.ts`); the sweep is clean at 1280x720, 1366x620 and 960x600. Pacing (28 days, 8 seeds):
   Story 65.9k, Rush 66.3k; Rush medals 40k / 75k / 110k (DECISIONS #97).
 - **Phase 2 on `works`** (`7fc17bf` session 1, `b5c2140` session 2, `7bada4d` the pre-merge
   review fixes, then the critic's fixes): the Keeper's Line (rust and restore, the chain, the Now
@@ -343,7 +348,8 @@ Phase 5 of ROADMAP.md (2.0 "The Works"), on branch `works`:
 > k16 "The Tram"; Thorne knows the old works). Tock if there is time. Keep the owner's rules (below).
 > Done when `e2e/roxy.mjs`-style real-input passes for two re-roled villagers and both new events,
 > `e2e/house.mjs` with indoor structures, the checks and the sweep pass, and the critic's full
-> review passes. Commit on `works` as you go; don't merge to `main` or push unless the owner says so.
+> review passes (it also covers the fixes made after its Phase 3+4 confirmation pass, `928a07c`..
+> `72ff71b`). Commit on `works` as you go; don't merge to `main` or push unless the owner says so.
 
 Owner rules to keep in mind (all in DECISIONS.md): cut old systems freely, but hand farming
 (till, plant, water, harvest) stays (#61); the factory must be apparent and un-Stardew-like at a
@@ -403,7 +409,8 @@ Patterns from 1.2 Phases 3-4 (Orders, eras, the Town Mill, the Deepworks):
 - Parallel agents: one per disjoint subsystem, each in a git worktree outside the repo
   (`../sns-crops`, `../sns-deep`, `../sns-town`) with node_modules as a junction to the main
   repo's; remove the junction (`cmd /c rmdir`) before `git worktree remove`, or it deletes the real
-  node_modules.
+  node_modules. Those three worktrees are still on disk, clean, and their branches (`works-crops`,
+  `works-deep`, `works-deep2`, `works-town`) have nothing `works` lacks: safe to remove that way.
 
 Patterns from 1.2 Phase 2 (the Keeper's Line):
 - The opening's layout is data in `src/sim/opening.ts`: `OPENING` (the yard, marked tiles) and
@@ -534,8 +541,11 @@ visible change over polish.
   `tileColor`, `SEASON_COL` and two banner colours use raw palette indices instead of `C` names.
 - From the 1.1 critic review, not fixed: the list at the end of ROADMAP.md Phase 4 (arms read as
   "?" at rest, the day-2 toast behind the tracker, shift-click in the backpack, look-alike tool
-  icons, the farmhouse doorway, research window colours, the 960x600 embed size, the jar costing
-  402 at the Workshop vs 400 at the Mercantile).
+  icons, the farmhouse doorway, research window colours, the jar costing 402 at the Workshop vs
+  400 at the Mercantile). The 960x600 embed size is done: the sweep is clean there since the
+  Phase 3+4 re-checks (`VIEW=960x600 npm run screens`).
+- Untracked and left alone: `art/factory/arms/ref/batch1/` and `batch1-contact.png` (arm reference
+  images from October 10, 3 am, before Phases 3-4). Keep or delete them as the owner likes.
 - Roxy's 64 px portrait sits next to 32 px-at-2x portraits in the same dialogue frame. The critic
   flagged the mixed pixel density; the owner asked for her to be more detailed, so it stays.
 

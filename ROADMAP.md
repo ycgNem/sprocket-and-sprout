@@ -1054,7 +1054,7 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
   2.0.0-beta.1; `main` fast-forwards in `C:\Users\jacks\Documents\sns-p0check`; the owner pushes;
   the installers stay 1.1.1).
 
-### Phase 3 — Orders, research stages, the Mill (2 sessions) — BUILT 2026-10-10 on `works` with Phase 4; the critic's end review failed narrowly (the path ended at k10), its fixes are in (DECISIONS #93-#98); the re-check PASSED WITH FIXES and those are in too (DECISIONS #99); not merged
+### Phase 3 — Orders, research stages, the Mill (2 sessions) — BUILT 2026-10-10 on `works` with Phase 4; the critic's end review failed narrowly (the path ended at k10), its fixes are in (DECISIONS #93-#98); the re-check and its confirmation pass PASSED WITH FIXES and those are in too (DECISIONS #99; the last few fixes await the critic's Phase 5 review); not merged
 - 7.4 the Orders board (unifying requests, contracts, projects; consignment; per-business
   reputation); 7.3 research stages, era columns, era rewards, the 12 nodes pruned; 7.1 crop
   numbers and rapeseed; **4.10 the crop intermediates and the thresher** (moved here from Phase 1 by
