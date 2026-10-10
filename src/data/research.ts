@@ -64,7 +64,7 @@ export const RESEARCH: ResearchDef[] = [
   { id: 'r_steam', name: 'Steam Power', desc: 'Fuel-burning steam engines and iron pylons.', icon: 'steam_engine', cost: cost(25, ...E3), unitTime: 15, prereq: ['r_power', 'r_brass'], era: 3, row: 0,
     keystone: {
       observe: { flag: 'observed:boiler', label: 'Study the seized boiler in the Deepworks (level 10)' },
-      experiment: [{ t: 'count', key: 'made:charcoal_kiln', n: 5, label: 'Burn 5 coal in a charcoal kiln' }],
+      experiment: [{ t: 'count', key: 'made:charcoal_kiln', n: 5, label: 'Make 5 coal in a charcoal kiln' }],
     } },
   { id: 'r_towers', name: 'Copper Towers', desc: 'Tall poles whose wires stretch 26 tiles.', icon: 'pole_tower', cost: cost(25, ...E3), unitTime: 15, prereq: ['r_steam'], era: 3, row: 0 },
   { id: 'r_battery', name: 'Spring Batteries', desc: 'Wind spare power into springs for later.', icon: 'spring_battery', cost: cost(25, ...E3), unitTime: 15, prereq: ['r_steam'], era: 3, row: 1 },

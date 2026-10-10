@@ -146,7 +146,7 @@ export const QUESTS: QuestDef[] = [
     desc: 'The boiler showed how it is done: coal heats water, steam pushes a piston, the piston turns a wheel. Study Steam Power and the Waterworks can be built. Its bundles are Harvest Bundles: a jar of preserves, a length of canvas and a copper coil each, so the crocks, a loom and the smelter all work for it.',
     hint: 'Harvest Bundles are crafted (C). The hand loom makes canvas from 2 flax or 8 fiber; copper coils are wound from copper bars, 2 a bar. Steam Power also needs Brass Working.',
     objectives: [
-      { t: 'stage', id: 'r_steam', stage: 'experiment', label: 'Burn 5 coal in a charcoal kiln', why: "Try: stage 2. A kiln turns wood into coal, the engine's fuel." },
+      { t: 'stage', id: 'r_steam', stage: 'experiment', label: 'Make 5 coal in a charcoal kiln', why: "Try: stage 2. A kiln turns wood into coal, the engine's fuel." },
       { t: 'research', id: 'r_weaving', label: 'Study Weaving at the desk', why: 'A hand loom: canvas from flax or fiber, for Harvest Bundles.' },
       { t: 'made', struct: 'hand_loom', n: 10, label: 'Weave 10 loads on a hand loom', why: '2 flax or 8 fiber make a length of canvas. An arm can keep the loom fed from a chest.' },
       { t: 'research', id: 'r_brass', label: 'Study Brass Working at the desk', why: 'Steam Power builds on it: copper and tin make brass.' },
