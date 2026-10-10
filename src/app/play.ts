@@ -1621,6 +1621,8 @@ export class PlayScreen implements Screen {
         }
         case 'dayEnd':
           this.app.loop.fastForward = null;
+          // a card the night's post raised (a keystone finished by a tagged crate) waits for the summary
+          if (this.win?.id === 'message') this.winQ.unshift({ id: this.win.id, arg: this.win.arg });
           this.openWindow('summary', e.summary);
           break;
         case 'ui':
