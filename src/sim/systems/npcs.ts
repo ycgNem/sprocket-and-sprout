@@ -262,13 +262,15 @@ export function chooseLine(g: Game, n: NPCState, d: NPCDef): string {
     (l.weekday === undefined || l.weekday === g.weekday) &&
     (l.time === undefined || l.time === tod) &&
     (l.festival === undefined || l.festival === festival) &&
-    (l.year === undefined || g.time.year >= l.year);
+    (l.year === undefined || g.time.year >= l.year) &&
+    (l.flag === undefined || g.flags.has(l.flag)) &&
+    (l.noFlag === undefined || !g.flags.has(l.noFlag));
   const cands = d.dialogue.filter(ok).filter((l) => !n.recent.includes(l.text));
   const pool = cands.length ? cands : d.dialogue.filter(ok);
   if (!pool.length) return '...';
-  // specific lines are more likely
+  // specific lines are more likely (a line about the town's keystones, too)
   const weight = (l: DialogueLine) =>
-    1 + (l.season !== undefined ? 1.5 : 0) + (l.weather !== undefined ? 3 : 0) + (l.minH !== undefined ? 1 + l.minH * 0.3 : 0) + (l.weekday !== undefined ? 2 : 0) + (l.time !== undefined ? 1.2 : 0) + (l.festival ? 6 : 0);
+    1 + (l.season !== undefined ? 1.5 : 0) + (l.weather !== undefined ? 3 : 0) + (l.minH !== undefined ? 1 + l.minH * 0.3 : 0) + (l.weekday !== undefined ? 2 : 0) + (l.time !== undefined ? 1.2 : 0) + (l.festival ? 6 : 0) + (l.flag !== undefined ? 2 : 0);
   const line = g.rng.weighted(pool, weight);
   n.recent.push(line.text);
   if (n.recent.length > 6) n.recent.shift();
