@@ -280,7 +280,7 @@
     professions renamed. DECISIONS #96. Rush medals 40k / 75k / 110k. DECISIONS #97.
   - the Deepworks: firedamp vents on a clock, lamps set down in the dark, chamber study cards,
     Starfall's shard rings (an agent in a worktree, merged). DECISIONS #98.
-  - After the fixes: the bot reaches the Mill on days 16-17 (8 of 8 seeds); a chain-walk test takes
+  - After the fixes: the bot reaches the Mill on days 15-18 (8 of 8 seeds); a chain-walk test takes
     k11 to k17; tests 222; the sweep is clean at both sizes; `e2e/minex.mjs` and
     `e2e/townworks.mjs` pass. Pacing: Story 65.7k, Rush 66.0k.
 

@@ -443,7 +443,7 @@ recommendations are the decisions.
     quest starts and takes goods at once; the works start when its research (and the Tram's rail
     cart) is done, with a toast if everything was in before. The Town Mill asks 40 meal (80 in
     DECISIONS #87): with the order visible from k10's first step, the bot reaches the Mill on days
-    16-17. Its finish is a scene (ROADMAP.md 7.5): the camera goes to the wheel as it starts turning,
+    15-18. Its finish is a scene (ROADMAP.md 7.5): the camera goes to the wheel as it starts turning,
     then the keystone's card, then the era's card (a window queue, so one doesn't replace the other).
 95. **The Works tab without the Community Center (M5).** The crop, fish, forage and gem baskets of the
     1.x restoration board (spring, summer and fall produce, river, harbour and lake fish, forage,
@@ -471,7 +471,7 @@ recommendations are the decisions.
     Wildcrafter, Prospector, Gemcutter, Smelter, Delver, Fishmonger, Trap-setter, Fly-tier,
     Crab-cracker, Hard Hat); their ids, and so saves, are unchanged.
 97. **Rush medals 40k / 75k / 110k (revises decision 90).** After the fixes the pace bot earns 66.0k
-    in a 28-day Rush (Story 65.7k) on 8 seeds and reaches the Town Mill on days 16-17. At 65k it took
+    in a 28-day Rush (Story 65.7k) on 8 seeds and reaches the Town Mill on days 15-18. At 65k it took
     silver on every seed, though its works stop growing after day 5 (the critic). Silver now asks
     about 1.15x the bot, gold about 1.65x, bronze about 0.6x.
 98. **The Deepworks' problems are solved by things you place or time (the critic's M6).** The review
