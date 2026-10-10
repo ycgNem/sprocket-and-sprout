@@ -539,7 +539,7 @@ describe('partners', () => {
   });
 });
 
-describe('traveling cart', () => {
+describe("Mags' freight cart", () => {
   it('visits on Fridays and Sundays with a weekly stock, and recipe cards teach recipes', async () => {
     const C2 = await import('../src/sim/systems/cart');
     const E = await import('../src/sim/systems/economy');
@@ -552,8 +552,10 @@ describe('traveling cart', () => {
     expect(C2.cartHere(g)).toBe(true);
     const stock = E.shopStock(g, 'cart');
     expect(stock.length).toBeGreaterThanOrEqual(7);
-    const card = stock.find((e) => e.item.startsWith('card_'))!;
-    expect(card).toBeTruthy();
+    // the week's curio is a recipe card one week in two (tests/fairs.test.ts checks the stock's rules):
+    // a card bought at the cart teaches its recipe
+    const card = stock.find((e) => e.item.startsWith('card_')) ?? { item: 'card_pancakes', price: 1200, daily: 1 };
+    if (!stock.includes(card)) g.sys.cart.stock.push(card);
     g.player.money = 100000;
     expect(E.buy(g, card, 1)).toBe(1);
     const out = card.item.slice(5);

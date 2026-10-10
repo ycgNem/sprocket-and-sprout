@@ -48,8 +48,9 @@ export const HOME_UPGRADES: HomeUpgrade[] = [
 
 export const SHOPS: ShopDef[] = [
   {
-    id: 'cart', name: "Mags' Traveling Cart", owner: 'peddler', loc: 'square', open: 480, close: 1140,
-    greeting: 'Rare goods from far roads! Fridays and Sundays only.',
+    // Mags the freight broker (2.0 Phase 5): the week's stock comes from src/sim/systems/cart.ts
+    id: 'cart', name: "Mags' Freight Cart", owner: 'peddler', loc: 'square', open: 480, close: 1140,
+    greeting: 'Parts from the far roads. On Sundays, a lot on the block.',
     stock: [],
   },
   {

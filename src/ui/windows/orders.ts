@@ -127,14 +127,17 @@ function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number)
       const all = wrapText(`"${def.text}"`, tw - 70);
       all.slice(0, 3).forEach((l, i) => ui.text(i === 2 && all.length > 3 ? ellipsize(l + ' ' + all.slice(3).join(' '), tw - 70) : l, tx, yy + 4 + i * 9, C.walnut));
       ui.text(dueText(g, o), x + w - 10, yy + 4, C.oak, { align: 'right' });
+      // a shortage week (Mags' cart has the goods, at a price)
+      if (o.short) ui.text('Shortage', x + w - 10, yy + 14, C.brick, { align: 'right' });
       drawLines(ui, o, tx, yy + 39, tw - 120);
-      // what it pays now: the Harvest Haul doubles it today
+      // what it pays now: a shortage's 25% is in the order's unit, the Haul doubles it today
       const unit = (o.unit ?? def.unit) * (haul ? 2 : 1);
       const pay = unit ? `${ICON.coin}${unit} each${def.silver ? `, silver ${unit * 2}` : ''}${haul ? ' today' : ''}` : def.reward?.text ?? '';
       ui.text(ellipsize(pay, 140), x + w - 10, yy + 39, orderFull(o) ? C.moss : haul ? C.amber : C.oak, { align: 'right' });
       if (ui.hover(x + 4, yy, w - 8, 52)) {
         ui.tip([
           { text: `${custName(cust)}: ${ITEM_BY_ID.get(def.spec)?.name ?? specLabel(def.spec)}`, color: C.amber },
+          ...(o.short ? [{ text: `A shortage: this week's order is twice the size and pays 25% more an item. Mags' cart has some, at a price.`, color: C.rose }] : []),
           ...(haul ? [{ text: 'The Harvest Haul: it pays double today, by hand and by the post.', color: C.butter }] : []),
           { text: 'By hand: hold them and press F at ' + (npc ? villagerName(npc) : custName(cust)) + '.' },
           { text: `By the post: F at your crate, "Ship to" ${custName(cust)}. At noon, 6pm and overnight the post takes what fits this order there first.` },
