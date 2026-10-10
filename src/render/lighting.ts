@@ -123,6 +123,15 @@ export class Lighting {
         const f = FURN_BY_ID.get(d.id);
         if (f?.light) out.push({ x: d.x + f.w / 2, y: d.y - 0.2, r: f.light.r, i: 0.85, c: f.light.c, flicker: d.id === 'f_lamp' });
       }
+      // structures placed indoors (Workshop HQ): a lantern post lights the room, a working furnace or
+      // oven glows, a desk shows its little lamp (no grid indoors: lanterns burn oil at full light)
+      for (const e of g.houseEnts.map.values()) {
+        if (e.ghost || e.parent) continue;
+        const L = e.def.light;
+        if (e.def.kind === 'lamp') out.push({ x: e.x + 0.5, y: e.y - 0.4, r: L?.r ?? 6, i: 0.95, c: C.amber, flicker: true });
+        else if (L && e.working) out.push({ x: e.x + e.w / 2, y: e.y + e.h / 2, r: L.r, i: 0.9, c: L.color, flicker: true });
+        else if (e.def.kind === 'lab') out.push({ x: e.x + e.w / 2, y: e.y, r: 2, i: 0.5, c: C.aqua });
+      }
       return out;
     }
     // your lantern: its reach underground depends on the stratum

@@ -2,7 +2,7 @@
 import { C } from '../../data/palette';
 import { ITEM_BY_ID } from '../../data/items';
 import type { RecipeDef } from '../../data/types';
-import { entName, type Ent } from '../../sim/ents';
+import { entById, entName, type Ent } from '../../sim/ents';
 import { Inventory, key, kDef, kId } from '../../sim/inventory';
 import { availableRecipes, machInsert, setRecipe, stationRecipes } from '../../sim/systems/machines';
 import { gridSentence, POLE_SWITCH, powerState, togglePole } from '../../sim/systems/power';
@@ -23,7 +23,8 @@ export const STRUCT_PANELS: Record<string, (ui: UI, play: PlayScreen, e: Ent, x:
 
 export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
-  const e = g.ents.get(st.arg);
+  // a structure on the farm or in the farmhouse (Workshop HQ)
+  const e = entById(g, st.arg);
   if (!e || e.ghost) return false;
   const p = g.player;
   if (Math.hypot(e.x + e.w / 2 - p.x, e.y + e.h / 2 - p.y) > 10) return false;

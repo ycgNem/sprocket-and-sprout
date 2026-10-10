@@ -7,6 +7,7 @@ import './orders';
 import './activities';
 import './panels';
 import './home';
+import './workshop';
 import './perks';
 import './founders';
 import './achievements';

@@ -1,20 +1,28 @@
 // Quick stack: move bag items into nearby chests that already hold the same item.
 import type { Game } from './Game';
+import type { Ents } from './ents';
 import type { Inventory } from './inventory';
 
 export const STACK_RANGE = 7;
 
-export function quickStack(g: Game): { moved: number; chests: number } {
+export function quickStack(g: Game): { moved: number; chests: number; cellar: boolean } {
   const p = g.player;
   const targets: Inventory[] = [];
-  if (p.where === 'world') {
-    for (const e of g.ents.others) {
+  const near = (store: Ents) => {
+    for (const e of store.others) {
       if (e.def.kind !== 'chest' || e.ghost || !e.inv) continue;
       if (e.def.id === 'crate_out' || e.def.id === 'crate_req') continue;
       if (Math.hypot(e.x + e.w / 2 - p.x, e.y + e.h / 2 - p.y) > STACK_RANGE) continue;
       targets.push(e.inv);
     }
-  } else if (p.where === 'house' && g.sys.house?.pantry) targets.push(g.sys.house.pantry);
+  };
+  const pantry: Inventory | undefined = p.where === 'house' ? g.sys.house?.pantry : undefined;
+  if (p.where === 'world') near(g.ents);
+  else if (p.where === 'house') {
+    // the root cellar first, then the chests in the farmhouse (Workshop HQ)
+    if (pantry) targets.push(pantry);
+    near(g.houseEnts);
+  }
   let moved = 0;
   const used = new Set<Inventory>();
   // only the bag rows: the hotbar stays as it is
@@ -34,5 +42,5 @@ export function quickStack(g: Game): { moved: number; chests: number } {
     }
     if (st.n <= 0) p.inv.slots[i] = null;
   }
-  return { moved, chests: used.size };
+  return { moved, chests: used.size, cellar: !!pantry && used.has(pantry) };
 }

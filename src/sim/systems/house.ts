@@ -1,6 +1,6 @@
 // The farmhouse interior: a small cozy room with a bed, fireplace, kitchen, almanac.
 import { shortName } from '../../data/cookbook';
-import { Game, registerSystem } from '../Game';
+import { Game, registerSystem, type DaySummary } from '../Game';
 import { O, T, TileMap, Z } from '../world/tilemap';
 import { C } from '../../data/palette';
 import { SEASON_NAMES } from '../../data/types';
@@ -9,25 +9,32 @@ import { NPCS, NPC_BY_ID } from '../../data/npcs';
 import { HOME_UPGRADES } from '../../data/shops';
 import { FESTIVALS } from '../../data/goals';
 import type { RecipeDef } from '../../data/types';
-import { Inventory, key } from '../inventory';
+import { Inventory, key, kId, kQ } from '../inventory';
 import { almanacRecipe } from './cookbook';
 import { FURN_BY_ID, FurnDef } from '../../data/furniture';
 import { loadLib, saveLib } from '../drafting';
+import { HOUSE_DOOR, HOUSE_H, HOUSE_W, HOUSE_WIDE } from '../world/house';
 
-export const HOUSE_W = 14, HOUSE_H = 11;
-export const HOUSE_DOOR: [number, number] = [7, 10];
+export { HOUSE_W, HOUSE_H, HOUSE_DOOR, HOUSE_WIDE };
 export const WAKE_POS: [number, number] = [3.5, 4.4];
+/** the Workshop wing's first column (its stone floor); the drafting table stands in its far corner */
+export const WING_X = HOUSE_W;
+export const DRAFTING_AT: [number, number] = [19, 2];
 
 export function houseMap(g: Game): TileMap {
   if (g.sys.house?.map) return g.sys.house.map;
-  const m = new TileMap(HOUSE_W, HOUSE_H);
+  // the Workshop upgrade opens the east wall into a stone-floored wing (Workshop HQ, ROADMAP.md 7.8)
+  const wide = g.flags.has('home_workshop');
+  const W = wide ? HOUSE_WIDE : HOUSE_W;
+  const m = new TileMap(W, HOUSE_H);
+  m.indoors = true;
   m.zone.fill(Z.WILD);
   for (let y = 0; y < HOUSE_H; y++)
-    for (let x = 0; x < HOUSE_W; x++) {
-      const wall = y < 2 || x === 0 || x === HOUSE_W - 1 || y === HOUSE_H - 1;
-      m.ground[m.idx(x, y)] = wall ? T.HOUSEWALL : T.WOODFLOOR;
+    for (let x = 0; x < W; x++) {
+      const wall = y < 2 || x === 0 || x === W - 1 || y === HOUSE_H - 1;
+      m.ground[m.idx(x, y)] = wall ? T.HOUSEWALL : wide && x >= WING_X ? T.PATH : T.WOODFLOOR;
       // walls: 3 = upper papered face, 0 = lower face with wainscot, 1 = timber top; floors get a variety value
-      m.deco[m.idx(x, y)] = wall ? (x > 0 && x < HOUSE_W - 1 && y < 2 ? (y === 1 ? 0 : 3) : 1) : (x * 7 + y * 13) % 256;
+      m.deco[m.idx(x, y)] = wall ? (x > 0 && x < W - 1 && y < 2 ? (y === 1 ? 0 : 3) : 1) : (x * 7 + y * 13) % 256;
     }
   // the door gap
   m.ground[m.idx(HOUSE_DOOR[0], HOUSE_DOOR[1])] = T.WOODFLOOR;
@@ -54,10 +61,28 @@ export function houseMap(g: Game): TileMap {
   put(1, 8, O.HOUSEPLANT);
   put(12, 8, O.HOUSEPLANT, 1);
   put(HOUSE_DOOR[0], HOUSE_DOOR[1] - 1, O.DOORMAT);
+  if (wide) {
+    // the wing: a workbench under its tool wall, a window, and the drafting table in the corner
+    put(15, 1, O.TOOLWALL, 0);
+    put(16, 1, O.TOOLWALL, 1);
+    put(15, 2, O.WORKBENCH, 0);
+    put(16, 2, O.WORKBENCH, 1);
+    put(18, 1, O.WINDOW);
+    if (g.flags.has('home_drafting')) {
+      put(DRAFTING_AT[0], DRAFTING_AT[1], O.DRAFTING, 0);
+      put(DRAFTING_AT[0] + 1, DRAFTING_AT[1], O.DRAFTING, 1);
+    }
+  }
   m.locs.set('door', HOUSE_DOOR);
   if (!g.sys.house) g.sys.house = {};
-  Object.assign(g.sys.house, { map: m, enter: enterHouse, leave: leaveHouse, interact: houseInteract, hover: houseHover });
+  Object.assign(g.sys.house, { map: m, enter: enterHouse, leave: leaveHouse, interact: houseInteract, hover: houseHover, decorAt, flatDecor: (id: string) => !!FURN_BY_ID.get(id)?.flat });
   return m;
+}
+
+/** the room changed shape (the Workshop wing, the drafting table): build its map again */
+export function rebuildHouse(g: Game) {
+  if (g.sys.house) g.sys.house.map = null;
+  houseMap(g);
 }
 
 export function enterHouse(g: Game) {
@@ -80,8 +105,11 @@ export function leaveHouse(g: Game) {
   g.emit({ t: 'ui', open: 'fade' });
 }
 
-function almanacText(g: Game): string {
-  const W: Record<string, string> = { sun: 'sunny', rain: 'rainy (crops water themselves)', storm: 'stormy - stay safe!', snow: 'snowy', wind: 'breezy (good for windmills)' };
+/** what the ledger's almanac page says (read when the ledger is opened: on a Sunday it teaches a recipe) */
+export interface AlmanacBits { tomorrow: string; hot: string; soon: string[]; tip: string; season: string; recipe: string }
+
+export function almanacBits(g: Game): AlmanacBits {
+  const W: Record<string, string> = { sun: 'sunny', rain: 'rainy (crops water themselves)', storm: 'stormy: stay safe!', snow: 'snowy', wind: 'breezy (good for windmills)' };
   const hot = (g.sys.market?.hot ?? []).map((id: string) => ITEM_BY_ID.get(id)?.name).filter(Boolean).join(', ');
   const t = g.time;
   const soon: string[] = [];
@@ -93,30 +121,33 @@ function almanacText(g: Game): string {
     if (f) soon.push(`${f.name} (${SEASON_NAMES[season]} ${day})`);
   }
   const tips = [
-    'Belts keep moving even while you sleep. Overnight the factory catches up on the whole night.',
-    'Flooding the market with one product lowers its price. Diversify!',
-    'Hover over any machine to see what it is doing.',
-    'Quality fertilizer must go in before the seed sprouts.',
+    'The night shift runs your works from 2am to 6am: stock a chest before bed and the night pays for it.',
+    'Ship a lot of one thing and its price drops for a while. The ledger shows what is saturated.',
+    'Hover over any machine to see what it is doing, or hold I to light up its line.',
+    'A chest between two machines is a buffer: it evens out the flow.',
     'Ore veins in the quarry never run dry. Drills are your friend.',
     'Clockwork arms need no power. Brass arms are three times faster.',
-    'Villagers love gifts that match their personality. The journal remembers what they think of your held item.',
-    'A shipping crate fed by an arm sells everything overnight.',
+    'Tag the crate for a customer and the post takes their order to them first.',
+    'A machine indoors runs while you sleep, like the ones outside.',
     'Splitters share items evenly. Burrow belts tunnel under paths.',
     'Rain waters every outdoor crop. The greenhouse needs watering.',
   ];
   // the season notes that used to come as letters (DECISIONS #57)
   const SEAS = ['spring', 'summer', 'fall', 'winter'];
-  const seasonLine = t.day <= 3 ? `\n\nIt's early ${SEAS[t.season]}: new seeds are on the Mercantile's shelves.`
-    : t.day >= 24 ? `\n\n${29 - t.day} days of ${SEAS[t.season]} left. Crops out of season wither when ${SEAS[(t.season + 1) % 4]} comes, so plan what you plant.` : '';
+  const season = t.day <= 3 ? `It's early ${SEAS[t.season]}: new seeds are on the Mercantile's shelves.`
+    : t.day >= 24 ? `${29 - t.day} days of ${SEAS[t.season]} left. Crops out of season wither when ${SEAS[(t.season + 1) % 4]} comes, so plan what you plant.` : '';
   const rec = almanacRecipe(g);
-  const recLine = rec ? `\n\nRecipe of the week: ${ITEM_BY_ID.get(rec)!.name}. You copy it into your notebook.` : g.weekday === 6 ? '' : '\n\nA new recipe appears in every Sunday edition.';
-  return `Tomorrow will be ${W[g.tomorrow] ?? g.tomorrow}.\n\nIn demand at market this week: ${hot || 'nothing in particular'}.\n\nComing up: ${soon.length ? soon.join('; ') : 'a quiet week'}.\n\nAlmanac wisdom: ${tips[(g.dayIndex * 7 + 3) % tips.length]}${seasonLine}${recLine}`;
+  const recipe = rec ? `Recipe of the week: ${ITEM_BY_ID.get(rec)!.name}. You copy it into your notebook.` : g.weekday === 6 ? '' : 'A new recipe appears in every Sunday edition.';
+  return { tomorrow: W[g.tomorrow] ?? g.tomorrow, hot: hot || 'nothing in particular', soon, tip: tips[(g.dayIndex * 7 + 3) % tips.length], season, recipe };
 }
 
 const HOVER: Partial<Record<O, [string, string]>> = {
   [O.BED]: ['Bed', 'Right-click to sleep'],
   [O.STOVE]: ['Stove', 'Right-click to cook'],
-  [O.ALMANAC]: ['Almanac', 'Forecast, market news and the week ahead'],
+  [O.ALMANAC]: ['The Ledger', "Yesterday's sales by customer, the market, tomorrow's weather"],
+  [O.DRAFTING]: ['Drafting Table', 'Your blueprint library: save, name and load lines'],
+  [O.WORKBENCH]: ['Workbench', 'F: craft (the crafting menu)'],
+  [O.TOOLWALL]: ['Tool Wall', ''],
   [O.FIREPLACE]: ['Hearth', 'Warm yourself once a day'],
   [O.DOORMAT]: ['Front door', 'Walk out or right-click to leave'],
   [O.SHELF]: ['Shelf', ''],
@@ -171,12 +202,14 @@ export function canPlaceDecor(g: Game, f: FurnDef, x: number, y: number): string
   for (let yy = y; yy < y + f.h; yy++)
     for (let xx = x; xx < x + f.w; xx++) {
       if (f.wall) {
-        if (yy !== 1 || xx < 1 || xx > HOUSE_W - 2) return 'Paintings go on the wall.';
+        if (yy !== 1 || xx < 1 || xx > m.w - 2) return 'Paintings go on the wall.';
         if (m.o(xx, yy)) return 'Something is already on that wall.';
         if (decorList(g).some((d) => covers(d, xx, yy))) return 'Something is already on that wall.';
         continue;
       }
-      if (yy < 2 || yy > HOUSE_H - 2 || xx < 1 || xx > HOUSE_W - 2) return 'That has to go on the floor.';
+      if (yy < 2 || yy > HOUSE_H - 2 || xx < 1 || xx > m.w - 2) return 'That has to go on the floor.';
+      // a structure indoors (Workshop HQ) holds its tiles
+      if (!f.flat && g.houseEnts.at(xx, yy)) return 'That spot is taken.';
       const o = m.o(xx, yy);
       if (o && !(o === O.RUG && !f.flat)) return 'That spot is taken.';
       if (xx === HOUSE_DOOR[0] && yy >= HOUSE_DOOR[1] - 2) return 'Keep the doorway clear.';
@@ -239,8 +272,20 @@ export function houseInteract(g: Game, tx: number, ty: number): boolean {
       else g.toast('A cold old stove. Juniper at Oakroot Joinery could fit a proper kitchen.');
       return true;
     case O.ALMANAC:
-      g.emit({ t: 'ui', open: 'message', arg: { title: `The Thistlewick Almanac - ${SEASON_NAMES[g.time.season]} ${g.time.day}`, text: almanacText(g) } });
+      // the almanac is the works' ledger now (Workshop HQ, ROADMAP.md 7.8: src/ui/windows/home.ts)
+      g.emit({ t: 'ui', open: 'ledger', arg: almanacBits(g) });
       g.emit({ t: 'sfx', id: 'open' });
+      return true;
+    case O.DRAFTING:
+      g.emit({ t: 'ui', open: 'drafting' });
+      g.emit({ t: 'sfx', id: 'open' });
+      return true;
+    case O.WORKBENCH:
+      g.emit({ t: 'ui', open: 'menu', arg: 'crafting' });
+      g.emit({ t: 'sfx', id: 'open' });
+      return true;
+    case O.TOOLWALL:
+      g.toast('Every tool has its hook, and every hook its outline. The keeper was tidier than you.');
       return true;
     case O.FIREPLACE:
       g.toast(g.time.season === 3 ? 'The fire crackles. Toasty!' : 'The embers glow softly.');
@@ -339,23 +384,49 @@ export function buyHomeUpgrade(g: Game, id: string): string | null {
   g.player.money -= u.price;
   for (const m of u.materials) g.player.inv.removeSpec(m.item, m.n);
   g.flags.add(id);
+  // the Workshop wing and the drafting table change the room itself
+  rebuildHouse(g);
   g.emit({ t: 'sfx', id: 'place' });
   g.toast(`Juniper fits your ${u.name}. Go and see it!`);
   return null;
 }
 
+// ---------------- the ledger (the almanac's job now: Workshop HQ, ROADMAP.md 7.8) ----------------
+/** a row of a day's sales: what, how many, the coins, and whose order it went to ('' = market) */
+export interface LedgerRow { k: number; n: number; coins: number; to: string }
+export interface LedgerDay { day: number; season: number; year: number; rows: LedgerRow[]; total: number }
+
+/** yesterday's sales as the ledger shows them (null on the first morning) */
+export const ledgerDay = (g: Game): LedgerDay | null => g.sys.house?.ledger ?? null;
+
 registerSystem({
   name: 'house',
   save(g) {
     const p = g.sys.house?.pantry as Inventory | undefined;
-    return { pantry: p ? p.toJSON() : undefined, decor: g.sys.house?.decor ?? [], lib: saveLib(g) };
+    const L = ledgerDay(g);
+    return {
+      pantry: p ? p.toJSON() : undefined, decor: g.sys.house?.decor ?? [], lib: saveLib(g),
+      ledger: L ? { ...L, rows: L.rows.map((r) => [kId(r.k), kQ(r.k), r.n, r.coins, r.to]) } : undefined,
+    };
   },
   load(g, d) {
-    houseMap(g);
+    // the room's shape follows the save's upgrades (the constructor built it before its flags)
+    rebuildHouse(g);
     if (d?.pantry) g.sys.house.pantry = Inventory.fromJSON(d.pantry, 36);
     g.sys.house.decor = (d?.decor ?? []).filter((x: Decor) => FURN_BY_ID.has(x.id));
     // the drafting table's blueprint library (src/sim/drafting.ts)
     loadLib(g, d?.lib);
+    const L = d?.ledger;
+    g.sys.house.ledger = L ? {
+      ...L, rows: (L.rows ?? []).filter((r: any[]) => ITEM_BY_ID.has(r[0])).map((r: any[]) => ({ k: key(r[0], r[1]), n: r[2], coins: r[3], to: r[4] ?? '' })),
+    } : null;
+  },
+  dayEnd(g, s) {
+    // the summary fills as the day's systems end it; the next morning copies what it says
+    if (g.sys.house) g.sys.house.ending = s;
+  },
+  afterLoad(g) {
+    rebuildHouse(g);
   },
   tick(g) {
     if (g.player.where !== 'house') return;
@@ -365,6 +436,14 @@ registerSystem({
   dayStart(g) {
     houseMap(g);
     g.sys.house.warmed = false;
+    const s = g.sys.house.ending as DaySummary | undefined;
+    if (s) {
+      g.sys.house.ledger = {
+        day: s.day, season: s.season, year: s.year, total: s.total,
+        rows: s.sold.map((r) => ({ k: r.k, n: r.n, coins: r.coins ?? r.price * r.n, to: r.to ?? '' })),
+      } as LedgerDay;
+      g.sys.house.ending = undefined;
+    }
     if (g.map.w > 100 && g.dayIndex > 0) {
       // wake up inside, next to the bed
       g.player.where = 'house';

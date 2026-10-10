@@ -6,6 +6,7 @@ import { NPC_BY_ID } from '../data/npcs';
 import { questName } from '../data/cookbook';
 import { QUEST_BY_ID } from '../data/goals';
 import type { Game } from './Game';
+import type { Ent } from './ents';
 import { kDef } from './inventory';
 import { cartHere } from './systems/cart';
 import { canTill } from './systems/farming';
@@ -51,10 +52,15 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   const pet = petAt(g, tx + 0.5, ty + 0.5);
   if (pet) return pet.stage === 'stray' ? { verb: 'Say hello', x: pet.x, y: pet.y - 1 } : pet.petted ? null : { verb: 'Pet ' + pet.name, x: pet.x, y: pet.y - 1 };
   if (p.where === 'house') {
+    // a structure placed indoors (Workshop HQ) answers as it does outside
+    const he = g.houseEnts.rootAt(tx, ty);
+    if (he && !he.ghost) return structPrompt(g, he);
     switch (o) {
       case O.BED: return top('Sleep', 0.6);
       case O.STOVE: return top(g.flags.has('home_kitchen') ? 'Cook' : 'Look');
-      case O.ALMANAC: return top('Read the almanac');
+      case O.ALMANAC: return top('Read the ledger');
+      case O.DRAFTING: return top('Blueprints', 0.8);
+      case O.WORKBENCH: return top('Craft', 0.4);
       case O.FIREPLACE: return top('Warm up');
       case O.DOORMAT: return top('Go outside', -0.4);
     }
@@ -81,25 +87,7 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   }
   if (b && b.id === 'greenhouse') return null;
   const e = g.ents.rootAt(tx, ty);
-  if (e && !e.ghost) {
-    const d = e.def;
-    const at = (verb: string): Prompt => ({ verb, x: e.x + e.w / 2, y: e.y - 0.2 });
-    if (e.st.rust) return at('Restore');
-    if (d.kind === 'scarecrow') return at('Chat');
-    const held = p.inv.slots[p.sel];
-    // Shift+F opens any machine's window, where a recipe is locked in
-    const choice = e.mach && d.kind !== 'beehouse' && recipeChoice(g, e.mach.station) ? 'Shift+F: recipes' : undefined;
-    if (e.mach?.outBuf.length) return { ...at('Collect'), hint: choice };
-    if (d.kind === 'shipbin') return held && kDef(held.k).price > 0 && !kDef(held.k).tool ? at('Ship ' + kDef(held.k).name) : at('Open crate');
-    if (d.kind === 'depot') return at(held ? 'Deliver' : 'Open');
-    if (e.mach && d.kind !== 'beehouse') {
-      const loadable = p.inv.slots.some((sl) => sl && !kDef(sl.k).tool && !kDef(sl.k).weapon && !kDef(sl.k).fuel && machAccept(g, e, sl.k, true) > 0);
-      return loadable ? { ...at('Load'), hint: choice } : at('Open');
-    }
-    if ((d.kind === 'tapper' || d.kind === 'fishtrap' || d.kind === 'harvester' || d.kind === 'drill') && e.inv && !e.inv.isEmpty()) return at('Collect');
-    if (d.kind === 'belt' || d.kind === 'underground' || d.kind === 'splitter' || d.kind === 'path' || d.kind === 'fence' || d.kind === 'rail') return null;
-    return at('Open');
-  }
+  if (e && !e.ghost) return structPrompt(g, e);
   const s = g.soil.get(m.idx(tx, ty));
   if (s?.crop?.ready) return top(CROP_BY_ID.get(s.crop.id)?.scythe ? 'Use the scythe' : 'Harvest', 0.5);
   if (s?.crop?.dead) return top('Clear');
@@ -111,6 +99,28 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   if (o === O.NOTICEBOARD) return top('Read the board', 0.8);
   if (o === O.MAILBOX) return top('Check the mail', 0.4);
   return null;
+}
+
+/** what F does at a structure (the farm's, or one placed indoors) */
+function structPrompt(g: Game, e: Ent): Prompt | null {
+  const p = g.player;
+  const d = e.def;
+  const at = (verb: string): Prompt => ({ verb, x: e.x + e.w / 2, y: e.y - 0.2 });
+  if (e.st.rust) return at('Restore');
+  if (d.kind === 'scarecrow') return at('Chat');
+  const held = p.inv.slots[p.sel];
+  // Shift+F opens any machine's window, where a recipe is locked in
+  const choice = e.mach && d.kind !== 'beehouse' && recipeChoice(g, e.mach.station) ? 'Shift+F: recipes' : undefined;
+  if (e.mach?.outBuf.length) return { ...at('Collect'), hint: choice };
+  if (d.kind === 'shipbin') return held && kDef(held.k).price > 0 && !kDef(held.k).tool ? at('Ship ' + kDef(held.k).name) : at('Open crate');
+  if (d.kind === 'depot') return at(held ? 'Deliver' : 'Open');
+  if (e.mach && d.kind !== 'beehouse') {
+    const loadable = p.inv.slots.some((sl) => sl && !kDef(sl.k).tool && !kDef(sl.k).weapon && !kDef(sl.k).fuel && machAccept(g, e, sl.k, true) > 0);
+    return loadable ? { ...at('Load'), hint: choice } : at('Open');
+  }
+  if ((d.kind === 'tapper' || d.kind === 'fishtrap' || d.kind === 'harvester' || d.kind === 'drill') && e.inv && !e.inv.isEmpty()) return at('Collect');
+  if (d.kind === 'belt' || d.kind === 'underground' || d.kind === 'splitter' || d.kind === 'path' || d.kind === 'fence' || d.kind === 'rail') return null;
+  return at('Open');
 }
 
 /** What a left click does with the item in hand on a tile (shown for the first few days). */

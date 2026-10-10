@@ -20,6 +20,9 @@ export enum O {
   // index, every footprint tile), and a way down blocked by a works problem (objData: 0 level 6's
   // collapsed gallery, 1 shored, 2 level 10's flooded stair, 3 drained)
   CHAMBER, GALLERY,
+  // Workshop HQ (src/sim/systems/house.ts): the drafting table (the blueprint library, objData 0 on
+  // its first tile), the wing's workbench, and the tool wall on the wing's back wall
+  DRAFTING, WORKBENCH, TOOLWALL,
 }
 
 export const WATER_TERRAIN = new Set([T.RIVER, T.DEEP, T.LAKE, T.POND, T.OCEAN, T.MINEWATER, T.LAVA]);
@@ -29,7 +32,7 @@ export const SOLID_OBJ = new Set([
   O.TREE, O.STUMP, O.LOG, O.ROCK, O.BOULDER, O.BUSH, O.ORE_ROCK, O.FENCE, O.BUILDING, O.LAMPPOST,
   O.BENCH, O.BARREL, O.GEM_ROCK, O.SIGNPOST, O.WELL, O.NOTICEBOARD, O.MAILBOX, O.HEDGE, O.CRATE, O.STALAGMITE, O.ICE_ROCK, O.CRYSTAL,
   O.BED, O.STOVE, O.TABLE, O.FIREPLACE, O.SHELF, O.HOUSEPLANT, O.ALMANAC, O.DRESSER, O.CLOCK, O.TREASURE,
-  O.CHAMBER,
+  O.CHAMBER, O.DRAFTING, O.WORKBENCH,
 ]);
 
 /** Ore types stored in objData for ORE_ROCK / ORE_VEIN tiles. */
@@ -76,6 +79,8 @@ export class TileMap {
   buildingAt: Int16Array;
   /** named locations */
   locs = new Map<string, [number, number]>();
+  /** an indoor room (the farmhouse): no leaves or tufts blow onto its floors */
+  indoors = false;
   /** bump when terrain/objects change so the renderer rebakes chunks */
   version = 0;
   dirtyChunks = new Set<number>();

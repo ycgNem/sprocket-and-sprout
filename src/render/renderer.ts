@@ -10,7 +10,7 @@ import { TREE_BY_ID } from '../data/trees';
 import { ANIMAL_BY_ID } from '../data/creatures';
 import { hash2 } from '../engine/rng';
 import type { Game, Soil } from '../sim/Game';
-import { BeltKind, DX, DY, Ent } from '../sim/ents';
+import { BeltKind, DX, DY, Ent, type Ents } from '../sim/ents';
 import { itemPos } from '../sim/systems/belts';
 import { armTiles } from '../sim/systems/arms';
 import { powerState } from '../sim/systems/power';
@@ -327,8 +327,9 @@ export class Renderer {
         } else oldTiles.add(ly * CH + lx);
       }
     for (const k of oldTiles) old(k % CH, Math.floor(k / CH));
-    // pass 3: decals where a tile and its 8 neighbors share a class (never across a transition)
-    for (let ly = 0; ly < CH; ly++)
+    // pass 3: decals where a tile and its 8 neighbors share a class (never across a transition);
+    // none indoors (the Workshop wing's flagstones)
+    if (!m.indoors) for (let ly = 0; ly < CH; ly++)
       for (let lx = 0; lx < CH; lx++) {
         const k = at(lx, ly);
         if (k !== 'grass' && k !== 'dirt' && k !== 'sand' && k !== 'path') continue;
@@ -462,7 +463,8 @@ export class Renderer {
       this.chunks.clear();
       this.lastMap = m;
     }
-    const season = g.player.where === 'mine' ? 0 : g.time.season;
+    // indoors and underground the floor has no seasons (a stone workshop floor never snows)
+    const season = g.player.where !== 'world' ? 0 : g.time.season;
     // the Deepworks' stratum picks its terrain art class (minefloor<art>, minewall<art>)
     const theme = g.player.where === 'mine' ? STRATA[g.sys.mine?.theme ?? 0]?.art ?? 0 : 0;
     const cam = this.cam;
@@ -526,8 +528,9 @@ export class Renderer {
     const D: Drawable[] = (this.drawables = []);
     // soil + crops
     if (m === g.map) this.drawSoil(g, tx0, ty0, tx1, ty1, D);
-    // floor structures (belts etc.) and y-sorted structures
-    if (m === g.map) this.drawStructs(g, tx0, ty0, tx1, ty1, D);
+    // floor structures (belts etc.) and y-sorted structures: the farm's, or the farmhouse's (Workshop HQ)
+    if (m === g.map) this.drawStructs(g, g.ents, tx0, ty0, tx1, ty1, D);
+    else if (g.player.where === 'house') this.drawStructs(g, g.houseEnts, tx0, ty0, tx1, ty1, D);
     // trees + tall objects
     for (let y = ty0; y <= ty1 + 3; y++)
       for (let x = tx0 - 1; x <= tx1 + 1; x++) {
@@ -634,6 +637,10 @@ export class Renderer {
           case O.CLOCK: name = 'hf:clock:0:0'; sy = -5; break;
           case O.RUG: if (v === 0) { name = 'hf:rug:0:0'; sy = -10; } break;
           case O.DOORMAT: name = 'hf:doormat:0:0'; sy = -10; break;
+          // Workshop HQ: the wing's workbench and tool wall, the drafting table (2 tiles each)
+          case O.WORKBENCH: if (v === 0) name = 'hf:workbench:0:0'; break;
+          case O.TOOLWALL: if (v === 0) { name = 'hf:toolwall:0:0'; sy = -5; } break;
+          case O.DRAFTING: if (v === 0) name = 'hf:drafting:0:0'; break;
         }
         if (!name) continue;
         const s = sprite(name);
@@ -783,9 +790,8 @@ export class Renderer {
       }
   }
 
-  private drawStructs(g: Game, tx0: number, ty0: number, tx1: number, ty1: number, D: Drawable[]) {
+  private drawStructs(g: Game, ents: Ents, tx0: number, ty0: number, tx1: number, ty1: number, D: Drawable[]) {
     const ctx = this.ctx;
-    const ents = g.ents;
     const frame = Math.floor(this.time * 8) % 4;
     const season = g.time.season;
     const seen = new Set<number>();

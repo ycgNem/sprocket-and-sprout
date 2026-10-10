@@ -10,7 +10,7 @@ import { RECIPE_BY_ID } from '../data/recipes';
 import { STRUCT_BY_ID } from '../data/structures';
 import type { NPCLook, Season, Weather } from '../data/types';
 import { Game, SYSTEMS } from './Game';
-import { ArmState, BeltKind, Dir, Ent } from './ents';
+import { ArmState, BeltKind, Dir, Ent, Ents } from './ents';
 import { Inventory, ItemKey, key, kId, kQ, Stack } from './inventory';
 import { TileMap } from './world/tilemap';
 import { squareBridges } from './world/worldgen';
@@ -116,9 +116,11 @@ function saveEnt(e: Ent): any {
   return o;
 }
 
-function loadEnt(g: Game, o: any, idMap: Map<number, Ent>) {
+function loadEnt(g: Game, o: any, idMap: Map<number, Ent>, store: Ents = g.ents) {
   if (!STRUCT_BY_ID.has(o.d)) return;
-  const e = g.ents.add(o.d, o.x, o.y, o.r as Dir, !!o.g);
+  // (a structure that no longer fits the store, e.g. from a bigger house, is left out)
+  if (o.x < 0 || o.y < 0 || o.x >= store.w || o.y >= store.h) return;
+  const e = store.add(o.d, o.x, o.y, o.r as Dir, !!o.g);
   idMap.set(o.i, e);
   const lanes = (b: any, ent: Ent) => {
     if (!b || !ent.belt) return;
@@ -219,6 +221,8 @@ export function serialize(g: Game, look: NPCLook): any {
     soil: [...g.soil].map(([i, s]) => [i, s.water ? 1 : 0, s.fert, s.idle, s.crop ? [s.crop.id, s.crop.days, s.crop.stage, s.crop.ready ? 1 : 0, s.crop.harvests, s.crop.dead ? 1 : 0, s.crop.giant, s.crop.frac] : null]),
     map: saveMap(g.map),
     ents: g.ents.all().map(saveEnt).filter(Boolean),
+    // Workshop HQ: the structures inside the farmhouse (ROADMAP.md 7.8)
+    houseEnts: g.houseEnts.all().map(saveEnt).filter(Boolean),
     counters: g.counters,
     earned: g.earned,
     daysPlayed: g.daysPlayed,
@@ -407,6 +411,7 @@ export function deserialize(raw: any): { game: Game; look: NPCLook } {
   loadMap(g.map, d.map);
   const idMap = new Map<number, Ent>();
   for (const o of d.ents) loadEnt(g, o, idMap);
+  for (const o of d.houseEnts ?? []) loadEnt(g, o, new Map(), g.houseEnts);
   // re-link underground pairs
   for (const e of g.ents.belts) {
     if (e.st._up) {

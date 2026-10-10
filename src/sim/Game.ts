@@ -5,7 +5,8 @@ import type { Season, Weather, BuffKind } from '../data/types';
 import { rankOf } from '../data/orders';
 import { TileMap } from './world/tilemap';
 import { generateWorld, PLAYER_START, WORLD_W, WORLD_H, SHIPBIN_POS } from './world/worldgen';
-import { Ents, type Dir, type Ent } from './ents';
+import { Ents, HOUSE_IDS, type Dir, type Ent } from './ents';
+import { HOUSE_H, HOUSE_WIDE } from './world/house';
 import { portInsert, portUses } from './ports';
 import { Inventory, kDef, key } from './inventory';
 import { lesson } from './lessons';
@@ -200,6 +201,11 @@ export class Game {
   rng: Rng;
   map: TileMap;
   ents: Ents;
+  /**
+   * Workshop HQ (ROADMAP.md 7.8): the structures inside the farmhouse, ticked by the same machine,
+   * desk and night-shift code as the farm's (src/sim/indoors.ts places them)
+   */
+  houseEnts = new Ents(HOUSE_WIDE, HOUSE_H, HOUSE_IDS);
   time: TimeState = { min: DAY_START, day: 1, season: 0, year: 1 };
   weather: Weather = 'sun';
   tomorrow: Weather = 'sun';
@@ -383,6 +389,7 @@ export class Game {
       updateBelts(this.ents, sdt, this.beltSink, this.simTime, this.beltUses);
       updateArms(this, sdt);
       updateMachines(this, sdt);
+      updateMachines(this, sdt, this.houseEnts);
     }
     for (const s of SYSTEMS) if (s.tick && (s.realtime || sdt > 0)) s.tick(this, s.realtime ? dt : sdt);
     this.stats.tick(this, sdt);
@@ -456,6 +463,7 @@ export class Game {
         updateBelts(this.ents, sdt, this.beltSink, this.simTime, this.beltUses);
         updateArms(this, sdt);
         updateMachines(this, sdt);
+        updateMachines(this, sdt, this.houseEnts);
         for (const s of SYSTEMS) if (s.works && s.tick) s.tick(this, sdt);
         this.stats.tick(this, sdt);
       }
@@ -468,7 +476,7 @@ export class Game {
   /** Called when sleeping ends the day or the player passes out at 2am. */
   endDay(passedOut: boolean) {
     // the night shift: the works runs the 4 hours from 2am to 6am before the day's tally
-    const batches = () => this.ents.machines.reduce((a, e) => a + (e.mach?.made ?? 0), 0);
+    const batches = () => this.ents.machines.reduce((a, e) => a + (e.mach?.made ?? 0), 0) + this.houseEnts.machines.reduce((a, e) => a + (e.mach?.made ?? 0), 0);
     const before = batches();
     this.runWorks(NIGHT_SECS);
     const summary: DaySummary = { day: this.time.day, season: this.time.season, year: this.time.year, sold: [], total: 0, passedOut, penalty: 0, nightBatches: batches() - before };

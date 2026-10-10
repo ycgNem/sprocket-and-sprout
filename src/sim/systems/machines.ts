@@ -2,7 +2,7 @@
 import { recipesForStation } from '../../data/recipes';
 import type { RecipeDef } from '../../data/types';
 import type { Game } from '../Game';
-import type { Ent, MachC } from '../ents';
+import type { Ent, Ents, MachC } from '../ents';
 import { ITEM_BY_ID } from '../../data/items';
 import { MState, offText, setHarvestWait, setState } from '../mstate';
 import { rustTick } from '../rust';
@@ -182,7 +182,7 @@ export function pickRecipe(g: Game, e: Ent): RecipeDef | null {
 }
 
 /** the thing a starved machine waits for, in words: a locked recipe's missing input, else what its feeders carry */
-function wantedInput(g: Game, e: Ent): string {
+function wantedInput(g: Game, e: Ent, ents: Ents = g.ents): string {
   const m = e.mach!;
   const name = (spec: string) => (spec[0] === '#' ? 'any ' + spec.slice(1) : (ITEM_BY_ID.get(spec)?.name ?? spec).toLowerCase());
   if (m.locked && m.recipe) {
@@ -201,7 +201,7 @@ function wantedInput(g: Game, e: Ent): string {
   if (crop) return crop;
   // ...else what the nearest machine of its kind runs on, else what it takes
   let best: Ent | null = null, bd = 1e9;
-  for (const o of g.ents.machines) {
+  for (const o of ents.machines) {
     if (o === e || o.def.id !== e.def.id || o.ghost || !o.mach?.recipe) continue;
     const d = Math.abs(o.x - e.x) + Math.abs(o.y - e.y);
     if (d < bd) [best, bd] = [o, d];
@@ -230,11 +230,12 @@ const STATION_PERKS: [string, Set<string>, number][] = [
   ['blacksmith', new Set(['smelter']), 1.25], // Furnace Hand
 ];
 
-export function updateMachines(g: Game, dt: number) {
+/** a store's machines (the farm's, or the farmhouse's: Workshop HQ) */
+export function updateMachines(g: Game, dt: number, ents: Ents = g.ents) {
   const speedMod = g.mods.machineSpeed + (g.sys.megaBonus?.machine ?? 0) + (g.hasPerk('engineer') ? 0.1 : 0) + (g.hasPerk('industrialist') ? 0.15 : 0);
   const boosts = STATION_PERKS.filter(([id]) => g.hasPerk(id));
   const now = g.simTime;
-  for (const e of g.ents.machines) {
+  for (const e of ents.machines) {
     const m = e.mach!;
     if (e.def.kind === 'beehouse') {
       updateBees(g, e, dt);
@@ -259,7 +260,7 @@ export function updateMachines(g: Game, dt: number) {
         else if (m.inBuf.size || hasFeeder(g, e)) {
           // the reason is worked out on entering the state and once a second after that
           if ((e.state !== MState.Starved && !e.fieldWait) || g.tickN % 60 === e.id % 60) {
-            e.want = wantedInput(g, e);
+            e.want = wantedInput(g, e, ents);
             // supply that traces back to a field with nothing ripe: waiting for harvest, not starved
             const field = m.inBuf.size ? null : fieldSource(g, e);
             if (field) setHarvestWait(e, harvestWaitText(field), now);

@@ -11,7 +11,8 @@ import { ICON } from '../ui/font';
 import { ITEM_BY_ID, matchesSpec } from '../data/items';
 import type { NPCLook } from '../data/types';
 import { SEC_PER_MIN, type Game, type GameEvent } from '../sim/Game';
-import { DX, DY, Dir, Ent, entName } from '../sim/ents';
+import { DX, DY, Dir, Ent, entName, entById, HOUSE_IDS } from '../sim/ents';
+import { canPlaceIndoors, hereEnts, placeIndoors } from '../sim/indoors';
 import { key, kDef, kId, itemName } from '../sim/inventory';
 import { canPlace, deconstruct, place, rotateStruct, structFootprint } from '../sim/build';
 import { eatHeld, interact, useHeld } from '../sim/actions';
@@ -145,7 +146,7 @@ export class PlayScreen implements Screen {
       this.app.audio.sfx('rotate');
     } else {
       const t = this.mouseTile();
-      const e = g.player.where === 'world' ? g.ents.at(t.x, t.y) : null;
+      const e = hereEnts(g)?.at(t.x, t.y) ?? null;
       if (e) {
         rotateStruct(g, e);
         this.works.changed(g, t.x, t.y);
@@ -292,9 +293,17 @@ export class PlayScreen implements Screen {
 
   heldPlaceable(): string | null {
     const st = this.g.player.inv.slots[this.g.player.sel];
-    if (!st || this.g.player.where !== 'world') return null;
+    if (!st || this.g.player.where === 'mine') return null;
     const d = kDef(st.k);
     return d.places ?? null;
+  }
+
+  /** placement where the player is: the farm, or the farmhouse floor (Workshop HQ, src/sim/indoors.ts) */
+  canPlaceHere(defId: string, x: number, y: number, rot: Dir) {
+    return this.g.player.where === 'house' ? canPlaceIndoors(this.g, defId, x, y, rot) : canPlace(this.g, defId, x, y, rot);
+  }
+  placeHere(defId: string, x: number, y: number, rot: Dir): Ent {
+    return this.g.player.where === 'house' ? placeIndoors(this.g, defId, x, y, rot) : place(this.g, defId, x, y, rot);
   }
 
   frame(dt: number) {
@@ -607,6 +616,12 @@ export class PlayScreen implements Screen {
       return;
     }
     if (g.player.where === 'house') {
+      // a structure placed indoors reads as it does outside (Workshop HQ)
+      const he = g.houseEnts.rootAt(t.x, t.y);
+      if (he && !he.ghost) {
+        this.structTip(ui, he);
+        return;
+      }
       const tip = g.sys.house?.hover?.(g, t.x, t.y);
       if (tip) ui.tip(tip);
       return;
@@ -627,22 +642,7 @@ export class PlayScreen implements Screen {
     if (g.player.where !== 'world') return;
     const e = g.ents.rootAt(t.x, t.y);
     if (e && !e.ghost) {
-      const lines: { text: string; color?: number }[] = [{ text: entName(e) + (e.ghost ? ' (ghost)' : ''), color: C.amber }];
-      // the machine contract's one line: what it's doing, or exactly what it waits for
-      const sl = structStateLine(g, e);
-      if (sl) lines.push(sl);
-      const rt = structRateLine(g, e);
-      if (rt) lines.push({ text: rt, color: C.pebble });
-      if (e.gen) lines.push({ text: 'Output ' + Math.round(e.gen.out) + ' / ' + Math.round(e.gen.cap) + ' sparks', color: C.aqua });
-      if (e.def.kind === 'belt' || e.def.kind === 'underground' || e.def.kind === 'splitter') {
-        if (e.state === MState.Blocked) ui.tip(lines.slice(0, 3));
-        return;
-      }
-      const ik = keyLabel(this.app.input.binds.inspect?.[0] ?? 'KeyI');
-      // winding needs the key in reach (the same reach as the right-click)
-      const windHint = this.reachOk(e.x, e.y, 2.6) || (e.w > 1 && this.reachOk(e.x + e.w - 1, e.y + e.h - 1, 2.6)) ? 'Right-click: wind it (2x for 30s)' : 'Walk up to it to wind it';
-      lines.push({ text: isWindable(e) ? `${windHint}  F: open  ${ik}: inspect` : `F or right-click to open, hold ${ik} to inspect the line`, color: C.pebble });
-      ui.tip(lines.slice(0, 6));
+      this.structTip(ui, e);
       return;
     }
     // the town keystones' landmarks (the Town Mill, the Waterworks, the airship): hovering one is
@@ -652,6 +652,27 @@ export class PlayScreen implements Screen {
       lookAt(g, lm);
       ui.tip(landmarkTip(g, lm));
     }
+  }
+
+  /** a structure's hover tip: its name, the machine contract's line, its rate, how to use it */
+  private structTip(ui: any, e: Ent) {
+    const g = this.g;
+    const lines: { text: string; color?: number }[] = [{ text: entName(e) + (e.ghost ? ' (ghost)' : ''), color: C.amber }];
+    // the machine contract's one line: what it's doing, or exactly what it waits for
+    const sl = structStateLine(g, e);
+    if (sl) lines.push(sl);
+    const rt = structRateLine(g, e);
+    if (rt) lines.push({ text: rt, color: C.pebble });
+    if (e.gen) lines.push({ text: 'Output ' + Math.round(e.gen.out) + ' / ' + Math.round(e.gen.cap) + ' sparks', color: C.aqua });
+    if (e.def.kind === 'belt' || e.def.kind === 'underground' || e.def.kind === 'splitter') {
+      if (e.state === MState.Blocked) ui.tip(lines.slice(0, 3));
+      return;
+    }
+    const ik = keyLabel(this.app.input.binds.inspect?.[0] ?? 'KeyI');
+    // winding needs the key in reach (the same reach as the right-click)
+    const windHint = this.reachOk(e.x, e.y, 2.6) || (e.w > 1 && this.reachOk(e.x + e.w - 1, e.y + e.h - 1, 2.6)) ? 'Right-click: wind it (2x for 30s)' : 'Walk up to it to wind it';
+    lines.push({ text: isWindable(e) ? `${windHint}  F: open  ${ik}: inspect` : e.id >= HOUSE_IDS ? 'F or right-click to open' : `F or right-click to open, hold ${ik} to inspect the line`, color: C.pebble });
+    ui.tip(lines.slice(0, 6));
   }
 
   private autoBuildGhosts() {
@@ -736,9 +757,11 @@ export class PlayScreen implements Screen {
     if (input.wasPressed('stack')) {
       const r = quickStack(g);
       if (r.moved) {
-        this.toast(`Stacked ${r.moved} item${r.moved > 1 ? 's' : ''} into ${r.chests} ${g.player.where === 'house' ? 'cellar' : r.chests > 1 ? 'chests' : 'chest'}.`);
+        const n = r.chests - (r.cellar ? 1 : 0);
+        const into = n ? `${n} chest${n > 1 ? 's' : ''}` : '';
+        this.toast(`Stacked ${r.moved} item${r.moved > 1 ? 's' : ''} into ${r.cellar ? (into ? `the cellar and ${into}` : 'the cellar') : into}.`);
         this.app.audio.sfx('insert');
-      } else this.toast(g.player.where === 'house' && !g.sys.house?.pantry ? 'No root cellar to stack into.' : 'Nothing to stack: nearby chests hold none of your bag items.');
+      } else this.toast(g.player.where === 'house' && !g.sys.house?.pantry && !g.houseEnts.others.some((e) => e.def.kind === 'chest') ? 'No root cellar or chest to stack into.' : 'Nothing to stack: nearby chests hold none of your bag items.');
     }
     if (input.ctrl && input.pressed.has('KeyZ')) {
       input.consume('drop');
@@ -749,12 +772,16 @@ export class PlayScreen implements Screen {
       this.mode = this.mode === 'decon' ? 'normal' : 'decon';
       this.rectStart = null;
     }
+    // the blueprint tool works on the farm (indoors, the drafting table keeps its copies)
+    const outside = g.player.where === 'world';
     if (input.wasPressed('copy')) {
-      this.mode = this.mode === 'copy' ? 'normal' : 'copy';
+      if (!outside) this.toast('The blueprint tool copies lines outside, on the farm.');
+      else this.mode = this.mode === 'copy' ? 'normal' : 'copy';
       this.rectStart = null;
     }
     if (input.wasPressed('paste')) {
-      if (this.blueprint) this.mode = this.mode === 'paste' ? 'normal' : 'paste';
+      if (this.blueprint && !outside) this.toast('Blueprints paste outside, on the farm.');
+      else if (this.blueprint) this.mode = this.mode === 'paste' ? 'normal' : 'paste';
       else this.toast('Copy an area first with ' + 'V' + ' (drag a rectangle).');
     }
     if (input.wasPressed('drop')) {
@@ -772,7 +799,7 @@ export class PlayScreen implements Screen {
       // Shift+F opens a structure's window instead of collecting and loading (to lock a recipe);
       // not while walking: Shift is also the walk-slowly key
       const walking = input.isDown('up') || input.isDown('down') || input.isDown('left') || input.isDown('right');
-      const fe = input.shift && !walking && g.player.where === 'world' ? g.ents.rootAt(fx, fy) : null;
+      const fe = input.shift && !walking ? hereEnts(g)?.rootAt(fx, fy) ?? null : null;
       if (fe && !fe.ghost && !fe.st.rust && (fe.mach || fe.inv || fe.arm || fe.gen || fe.def.kind === 'pole')) this.openWindow('struct', fe.id);
       else if (!interact(g, fx, fy) && g.player.where === 'world') {
         // the Orders board answers F from any side: it's a post you walk around, not a door
@@ -791,7 +818,7 @@ export class PlayScreen implements Screen {
   private pipette() {
     const g = this.g;
     const t = this.mouseTile();
-    const e = g.player.where === 'world' ? g.ents.rootAt(t.x, t.y) : null;
+    const e = hereEnts(g)?.rootAt(t.x, t.y) ?? null;
     if (!e) return;
     const k = key(e.def.item);
     const inv = g.player.inv;
@@ -831,7 +858,7 @@ export class PlayScreen implements Screen {
     const t = this.mouseTile();
     const p = g.player;
     const buildReach = 9 + g.mods.reach;
-    if (p.where !== 'world' && this.mode !== 'normal') this.mode = 'normal';
+    if (p.where !== 'world' && this.mode !== 'normal' && !(p.where === 'house' && this.mode === 'decon')) this.mode = 'normal';
     // rectangle tools
     if (this.mode === 'decon' || this.mode === 'copy') {
       if (input.mouse.pressed[0]) this.rectStart = { x: t.x, y: t.y };
@@ -843,7 +870,7 @@ export class PlayScreen implements Screen {
           let n = 0;
           for (let y = y0; y <= y1; y++)
             for (let x = x0; x <= x1; x++) {
-              const e = g.ents.rootAt(x, y);
+              const e = hereEnts(g)?.rootAt(x, y);
               if (e && !seen.has(e.id)) {
                 seen.add(e.id);
                 if (deconstruct(g, e)) n++;
@@ -894,15 +921,15 @@ export class PlayScreen implements Screen {
           const st = p.inv.slots[p.sel];
           if (!st || kDef(st.k).places !== placeable) break;
           if (!this.reachOk(L.x, L.y, buildReach)) continue;
-          if (!canPlace(g, placeable, L.x, L.y, L.rot).ok) continue;
+          if (!this.canPlaceHere(placeable, L.x, L.y, L.rot).ok) continue;
           p.inv.remove(st.k, 1);
-          ids.push(place(g, placeable, L.x, L.y, L.rot).id);
-          this.works.changed(g, L.x, L.y);
+          ids.push(this.placeHere(placeable, L.x, L.y, L.rot).id);
+          if (p.where === 'world') this.works.changed(g, L.x, L.y);
           placed++;
           if (def.kind === 'belt') this.rot = L.rot;
         }
         if (!placed && line.length === 1) {
-          const chk = canPlace(g, placeable, tt.x, tt.y, this.rot);
+          const chk = this.canPlaceHere(placeable, tt.x, tt.y, this.rot);
           if (!chk.ok) {
             this.toast(chk.reason ?? "Can't place that here.");
             app.audio.sfx('error');
@@ -920,7 +947,7 @@ export class PlayScreen implements Screen {
         this.drag = null;
       }
       if (input.mouse.pressed[2]) {
-        const e = g.ents.rootAt(t.x, t.y);
+        const e = hereEnts(g)?.rootAt(t.x, t.y);
         if (e) deconstruct(g, e);
         else interact(g, t.x, t.y);
       }
@@ -999,7 +1026,7 @@ export class PlayScreen implements Screen {
     }
     let n = 0, name = '';
     for (const id of last.ids) {
-      const e = g.ents.get(id);
+      const e = entById(g, id);
       if (!e || e.ghost) continue;
       name = e.def.name;
       if (deconstruct(g, e)) n++;
@@ -1013,7 +1040,7 @@ export class PlayScreen implements Screen {
   /** a held arm within a tile of a marked arm tile snaps onto it (B3's also turns itself) */
   armSnap(t: { x: number; y: number }): { x: number; y: number; rot: Dir | null } | null {
     const held = this.heldPlaceable();
-    if (!held || STRUCT_BY_ID.get(held)?.kind !== 'arm') return null;
+    if (!held || STRUCT_BY_ID.get(held)?.kind !== 'arm' || this.g.player.where !== 'world') return null;
     let best: { x: number; y: number; rot: Dir | null } | null = null, bd = 2;
     for (const s of this.armSlots()) {
       const d = Math.max(Math.abs(t.x - s.x), Math.abs(t.y - s.y));
@@ -1093,7 +1120,7 @@ export class PlayScreen implements Screen {
         const sn = this.armSnap(t) ?? t;
         const line = this.drag ? this.dragLine(placeable, this.drag.x, this.drag.y, sn.x, sn.y) : [{ x: sn.x, y: sn.y, rot: this.rot }];
         for (const L of line) {
-          const chk = canPlace(g, placeable, L.x, L.y, L.rot);
+          const chk = this.canPlaceHere(placeable, L.x, L.y, L.rot);
           const inReach = this.reachOk(L.x, L.y, 9 + g.mods.reach);
           this.drawGhostStruct(placeable, L.x, L.y, L.rot, chk.ok && inReach);
         }
@@ -1500,7 +1527,9 @@ export class PlayScreen implements Screen {
           break;
         }
         case 'made': {
-          if (!onScreen(e.x, e.y) || g.player.where !== 'world') break;
+          // a machine in the farmhouse pops only while you're indoors, the farm's only outdoors
+          const indoors = e.ent >= HOUSE_IDS;
+          if (!onScreen(e.x, e.y) || g.player.where !== (indoors ? 'house' : 'world')) break;
           J.hop(e.ent);
           J.iconPop(e.item, e.x * TILE, e.y * TILE - 6);
           // every machine has its own note on the ladder, so a busy factory plays a little tune

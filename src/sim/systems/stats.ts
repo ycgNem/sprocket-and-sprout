@@ -83,12 +83,13 @@ export class StateLog {
     return d.which === 'yesterday' && d.secs >= 900 ? n : (n / d.secs) * DAY_SECS;
   }
 
-  tick(ents: Ents, dt: number) {
+  /** sample each store's structures (the farm's and the farmhouse's) once a sim second */
+  tick(stores: Ents[], dt: number) {
     this.acc += dt;
     if (this.acc < 1) return;
     this.acc -= 1;
     this.head = (this.head + 1) % 60;
-    for (const e of ents.map.values()) {
+    for (const ents of stores) for (const e of ents.map.values()) {
       if (e.ghost || e.parent) continue;
       let r = this.ring.get(e.id);
       if (!r) this.ring.set(e.id, (r = new Uint8Array(60)));
@@ -109,7 +110,7 @@ export class StateLog {
       pend.clear();
     }
     // forget removed structures once a minute
-    if (this.head === 0) for (const m of [this.ring, this.inRing, this.outRing]) for (const id of m.keys()) if (!ents.map.has(id)) m.delete(id);
+    if (this.head === 0) for (const m of [this.ring, this.inRing, this.outRing]) for (const id of m.keys()) if (!stores.some((s) => s.map.has(id))) m.delete(id);
   }
 
   /** items per minute over the sampled part of the last minute: what arrived (in) or what it made/moved (out) */
@@ -215,8 +216,8 @@ export class Stats {
     for (const p of this.pend) p[1].set(idx, (p[1].get(idx) ?? 0) + n);
   }
 
-  tick(g: { ents: Ents }, dt: number) {
-    this.states.tick(g.ents, dt);
+  tick(g: { ents: Ents; houseEnts?: Ents }, dt: number) {
+    this.states.tick(g.houseEnts ? [g.ents, g.houseEnts] : [g.ents], dt);
     for (let r = 0; r < RES.length; r++) {
       this.acc[r] += dt;
       if (this.acc[r] >= RES[r]) {

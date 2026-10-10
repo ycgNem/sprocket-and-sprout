@@ -502,8 +502,49 @@ export function furnArt(name: string): Furn | null {
     case 'lantern': return lanternArt();
     case 'gclock': return gildedClock();
     case 'trophy': return trophy(v);
+    case 'drafting': return drafting();
+    case 'workbench': return workbench();
+    case 'toolwall': return toolwall();
   }
   return null;
+}
+
+// ---------- Workshop HQ (the stand-ins until the art pass: the imported sheet wins) ----------
+function drafting(): Furn {
+  // a tilted board on a timber trestle, a parallel rule and a rolled drawing; two tiles wide
+  const pb = new PixBuf(32, 28);
+  pb.rect(4, 18, 2, 9, C.walnut); pb.rect(26, 18, 2, 9, C.walnut);
+  pb.rect(3, 26, 26, 1, C.bark);
+  pb.rect(2, 8, 28, 11, C.oak);
+  pb.rect(3, 9, 26, 9, C.river);
+  for (let x = 6; x < 28; x += 4) pb.rect(x, 10, 1, 7, C.sky);
+  pb.rect(3, 13, 26, 1, C.brass);
+  pb.rect(20, 2, 3, 7, C.cream); pb.rect(19, 2, 5, 1, C.tan);
+  pb.rect(8, 4, 6, 4, C.brass); pb.rect(10, 1, 2, 3, C.walnut);
+  pb.outline(C.ink);
+  return { w: 32, h: 28, ox: 0, oy: 12, pb };
+}
+
+function workbench(): Furn {
+  const pb = new PixBuf(32, 22);
+  pb.rect(2, 8, 28, 4, C.oak); pb.rect(2, 8, 28, 1, C.tan);
+  pb.rect(3, 12, 3, 9, C.walnut); pb.rect(26, 12, 3, 9, C.walnut);
+  pb.rect(6, 16, 20, 2, C.bark);
+  pb.rect(22, 3, 6, 5, C.slate); pb.rect(24, 1, 2, 2, C.stone);
+  pb.disc(10, 5, 2.5, C.brass); pb.disc(15, 6, 1.8, C.amber);
+  pb.outline(C.ink);
+  return { w: 32, h: 22, ox: 0, oy: 6, pb };
+}
+
+function toolwall(): Furn {
+  const pb = new PixBuf(32, 16);
+  pb.rect(1, 2, 30, 12, C.tan);
+  for (let y = 4; y < 13; y += 3) for (let x = 3; x < 30; x += 3) pb.set(x, y, C.oak);
+  pb.rect(5, 3, 2, 9, C.walnut); pb.rect(4, 3, 4, 2, C.slate);
+  pb.rect(12, 4, 1, 8, C.walnut); pb.rect(11, 10, 3, 2, C.stone);
+  pb.disc(20, 7, 2.5, C.brass); pb.rect(25, 3, 2, 8, C.stone);
+  pb.outline(C.ink);
+  return { w: 32, h: 16, ox: 0, oy: 0, pb };
 }
 
 // ---------- pets: pet:<kind>:<coat>:<pose> (0 stand, 1 walk, 2 sit, 3 sleep), facing right ----------

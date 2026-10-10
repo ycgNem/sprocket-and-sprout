@@ -12,6 +12,7 @@ import { Game, registerSystem } from '../Game';
 import { key, kDef } from '../inventory';
 import { addPoints, hearts, npcSys } from './npcs';
 import { portGraph } from '../lines';
+import { allEnts } from '../indoors';
 import { stageCount, stageNext, stages, validateText } from './research';
 
 export interface ActiveQuest {
@@ -88,9 +89,10 @@ export function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
       return rate >= o.perMin || prog > 0;
     }
     // things crafted before the quest started count if you still have them (in the bag or placed)
-    case 'craft': return prog >= o.n || (!o.fresh && g.player.inv.countId(o.item) + g.ents.all().filter((e) => !e.ghost && !e.st.rust && e.def.item === o.item).length >= o.n);
+    // (a structure counts wherever it stands: on the farm or in the farmhouse's workshop)
+    case 'craft': return prog >= o.n || (!o.fresh && g.player.inv.countId(o.item) + allEnts(g).filter((e) => !e.ghost && !e.st.rust && e.def.item === o.item).length >= o.n);
     // structures placed before the quest started count too (the keeper's rusted ones aren't yours yet)
-    case 'build': return prog >= o.n || g.ents.all().filter((e) => !e.ghost && !e.st.rust && e.def.id === o.struct).length >= o.n;
+    case 'build': return prog >= o.n || allEnts(g).filter((e) => !e.ghost && !e.st.rust && e.def.id === o.struct).length >= o.n;
     // "any topic" counts once one is being studied (a costly first pick must not stall the tutorial)
     case 'research': return o.id === '*' ? (g.counters.research ?? 0) >= 1 || !!g.research.current : g.research.done.has(o.id);
     case 'floor': return (g.sys.mine?.deepest ?? 0) >= o.n;

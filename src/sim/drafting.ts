@@ -2,9 +2,11 @@
 // name, to load back into the blueprint tool and paste outside, or to bring to the Sprocket Fair's
 // test bed. Thorne's old works drawings arrive here too. A pure module: house.ts saves and loads
 // it (sys.house.lib), so any system can add to it without moving the tick order.
+import { ITEM_INDEX } from '../data/items';
 import { STRUCT_BY_ID } from '../data/structures';
 import type { Game } from './Game';
-import type { Blueprint } from './blueprint';
+import type { Blueprint, BlueprintItem } from './blueprint';
+import { key, kId, kQ } from './inventory';
 
 export interface LibEntry {
   name: string;
@@ -49,12 +51,29 @@ export function addBlueprint(g: Game, name: string, bp: Blueprint, from = ''): b
 /** does a library entry (or any blueprint) fit a w x h area, either way round? */
 export const fits = (bp: Blueprint, w: number, h: number) => (bp.w <= w && bp.h <= h) || (bp.h <= w && bp.w <= h);
 
-/** the library's save shape (blueprints keep their raw item keys, as blueprint ghosts do) */
-export const saveLib = (g: Game) => drafting(g).lib.map((e) => ({ ...e, bp: cloneBlueprint(e.bp) }));
+// item keys are indexes into the item list, which grows: the library saves [id, quality] pairs
+type KJ = [string, number];
+const kj = (k: number): KJ => [kId(k), kQ(k)];
+const jk = (j: unknown): number | null => (Array.isArray(j) && ITEM_INDEX.has(j[0]) ? key(j[0], j[1] ?? 0) : null);
+
+const saveItem = (it: BlueprintItem) => ({ ...it, filter: it.filter?.map(kj), sf: it.sf === undefined ? undefined : kj(it.sf) });
+function loadItem(it: any): BlueprintItem {
+  const out: BlueprintItem = { def: it.def, dx: it.dx, dy: it.dy, rot: it.rot };
+  if (it.recipe) out.recipe = it.recipe;
+  if (it.limit) out.limit = it.limit;
+  if (it.sp) out.sp = it.sp;
+  if (Array.isArray(it.filter)) out.filter = it.filter.map(jk).filter((k: number | null): k is number => k !== null);
+  const sf = jk(it.sf);
+  if (sf !== null) out.sf = sf;
+  return out;
+}
+
+/** the library's save shape */
+export const saveLib = (g: Game) => drafting(g).lib.map((e) => ({ ...e, bp: { w: e.bp.w, h: e.bp.h, items: e.bp.items.map(saveItem) } }));
 
 export function loadLib(g: Game, d: unknown) {
   const list = Array.isArray(d) ? d : [];
   drafting(g).lib = list.filter((e: any) => e && typeof e.name === 'string' && e.bp && Array.isArray(e.bp.items)).slice(0, LIB_MAX)
     // a structure retired since it was saved drops out of the drawing
-    .map((e: any) => ({ name: e.name, bp: { ...e.bp, items: e.bp.items.filter((it: any) => STRUCT_BY_ID.has(it.def)) } as Blueprint, from: e.from ?? '', day: e.day ?? 0 }));
+    .map((e: any) => ({ name: e.name, bp: { w: e.bp.w, h: e.bp.h, items: e.bp.items.filter((it: any) => STRUCT_BY_ID.has(it?.def)).map(loadItem) }, from: e.from ?? '', day: e.day ?? 0 }));
 }

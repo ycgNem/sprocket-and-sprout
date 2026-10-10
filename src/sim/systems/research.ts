@@ -214,10 +214,13 @@ function labAccept(g: Game, e: Ent, k: number): number {
   return Math.max(0, 10 - have);
 }
 
+/** the structures that may be study desks: the farm's and the farmhouse's (Workshop HQ) */
+const deskLists = (g: Game) => [g.ents.others, g.houseEnts.others];
+
 function updateLabs(g: Game, dt: number) {
   const cur = g.research.current;
   if (!cur) {
-    for (const e of g.ents.others) if (e.def.kind === 'lab' && !rustTick(e, g.simTime)) {
+    for (const list of deskLists(g)) for (const e of list) if (e.def.kind === 'lab' && !rustTick(e, g.simTime)) {
       e.working = false;
       setState(e, MState.Idle, 'No topic chosen: open the research tree (T)', g.simTime);
     }
@@ -231,7 +234,7 @@ function updateLabs(g: Game, dt: number) {
   const units = researchUnits(cur, g);
   // a keystone whose stages aren't done: the desk waits for them and takes no bundles
   const next = stageNext(g, cur);
-  for (const e of g.ents.others) {
+  for (const list of deskLists(g)) for (const e of list) {
     if (e.def.kind !== 'lab' || e.ghost || rustTick(e, g.simTime)) continue;
     const inv = e.inv!;
     if (!e.st.unit) {

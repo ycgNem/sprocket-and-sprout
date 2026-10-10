@@ -143,6 +143,19 @@ export interface Ent {
   st: any;
 }
 
+/**
+ * Workshop HQ (ROADMAP.md 7.8): the farmhouse keeps its own entity store (`Game.houseEnts`). Its
+ * structures take ids from here up, so an id names one structure in either store (the struct
+ * window, a hop, the stats rings and the undo stack all go by id).
+ */
+export const HOUSE_IDS = 1_000_000;
+
+/** the store a structure lives in: the farmhouse's or the world's */
+export const storeOf = (g: { ents: Ents; houseEnts: Ents }, e: Ent): Ents => ((e.parent ?? e).id >= HOUSE_IDS ? g.houseEnts : g.ents);
+
+/** a structure by id, in either store */
+export const entById = (g: { ents: Ents; houseEnts: Ents }, id: number): Ent | null => (id >= HOUSE_IDS ? g.houseEnts.get(id) : g.ents.get(id));
+
 export function footprint(def: StructureDef, rot: Dir): [number, number] {
   const [w, h] = def.size;
   return rot === 1 || rot === 3 ? [h, w] : [w, h];
@@ -167,10 +180,11 @@ export class Ents {
   beltOrder: Ent[] = [];
   version = 0;
 
-  constructor(w: number, h: number) {
+  constructor(w: number, h: number, firstId = 1) {
     this.w = w;
     this.h = h;
     this.grid = new Int32Array(w * h);
+    this.nextId = firstId;
   }
 
   at(x: number, y: number): Ent | null {

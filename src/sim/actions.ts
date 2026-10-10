@@ -529,7 +529,12 @@ export function interact(g: Game, tx: number, ty: number): boolean {
     petInteract(g, pet);
     return true;
   }
-  if (p.where === 'house') return g.sys.house?.interact?.(g, tx, ty) ?? false;
+  if (p.where === 'house') {
+    // a structure placed indoors works as it does outside (Workshop HQ)
+    const he = g.houseEnts.rootAt(tx, ty);
+    if (he && !he.ghost) return interactStruct(g, he);
+    return g.sys.house?.interact?.(g, tx, ty) ?? false;
+  }
   // NPCs near the target
   const npc = g.sys.npcs?.at?.(g, tx + 0.5, ty + 0.5);
   if (npc) {

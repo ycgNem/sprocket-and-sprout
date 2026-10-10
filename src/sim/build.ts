@@ -2,7 +2,7 @@
 import { STRUCT_BY_ID } from '../data/structures';
 import type { StructureDef } from '../data/types';
 import type { Game } from './Game';
-import { BeltKind, DX, DY, Dir, Ent, footprint, opposite, rightOf } from './ents';
+import { BeltKind, DX, DY, Dir, Ent, footprint, opposite, rightOf, storeOf } from './ents';
 import { key, Stack } from './inventory';
 import { O, T, Z, WATER_TERRAIN } from './world/tilemap';
 
@@ -169,15 +169,17 @@ export function deconstruct(g: Game, e: Ent, refund = true): boolean {
     g.toast(`The keeper's ${root.def.name.toLowerCase()} is rusted solid. Press F to restore it first.`);
     return false;
   }
+  // the farm's structures, or the farmhouse's (Workshop HQ)
+  const store = storeOf(g, root);
   if (root.ghost) {
-    g.ents.remove(root);
+    store.remove(root);
     return true;
   }
   if (refund) {
     for (const s of contents(root)) g.give(s.k, s.n, false);
     g.give(key(root.def.item), 1);
   }
-  g.ents.remove(root);
+  store.remove(root);
   g.count('decon');
   g.sys.onRemove?.forEach?.((f: (g: Game, e: Ent) => void) => f(g, root));
   g.emit({ t: 'fx', kind: 'dust', x: root.x + root.w / 2, y: root.y + root.h / 2, n: 10 });
@@ -203,6 +205,6 @@ export function rotateStruct(g: Game, e: Ent) {
       pairUnderground(g, root);
     }
   }
-  g.ents.version++;
+  storeOf(g, root).version++;
   g.emit({ t: 'sfx', id: 'rotate', x: root.x, y: root.y });
 }
