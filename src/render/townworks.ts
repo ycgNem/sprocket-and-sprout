@@ -33,15 +33,17 @@ function cartAt(s: number): { x: number; y: number; view: 'h' | 'v' } {
 }
 
 /**
- * Where the tram's cart is (pure function of the clock): it leaves the quarry at 6am with the
- * morning's ore and reaches the square about 6:45 (~30 s of play); it stands at the square stop
- * until noon, runs back empty, and waits at the quarry overnight.
+ * Where the tram's cart is (pure function of the clock): from 6am to 6pm it shuttles every two hours
+ * (45 minutes, about 30 s of play, each way, a quarter hour at each stop), so it's on the road most
+ * of the day; the 6am run carries the morning's load. It waits at the quarry overnight.
  */
 export function tramCart(g: Game): { x: number; y: number; view: 'h' | 'v'; moving: boolean; loaded: boolean } {
-  const m = g.time.min, RUN = 45;
-  const s = m >= 360 && m < 360 + RUN ? (m - 360) / RUN : m >= 360 + RUN && m < 720 ? 1 : m >= 720 && m < 720 + RUN ? 1 - (m - 720) / RUN : 0;
-  const moving = (m >= 360 && m < 360 + RUN) || (m >= 720 && m < 720 + RUN);
-  return { ...cartAt(s), moving, loaded: m >= 360 && m < 360 + RUN && townworks(g).cart > 0 };
+  const m = g.time.min, RUN = 45, CYCLE = 120;
+  if (m < 360 || m >= 1080) return { ...cartAt(0), moving: false, loaded: false };
+  const c = (m - 360) % CYCLE;
+  const s = c < RUN ? c / RUN : c < 60 ? 1 : c < 60 + RUN ? 1 - (c - 60) / RUN : 0;
+  const moving = c < RUN || (c >= 60 && c < 60 + RUN);
+  return { ...cartAt(s), moving, loaded: m < 360 + RUN && townworks(g).cart > 0 };
 }
 
 /** the pole the town line hangs on (the same rule as src/sim/systems/power.ts: the nearest that reaches) */

@@ -37,7 +37,11 @@ const step = (g: Game) => {
 describe("the Keeper's Line data", () => {
   it('every beat says why it matters, names its steps for the Now strip, and lives on the main path', () => {
     const chain = QUESTS.filter((q) => q.id.startsWith('k'));
-    expect(chain.map((q) => q.id)).toEqual(['k1_line', 'k2_springs', 'k3_hands', 'k4_grow', 'k5_desk', 'k6_bottleneck', 'k7_town', 'k8_river', 'k9_bed', 'k9_power', 'k10_mill']);
+    expect(chain.map((q) => q.id)).toEqual([
+      'k1_line', 'k2_springs', 'k3_hands', 'k4_grow', 'k5_desk', 'k6_bottleneck', 'k7_town', 'k8_river', 'k9_bed', 'k9_power', 'k10_mill',
+      // each era hands over the next town keystone (the critic's Phase 3+4 C1): Steam, then Clockwork, then the Clock
+      'k11_boiler', 'k12_steam', 'k13_waterworks', 'k14_spark', 'k15_lamps', 'k16_tram', 'k17_clock',
+    ]);
     for (const q of chain) {
       expect(q.why, q.id).toBeTruthy();
       expect(q.main, q.id).toBe(true);

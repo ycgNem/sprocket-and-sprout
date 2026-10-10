@@ -120,7 +120,9 @@ export type GameEvent =
   /** a lesson card to show for the first time (src/data/lessons.ts) */
   | { t: 'lesson'; id: string }
   /** an era's town keystone is done: its reward card (ROADMAP.md 7.3) */
-  | { t: 'era'; era: number; title: string; pieces: string[] };
+  | { t: 'era'; era: number; title: string; pieces: string[] }
+  /** a town keystone's payoff (ROADMAP.md 7.5's short scene): the camera goes to look, then the card */
+  | { t: 'scene'; x: number; y: number; title: string; text: string; icon?: string };
 
 export interface DaySummary {
   day: number;
@@ -209,7 +211,7 @@ export class Game {
    * done: finished topics; rewards: era-reward pieces held (ROADMAP.md 7.3, ids of the 1.x buff
    * nodes); valid: seconds a keystone's validate stage has held its rate
    */
-  research = { done: new Set<string>(), current: null as string | null, progress: {} as Record<string, number>, rewards: new Set<string>(), valid: {} as Record<string, number> };
+  research = { done: new Set<string>(), current: null as string | null, progress: {} as Record<string, number>, rewards: new Set<string>(), valid: {} as Record<string, number>, base: {} as Record<string, number> };
   mods: Mods = { armHand: 0, machineSpeed: 1, labSpeed: 1, energy: 0, droneSpeed: 1, droneCount: 0, reach: 0, marketBonus: 0 };
   stats = new Stats();
   events: GameEvent[] = [];

@@ -35,7 +35,6 @@ hand('rope', 1, [['fiber', 3]]);
 rec('hand', [s('straw', 1)], [s('fiber', 2)], 1, undefined, 'hand:fiber_straw');
 hand('lubricant', 1, [['oil', 1], ['sap', 1]], 'r_milling');
 hand('plank', 1, [['wood', 2]]);
-hand('beam', 1, [['hardwood', 2]]);
 hand('flower_pot', 1, [['wood', 10], ['#flower', 2]]);
 hand('lab', 1, [['wood', 50], ['copper_gear', 1], ['fiber', 10]], 'flag:lab');
 hand('jar', 1, [['wood', 25], ['stone', 8], ['coal', 1]], 'r_preserves');
@@ -81,6 +80,7 @@ rec('assembler', [s('flax', 1)], [s('fiber', 3)], 4, undefined, 'asm:fiber_flax'
 rec('hand', [s('fiber', 1), s('#fruit', 1)], [s('bundle_green', 1)], 2, 'flag:lab', 'hand:bundle_green_fruit');
 rec('hand', [s('fiber', 1), s('#forage', 1)], [s('bundle_green', 1)], 2, 'flag:lab', 'hand:bundle_green_forage');
 rec('hand', [s('copper_gear', 1), s('plank', 2)], [s('bundle_copper', 1)], 3, 'r_metallurgy', 'hand:bundle_copper');
+rec('hand', [s('#preserve', 1), s('canvas', 1), s('copper_coil', 1)], [s('bundle_rose', 1)], 4, 'r_weaving', 'hand:bundle_rose_works');
 rec('hand', [s('#preserve', 1), s('cloth', 1), s('#animal', 1)], [s('bundle_rose', 1)], 4, 'r_weaving', 'hand:bundle_rose');
 rec('hand', [s('brass_gear', 1), s('arm_basic', 1), s('belt_1', 2), s('glass', 1)], [s('bundle_brass', 1)], 5, 'r_spark', 'hand:bundle_brass');
 rec('hand', [s('#gem', 1), s('gold_bar', 1), s('#wine', 1), s('spark_coil', 1)], [s('bundle_star', 1)], 6, 'r_assembly2', 'hand:bundle_star');
@@ -188,13 +188,14 @@ for (const [id] of VEG_LIST) rec('jar', [s(id, 1)], [s(`pickles_${id}`, 1)], 60,
 rec('jar', [s('cogbean', 2)], [s('cogbean_oil', 1)], 90, 'flag:recipe_cogbean_oil', 'jar:cogbean_oil');
 rec('jar', [s('#fish', 3)], [s('caviar', 1)], 90, undefined, 'jar:caviar');
 rec('jar', [s('roe', 5)], [s('caviar', 1)], 90, undefined, 'jar:caviar_roe');
-// Dyes & Pastes: the same roots and caps, locked to a paste or pigment recipe
+// Dyes & Pastes: the same roots and caps, locked to a paste or pigment recipe; a pot is worth at least
+// what went into it (the critic's M4: a yam made one pot worth less than the yam)
 rec('jar', [s('potato', 2)], [s('starch_paste', 1)], 60, 'r_pastes', 'jar:paste_potato');
-rec('jar', [s('yam', 1)], [s('starch_paste', 1)], 60, 'r_pastes', 'jar:paste_yam');
-rec('jar', [s('corn', 2)], [s('starch_paste', 1)], 60, 'r_pastes', 'jar:paste_corn');
-rec('jar', [s('beet', 2)], [s('pigment', 1)], 80, 'r_pastes', 'jar:pigment_beet');
-rec('jar', [s('mooncap', 1)], [s('pigment', 1)], 80, 'r_pastes', 'jar:pigment_mooncap');
-rec('jar', [s('starpetal', 1)], [s('pigment', 4)], 80, 'r_pastes', 'jar:pigment_starpetal');
+rec('jar', [s('yam', 1)], [s('starch_paste', 2)], 60, 'r_pastes', 'jar:paste_yam');
+rec('jar', [s('corn', 1)], [s('starch_paste', 1)], 60, 'r_pastes', 'jar:paste_corn');
+rec('jar', [s('beet', 1)], [s('pigment', 1)], 80, 'r_pastes', 'jar:pigment_beet');
+rec('jar', [s('mooncap', 1)], [s('pigment', 2)], 80, 'r_pastes', 'jar:pigment_mooncap');
+rec('jar', [s('starpetal', 1)], [s('pigment', 5)], 80, 'r_pastes', 'jar:pigment_starpetal');
 
 // ---------------- Cheese press ----------------
 rec('press', [s('milk', 1)], [s('cheese', 1)], 40, undefined, 'press:cheese');
@@ -253,7 +254,7 @@ rec('crusher', [s('geode', 1)], [s('quartz', 1, 0.5), s('mica', 1, 0.25), s('top
 // ---------------- Cooking (oven, kitchen) ----------------
 const cook = (out: string, inp: [string, number][], time: number, n = 1) =>
   rec('oven', inp.map(([i, k]) => s(i, k)), [s(out, n)], time, RECIPE_TEACHERS[out] ? 'flag:' + recipeFlag(out) : undefined, `cook:${out}`);
-cook('bread', [['flour', 2]], 30);
+cook('bread', [['#flour', 2]], 30);
 cook('salad', [['#greens', 2], ['radish', 1]], 20);
 cook('veggie_soup', [['#vegetable', 3]], 40);
 cook('fish_stew', [['#fish', 2], ['#vegetable', 1]], 40);

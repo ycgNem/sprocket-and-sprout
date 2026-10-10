@@ -195,7 +195,7 @@ export class Bot {
   grainTarget(): number {
     const g = this.g;
     if (!questSys(g).done.includes('k8_river') || ![0, 2].includes(g.time.season)) return 0;
-    // the chain heads for the Town Mill (80 sacks of meal, and a batch to keep the mill busy): from the
+    // the chain heads for the Town Mill (40 sacks of meal, and a batch to keep the mill busy): from the
     // river works on, barley takes much of what the beans leave
     const q = questSys(g);
     const cap = worksDone(g).includes('w_town_mill') ? 16 : q.done.includes('k9_bed') ? 56 : 32;
@@ -488,11 +488,10 @@ export class Bot {
           this.notes.push('restored the old lift');
         }
       }
-      // level 6's collapsed gallery: shored up with 20 beams, if the bag (or its hardwood) has them
+      // level 6's collapsed gallery: shored up with 20 beams, if the bag has them (beams are a sawmill's)
       const gallery = m.gallery;
       const galleryState = () => (gallery ? mm.objData[mm.idx(gallery[0], gallery[1])] : -1);
       if (gallery && galleryState() === 0) {
-        if (inv.countId('beam') < 20) handCraft('beam', 20 - inv.countId('beam'));
         if (inv.countId('beam') >= 20) {
           g.player.x = gallery[0] + 0.5;
           g.player.y = gallery[1] + 1.5;
@@ -988,6 +987,8 @@ export class Bot {
       if (bin.st.tag === 'council') bin.st.tag = 'rowan';
       return;
     }
+    // the order is up from k10's first step, but the crate keeps shipping to Rowan until Milling is studied
+    if (!g.research.done.has('r_milling')) return;
     let moved = 0;
     for (let i = 0; i < g.player.inv.slots.length; i++) {
       const sl = g.player.inv.slots[i];

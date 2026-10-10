@@ -18,8 +18,9 @@ import { ITEMS, ITEM_BY_ID, matchesSpec } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
 import { C } from '../../data/palette';
 import {
-  BUSINESS_BY_ID, BUSINESS_BY_NPC, KEYSTONE_WORKS, KEYSTONE_WORKS_BY_ID, REP_RANKS, STANDING, STANDING_BY_ID, rankOf, type StandingDef,
+  BUSINESS_BY_ID, BUSINESS_BY_NPC, KEYSTONE_WORKS, KEYSTONE_WORKS_BY_ID, REP_RANKS, STANDING, STANDING_BY_ID, rankOf, type KeystoneWorksDef, type StandingDef,
 } from '../../data/orders';
+import { RESEARCH_BY_ID } from '../../data/research';
 import { WEEKDAYS } from '../../data/types';
 import { questName } from '../../data/cookbook';
 import { Game, registerSystem } from '../Game';
@@ -29,6 +30,16 @@ import { lesson } from '../lessons';
 import { PORT_HANDLERS } from '../ports';
 import { addPoints, hearts, npcSys } from './npcs';
 import { send } from './goals';
+import { canResearch } from '../keystones';
+import { FOUNTAIN, MILL_WHEEL, TRAM } from '../world/townworks';
+
+/** where the camera goes to watch each town keystone come alive (tiles) */
+const SCENE_AT: Record<string, [number, number]> = {
+  w_town_mill: [MILL_WHEEL.cx, MILL_WHEEL.cy],
+  w_waterworks: [FOUNTAIN.x + FOUNTAIN.w / 2, FOUNTAIN.y + FOUNTAIN.h / 2],
+  w_lamps: [132.5, 60.5],
+  w_tram: [(TRAM.route[0][0] + TRAM.route[1][0]) / 2, TRAM.route[0][1]],
+};
 
 export type OrderKind = 'today' | 'standing' | 'guild' | 'works';
 
@@ -293,13 +304,34 @@ function specValid(spec: string): boolean {
 }
 const unitValue = (c: ContractDef) => c.unit ?? ITEM_BY_ID.get(c.spec)?.price ?? 50;
 
-/** the works: every unfinished project, and each keystone once what it waits for is done */
+/**
+ * Is a keystone's order up? On a Keeper's Line save from when its main quest starts (you see what it
+ * wants from the first step); otherwise once its research can be studied.
+ */
+function keystonePosted(g: Game, k: KeystoneWorksDef): boolean {
+  if (g.flags.has('keepers_line')) return holds(g, 'on:' + k.quest);
+  const r = k.after.find((c) => RESEARCH_BY_ID.has(c));
+  return !r || g.research.done.has(r) || canResearch(g, r);
+}
+
+/** can a keystone's order be finished? (its research studied, its chamber restored) */
+export const keystoneReady = (g: Game, k: KeystoneWorksDef) => k.after.every((c) => holds(g, c));
+
+/** what a full keystone order still waits for, in words ("you've studied Milling"), or null */
+export function keystoneWait(g: Game, id: string): string | null {
+  const k = KEYSTONE_WORKS_BY_ID.get(id);
+  if (!k || keystoneReady(g, k)) return null;
+  const parts = k.after.filter((c) => !holds(g, c)).map((c) => (RESEARCH_BY_ID.has(c) ? `you've studied ${RESEARCH_BY_ID.get(c)!.name}` : c === 'flag:chamber:cart' ? 'the rail cart is restored' : c));
+  return parts.join(' and ');
+}
+
+/** the works: each keystone with its quest, and every project whose era has come */
 function postWorks(g: Game, quiet = false) {
   if (g.map.w < 100 || g.mode === 'sandbox') return;
   const os = orders(g);
   const has = (id: string) => os.worksDone.includes(id) || os.open.some((o) => o.def === id);
   for (const k of KEYSTONE_WORKS) {
-    if (has(k.id) || !k.after.every((c) => holds(g, c))) continue;
+    if (has(k.id) || !keystonePosted(g, k)) continue;
     post(g, { kind: 'works', def: k.id, cust: 'council', lines: k.items.map((i) => ({ spec: i.item, n: i.n, have: 0 })), day: g.dayIndex, due: NEVER, rep: 0 }, quiet);
     if (!quiet) {
       g.emit({ t: 'sfx', id: 'chime' });
@@ -307,8 +339,8 @@ function postWorks(g: Game, quiet = false) {
     }
   }
   for (const p of PROJECTS) {
-    // the Bakery Window opens once the town has flour of its own (the Town Mill)
-    if (has(p.id) || (p.id === 'p_bakery' && !g.flags.has('bread_town'))) continue;
+    // a project waits for its era (the Bakery Window for the Town Mill's flour and an oven)
+    if (has(p.id) || !(p.after ?? []).every((c) => holds(g, c))) continue;
     post(g, { kind: 'works', def: p.id, cust: 'council', lines: p.items.map((i) => ({ spec: i.item, n: i.n, have: 0 })), day: g.dayIndex, due: NEVER, rep: 0 }, true);
   }
 }
@@ -335,6 +367,15 @@ function deliver(g: Game, o: Order, k: ItemKey, n: number, via: 'hand' | 'post' 
   g.stats.use(k, took);
   g.sys.collections?.shipped?.(g, k, took);
   if (orderFull(o)) {
+    // a keystone's goods can all be in before its research is done: the works start once it is
+    const wait = o.kind === 'works' ? keystoneWait(g, o.def) : null;
+    if (wait) {
+      if (!g.flags.has('works_waiting:' + o.def)) {
+        g.flags.add('works_waiting:' + o.def);
+        g.toast(`Everything for ${orderTitle(o)} is in. The works start once ${wait}.`, undefined, C.amber);
+      }
+      return { took, coins };
+    }
     const money = o.kind === 'works' ? PROJECT_BY_ID.get(o.def)?.money ?? 0 : 0;
     if (money && g.player.money < money) g.toast(`All items are in! ${orderTitle(o)} also needs ${money} coins: pay at the board.`);
     else if (money && via === 'post') g.toast(`All items are in! ${orderTitle(o)} also needs ${money} coins: pay at the board.`);
@@ -426,10 +467,11 @@ function finishWorks(g: Game, id: string) {
     // the town's bread comes from its mill now: the Kettle and the Mercantile sell bread and flour
     if (k.id === 'w_town_mill') g.flags.add('bread_town');
     g.count('keystones');
-    g.toast(`${k.name}: done! ${k.done}`, undefined, C.lime);
     g.emit({ t: 'sfx', id: 'chime' });
     g.emit({ t: 'fx', kind: 'magic', x: g.player.x, y: g.player.y - 1, n: 40 });
-    g.emit({ t: 'ui', open: 'message', arg: { title: k.name, text: k.done, icon: 'construction_site' } });
+    // the camera goes to watch it start (the play screen), then its card
+    const [sx, sy] = SCENE_AT[k.id] ?? [g.player.x, g.player.y];
+    g.emit({ t: 'scene', x: sx, y: sy, title: k.name, text: k.done, icon: 'construction_site' });
     return;
   }
   const p = PROJECT_BY_ID.get(id);
@@ -616,6 +658,7 @@ registerSystem({
     if (g.tickN % 60 === 0) {
       postDue(g, false);
       postWorks(g);
+      for (const o of [...orders(g).open]) if (o.kind === 'works' && KEYSTONE_WORKS_BY_ID.has(o.def) && orderFull(o) && !keystoneWait(g, o.def)) complete(g, o, 'board');
     }
   },
   dayStart(g) {

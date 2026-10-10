@@ -131,7 +131,7 @@ const cart = await ev(async () => {
 });
 check(cart.loaded && cart.moving && cart.view === 'v', `the morning cart runs loaded down the avenue at 6:38: ${JSON.stringify(cart)}`);
 await shot('tram-run', { x: 130.5, y: 46, zoom: 3, min: 6 * 60 + 38, keepToasts: true, wait: 600 });
-await shot('tram-square', { x: 130, y: 49.4, zoom: 3, min: 10 * 60 });
+await shot('tram-square', { x: 130, y: 49.4, zoom: 3, min: 10 * 60 + 50 });
 
 await browser.close();
 console.log(results.join('\n'));

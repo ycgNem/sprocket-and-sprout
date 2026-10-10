@@ -1,6 +1,6 @@
 // Save / load with versioned migrations. Item keys are stored as [id, quality]
 // so saves survive content additions. Maps are run-length encoded.
-import { ITEM_INDEX } from '../data/items';
+import { ITEM_BY_ID, ITEM_INDEX } from '../data/items';
 import { LEGACY32 } from '../data/palette';
 import { CONTRACT_POOL } from '../data/contracts';
 import { PROJECT_BY_ID } from '../data/goals';
@@ -215,7 +215,7 @@ export function serialize(g: Game, look: NPCLook): any {
       inv: p.inv.toJSON(), sel: p.sel, water: p.water, skills: p.skills, xp: p.xp, upgrading: p.upgrading, rows: p.rows,
     },
     flags: [...g.flags],
-    research: { done: [...g.research.done], current: g.research.current, progress: g.research.progress, rewards: [...g.research.rewards], valid: g.research.valid },
+    research: { done: [...g.research.done], current: g.research.current, progress: g.research.progress, rewards: [...g.research.rewards], valid: g.research.valid, base: g.research.base },
     soil: [...g.soil].map(([i, s]) => [i, s.water ? 1 : 0, s.fert, s.idle, s.crop ? [s.crop.id, s.crop.days, s.crop.stage, s.crop.ready ? 1 : 0, s.crop.harvests, s.crop.dead ? 1 : 0, s.crop.giant, s.crop.frac] : null]),
     map: saveMap(g.map),
     ents: g.ents.all().map(saveEnt).filter(Boolean),
@@ -295,6 +295,11 @@ export function migrateV5(d: any): any {
     os.worksDone = [...(goals.doneProjects ?? [])].filter((id: string) => PROJECT_BY_ID.has(id));
     for (const [pid, prog] of Object.entries((goals.projects ?? {}) as Record<string, Record<string, number>>)) {
       const p = PROJECT_BY_ID.get(pid);
+      // a basket that 2.0 retired (DECISIONS #93): the Council pays back what had gone into it, at market
+      if (!p && d.player) {
+        for (const [item, n] of Object.entries(prog ?? {})) d.player.money = (d.player.money ?? 0) + (ITEM_BY_ID.get(item)?.price ?? 0) * (n || 0);
+        continue;
+      }
       if (!p || os.worksDone.includes(pid)) continue;
       push({ kind: 'works', def: pid, cust: 'council', lines: p.items.map((it) => ({ spec: it.item, n: it.n, have: Math.min(it.n, prog?.[it.item] ?? 0) })), day, due: 1e9, rep: 0 });
     }
@@ -387,6 +392,7 @@ export function deserialize(raw: any): { game: Game; look: NPCLook } {
   g.research.progress = d.research.progress ?? {};
   g.research.rewards = new Set(d.research.rewards ?? []);
   g.research.valid = d.research.valid ?? {};
+  g.research.base = d.research.base ?? {};
   g.soil.clear();
   for (const [i, w, fert, idle, c] of d.soil) {
     g.soil.set(i, {

@@ -12,6 +12,7 @@ import { Game, registerSystem } from '../Game';
 import { key, kDef } from '../inventory';
 import { addPoints, hearts, npcSys } from './npcs';
 import { portGraph } from '../lines';
+import { stageCount, stageNext, stages, validateText } from './research';
 
 export interface ActiveQuest {
   id: string;
@@ -112,6 +113,7 @@ export function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
     case 'grid': return gridCovers(g, o.struct);
     case 'flag': return g.flags.has(o.flag);
     case 'count': return (g.counters[o.key] ?? 0) >= o.n;
+    case 'stage': return g.research.done.has(o.id) || stages(g, o.id)[o.stage] !== false;
     case 'gleaned': return gleanedCount(g, o.crop) >= o.n;
     case 'feeds': {
       const nodes = portGraph(g);
@@ -177,10 +179,19 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
       return `${o.label} (${r.all - r.left}/${r.all})`;
     }
     if (o.t === 'order') {
-      const open = (g.sys.orders?.open as { id: string; n: number; have: number }[] | undefined)?.find((x) => x.id === o.id);
-      return open ? `${o.label} (${open.have}/${open.n})` : o.label;
+      // a works order: its items in so far, over all its lines
+      const open = (g.sys.orders?.open as { def: string; done?: boolean; lines: { n: number; have: number }[] }[] | undefined)?.find((x) => x.def === o.id && !x.done);
+      if (!open) return o.label;
+      const have = open.lines.reduce((a, l) => a + Math.min(l.n, l.have), 0), n = open.lines.reduce((a, l) => a + l.n, 0);
+      return `${o.label} (${have}/${n})`;
     }
     if (o.t === 'count') return `${o.label} (${Math.min(o.n, Math.floor(g.counters[o.key] ?? 0))}/${o.n})`;
+    if (o.t === 'stage') return stageLine(g, o.id, o.stage, o.label);
+    // a keystone's desk waits for its stages: say which one is next
+    if (o.t === 'research' && o.id !== '*' && !g.research.done.has(o.id)) {
+      const next = stageNext(g, o.id);
+      if (next) return `${o.label} (first: ${next[0].toLowerCase()}${next.slice(1)})`;
+    }
     return n > 1 && o.t !== 'build' ? `${o.label} (${Math.min(prog, n)}/${n})` : o.label;
   }
   switch (o.t) {
@@ -217,7 +228,20 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
     case 'order': return `Fill the order: ${o.id}`;
     case 'grid': return `Enough power for the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct}'s grid`;
     case 'count': return `${o.key} (${Math.min(o.n, Math.floor(g.counters[o.key] ?? 0))}/${o.n})`;
+    case 'stage': return stageLine(g, o.id, o.stage, RESEARCH_BY_ID.get(o.id)?.name ?? o.id);
   }
+}
+
+/** a keystone stage's line: the experiment's count since the keystone opened, the validate clock live */
+function stageLine(g: Game, id: string, stage: 'observe' | 'experiment' | 'validate', label: string): string {
+  const k = RESEARCH_BY_ID.get(id)?.keystone;
+  if (!k || g.research.done.has(id)) return label;
+  if (stage === 'experiment') {
+    const o = k.experiment?.find((x) => x.t === 'count');
+    if (o && o.t === 'count') return `${label} (${Math.min(o.n, Math.floor(stageCount(g, id, o.key)))}/${o.n})`;
+  }
+  if (stage === 'validate' && stages(g, id).validate === false) return `${label}: ${validateText(g, id)}`;
+  return label;
 }
 
 function complete(g: Game, a: ActiveQuest) {

@@ -3,6 +3,8 @@
 // validate (an item made at a rate, held for some minutes); a desk on a keystone whose stages
 // aren't done waits and takes nothing. Era rewards (the 1.x buff nodes) come from town keystones.
 import { ERA_REWARDS, REWARD_BY_ID, RESEARCH, RESEARCH_BY_ID } from '../../data/research';
+import { canResearch, keystoneOpen, keystoneQuest, stageCount } from '../keystones';
+export { canResearch, keystoneOpen, stageCount } from '../keystones';
 import { RECIPES } from '../../data/recipes';
 import { ITEM_BY_ID, ITEMS, matchesSpec } from '../../data/items';
 import type { ObjectiveDef } from '../../data/types';
@@ -20,12 +22,6 @@ export function researchUnits(id: string, g?: Game) {
   return g?.mode === 'rush' ? Math.ceil(n / 2) : n;
 }
 
-export function canResearch(g: Game, id: string): boolean {
-  const r = RESEARCH_BY_ID.get(id);
-  if (!r || g.research.done.has(id)) return false;
-  if (r.needFlag && !g.flags.has(r.needFlag)) return false;
-  return r.prereq.every((p) => g.research.done.has(p));
-}
 
 export function setResearch(g: Game, id: string | null) {
   if (id && !canResearch(g, id)) return;
@@ -42,12 +38,27 @@ export function unlocksOf(id: string) {
 }
 
 // ---------------- keystone stages ----------------
+// (when a keystone's stages start counting: src/sim/keystones.ts)
+
+/**
+ * Once a second: a keystone that opens on a Keeper's Line save starts its counts from now. `legacy`
+ * (a save from before the stages counted from the quest) keeps its lifetime counts.
+ */
+function openKeystones(g: Game, legacy = false) {
+  if (!g.flags.has('keepers_line')) return;
+  for (const r of RESEARCH) {
+    if (!r.keystone || !keystoneQuest(r.id) || g.flags.has('stages_open:' + r.id) || !keystoneOpen(g, r.id)) continue;
+    g.flags.add('stages_open:' + r.id);
+    if (legacy) continue;
+    for (const o of r.keystone.experiment ?? []) if (o.t === 'count') g.research.base[`${r.id}|${o.key}`] = g.counters[o.key] ?? 0;
+  }
+}
 
 /** a stage objective that the state can answer (no per-quest progress): flags, counters, builds */
-export function stageObjMet(g: Game, o: ObjectiveDef): boolean {
+export function stageObjMet(g: Game, o: ObjectiveDef, id?: string): boolean {
   switch (o.t) {
     case 'flag': return g.flags.has(o.flag);
-    case 'count': return (g.counters[o.key] ?? 0) >= o.n;
+    case 'count': return stageCount(g, id, o.key) >= o.n;
     case 'build': return g.ents.all().filter((e) => !e.ghost && !e.st.rust && e.def.id === o.struct).length >= o.n;
     case 'research': return g.research.done.has(o.id);
     case 'have': return g.player.inv.countSpec(o.item) >= o.n;
@@ -56,9 +67,9 @@ export function stageObjMet(g: Game, o: ObjectiveDef): boolean {
 }
 
 /** a stage objective's line with its count ("Grind 20 meal or flour (12/20)") */
-export function stageObjText(g: Game, o: ObjectiveDef): string {
+export function stageObjText(g: Game, o: ObjectiveDef, id?: string): string {
   const label = o.label ?? o.t;
-  if (o.t === 'count') return `${label} (${Math.min(o.n, Math.floor(g.counters[o.key] ?? 0))}/${o.n})`;
+  if (o.t === 'count') return `${label} (${Math.min(o.n, Math.floor(stageCount(g, id, o.key)))}/${o.n})`;
   if (o.t === 'build') return `${label} (${Math.min(o.n, g.ents.all().filter((e) => !e.ghost && !e.st.rust && e.def.id === o.struct).length)}/${o.n})`;
   return label;
 }
@@ -80,7 +91,7 @@ export function stages(g: Game, id: string): StageState {
   // Sandbox has no keystone stages: research there is a plain tree
   if (!k || g.mode === 'sandbox' || g.research.done.has(id)) return { observe: null, experiment: null, validate: null, held: 0, need: 0, ready: true };
   const observe = k.observe ? g.flags.has(k.observe.flag) : null;
-  const experiment = k.experiment ? k.experiment.every((o) => stageObjMet(g, o)) : null;
+  const experiment = k.experiment ? k.experiment.every((o) => stageObjMet(g, o, id)) : null;
   const need = k.validate ? k.validate.minutes * 60 : 0;
   const held = Math.min(need, g.research.valid[id] ?? 0);
   const validate = k.validate ? held >= need || g.flags.has('validated:' + id) : null;
@@ -94,17 +105,26 @@ export function stageNext(g: Game, id: string): string | null {
   if (!k || s.ready) return null;
   if (s.observe === false) return k.observe!.label;
   if (s.experiment === false) {
-    const o = k.experiment!.find((x) => !stageObjMet(g, x))!;
-    return stageObjText(g, o);
+    const o = k.experiment!.find((x) => !stageObjMet(g, x, id))!;
+    return stageObjText(g, o, id);
   }
-  if (s.validate === false) return `${k.validate!.label} (${fmtClock(s.held)} of ${fmtClock(s.need)})`;
+  if (s.validate === false) return `${k.validate!.label} (${validateText(g, id)})`;
   return null;
 }
 
-const fmtClock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+export const fmtClock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+/** a validate stage's live numbers: "2.4 a minute now, 0:40 of 2:00" */
+export function validateText(g: Game, id: string): string {
+  const v = RESEARCH_BY_ID.get(id)?.keystone?.validate;
+  if (!v) return '';
+  const s = stages(g, id);
+  const rate = ratePerMin(g, v.item);
+  return `${rate >= 10 ? Math.round(rate) : rate.toFixed(1).replace(/\.0$/, '')} a minute now, ${fmtClock(s.held)} of ${fmtClock(s.need)}`;
+}
 
 /** items a minute of a spec made over the last minute (the stats' 1-second buckets) */
-function ratePerMin(g: Game, spec: string): number {
+export function ratePerMin(g: Game, spec: string): number {
   let rate = 0;
   for (let i = 0; i < ITEMS.length; i++) if (matchesSpec(ITEMS[i], spec)) rate += g.stats.rate(i, 0, 'prod');
   return rate;
@@ -117,11 +137,15 @@ function ratePerMin(g: Game, spec: string): number {
 function tickValidate(g: Game) {
   for (const r of RESEARCH) {
     const v = r.keystone?.validate;
-    if (!v || g.research.done.has(r.id) || g.flags.has('validated:' + r.id) || !canResearch(g, r.id)) continue;
+    if (!v || g.research.done.has(r.id) || g.flags.has('validated:' + r.id) || !keystoneOpen(g, r.id)) continue;
     const s = stages(g, r.id);
     if (s.observe === false || s.experiment === false) continue;
     if (ratePerMin(g, v.item) >= v.perMin) g.research.valid[r.id] = (g.research.valid[r.id] ?? 0) + 1;
-    else g.research.valid[r.id] = 0;
+    else {
+      // say so when a run that was well under way breaks (the count starts again)
+      if ((g.research.valid[r.id] ?? 0) >= 10) g.toast(`${r.name}: under ${v.perMin} a minute, so the ${v.minutes} minutes start again.`, 'i:' + r.icon, 22);
+      g.research.valid[r.id] = 0;
+    }
     if ((g.research.valid[r.id] ?? 0) >= v.minutes * 60) {
       g.flags.add('validated:' + r.id);
       g.toast(`${r.name}: validated! The desk can study it now.`, 'i:' + r.icon, 6);
@@ -258,6 +282,7 @@ registerSystem({
   tick(g, dt) {
     updateLabs(g, dt);
     if (g.tickN % 60 === 0) {
+      openKeystones(g);
       tickValidate(g);
       grantEraRewards(g);
     }
@@ -269,6 +294,8 @@ registerSystem({
     g.sys.applyResearch = applyEffects;
     // a save whose town keystones are done gets their era rewards back, without the cards
     grantEraRewards(g, true);
+    // a keystone already open in a save from before the stages counted from the quest keeps its counts
+    openKeystones(g, true);
   },
 });
 

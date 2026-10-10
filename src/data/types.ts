@@ -360,7 +360,9 @@ export type ObjectiveDef = ObjectiveBase & (
   /** a machine of this kind (switched on) whose grid can power everything on it at once: no brownout */
   | { t: 'grid'; struct: string }
   /** a game counter reached (g.counters: 'made:<structure>', 'crafted:<item>', ...) */
-  | { t: 'count'; key: string; n: number });
+  | { t: 'count'; key: string; n: number }
+  /** a research keystone's stage done (src/sim/systems/research.ts): its line shows the stage's own count or clock */
+  | { t: 'stage'; id: string; stage: 'observe' | 'experiment' | 'validate' });
 
 export interface QuestDef {
   id: string;
@@ -383,6 +385,11 @@ export interface QuestDef {
   why?: string;
   /** on the main path (the Keeper's Line and the keystones): the Now strip shows it first */
   main?: boolean;
+  /**
+   * the research keystone this quest walks through: its stages count only from when the quest starts
+   * (looking at the town's mill on day 2 isn't the keystone's look)
+   */
+  keystone?: string;
 }
 
 export interface ProjectDef {
@@ -393,6 +400,8 @@ export interface ProjectDef {
   items: Stack[];
   money?: number;
   reward: { items?: Stack[]; flag?: string; text: string };
+  /** unlock words that must hold before the Works tab shows it (its era's goods within reach) */
+  after?: string[];
 }
 
 export interface MegaprojectDef {

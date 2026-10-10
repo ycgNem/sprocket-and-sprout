@@ -63,7 +63,7 @@ export const SHOPS: ShopDef[] = [
       { item: 'apple_sapling' }, { item: 'cherry_sapling' }, { item: 'apricot_sapling' }, { item: 'peach_sapling' }, { item: 'pear_sapling' },
       { item: 'plum_sapling' }, { item: 'orange_sapling', seasons: [1, 2] }, { item: 'snowberry_sapling', seasons: [2, 3] },
       // bread and flour come from the Town Mill once it turns (its keystone, ROADMAP.md 7.3)
-      { item: 'bread', price: 140, unlock: 'flag:bread_town' }, { item: 'flour', price: 110, unlock: 'flag:bread_town' }, { item: 'sugar', price: 120 }, { item: 'oil', price: 220 },
+      { item: 'bread', price: 240, unlock: 'flag:bread_town' }, { item: 'flour', price: 110, unlock: 'flag:bread_town' }, { item: 'sugar', price: 120 },
       // reputation stock (the Orders board): Marigold's rare seeds
       { item: 'sunbell_seed', price: 180, unlock: 'rep:marigold:2' }, { item: 'tealeaf_seed', price: 200, unlock: 'rep:marigold:3' }, { item: 'starpetal_seed', price: 520, unlock: 'rep:marigold:5' },
       { item: 'chest_wood', price: 240 }, { item: 'scarecrow', price: 260 }, { item: 'sign', price: 40 },
@@ -86,10 +86,10 @@ export const SHOPS: ShopDef[] = [
     id: 'carpenter', name: 'Oakroot Joinery', owner: 'juniper', loc: 'carpenter', open: 540, close: 1020, closedDays: [1],
     greeting: 'Every good farm starts with good timber. Buildings, lumber, and fine joinery.',
     stock: [
-      { item: 'wood', price: 12 }, { item: 'stone', price: 18 }, { item: 'hardwood', price: 120, daily: 40 }, { item: 'plank', price: 40 }, { item: 'clay', price: 60 },
+      { item: 'wood', price: 12 }, { item: 'stone', price: 18 }, { item: 'hardwood', price: 120, daily: 40 }, { item: 'plank', price: 40, daily: 30 }, { item: 'clay', price: 60 },
       { item: 'fence_wood', price: 15 }, { item: 'gate', price: 60 }, { item: 'path_wood', price: 8 }, { item: 'path_stone', price: 10 },
       { item: 'chest_wood', price: 220 }, { item: 'lamp', price: 240 },
-      { item: 'beam', price: 120, unlock: 'rep:juniper:2' }, { item: 'canvas', price: 160, unlock: 'rep:juniper:3' }, { item: 'chest_iron', price: 650, unlock: 'rep:juniper:4' },
+      { item: 'beam', price: 160, unlock: 'rep:juniper:4' }, { item: 'sand', price: 8, unlock: 'r_glass' }, { item: 'canvas', price: 160, unlock: 'rep:juniper:3' }, { item: 'chest_iron', price: 650, unlock: 'rep:juniper:4' },
       ...FURNITURE.filter((f) => f.shop === 'carpenter').map((f) => ({ item: f.id, price: f.price })),
     ],
     buys: ['resource'],
@@ -100,8 +100,10 @@ export const SHOPS: ShopDef[] = [
     stock: [
       { item: 'copper_gear', price: 160 }, { item: 'copper_coil', price: 120 }, { item: 'rope', price: 60 }, { item: 'spring', price: 300, unlock: 'r_metallurgy' },
       { item: 'lab', price: 1500, unlock: 'flag:lab' }, { item: 'belt_1', price: 60, unlock: 'r_belts' }, { item: 'arm_basic', price: 350, unlock: 'r_arms' }, { item: 'jar', price: 400, unlock: 'r_preserves' },
-      { item: 'pole_wood', price: 90, unlock: 'r_power' }, { item: 'brass_gear', price: 380, unlock: 'r_brass' }, { item: 'glass', price: 120, unlock: 'r_glass' },
+      { item: 'pole_wood', price: 90, unlock: 'r_power' }, { item: 'brass_gear', price: 380, daily: 4, unlock: 'r_brass' }, { item: 'glass', price: 120, unlock: 'r_glass' },
       { item: 'spark_coil', price: 900, unlock: 'r_spark' }, { item: 'bumblebot', price: 3000, unlock: 'r_bots' },
+      { item: 'gleaner', price: 750, unlock: 'r_gleaning' }, { item: 'waterwheel', price: 2600, unlock: 'r_power' }, { item: 'mill', price: 2200, unlock: 'r_milling' }, { item: 'sawmill', price: 3200, unlock: 'r_sawmill' },
+      { item: 'assembler', price: 4800, unlock: 'r_assembly' }, { item: 'steam_engine', price: 5200, unlock: 'r_steam' },
       { item: 'arm_long', price: 450, unlock: 'rep:ottoline:2' }, { item: 'arm_filter', price: 600, unlock: 'rep:ottoline:3' }, { item: 'lens', price: 380, unlock: 'rep:ottoline:4' }, { item: 'clockwork_core', price: 1900, daily: 2, unlock: 'rep:ottoline:5' },
     ],
     buys: ['component', 'bar', 'research'],
@@ -110,7 +112,7 @@ export const SHOPS: ShopDef[] = [
     id: 'inn', name: 'The Copper Kettle', owner: 'rowan', loc: 'inn', open: 480, close: 1380,
     greeting: 'Sit, sit! Something warm for the road?',
     stock: [
-      { item: 'bread', price: 160 }, { item: 'salad', price: 250 }, { item: 'veggie_soup', price: 340 }, { item: 'omelet', price: 300 },
+      { item: 'bread', price: 240 }, { item: 'salad', price: 250 }, { item: 'veggie_soup', price: 340 }, { item: 'omelet', price: 300 },
       { item: 'pancakes', price: 420 }, { item: 'fish_stew', price: 420 }, { item: 'coffee_drink', price: 280 }, { item: 'tea', price: 220 },
       { item: 'pumpkin_pie', price: 600, seasons: [2] }, { item: 'berry_tart', price: 480, seasons: [0, 1] }, { item: 'chestnut_soup', price: 450, seasons: [3] },
       { item: 'flour', price: 120, unlock: 'flag:bread_town' },

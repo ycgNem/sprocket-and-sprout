@@ -94,22 +94,23 @@ export const STANDING: StandingDef[] = [
     thanks: 'Bread for the whole square again. Same again next week?',
   },
   {
+    // bread bakes from any flour or meal: the farmhouse kitchen or an oven (the critic's M1)
     id: 'rowan_bread', biz: 'rowan', spec: 'bread', n: 8, unit: 170, weekly: true, after: ['flag:town_mill'],
-    text: "The mill turns and the town wants loaves again. Eight country loaves a week, baked from your flour, and I'll keep the ovens for the pies.",
+    text: "The mill turns and the town wants loaves again. Eight country loaves a week, baked from your flour or meal in your kitchen or an oven, and I'll keep my ovens for the pies.",
     thanks: 'Warm bread on every table. The square smells like it used to.',
   },
   {
-    id: 'rowan_cheese', biz: 'rowan', spec: 'cheese', n: 5, unit: 320, weekly: true, rank: 1,
+    id: 'rowan_cheese', biz: 'rowan', spec: 'cheese', n: 5, unit: 320, weekly: true, rank: 1, after: ['r_dairy'],
     text: 'A wheel of cheese for every soup. Five a week, if your press is willing.',
     thanks: 'The soup has its cheese. You have a regular table here, you know.',
   },
   {
-    id: 'rowan_soup', biz: 'rowan', spec: 'veggie_soup', n: 6, unit: 300, weekly: true, rank: 2,
+    id: 'rowan_soup', biz: 'rowan', spec: 'veggie_soup', n: 6, unit: 300, weekly: true, rank: 2, after: ['r_cooking'],
     text: 'Travellers off the river road want soup ready when they walk in. Six pots a week.',
     thanks: 'Six pots, gone by supper. You feed half the valley now.',
   },
   {
-    id: 'rowan_feast', biz: 'rowan', spec: '#cooking', n: 12, unit: 330, weekly: true, rank: 3, big: true,
+    id: 'rowan_feast', biz: 'rowan', spec: '#cooking', n: 12, unit: 330, weekly: true, rank: 3, big: true, after: ['r_cooking'],
     text: "Feast nights at the Kettle: twelve hearty dishes a week, whatever your kitchen's best at.",
     thanks: 'The whole town came. They toasted the farm, you know.',
   },
@@ -157,7 +158,12 @@ export const STANDING: StandingDef[] = [
     thanks: 'Every porch in town will have an awning by summer.',
   },
   {
-    id: 'juniper_beams', biz: 'juniper', spec: 'beam', n: 20, unit: 58, weekly: true, rank: 3, big: true,
+    id: 'juniper_paste', biz: 'juniper', spec: 'starch_paste', n: 10, unit: 110, weekly: true, rank: 2, after: ['r_pastes'],
+    text: 'Starch paste for veneers and wallpaper: ten pots a week. Mine always goes lumpy.',
+    thanks: 'Smooth as cream. The new parlour walls will never peel.',
+  },
+  {
+    id: 'juniper_beams', biz: 'juniper', spec: 'beam', n: 20, unit: 58, weekly: true, rank: 3, big: true, after: ['r_sawmill'],
     text: 'Twenty beams a week. The town hall roof is next and it is very large.',
     thanks: 'The hall has its roof. Look up next time you pass.',
   },
@@ -168,7 +174,7 @@ export const STANDING: StandingDef[] = [
     thanks: 'Splendid teeth on these. Mostly safe, as promised.',
   },
   {
-    id: 'prof_coils', biz: 'ottoline', spec: 'copper_coil', n: 24, unit: 58, weekly: true, rank: 1,
+    id: 'prof_coils', biz: 'ottoline', spec: 'copper_coil', n: 24, unit: 58, weekly: true, rank: 1, after: ['r_metallurgy'],
     text: 'Copper coils, two dozen a week. The telegraph to the river towns needs miles of them.',
     thanks: 'The telegraph clicks! We spoke to Millbrook this morning.',
   },
@@ -215,7 +221,7 @@ export const STANDING: StandingDef[] = [
     thanks: 'The smokehouse is full. Smells like home.',
   },
   {
-    id: 'wren_smoked', biz: 'wren', spec: 'smoked_fish', n: 6, unit: 280, weekly: true, rank: 2,
+    id: 'wren_smoked', biz: 'wren', spec: 'smoked_fish', n: 6, unit: 280, weekly: true, rank: 2, after: ['r_bottling'],
     text: 'Smoked fish for the riverboats, six a week. They pay well and complain more.',
     thanks: 'Not one complaint this week. A miracle.',
   },
@@ -236,12 +242,12 @@ export const STANDING: StandingDef[] = [
     thanks: 'Gone in a day. Everyone asks whose farm they came from.',
   },
   {
-    id: 'mari_cloth', biz: 'marigold', spec: 'cloth', n: 4, unit: 250, weekly: true, rank: 2,
+    id: 'mari_cloth', biz: 'marigold', spec: 'cloth', n: 4, unit: 250, weekly: true, rank: 2, after: ['r_weaving'],
     text: 'Four bolts of cloth a week for the quilting circle.',
     thanks: 'The quilting circle made you an honorary member.',
   },
   {
-    id: 'mari_wine', biz: 'marigold', spec: '#wine', n: 6, unit: 300, weekly: true, rank: 3, big: true,
+    id: 'mari_wine', biz: 'marigold', spec: '#wine', n: 6, unit: 300, weekly: true, rank: 3, big: true, after: ['r_brewing'],
     text: 'Six bottles of wine a week for the cellar shelf.',
     thanks: "The cellar shelf is the talk of the river. Don't let it go to your head.",
   },
@@ -262,7 +268,7 @@ export const STANDING: StandingDef[] = [
     thanks: "My arms thank you. Clean grain, no chaff.",
   },
   {
-    id: 'clem_milk', biz: 'clem', spec: 'large_milk', n: 10, unit: 240, weekly: true, rank: 3, big: true,
+    id: 'clem_milk', biz: 'clem', spec: 'large_milk', n: 10, unit: 240, weekly: true, rank: 3, big: true, after: ['r_dairy'],
     text: 'Ten pails of the good milk a week, for the creamery deal I just shook on.',
     thanks: "The creamery's happy, so I'm happy.",
   },
@@ -291,9 +297,10 @@ export const STANDING: StandingDef[] = [
 export const STANDING_BY_ID = new Map(STANDING.map((s) => [s.id, s]));
 
 /**
- * The town keystones on the Works tab (ROADMAP.md 7.3): each is posted once what it waits for is
- * done, filled by hand at the board or by a crate tagged for the Town Council, and sets its flag
- * (the town's own buildings answer to it). The Clock is the restoration project p_clock.
+ * The town keystones on the Works tab (ROADMAP.md 7.3): each goes up when its main quest starts (so
+ * you see what it wants from the first step: the critic's M2), takes deliveries by hand at the board
+ * or by a crate tagged for the Town Council, and is finished once what it waits for is done. Then it
+ * sets its flag (the town's own buildings answer to it). The Clock is the restoration project p_clock.
  */
 export interface KeystoneWorksDef {
   id: string;
@@ -301,7 +308,9 @@ export interface KeystoneWorksDef {
   era: number;
   desc: string;
   items: Stack[];
-  /** unlock words that must hold before it's posted */
+  /** the main quest that posts it (a save without the Keeper's Line posts it when `after`'s research can be studied) */
+  quest: string;
+  /** unlock words that must hold before it can be finished (its research, a restored chamber) */
   after: string[];
   /** set when it's filled */
   flag: string;
@@ -311,28 +320,28 @@ export interface KeystoneWorksDef {
 
 export const KEYSTONE_WORKS: KeystoneWorksDef[] = [
   {
-    id: 'w_town_mill', name: 'The Town Mill', era: 2, after: ['r_milling'], flag: 'town_mill',
+    id: 'w_town_mill', name: 'The Town Mill', era: 2, quest: 'k10_mill', after: ['r_milling'], flag: 'town_mill',
     desc: "The town's old mill on the river at the west end of Main Street: new paddles, a mended gear train and its first sacks to grind.",
-    items: [{ item: '#flour', n: 80 }, { item: 'plank', n: 40 }, { item: 'copper_gear', n: 8 }],
+    items: [{ item: '#flour', n: 40 }, { item: 'plank', n: 40 }, { item: 'copper_gear', n: 8 }],
     done: "The Town Mill's wheel turns again! The Kettle and the Mercantile sell bread and flour from it, and Rowan wants loaves every week.",
   },
   {
-    id: 'w_waterworks', name: 'The Waterworks', era: 3, after: ['r_steam'], flag: 'waterworks',
-    desc: 'The pump house by the square: brass for the pumps, coils for their motors, oil for the bearings and plates for the tank.',
-    items: [{ item: 'brass_bar', n: 20 }, { item: 'copper_coil', n: 10 }, { item: 'oil', n: 50 }, { item: 'iron_plate', n: 4 }],
+    id: 'w_waterworks', name: 'The Waterworks', era: 3, quest: 'k13_waterworks', after: ['r_steam'], flag: 'waterworks',
+    desc: 'The pump house by the square: brass for the pumps, coils for their motors, oil for the bearings, plates for the tank and starch paste to seal the joints.',
+    items: [{ item: 'brass_bar', n: 20 }, { item: 'copper_coil', n: 10 }, { item: 'oil', n: 50 }, { item: 'iron_plate', n: 4 }, { item: 'starch_paste', n: 20 }],
     done: "The Waterworks run! The fountain plays, the deep galleries drain, and the pressure in the pipes will drive mist towers.",
   },
   {
-    id: 'w_lamps', name: 'Lamplighting', era: 3, after: ['r_spark'], flag: 'lamps_hung',
-    desc: "Twelve lamps for the square, and the coils to wire them. They'll light on your power: link a pole at the farm gate to your grid.",
+    id: 'w_lamps', name: 'Lamplighting', era: 3, quest: 'k15_lamps', after: ['r_spark'], flag: 'lamps_hung',
+    desc: "Twelve lamps for the square, and the coils to wire them. They'll light on your power, through the keeper's old pole at the farm gate.",
     items: [{ item: 'lamp', n: 12 }, { item: 'copper_coil', n: 6 }],
-    done: "The square's lamps are hung. Link a pole at the farm gate to your grid and they light at dusk on your power.",
+    done: "The square's lamps are hung. They light at dusk on your power, while your grid reaches the farm gate with 12 sparks to spare.",
   },
   {
-    id: 'w_tram', name: 'The Tram', era: 4, after: ['r_assembly2', 'flag:chamber:cart'], flag: 'tram',
+    id: 'w_tram', name: 'The Tram', era: 4, quest: 'k16_tram', after: ['r_assembly2', 'flag:chamber:cart'], flag: 'tram',
     desc: 'The old rail cart from the Crystal galleries, set on the quarry road: sleepers and rails, brass for the bogies and pigment for its livery.',
     items: [{ item: 'plank', n: 300 }, { item: 'brass_gear', n: 40 }, { item: 'pigment', n: 20 }],
-    done: 'The Tram runs! Every morning it carries 20 of the ore you leave in its quarry bin to town, and sells it at a premium.',
+    done: 'The Tram runs! Every morning it carries 20 of the ore, bars or gems you leave in its quarry bin to town, and sells them at a premium.',
   },
 ];
 export const KEYSTONE_WORKS_BY_ID = new Map(KEYSTONE_WORKS.map((k) => [k.id, k]));

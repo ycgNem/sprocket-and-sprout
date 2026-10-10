@@ -7,10 +7,11 @@
 //    the player's power: a pole whose wires reach the town line at the farm gate carries them, a
 //    12-spark load on that pole's grid (PowerLoad, src/sim/systems/power.ts). The first night they
 //    light sets `lamplighting`.
-//  - `tram`: a cart bin at the quarry entrance; every morning the cart takes up to 20 ore from it to
-//    town and sells it there for 30% over the market, without flooding the market
+//  - `tram`: a cart bin at the quarry entrance; every morning the cart takes up to 20 ore, bars or
+//    gems from it to town and sells them there for 30% over the market, without flooding the market
 // It also notices looking (the keystones' observe stages): walking up to the mill (or hovering it)
-// sets `observed:town_mill`, Roxy's airship `observed:airship`.
+// sets `observed:town_mill`, Roxy's airship `observed:airship`, but only once the keystone's main
+// quest asks (research.ts lookCounts): the mill you walked past on day 2 isn't the look.
 import { Game, registerSystem } from '../Game';
 import type { Ent } from '../ents';
 import { kDef, kIdx, type ItemKey } from '../inventory';
@@ -19,6 +20,7 @@ import { AIRSHIP } from '../world/worldgen';
 import { FOUNTAIN, LANDMARK, LANDMARKS, layTownworks, PUMP_HOUSE, rectDist, SQUARE_LAMPS, TOWN_LINE, TOWN_MILL, TRAM, type Landmark } from '../world/townworks';
 import { market, unitPrice } from './economy';
 import { powerLoads, type PowerLoad } from './power';
+import { lookCounts } from '../keystones';
 
 /** what the square's lamps draw while lit (sparks) */
 export const LAMP_DRAW = 12;
@@ -85,15 +87,15 @@ export function landmarkAt(g: Game, fx: number, fy: number): Landmark | null {
 
 /** looking at a landmark (hover, its door) counts for a keystone's observe stage */
 export function lookAt(g: Game, l: Landmark) {
-  g.flags.add('observed:' + l.id);
+  if (lookCounts(g, 'observed:' + l.id)) g.flags.add('observed:' + l.id);
 }
 
 /** walking up to the mill or the airship counts as looking at it */
 function noticeNearby(g: Game) {
   const p = g.player;
   if (p.where !== 'world') return;
-  if (!g.flags.has('observed:town_mill') && rectDist(p.x, p.y, LANDMARKS[0]) <= LOOK_MILL) g.flags.add('observed:town_mill');
-  if (!g.flags.has('observed:airship') && rectDist(p.x, p.y, AIRSHIP_RECT) <= LOOK_AIRSHIP) g.flags.add('observed:airship');
+  if (!g.flags.has('observed:town_mill') && rectDist(p.x, p.y, LANDMARKS[0]) <= LOOK_MILL) lookAt(g, LANDMARKS[0]);
+  if (!g.flags.has('observed:airship') && rectDist(p.x, p.y, AIRSHIP_RECT) <= LOOK_AIRSHIP) lookAt(g, AIRSHIP_RECT);
 }
 
 /** the hover tooltip's lines for a landmark */
@@ -118,10 +120,13 @@ function landmarkDoor(g: Game, b: BuildingInfo) {
 }
 
 // ---------------- the tram ----------------
-/** an ore the tram carries: the ores (copper, tin, iron, gold, starmetal) */
+/**
+ * What the tram carries: the mine's and the smelter's goods (ores, bars, gems). Bars sell for more
+ * than their ore, so a smelting line feeding the bin beats tipping ore in (the critic's M4 trap).
+ */
 export function isOre(k: ItemKey): boolean {
   const d = kDef(k);
-  return d.cat === 'ore' || d.id.endsWith('_ore');
+  return d.cat === 'ore' || d.cat === 'bar' || d.cat === 'gem' || d.id.endsWith('_ore');
 }
 
 /** the market's price for one, before anything flooded it (the tram's sales never saturate) */
@@ -153,7 +158,7 @@ function placeTramBin(g: Game): Ent | null {
   return e;
 }
 
-/** every morning: the cart takes up to 20 ore from its bin to town and sells it at a premium */
+/** every morning: the cart takes up to 20 ore, bars or gems from its bin to town and sells them at a premium */
 export function tramRun(g: Game): { n: number; coins: number } {
   const s = townworks(g);
   s.cart = 0;
@@ -239,7 +244,7 @@ registerSystem({
     if (g.map.w < 200 || g.tickN % 60 !== 0) return;
     noticeNearby(g);
     lampsTick(g);
-    if (g.flags.has('tram') && !tramBin(g) && placeTramBin(g)) g.toast("The tram's cart bin stands at the quarry entrance: ore left in it goes to town with the morning cart.", 'i:copper_ore');
+    if (g.flags.has('tram') && !tramBin(g) && placeTramBin(g)) g.toast("The tram's cart bin stands at the quarry entrance: ore, bars or gems left in it go to town with the morning cart.", 'i:copper_ore');
   },
   save(g) {
     return { cart: townworks(g).cart };

@@ -8,6 +8,10 @@ import { FIELD_KINDS, feedersOf, takersOf } from '../sim/lines';
 import { MState, glyphDelay, isProblem, stateAge } from '../sim/mstate';
 import { drawSprite, hasImage, sprite } from './atlas';
 import { EXTRA_TOP } from './art/structs';
+import { RESEARCH } from '../data/research';
+import { ITEM_BY_ID, matchesSpec } from '../data/items';
+import { keystoneOpen } from '../sim/keystones';
+import { stages } from '../sim/systems/research';
 
 export type GlyphKind = 'starved' | 'blocked' | 'power' | 'fuel' | 'sprout' | 'dot';
 
@@ -107,9 +111,45 @@ export function drawGlyph(ctx: CanvasRenderingContext2D, kind: GlyphKind, x: num
   }
 }
 
+/**
+ * A keystone's validate stage on screen (the critic's M1): a ring over each machine making its item,
+ * filling as the minutes are held, so "keep it running" is something you can watch.
+ */
+function drawValidateRings(ctx: CanvasRenderingContext2D, g: Game, visible: (e: Ent) => boolean, time: number) {
+  for (const r of RESEARCH) {
+    const v = r.keystone?.validate;
+    if (!v || g.flags.has('validated:' + r.id) || !keystoneOpen(g, r.id)) continue;
+    const s = stages(g, r.id);
+    if (s.observe === false || s.experiment === false || !s.need) continue;
+    const k = s.held / s.need;
+    for (const e of g.ents.machines) {
+      const out = e.mach?.recipe?.out[0]?.item;
+      const def = out ? ITEM_BY_ID.get(out) : undefined;
+      if (e.ghost || !visible(e) || !def || !matchesSpec(def, v.item)) continue;
+      const p = glyphPos(e);
+      const cx = p.x + 4.5, cy = p.y - 3;
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = rgba(C.ink, 0.45);
+      ctx.beginPath();
+      ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+      ctx.stroke();
+      // held time in moss; a gentle pulse while it's counting
+      ctx.strokeStyle = PALETTE[k > 0 ? C.lime : C.pebble];
+      ctx.beginPath();
+      ctx.arc(cx, cy, 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(0.04, k));
+      ctx.stroke();
+      if (k > 0) {
+        ctx.fillStyle = rgba(C.lime, 0.25 + 0.2 * Math.sin(time * 5));
+        ctx.fillRect(Math.round(cx) - 1, Math.round(cy) - 1, 2, 2);
+      }
+    }
+  }
+}
+
 /** All glyphs over the visible works (called by the renderer after the sorted sprites). */
 export function drawStateGlyphs(ctx: CanvasRenderingContext2D, g: Game, tx0: number, ty0: number, tx1: number, ty1: number, time: number) {
   const visible = (e: Ent) => e.x + e.w >= tx0 && e.x <= tx1 && e.y + e.h >= ty0 && e.y <= ty1 + 2;
+  drawValidateRings(ctx, g, visible, time);
   const lists = [g.ents.machines, g.ents.arms, g.ents.others, g.ents.gens, g.ents.belts];
   for (const list of lists)
     for (const e of list) {

@@ -226,7 +226,7 @@ it('straw', 'Straw', 'resource', 1, { t: 'hay', c: [C.butter, C.amber] }, 'The s
 const bundles: [string, string, number, string][] = [
   ['bundle_green', 'Sprout Bundle', C.leaf, 'Fiber and fresh crops tied up with notes. Study it at a desk.'],
   ['bundle_copper', 'Tinker Bundle', C.copper, 'Gears and planks wrapped in sketches.'],
-  ['bundle_rose', 'Harvest Bundle', C.rose, 'Preserves, cloth and eggs: the pantry, studied.'],
+  ['bundle_rose', 'Harvest Bundle', C.rose, 'Preserves with canvas and a copper coil (or with cloth and eggs): the works, studied.'],
   ['bundle_brass', 'Brass Bundle', C.brass, 'Belts, arms and glass in a tidy crate.'],
   ['bundle_star', 'Starlight Bundle', C.lavender, 'Gems, gold and wine under a starry cloth.'],
 ];

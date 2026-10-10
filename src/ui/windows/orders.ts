@@ -10,7 +10,7 @@ import { ERA_NAMES } from '../../data/research';
 import { GUILD_BONUS_PER_RANK } from '../../data/contracts';
 import { key } from '../../sim/inventory';
 import {
-  bagHelps, boardHandIn, custName, custNpc, daysLeftInWeek, dueText, guildRank, orderFull, orderTitle, orders, payWorks, rank, repOf,
+  bagHelps, boardHandIn, custName, custNpc, daysLeftInWeek, dueText, fits, guildRank, keystoneWait, lineLeft, orderFull, orderTitle, orders, payWorks, rank, repOf,
   specLabel, villagerName, type Order,
 } from '../../sim/systems/orders';
 import type { PlayScreen } from '../../app/play';
@@ -44,7 +44,7 @@ function repStrip(ui: UI, g: PlayScreen['g'], cust: string, x: number, y: number
   const r = rank(g, cust);
   const next = REP_RANKS[r + 1];
   const label = next ? `${REP_RANKS[r].name}  ${rep}/${next.rep}` : REP_RANKS[r].name;
-  ui.text(label, x + w, y, C.walnut, { align: 'right' });
+  ui.text(label, x + w, y, C.ink, { align: 'right' });
   if (next) ui.bar(x + w - textWidth(label) - 48, y + 2, 40, 3, (rep - REP_RANKS[r].rep) / (next.rep - REP_RANKS[r].rep), C.moss);
 }
 
@@ -84,6 +84,15 @@ function drawToday(ui: UI, play: PlayScreen, x: number, y: number, w: number): n
   return yy - y;
 }
 
+/** 0: the bag can finish a line of it now, 1: the bag can help, 2: nothing in the bag for it */
+function readiness(g: PlayScreen['g'], o: Order): number {
+  if (o.done) return 3;
+  const inv = g.player.inv;
+  const have = (l: Order['lines'][number]) => inv.slots.reduce((a, s) => a + (s && fits({ ...o, lines: [l] }, s.k) ? s.n : 0), 0);
+  if (o.lines.some((l) => lineLeft(l) > 0 && have(l) >= lineLeft(l))) return 0;
+  return bagHelps(g, o) ? 1 : 2;
+}
+
 function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number): number {
   const g = play.g;
   const os = orders(g);
@@ -91,7 +100,9 @@ function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number)
   ui.text('Standing orders', x + 6, yy, C.ink);
   ui.text('Hand them over, or tag a crate (F at it): the post delivers', x + w - 6, yy, C.oak, { align: 'right' });
   yy += 12;
-  const custs = [...new Set(os.open.filter((o) => o.kind === 'standing').map((o) => o.cust))];
+  // the businesses whose orders the bag can fill first, and their fillable orders first
+  const standing = os.open.filter((o) => o.kind === 'standing').sort((a, b) => readiness(g, a) - readiness(g, b));
+  const custs = [...new Set(standing.map((o) => o.cust))];
   if (!custs.length && !os.guild.unlocked) {
     ui.panel(x + 4, yy, w - 8, 34, 'paper', false);
     ui.para('No standing orders yet. The businesses in town post them here as they get to know your works.', x + 12, yy + 8, w - 24, C.walnut, 9);
@@ -104,7 +115,7 @@ function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number)
     ui.text(custName(cust), x + 9, yy + 3, C.ink);
     repStrip(ui, g, cust, x + 4, yy + 3, w - 14);
     yy += 16;
-    for (const o of os.open.filter((x) => x.kind === 'standing' && x.cust === cust)) {
+    for (const o of standing.filter((x) => x.cust === cust)) {
       const def = STANDING_BY_ID.get(o.def)!;
       const npc = custNpc(cust);
       // the customer's portrait at full size (a 16 px head floated in its frame), the quote on three lines
@@ -157,13 +168,16 @@ function worksRow(ui: UI, play: PlayScreen, o: Order, x: number, y: number, w: n
   const ks = KEYSTONE_WORKS_BY_ID.get(o.def);
   const p = PROJECT_BY_ID.get(o.def);
   const keystone = !!ks || o.def === 'p_clock';
-  const h = keystone ? 54 : 42;
+  const wait = keystoneWait(g, o.def);
+  const h = keystone ? (wait ? 64 : 54) : 42;
   ui.panel(x + 4, y, w - 8, h, 'paper', false);
   if (keystone) {
     ui.fill(x + 4, y, 3, h, C.copper);
     ui.text(`${orderTitle(o)}`, x + 12, y + 4, C.ink);
     ui.text(`${ERA_NAMES[ks?.era ?? 5]} keystone`, x + w - 12, y + 4, C.copper, { align: 'right' });
     ui.para(ks?.desc ?? p?.desc ?? '', x + 12, y + 14, w - 90, C.walnut, 9);
+    // its goods can go in now; the works start once its research (or its chamber) is done
+    if (wait) ui.text(ellipsize(`Its goods can go in now. The works start once ${wait}.`, w - 90), x + 12, y + h - 24, C.oak);
   } else {
     ui.text(orderTitle(o), x + 12, y + 4, C.ink);
     ui.text(ellipsize(p?.desc ?? '', w - 160), x + 12, y + 14, C.walnut);
@@ -183,7 +197,7 @@ function drawWorks(ui: UI, play: PlayScreen, x: number, y: number, w: number): n
   const os = orders(g);
   let yy = y;
   ui.text('The town works', x + 6, yy, C.ink);
-  ui.text(`${os.worksDone.filter((id) => PROJECT_BY_ID.has(id)).length}/${PROJECTS.length} projects restored. Hand in here, or tag a crate for the Council`, x + w - 6, yy, C.oak, { align: 'right' });
+  ui.text('Hand in here, or tag a crate for the Council', x + w - 6, yy, C.oak, { align: 'right' });
   yy += 12;
   const works = os.open.filter((o) => o.kind === 'works');
   // the keystones first: what the town is waiting on next
@@ -195,13 +209,19 @@ function drawWorks(ui: UI, play: PlayScreen, x: number, y: number, w: number): n
     ui.text(`Done: ${doneKeys.map((k) => k.name).join(', ')}`, x + 8, yy + 2, C.moss);
     yy += 12;
   }
+  // the other works, by area, as their eras come (an area shows once it has one up or done)
   for (const area of [...new Set(PROJECTS.map((p) => p.area))]) {
     const list = works.filter((o) => PROJECT_BY_ID.get(o.def)?.area === area && o.def !== 'p_clock');
-    const done = PROJECTS.filter((p) => p.area === area && os.worksDone.includes(p.id)).length;
-    const all = PROJECTS.filter((p) => p.area === area).length;
-    ui.text(`${area}  ${done}/${all}`, x + 8, yy + 2, done === all ? C.moss : C.walnut);
+    const done = PROJECTS.filter((p) => p.area === area && p.id !== 'p_clock' && os.worksDone.includes(p.id)).length;
+    if (!list.length && !done) continue;
+    ui.text(`${area}${done ? `  (${done} done)` : ''}`, x + 8, yy + 2, C.walnut);
     yy += 12;
     for (const o of list) yy += worksRow(ui, play, o, x, yy, w);
+  }
+  const later = PROJECTS.filter((p) => !os.worksDone.includes(p.id) && !works.some((o) => o.def === p.id)).length;
+  if (later) {
+    ui.text(`${later} more works open as the town's keystones are built.`, x + 8, yy + 2, C.pebble);
+    yy += 12;
   }
   return yy - y;
 }

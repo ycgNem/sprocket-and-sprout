@@ -8,6 +8,9 @@ import '../src/sim';
 import { deserialize, migrateV5, serialize, SAVE_VERSION } from '../src/sim/save';
 import { orders } from '../src/sim/systems/orders';
 import { PRUNED_IDS } from '../src/data/research';
+import { PROJECT_BY_ID } from '../src/data/goals';
+import { KEYSTONE_WORKS_BY_ID } from '../src/data/orders';
+import { ITEM_BY_ID } from '../src/data/items';
 
 const load = (name: string) => JSON.parse(gunzipSync(readFileSync(new URL(`./fixtures/${name}.json.gz`, import.meta.url))).toString('utf8'));
 const FIXTURES = ['save111_story_d12_factory', 'save111_wildwood_d25', 'save111_everything', 'beta20_bot2024_day5', 'beta20_bot2024_day8'];
@@ -28,8 +31,8 @@ describe('save v5 migration', () => {
         expect(o.lines.length).toBeGreaterThan(0);
         for (const l of o.lines) expect(l.have).toBeLessThanOrEqual(l.n);
       }
-      // the projects are on the Works tab
-      expect(os.open.filter((o) => o.kind === 'works').length).toBeGreaterThanOrEqual(14);
+      // the works on the board are works that still exist (the retired baskets are gone, DECISIONS #93)
+      for (const o of os.open.filter((x) => x.kind === 'works')) expect(PROJECT_BY_ID.has(o.def) || KEYSTONE_WORKS_BY_ID.has(o.def)).toBe(true);
       // a 1.1.1 save that had the Guild keeps it, with its contracts
       if (raw.sys.contracts?.unlocked) {
         expect(os.guild.unlocked).toBe(true);
@@ -51,8 +54,9 @@ describe('save v5 migration', () => {
 
   it('moves an accepted request, project progress, the Guild rank and the mine onto v5', () => {
     const raw = load('save111_wildwood_d25');
-    raw.sys.goals.projects = { p_spring: { tulip: 3, radish: 10 } };
-    raw.sys.goals.doneProjects = ['p_river'];
+    raw.sys.goals.projects = { p_gears: { copper_gear: 3, spring: 10 }, p_spring: { tulip: 3, radish: 10 } };
+    raw.sys.goals.doneProjects = ['p_preserves', 'p_river'];
+    const money0 = raw.player.money;
     raw.sys.quests.current = 0;
     raw.sys.contracts.rep = 6;
     raw.research.done.push('r_lab_speed', 'r_tuning1');
@@ -65,11 +69,14 @@ describe('save v5 migration', () => {
     expect(d.v).toBe(5);
     expect(SAVE_VERSION).toBe(5);
     const os = d.sys.orders;
-    const spring = os.open.find((o: any) => o.def === 'p_spring');
-    expect(spring.lines.find((l: any) => l.spec === 'tulip').have).toBe(3);
-    expect(spring.lines.find((l: any) => l.spec === 'radish').have).toBe(10);
-    expect(os.worksDone).toEqual(['p_river']);
-    expect(os.open.find((o: any) => o.def === 'p_river')).toBeUndefined();
+    const gears = os.open.find((o: any) => o.def === 'p_gears');
+    expect(gears.lines.find((l: any) => l.spec === 'copper_gear').have).toBe(3);
+    expect(gears.lines.find((l: any) => l.spec === 'spring').have).toBe(10);
+    expect(os.worksDone).toEqual(['p_preserves']);
+    expect(os.open.find((o: any) => o.def === 'p_preserves')).toBeUndefined();
+    // a retired basket's goods are paid back at market
+    expect(os.open.find((o: any) => o.def === 'p_spring')).toBeUndefined();
+    expect(d.player.money).toBe(money0 + 3 * ITEM_BY_ID.get('tulip')!.price + 10 * ITEM_BY_ID.get('radish')!.price);
     const today = os.open.find((o: any) => o.kind === 'today');
     expect(today.cust).toBe(raw.sys.quests.requests[0].npc);
     expect(today.pay).toBe(raw.sys.quests.requests[0].reward);

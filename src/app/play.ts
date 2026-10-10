@@ -53,6 +53,8 @@ import { landmarkAt, landmarkTip, lookAt } from '../sim/systems/townworks';
 export interface Toast { text: string; t: number; icon?: string; color?: number }
 
 const KONAMI = 'ArrowUp,ArrowUp,ArrowDown,ArrowDown,ArrowLeft,ArrowRight,ArrowLeft,ArrowRight,KeyB,KeyA';
+/** a keystone's scene (seconds), and the part of it spent gliding back to the player */
+const SCENE_LEN = 5.5, SCENE_BACK = 1.2;
 
 export class PlayScreen implements Screen {
   app: App;
@@ -64,6 +66,10 @@ export class PlayScreen implements Screen {
   private keyTrail: string[] = [];
   private zoomSeen = { min: false, max: false };
   win: WinState | null = null;
+  /** windows waiting their turn (a keystone's card after its scene, then the era's card) */
+  winQ: { id: string; arg?: any }[] = [];
+  /** a town keystone's scene: the camera at its building for a few seconds (ROADMAP.md 7.5) */
+  scene: { x: number; y: number; t: number; title: string; text: string; icon?: string } | null = null;
   rot: Dir = 0;
   drag: { x: number; y: number } | null = null;
   /**
@@ -172,6 +178,12 @@ export class PlayScreen implements Screen {
     this.win = { id, arg, t: 0, pause: def.pause ?? true, data: {} };
     this.app.audio.sfx('open');
     this.drag = null;
+  }
+
+  /** open a window now if the screen is free, or once the windows (and any scene) before it are done */
+  queueWindow(id: string, arg?: any) {
+    if (!this.win && !this.scene && !this.winQ.length) this.openWindow(id, arg);
+    else this.winQ.push({ id, arg });
   }
 
   closeWindow() {
@@ -290,8 +302,22 @@ export class PlayScreen implements Screen {
       this.sleepFade = Math.min(1, this.sleepFade + dt * 2);
     } else this.sleepFade = Math.max(0, this.sleepFade - dt * 1.5);
 
+    // ---- a keystone's scene: the camera goes to look, then its card ----
+    if (this.scene) {
+      this.scene.t += dt;
+      if (this.scene.t >= SCENE_LEN) {
+        const s = this.scene;
+        this.scene = null;
+        this.winQ.unshift({ id: 'message', arg: { title: s.title, text: s.text, icon: s.icon } });
+      }
+    }
+    if (!this.win && !this.scene && this.winQ.length) {
+      const w = this.winQ.shift()!;
+      this.openWindow(w.id, w.arg);
+    }
+
     // ---- movement intent ----
-    const modal = this.modalOpen;
+    const modal = this.modalOpen || !!this.scene;
     let mx = 0, my = 0;
     if (!modal && !g.sleeping) {
       if (input.isDown('left')) mx -= 1;
@@ -329,7 +355,13 @@ export class PlayScreen implements Screen {
       camX = hm.w <= vw - 1 ? hm.w / 2 : Math.max(vw / 2 - 0.5, Math.min(hm.w - vw / 2 + 0.5, camX));
       camY = hm.h <= vh - 1 ? hm.h / 2 - 0.4 : Math.max(vh / 2 - 1.5, Math.min(hm.h - vh / 2 + 0.5, camY));
     }
-    r.cam.follow(camX, camY, dt, Math.hypot(r.cam.x - camX, r.cam.y - camY) > 24);
+    // a keystone's scene holds the camera on its building, then it glides back
+    const sc = this.scene;
+    if (sc && sc.t < SCENE_LEN - SCENE_BACK) {
+      camX = sc.x;
+      camY = sc.y;
+    }
+    r.cam.follow(camX, camY, dt, !sc && Math.hypot(r.cam.x - camX, r.cam.y - camY) > 24);
     if (!modal && (input.wasPressed('zoomIn') || (input.ctrl && input.mouse.wheel < 0))) r.cam.targetZoom = Math.min(6, r.cam.targetZoom + 1);
     if (!modal && (input.wasPressed('zoomOut') || (input.ctrl && input.mouse.wheel > 0))) r.cam.targetZoom = Math.max(1, r.cam.targetZoom - 1);
     if (input.ctrl) input.mouse.wheel = 0;
@@ -1570,7 +1602,8 @@ export class PlayScreen implements Screen {
           a.sfx('research');
           J.banner({ title: `The ${ERA_NAMES[e.era]} era`, sub: e.title, color: 50, items: [] });
           J.confetti(this.app.ui.w / 2, RIBBON_Y + 26, 60, true, 120);
-          this.openWindow('message', { title: e.title, icon: 'clockwork_core', text: `The ${ERA_NAMES[e.era]} works are running, and the town notices. Its thanks, for good:\n\n${e.pieces.map((p) => '+ ' + p).join('\n')}\n\nThe research tree (T) names the next era's keystone.` });
+          // after the keystone's own scene and card
+          this.queueWindow('message', { title: e.title, icon: 'clockwork_core', text: `The ${ERA_NAMES[e.era]} era's works are running, and the town notices. Its thanks, for good:\n\n${e.pieces.map((p) => '+ ' + p).join('\n')}\n\nThe Now line names the town's next keystone.` });
           break;
         }
         case 'ach': {
@@ -1592,6 +1625,16 @@ export class PlayScreen implements Screen {
           break;
         case 'ui':
           this.openWindow(e.open, e.arg);
+          break;
+        case 'scene':
+          // only outdoors in the valley: in the mine or the house the card comes on its own
+          if (g.player.where === 'world' && g.map.w >= 200) {
+            // the board you handed in at steps aside so you can watch
+            if (this.win) this.closeWindow();
+            this.scene = { x: e.x, y: e.y, t: 0, title: e.title, text: e.text, icon: e.icon };
+            J.banner({ title: e.title, sub: 'The town works come alive', color: 50, items: [] });
+            a.sfx('quest');
+          } else this.queueWindow('message', { title: e.title, text: e.text, icon: e.icon });
           break;
       }
     }

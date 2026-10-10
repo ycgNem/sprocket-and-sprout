@@ -13,6 +13,7 @@ import { FOUNTAIN, MILL_WHEEL, PUMP_HOUSE, SQUARE_LAMPS, TOWN_LINE, TOWN_MILL, T
 import { freshPrice, lampGlow, lampLoad, LAMP_DRAW, townworks, tramBin, TRAM_LOAD, TRAM_PREMIUM } from '../src/sim/systems/townworks';
 import { market } from '../src/sim/systems/economy';
 import { powerState } from '../src/sim/systems/power';
+import { questSys } from '../src/sim/systems/quests';
 
 const look = { skin: 1, hair: 2, hairStyle: 'short' as const, shirt: 3, pants: 4 };
 const secs = (g: Game, s: number) => { for (let i = 0; i < s * 60; i++) g.tick(); };
@@ -82,16 +83,21 @@ describe('the Town Mill', () => {
     expect(Math.floor(g2.player.y)).toBe(TOWN_MILL.y + TOWN_MILL.h);
   });
 
-  it("walking up to the silent mill (or the airship) counts as looking at it; F at its door says what it's doing", () => {
+  it("walking up to the silent mill (or the airship) counts as looking at it once the Town Mill's quest asks; F at its door says what it's doing", () => {
     const g = new Game({ seed: 3 });
     g.player.x = 60.5;
     g.player.y = 30.5;
     secs(g, 1.1);
     expect(g.flags.has('observed:town_mill')).toBe(false);
     expect(g.flags.has('observed:airship')).toBe(false);
-    // the end of Main Street, a few tiles from the mill's door
+    // the end of Main Street, a few tiles from the mill's door: on day 2 (the Mercantile's next door)
+    // walking past isn't the keystone's look (the critic's M1)
     g.player.x = 104.5;
     g.player.y = 61.5;
+    secs(g, 1.1);
+    expect(g.flags.has('observed:town_mill')).toBe(false);
+    // once k10 "The Town Mill" is on, it is
+    questSys(g).active.push({ id: 'k10_mill', prog: [0, 0, 0, 0, 0], day: g.dayIndex });
     secs(g, 1.1);
     expect(g.flags.has('observed:town_mill')).toBe(true);
     expect(g.flags.has('observed:airship')).toBe(false);
@@ -252,21 +258,26 @@ describe('the Tram', () => {
 
 // Phase 4's "done when": the Tram runs on a saved and reloaded game, end to end from the Works tab
 describe('the Tram, from its order to a reloaded game', () => {
-  it('the rail cart restored and Clockwork Assembly II studied post the order; filled at the board it runs, and runs again after a reload', async () => {
+  it("posted with its quest, filled at the board, it runs once the rail cart is restored and Clockwork Assembly studied, and runs again after a reload", async () => {
     const { openOrder, boardHandIn } = await import('../src/sim/systems/orders');
     const g = new Game({ seed: 8 });
     secs(g, 1.1);
     expect(openOrder(g, 'w_tram')).toBeNull();
-    g.research.done.add('r_assembly2');
-    secs(g, 1.1);
-    // the cart in the Crystal galleries isn't restored yet: no order
-    expect(openOrder(g, 'w_tram')).toBeNull();
-    g.flags.add('chamber:cart');
+    // k16 "The Tram" puts its order up at once: you see what it wants from the first step
+    questSys(g).active.push({ id: 'k16_tram', prog: [0, 0, 0, 0, 0, 0], day: g.dayIndex });
     secs(g, 1.1);
     const o = openOrder(g, 'w_tram')!;
     expect(o).toBeTruthy();
     for (const l of o.lines) g.player.inv.add(key(l.spec), l.n);
     boardHandIn(g, o);
+    secs(g, 1.1);
+    // every part is in, but the works wait for Clockwork Assembly and the rail cart
+    expect(g.flags.has('tram')).toBe(false);
+    expect(openOrder(g, 'w_tram')).toBeTruthy();
+    g.research.done.add('r_assembly2');
+    secs(g, 1.1);
+    expect(g.flags.has('tram')).toBe(false);
+    g.flags.add('chamber:cart');
     secs(g, 1.1);
     expect(g.flags.has('tram')).toBe(true);
     tramBin(g)!.inv!.add(key('copper_ore'), 25);
