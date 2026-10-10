@@ -249,3 +249,35 @@ describe('the Tram', () => {
     expect(bin.inv!.countId('tin_ore')).toBe(0);
   });
 });
+
+// Phase 4's "done when": the Tram runs on a saved and reloaded game, end to end from the Works tab
+describe('the Tram, from its order to a reloaded game', () => {
+  it('the rail cart restored and Clockwork Assembly II studied post the order; filled at the board it runs, and runs again after a reload', async () => {
+    const { openOrder, boardHandIn } = await import('../src/sim/systems/orders');
+    const g = new Game({ seed: 8 });
+    secs(g, 1.1);
+    expect(openOrder(g, 'w_tram')).toBeNull();
+    g.research.done.add('r_assembly2');
+    secs(g, 1.1);
+    // the cart in the Crystal galleries isn't restored yet: no order
+    expect(openOrder(g, 'w_tram')).toBeNull();
+    g.flags.add('chamber:cart');
+    secs(g, 1.1);
+    const o = openOrder(g, 'w_tram')!;
+    expect(o).toBeTruthy();
+    for (const l of o.lines) g.player.inv.add(key(l.spec), l.n);
+    boardHandIn(g, o);
+    secs(g, 1.1);
+    expect(g.flags.has('tram')).toBe(true);
+    tramBin(g)!.inv!.add(key('copper_ore'), 25);
+    const g2 = reload(g);
+    expect(g2.flags.has('tram')).toBe(true);
+    const bin = tramBin(g2)!;
+    expect(bin.inv!.countId('copper_ore')).toBe(25);
+    const money = g2.player.money;
+    g2.endDay(false);
+    expect(bin.inv!.countId('copper_ore')).toBe(5);
+    expect(g2.player.money).toBeGreaterThan(money);
+    expect(townworks(g2).cart).toBe(20);
+  });
+});
