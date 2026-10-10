@@ -6,14 +6,25 @@ music and most sound are procedural, some SFX come from a jsfxr bank.
 
 **Status (October 9, 2026, late night): 1.2 "The Works" Phases 0 and 1 are done.** ROADMAP.md is
 now the 1.2 plan (the identity rebuild around automation); the old 1.1 overhaul is ROADMAP-1.1.md.
-- **Phase 0 = 1.1.1 on `main`** (commits `1c0d50e`..`881284d`, version bumped): the owner's
+- **Phase 0 = 1.1.1 on `main`** (commits `1c0d50e`..`ba760a9`, version bumped): the owner's
   playtest bugs, the overhead pickaxe for all 9 looks, flagstone paths, plank decks, the seam
-  audit, painted ground transitions (the farming glitch), placed paths that change the ground.
-  **Not pushed and not released yet**: pushing `main` deploys the website; the owner decides when.
-  Installers: `Build desktop app.bat` on `main` (or `npm run dist:win`), then
-  `gh release create v1.1.1`.
-- **Phase 1 on branch `works`** (commit `2d070fa`): the automation core and the Field Works, built
-  to ROADMAP.md 3.1 + 4, which the indie-critic approved after two spec reviews.
+  audit, painted ground transitions (the farming glitch), placed paths that change the ground;
+  then the owner's second round (`ba760a9`): the ranch opens (Clem never stepped inside), square
+  bridge decks (`squareBridges`, also run on load), mine lifts a shaft drops you past, the map
+  with building names, head icons and hovers (`e2e/mapshot.mjs`).
+  **The owner said ship it (for a friend's playtest), but `git push origin main` was blocked by the
+  auto-mode permission guard (production deploy); the owner runs it.** Installers for this exact
+  `main` are built in `C:\Users\jacks\Documents\sns-p0check\release` (9:51 PM). After the push:
+  `gh release create v1.1.1` with the two .exe files (see the session's final message).
+  A worktree of `main` for checks: `C:\Users\jacks\Documents\sns-p0check` (dev server config
+  "main", port 5175, in .claude/launch.json).
+- **Phase 1 on branch `works`** (`2d070fa`, fixes to `ff9b51b`, `main` merged in `f2f1e77`): the
+  automation core and the Field Works, built to ROADMAP.md 3.1 + 4. The indie-critic's build review
+  was PASS WITH FIXES; all its Criticals and Majors and most Minors are fixed in `ff9b51b` (the
+  wrong input is named and diagnosed, arms refresh their reason, the gantry parks off season, the
+  lamps count root causes), plus "your hands took 3 of the field's 4" (`88f097a`). Not done from
+  that review: lamps dimming in a brownout, the pace bot's L3. The owner turned down a
+  Builderment-style rework (machines pushing output onto belts, arms optional): don't add it.
 - **PixelLab:** about 86 generations spent this session (pick frames 44, terrain 22, Field Works
   20); about 430 left until Nov 9.
 
