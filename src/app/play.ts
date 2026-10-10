@@ -241,7 +241,7 @@ export class PlayScreen implements Screen {
   perkSnooze = -1;
 
   /** Esc with a machine in hand puts it away: the nearest tool (or empty slot) is selected instead */
-  private putAway() {
+  private putAway(): boolean {
     const p = this.g.player;
     const n = p.inv.slots.length;
     const hot = Math.min(12, n);
@@ -253,6 +253,7 @@ export class PlayScreen implements Screen {
         if (!s || !kDef(s.k).places) best = i;
       }
     if (best >= 0) p.sel = best;
+    return best >= 0;
   }
 
   heldPlaceable(): string | null {
@@ -630,8 +631,7 @@ export class PlayScreen implements Screen {
       }
       if (this.win) this.closeWindow();
       else if (this.drag) this.drag = null;
-      else if (this.heldPlaceable()) this.putAway();
-      else this.openWindow('pause');
+      else if (!this.heldPlaceable() || !this.putAway()) this.openWindow('pause');
       return;
     }
     // typing into a text field (e.g. naming your pet) must not trigger shortcuts
