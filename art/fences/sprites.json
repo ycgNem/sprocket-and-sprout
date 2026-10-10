@@ -1,0 +1,1225 @@
+{
+ "name": "fences",
+ "kind": "sprites",
+ "meta": {
+  "note": "Fences that connect: art/fences/build.mjs (fence:<wood|stone>:<mask>, fence:gate:<h|v<n><s>>, fence:map:<mask>:<v>:<season>; mask N1 E2 S4 W8; src/render/fences.ts picks them). The east-west pieces are the st:fence_wood / st:fence_stone / st:gate pixels."
+ },
+ "defaults": {
+  "place": "none",
+  "keepStrays": true
+ },
+ "sprites": [
+  {
+   "match": "fence:wood:0",
+   "file": "frames/wood-0.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:0",
+   "file": "frames/stone-0.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:1",
+   "file": "frames/wood-1.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:1",
+   "file": "frames/stone-1.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:2",
+   "file": "frames/wood-2.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:2",
+   "file": "frames/stone-2.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:3",
+   "file": "frames/wood-3.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:3",
+   "file": "frames/stone-3.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:4",
+   "file": "frames/wood-4.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:4",
+   "file": "frames/stone-4.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:5",
+   "file": "frames/wood-5.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:5",
+   "file": "frames/stone-5.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:6",
+   "file": "frames/wood-6.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:6",
+   "file": "frames/stone-6.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:7",
+   "file": "frames/wood-7.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:7",
+   "file": "frames/stone-7.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:8",
+   "file": "frames/wood-8.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:8",
+   "file": "frames/stone-8.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:9",
+   "file": "frames/wood-9.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:9",
+   "file": "frames/stone-9.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:10",
+   "file": "frames/wood-10.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:10",
+   "file": "frames/stone-10.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:11",
+   "file": "frames/wood-11.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:11",
+   "file": "frames/stone-11.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:12",
+   "file": "frames/wood-12.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:12",
+   "file": "frames/stone-12.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:13",
+   "file": "frames/wood-13.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:13",
+   "file": "frames/stone-13.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:14",
+   "file": "frames/wood-14.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:14",
+   "file": "frames/stone-14.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:wood:15",
+   "file": "frames/wood-15.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:stone:15",
+   "file": "frames/stone-15.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:gate:h",
+   "file": "frames/gate-h.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:gate:v00",
+   "file": "frames/gate-v00.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:gate:v01",
+   "file": "frames/gate-v01.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:gate:v10",
+   "file": "frames/gate-v10.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:gate:v11",
+   "file": "frames/gate-v11.png",
+   "frame": [
+    16,
+    30
+   ],
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "fence:map:0:0:3",
+   "file": "frames/map-0-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:0:0:*",
+   "file": "frames/map-0-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:0:1:3",
+   "file": "frames/map-0-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:0:1:*",
+   "file": "frames/map-0-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:1:0:3",
+   "file": "frames/map-1-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:1:0:*",
+   "file": "frames/map-1-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:1:1:3",
+   "file": "frames/map-1-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:1:1:*",
+   "file": "frames/map-1-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:2:0:3",
+   "file": "frames/map-2-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:2:0:*",
+   "file": "frames/map-2-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:2:1:3",
+   "file": "frames/map-2-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:2:1:*",
+   "file": "frames/map-2-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:3:0:3",
+   "file": "frames/map-3-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:3:0:*",
+   "file": "frames/map-3-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:3:1:3",
+   "file": "frames/map-3-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:3:1:*",
+   "file": "frames/map-3-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:4:0:3",
+   "file": "frames/map-4-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:4:0:*",
+   "file": "frames/map-4-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:4:1:3",
+   "file": "frames/map-4-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:4:1:*",
+   "file": "frames/map-4-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:5:0:3",
+   "file": "frames/map-5-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:5:0:*",
+   "file": "frames/map-5-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:5:1:3",
+   "file": "frames/map-5-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:5:1:*",
+   "file": "frames/map-5-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:6:0:3",
+   "file": "frames/map-6-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:6:0:*",
+   "file": "frames/map-6-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:6:1:3",
+   "file": "frames/map-6-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:6:1:*",
+   "file": "frames/map-6-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:7:0:3",
+   "file": "frames/map-7-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:7:0:*",
+   "file": "frames/map-7-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:7:1:3",
+   "file": "frames/map-7-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:7:1:*",
+   "file": "frames/map-7-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:8:0:3",
+   "file": "frames/map-8-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:8:0:*",
+   "file": "frames/map-8-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:8:1:3",
+   "file": "frames/map-8-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:8:1:*",
+   "file": "frames/map-8-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:9:0:3",
+   "file": "frames/map-9-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:9:0:*",
+   "file": "frames/map-9-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:9:1:3",
+   "file": "frames/map-9-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:9:1:*",
+   "file": "frames/map-9-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:10:0:3",
+   "file": "frames/map-10-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:10:0:*",
+   "file": "frames/map-10-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:10:1:3",
+   "file": "frames/map-10-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:10:1:*",
+   "file": "frames/map-10-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:11:0:3",
+   "file": "frames/map-11-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:11:0:*",
+   "file": "frames/map-11-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:11:1:3",
+   "file": "frames/map-11-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:11:1:*",
+   "file": "frames/map-11-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:12:0:3",
+   "file": "frames/map-12-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:12:0:*",
+   "file": "frames/map-12-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:12:1:3",
+   "file": "frames/map-12-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:12:1:*",
+   "file": "frames/map-12-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:13:0:3",
+   "file": "frames/map-13-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:13:0:*",
+   "file": "frames/map-13-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:13:1:3",
+   "file": "frames/map-13-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:13:1:*",
+   "file": "frames/map-13-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:14:0:3",
+   "file": "frames/map-14-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:14:0:*",
+   "file": "frames/map-14-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:14:1:3",
+   "file": "frames/map-14-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:14:1:*",
+   "file": "frames/map-14-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:15:0:3",
+   "file": "frames/map-15-0-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:15:0:*",
+   "file": "frames/map-15-0.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:15:1:3",
+   "file": "frames/map-15-1-winter.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  },
+  {
+   "match": "fence:map:15:1:*",
+   "file": "frames/map-15-1.png",
+   "frame": [
+    16,
+    16
+   ],
+   "origin": [
+    0,
+    0
+   ]
+  }
+ ]
+}

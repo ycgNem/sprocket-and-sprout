@@ -723,7 +723,59 @@ function drawMega(id: string, progress: number, frame: number): PixBuf {
   return pb;
 }
 
+/**
+ * A connected fence piece, the procedural fallback of art/fences/build.mjs (src/render/fences.ts picks
+ * the name): fence:<wood|stone>:<mask> or fence:gate:<h|v<n><s>>, 16x30 with tile row 0 at row 14.
+ * A north-south run shows a post's top and, below it, the rails (or the wall's top) to the next post.
+ */
+function drawFence(kind: string, key: string): PixBuf {
+  const pb = new PixBuf(16, 30);
+  const Y = 14; // frame row of tile row 0
+  const mask = +key || 0;
+  const n = mask & 1, e = mask & 2, s = mask & 4, w = mask & 8;
+  if (kind === 'stone') {
+    // the wall's core stands in every tile; its sides reach the edges that join; its top runs north
+    if (w) { pb.rect(0, Y + 5, 4, 11, C.stone); pb.rect(0, Y + 5, 4, 1, C.pebble); }
+    if (e) { pb.rect(12, Y + 5, 4, 11, C.stone); pb.rect(12, Y + 5, 4, 1, C.pebble); }
+    pb.rect(4, Y + 5, 8, s ? 2 : 11, C.stone);
+    pb.rect(4, Y + 5, 8, 1, C.pebble);
+    if (n) { pb.rect(4, Y - 9, 8, 16, C.stone); pb.rect(5, Y - 9, 1, 16, C.pebble); }
+    for (let i = 0; i < 8; i++) {
+      const x = Math.floor(hash2(i, 2, 2) * 16), y = Y + 6 + Math.floor(hash2(2, i, 2) * 10);
+      if (pb.get(x, y)) pb.set(x, y, C.slate);
+    }
+    pb.set(5, Y + 5, C.moss);
+    pb.set(10, Y + 5, C.moss);
+  } else if (kind === 'gate' && key !== 'h') {
+    // in a north-south run: the leaf seen from above, hung from the north; its own post below
+    const hung = key[1] === '1', cut = key[2] === '1';
+    pb.rect(6, Y - 12, 4, 10, C.tan);
+    for (let y = Y - 11; y < Y - 2; y += 2) pb.rect(6, y, 4, 1, C.oak);
+    if (!hung) pb.rect(6, Y - 14, 4, 3, C.oak);
+    pb.rect(6, Y - 2, 4, cut ? 6 : 18, C.oak);
+    pb.rect(6, Y - 2, 4, 1, C.tan);
+  } else if (kind === 'gate') {
+    pb.rect(0, Y - 2, 3, 16, C.oak); pb.rect(13, Y - 2, 3, 16, C.oak);
+    pb.rect(3, Y + 3, 10, 2, C.tan); pb.rect(3, Y + 8, 10, 2, C.tan);
+    pb.line(3, Y + 10, 12, Y + 3, C.walnut);
+  } else {
+    if (n) pb.rect(7, Y - 12, 2, 10, C.walnut);
+    if (w) { pb.rect(0, Y + 3, 6, 2, C.walnut); pb.rect(0, Y + 8, 6, 2, C.walnut); }
+    if (e) { pb.rect(10, Y + 3, 6, 2, C.walnut); pb.rect(10, Y + 8, 6, 2, C.walnut); }
+    pb.rect(6, Y - 2, 4, s ? 6 : 16, C.oak);
+    pb.rect(6, Y - 2, 4, 1, C.tan);
+  }
+  pb.outline(C.ink);
+  return pb;
+}
+
 export function registerStructSprites() {
+  // fence:<wood|stone>:<mask>, fence:gate:<h|v<n><s>> (the map's fence:map: is in objects.ts)
+  defSpriteFamily('fence:', (name) => {
+    const [, kind, key] = name.split(':');
+    if (kind !== 'wood' && kind !== 'stone' && kind !== 'gate') return null;
+    return { w: 16, h: 30, ox: 0, oy: 14, draw: (ctx) => drawFence(kind, key).drawTo(ctx) };
+  });
   defSpriteFamily('mega:', (name) => {
     const [, id, ps, fs] = name.split(':');
     return { w: 64, h: 112, ox: 0, oy: 112 - 64, draw: (ctx) => drawMega(id, +ps / 8, +fs).drawTo(ctx) };

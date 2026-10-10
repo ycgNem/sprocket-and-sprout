@@ -49,6 +49,11 @@ const res = await page.evaluate(async () => {
     if (d.kind === 'megaproject' || d.kind === 'path') continue;
     for (const f of R(4)) for (const on of [0, 1]) for (const s of R(4)) add('structure', `st:${d.id}:${f}:${on}:${s}`);
   }
+  // fences that join their neighbours (src/render/fences.ts): a piece per side mask, the gate's
+  // turns, and the map's paddock fence per mask, weathering and season
+  for (const k of ['wood', 'stone']) for (const m of R(16)) add('fence', `fence:${k}:${m}`);
+  for (const g of ['h', 'v00', 'v01', 'v10', 'v11']) add('fence', 'fence:gate:' + g);
+  for (const m of R(16)) for (const v of [0, 1]) for (const s of R(4)) add('fence', `fence:map:${m}:${v}:${s}`);
   for (const mp of MEGAPROJECTS) for (const q of R(9)) for (const f of R(2)) add('mega', `mega:${mp.id}:${q}:${f}`);
   for (const id of [...NPCS.map((n) => n.id), 'peddler']) {
     for (const d of R(4)) for (const f of R(7)) add('character', `ch:${id}:${d}:${f}`);

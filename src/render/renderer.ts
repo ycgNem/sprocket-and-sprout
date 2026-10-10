@@ -32,7 +32,8 @@ import { Weather } from './weather';
 import { Ambient } from './ambient';
 import { camShakeOffset, wobbleOffset } from './shake';
 import { drawStateGlyphs } from './glyphs';
-import { drawPlanks, planksUnder } from './planks';
+import { drawPlanks, plankFront, plankVertex, PLANK_UNDER } from './planks';
+import { fenceSprite, mapFenceSprite } from './fences';
 import { blendVertex, needsBlend } from './blend';
 import { drawDryDrops, drawRail, pushGantry } from './fieldworks';
 import { MState } from '../sim/mstate';
@@ -248,8 +249,8 @@ export class Renderer {
       for (let lx = -1; lx <= CH; lx++) {
         const k = this.terrainClass(m, x0 + lx, y0 + ly, theme, soil);
         cls[(ly + 1) * N + lx + 1] = k;
-        // a plank walk on land sits on its land, not on a ring of water (src/render/planks.ts)
-        wang[(ly + 1) * N + lx + 1] = k === 'planks' ? planksUnder(m, x0 + lx, y0 + ly) : wangOf(k);
+        // under a deck the ground runs on as it does beside it, resolved per vertex (src/render/planks.ts)
+        wang[(ly + 1) * N + lx + 1] = k === 'planks' ? PLANK_UNDER : wangOf(k);
       }
     const at = (lx: number, ly: number) => cls[(ly + 1) * N + lx + 1];
     const wAt = (lx: number, ly: number) => wang[(ly + 1) * N + lx + 1];
@@ -262,6 +263,7 @@ export class Renderer {
     for (let vy = 0; vy <= CH; vy++)
       for (let vx = 0; vx <= CH; vx++) {
         const cs = [wAt(vx - 1, vy - 1), wAt(vx, vy - 1), wAt(vx - 1, vy), wAt(vx, vy)];
+        if (cs.includes(PLANK_UNDER)) plankVertex(m, x0 + vx, y0 + vy, cs);
         const known = cs.filter((k): k is string => !!k);
         if (!known.length) continue;
         // a corner without a Wang class takes the most common class around it
@@ -359,7 +361,8 @@ export class Renderer {
         const px = lx * TILE, py = ly * TILE;
         const o = m.obj[i] as O;
         if (o && FLAT_OBJ.has(o)) {
-          const s2 = sprite(`o:${o}:${o === O.FLOWER || o === O.FLOWERBED ? m.objData[i] % 6 : o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.TREASURE || o === O.GALLERY ? m.objData[i] : v % 3}:${season}`);
+          // the paddock's fence joins up with its neighbours (src/render/fences.ts)
+          const s2 = sprite(o === O.FENCE ? mapFenceSprite(m, x, y, season) : `o:${o}:${o === O.FLOWER || o === O.FLOWERBED ? m.objData[i] % 6 : o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.TREASURE || o === O.GALLERY ? m.objData[i] : v % 3}:${season}`);
           // a soft shadow under things that stand on the ground (STYLE.md)
           const sw = SHADOWED_OBJ.get(o);
           if (sw) drawSprite(ctx, sprite(`shadow:${sw}`), px + 8, py + 14);
@@ -444,7 +447,8 @@ export class Renderer {
         }
         const o = m.obj[i] as O;
         if (o && FLAT_OBJ.has(o)) {
-          const s2 = sprite(`o:${o}:${o === O.FLOWER || o === O.FLOWERBED ? m.objData[i] % 6 : o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.TREASURE || o === O.GALLERY ? m.objData[i] : v % 3}:${season}`);
+          // the paddock's fence joins up with its neighbours (src/render/fences.ts)
+          const s2 = sprite(o === O.FENCE ? mapFenceSprite(m, x, y, season) : `o:${o}:${o === O.FLOWER || o === O.FLOWERBED ? m.objData[i] % 6 : o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.TREASURE || o === O.GALLERY ? m.objData[i] : v % 3}:${season}`);
           ctx.drawImage(s2.img, s2.x, s2.y, 16, 16, px, py, 16, 16);
         } else if (o === O.FORAGE) {
           const id = m.forage.get(i);
@@ -564,6 +568,11 @@ export class Renderer {
         } else if (o === O.NOTICEBOARD) {
           const s = sprite('board:0');
           D.push({ y: y + 0.9, f: () => drawSprite(ctx, s, x * TILE, y * TILE) });
+        }
+        // a deck's near railing stands in front of whoever walks its south row (src/render/planks.ts)
+        if (m.ground[i] === T.PLANKS) {
+          const front = plankFront(m, x, y, season);
+          if (front.length) D.push({ y: y + 0.99, f: () => { for (const n of front) drawSprite(ctx, sprite(n), x * TILE, y * TILE); } });
         }
       }
     if (g.player.where === 'house') {
@@ -908,7 +917,9 @@ export class Renderer {
         const sname = e.st.rust ? `st:${d.id}:0:0:${season}` : `st:${d.id}:${f}:${on ? 1 : 0}:${season}`;
         const s = sprite(e.st.rust ? rusty(sname) : sname);
         if (d.kind === 'fence' || d.kind === 'gate') {
-          D.push({ y: e.y + 0.7, f: () => drawSprite(ctx, s, e.x * TILE, e.y * TILE) });
+          // the piece for the way it meets its neighbours (src/render/fences.ts)
+          const fs = sprite(fenceSprite(ents, e) ?? sname);
+          D.push({ y: e.y + 0.7, f: () => drawSprite(ctx, fs, e.x * TILE, e.y * TILE) });
           continue;
         }
         const shadowW = d.kind === 'decor' || d.kind === 'lamp' ? 10 : Math.round(e.w * TILE * 0.8);
