@@ -47,6 +47,9 @@ const defs: S[] = [
     desc: 'Home for clockwork bumblebots. They fly crates within 14 tiles and build blueprint ghosts.' },
   { id: 'shipping_crate', name: 'Shipping Crate', kind: 'shipbin', size: [1, 1], solid: true, slots: 36, price: 60,
     desc: 'Anything put in here is sold overnight at market price. Arms can feed it.' },
+  // the Tram keystone's bin at the quarry: put there by src/sim/systems/townworks.ts, never built or sold
+  { id: 'tram_bin', name: 'Tram Cart Bin', kind: 'chest', size: [1, 1], solid: true, slots: 12, price: 0,
+    desc: 'Every morning the tram takes up to 20 ore from here to town and sells it for 30% over the market. Arms can fill it.' },
 
   // ---------------- Power ----------------
   { id: 'pole_wood', name: 'Wooden Pole', kind: 'pole', size: [1, 1], solid: true, reach: 7, supply: 2, price: 10,

@@ -61,6 +61,11 @@ export function door(g: Game, b: BuildingInfo) {
     case 'greenhouse':
       if (!g.flags.has('greenhouse_fixed')) g.toast('The glass roof is broken, so beds in here follow the seasons for now. Restore it at the clocktower to grow all year.');
       return;
+    case 'landmark':
+      // the town keystones' buildings (the Town Mill, the pump house) are looked at, not entered:
+      // src/sim/systems/townworks.ts
+      g.sys.townworksDoor?.(g, b);
+      return;
   }
   const shop = shopFor(b.id);
   if (shop) {
