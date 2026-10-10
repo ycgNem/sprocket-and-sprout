@@ -316,6 +316,25 @@ describe('the pre-merge review (2.0 beta)', () => {
     expect(c2.mach!.locked).toBe(true);
   });
 
+  it("B2's arm restored over an empty crock: the cellar tips three beans in, once a day", () => {
+    const g = new Game({ seed: 64 });
+    skipTo(g, 'k2_springs');
+    const jar = at(g, OPENING.jar);
+    jar.mach!.inBuf.clear();
+    jar.mach!.outBuf = [];
+    delete at(g, OPENING.armTile).st.rust;
+    g.player.inv.removeSpec('cogbean', g.player.inv.countId('cogbean'));
+    secs(g, 1);
+    const beans = () => [...jar.mach!.inBuf.entries()].reduce((a, [k, n]) => a + (k === key('cogbean') ? n : 0), 0);
+    expect(beans() + (jar.working ? 1 : 0)).toBeGreaterThan(0);
+    // not again the same day
+    jar.mach!.inBuf.clear();
+    jar.mach!.outBuf = [];
+    jar.working = false;
+    secs(g, 1);
+    expect(beans()).toBe(0);
+  });
+
   it("the Professor's spare mainspring comes once a day, not every half second", () => {
     const g = new Game({ seed: 63 });
     skipTo(g, 'k5_desk');

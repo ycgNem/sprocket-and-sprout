@@ -25,6 +25,8 @@ interface KeeperState {
   springDay?: number;
   /** the day B8's safety nets last topped something up (bars, barley, an arm) */
   riverDay?: number;
+  /** the day the cellar last tipped beans into an empty crock for B2's arm (once a day at most) */
+  beanDay?: number;
 }
 
 function keeper(g: Game): KeeperState {
@@ -200,6 +202,14 @@ registerSystem({
       k.springDay = g.dayIndex;
       g.give(key('spring'), 1);
       g.toast('Prof. Cogwhistle sent another mainspring over. "Try to keep this one!"', 'i:spring');
+    }
+    // B2's arm restored over an empty crock has nothing to carry: the cellar tips a few beans in
+    // (the critic's Phase 2 Minor: the step waited for a pickle that could never come)
+    if (active(g, 'k2_springs') && jar?.mach && !armNeedsSpring(OPENING.armTile) && k.beanDay !== g.dayIndex
+      && ![...jar.mach.inBuf.values()].some((n) => n > 0) && !jar.mach.outBuf.length && !jar.working && g.player.inv.countId('cogbean') === 0) {
+      k.beanDay = g.dayIndex;
+      jar.mach.inBuf.set(key('cogbean'), 3);
+      g.toast("The Professor tipped three beans from the keeper's cellar into the crock: watch the arm.", 'i:cogbean');
     }
     const bedBare = OPENING.bed.some(([x, y]) => !g.soil.get(g.map.idx(x, y))?.crop);
     if (active(g, 'k4_grow') && bedBare && g.player.inv.countId('cogbean_seed') === 0 && k.seedDay !== g.dayIndex) {
