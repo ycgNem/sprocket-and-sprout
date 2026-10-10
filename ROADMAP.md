@@ -1143,6 +1143,48 @@ by the average yield; regrowing crops count the regrow days and spread the seed 
 harvests; then hand-adjusted where a role needs it (the five the bot leans on keep their place).
 **Rapeseed** (summer, 6 days, scythed, 2-3 seeds a plant): the mill presses it to oil.
 
+**Crop numbers (derived 2026-10-10).** Price = (seed + days x 6) x kind / average yield. A regrower's
+season (sown on the 1st; 28 days, 56 for a two-season crop) counts as one plant: (seed + (days to the
+first harvest + regrow days x later harvests) x 6) x kind / (harvests x yield). Seeds still on
+Stardew's moved first, 10% under (to the nearest 5; whole coins under 30), the three giants and
+Thorne's hops 10% over; strawberry's and potato's seeds were set by their place in the bot's spring.
+Each price is the formula's, rounded, with the new seed (roles were kept through the seed; no price is
+set by hand). Grow days, regrow days and yields are unchanged; cogbean, barley, radish and the rest
+are untouched, except cotton.
+
+| Crop | Kind | Old price/seed | Formula | New price/seed | Why |
+|---|---|---|---|---|---|
+| Strawberry | fruit, 5 picks | 70/90 | 46.9 | 47/60 | the bot's early pick: seed 60 keeps it first by seed and by coin (2.9 a coin, as before) |
+| Potato | veg, 2 a plant | 64/50 | 29.5 | 30/23 | Rush's starter, the bot's late pick: seed 23 keeps its 1.6 a coin and its rank all spring |
+| Rhubarb | veg | 210/100 | 162 | 162/90 | the bot's mid-spring pick; same rank |
+| Cabbage | veg | 160/80 | 156 | 156/90 | giant; stays under rhubarb by seed and by coin |
+| Tomato | veg, 5 picks | 60/50 | 41.4 | 41/45 | |
+| Corn | veg, 11 picks | 50/140 | 42.2 | 42/140 | seed already off Stardew's (150) |
+| Melon | fruit | 250/80 | 186.3 | 186/90 | giant |
+| Blueberry | fruit, 4 picks of 3 | 50/80 | 21.1 | 21/70 | |
+| Ember pepper | fruit, 8 picks | 40/40 | 27.46 | 27/35 | |
+| Wheat | grain | 25/10 | 26.4 | 26/9 | |
+| Hops | rare, 17 picks | 25/60 | 21.4 | 21/65 | a Thorne's-only seed counts as rare: a hop ale stays about 7x its two hops (as grain, 15x) |
+| Rapeseed | grain, 2.5 a plant | 18/20 | 17.9 | 18/20 | fits as built |
+| Pumpkin | veg | 320/100 | 188 | 188/110 | giant |
+| Cranberry | fruit, 5 picks of 2 | 75/240 | 43.4 | 43/215 | |
+| Eggplant | veg, 5 picks | 60/20 | 33.6 | 34/18 | |
+| Grape | fruit, 6 picks | 80/60 | 39.3 | 39/55 | |
+| Beet | veg | 100/20 | 54 | 54/18 | |
+| Yam | veg | 160/60 | 115 | 115/55 | |
+| Thistlechoke | veg | 160/30 | 75 | 75/27 | |
+| Cotton | fiber, 16 picks | 40/45 | 18.2 | 18/45 | not on the list, but at 40 it out-earned every summer and fall crop above: the year bot grew it and clogged its crocks' chests (a year 75k, not 121k). Its job is the loom (3 make cloth, 180) |
+
+Checks: the bot's five are cogbean and barley (fixed roles) and strawberry, rhubarb and potato
+(`bestSeed`). Replayed on its 376 logged choices over the eight pacing seeds, `bestSeed` picks the same
+crop each time, and those three and barley keep their rank by seed and by coin on every day of spring.
+Day-21 earned: 25,227 → 24,979 (seed 2024); eight-seed average story 25,204 → 25,161, rush 25,719 →
+25,327. The year bot (seed 77): 133,530 → 121,496, most of it in fall (cranberry jam 109, was 160).
+Artisan goods follow and none goes up (dearest changed: melon wine 429, was 570; steepest markup:
+blueberry jam, 74 for a 21-coin berry). Later: sweet pea, frostmint and tea leaf sit at about twice
+this formula (a tile of sweet pea now earns 2.5x a strawberry's), and the seed sifter's two seeds
+(sold at half the shop price) outsell most regrowers' crop, up to 5x (cranberry).
+
 **Crop intermediates (4.10).** Canvas (loom: 2 flax, 2 cotton or 8 fiber) → canvas belts (1 canvas
 + 1 plank + 1 gear = 6 belts). Oil (mill: sunflower, rapeseed) → **lubricant** (oil + sap, by hand):
 fitted to a machine (F holding it) it runs 10% faster for good. Starch paste (crock: potato, yam,
