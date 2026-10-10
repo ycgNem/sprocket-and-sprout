@@ -10,7 +10,7 @@ import { ERA_NAMES } from '../../data/research';
 import { GUILD_BONUS_PER_RANK } from '../../data/contracts';
 import { key } from '../../sim/inventory';
 import {
-  bagHelps, boardHandIn, custName, custNpc, daysLeftInWeek, dueText, fits, guildRank, keystoneWait, lineLeft, orderFull, orderTitle, orders, payWorks, rank, repOf,
+  bagHelps, boardHandIn, custName, custNpc, daysLeftInWeek, dueText, fits, guildRank, keystoneWait, lineLeft, orderFull, orderTitle, orders, payWorks, rank, repOf, shareIn, steadyOf,
   specLabel, villagerName, type Order,
 } from '../../sim/systems/orders';
 import type { PlayScreen } from '../../app/play';
@@ -171,8 +171,10 @@ function worksRow(ui: UI, play: PlayScreen, o: Order, x: number, y: number, w: n
   const wait = keystoneWait(g, o.def);
   // what it waits for, on up to two lines (the Tram waits for its research and its rail cart)
   const waitLines = wait ? wrapText(`${orderFull(o) ? 'Everything is in' : 'Its goods can go in now'}. The works start once ${wait}.`, w - 90).slice(0, 2) : [];
+  // steady supply: the lines are one day's share (the right column says how many days are in)
+  const steady = steadyOf(o), today = shareIn(g, o);
   // a project's description on up to two lines ("...from your crocks and kegs for the winter.")
-  const descLines = keystone ? [] : wrapText(p?.desc ?? '', w - 160).slice(0, 2);
+  const descLines = keystone ? [] : wrapText(p?.desc ?? '', w - (steady ? 176 : 160)).slice(0, 2);
   const h = keystone ? 54 + waitLines.length * 10 : 33 + descLines.length * 9;
   ui.panel(x + 4, y, w - 8, h, 'paper', false);
   if (keystone) {
@@ -188,11 +190,12 @@ function worksRow(ui: UI, play: PlayScreen, o: Order, x: number, y: number, w: n
     ui.text(ellipsize(p?.reward.text ?? '', 130), x + w - 12, y + 4, C.oak, { align: 'right' });
   }
   const money = p?.money ?? 0;
+  if (steady) ui.text(ellipsize(today ? `Today's share in: ${o.shares ?? 0}/${steady} days` : `One share a day: ${o.shares ?? 0}/${steady} days`, 150), x + w - 12, y + 14, today ? C.moss : C.copper, { align: 'right' });
   drawLines(ui, o, x + 12, y + h - 12, w - 90 - (money ? 70 : 0));
   if (money) ui.text(`+ ${ICON.coin}${money}`, x + w - 74, y + h - 12, g.player.money >= money ? C.oak : C.brick, { align: 'right' });
   if (orderFull(o) && money) {
     if (ui.button('wp' + o.uid, x + w - 64, y + h - 18, 54, 14, `Pay ${money}`, { style: 'green', disabled: g.player.money < money })) payWorks(g, o);
-  } else if (ui.button('wh' + o.uid, x + w - 64, y + h - 18, 54, 14, 'Hand in', { style: 'green', disabled: !bagHelps(g, o), tip: 'Takes what your bag has toward it' })) boardHandIn(g, o);
+  } else if (ui.button('wh' + o.uid, x + w - 64, y + h - 18, 54, 14, 'Hand in', { style: 'green', disabled: !bagHelps(g, o), tip: today ? "Today's share is in: the next share tomorrow" : steady ? "Takes what your bag has toward today's share (a crate tagged for the Council fills it by the post)" : 'Takes what your bag has toward it' })) boardHandIn(g, o);
   return h + 3;
 }
 

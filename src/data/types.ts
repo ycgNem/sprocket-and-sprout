@@ -402,6 +402,11 @@ export interface ProjectDef {
   reward: { items?: Stack[]; flag?: string; text: string };
   /** unlock words that must hold before the Works tab shows it (its era's goods within reach) */
   after?: string[];
+  /**
+   * steady supply (Phase 5): `items` is one day's share, and the works are done after this many
+   * shares, at most one a day (a line feeding a crate tagged for the Council fills them)
+   */
+  steady?: number;
 }
 
 export interface MegaprojectDef {

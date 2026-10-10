@@ -72,6 +72,9 @@ export interface Order {
   done?: boolean;
   /** today's asks: the villager's words */
   text?: string;
+  /** steady-supply works (ProjectDef.steady): the day's shares in so far, and the day of the last */
+  shares?: number;
+  shareDay?: number;
 }
 
 export interface OrdersState {
@@ -133,6 +136,10 @@ export const custNpc = (cust: string): string | undefined => BUSINESS_BY_ID.get(
 export const lineLeft = (l: OrderLine) => Math.max(0, l.n - l.have);
 export const orderLeft = (o: Order) => o.lines.reduce((a, l) => a + lineLeft(l), 0);
 export const orderFull = (o: Order) => o.lines.every((l) => l.have >= l.n);
+/** a steady-supply work's shares to finish it (0 for the rest) */
+export const steadyOf = (o: Order) => (o.kind === 'works' ? PROJECT_BY_ID.get(o.def)?.steady ?? 0 : 0);
+/** has a steady-supply work had today's share? (it takes no more until tomorrow) */
+export const shareIn = (g: Game, o: Order) => steadyOf(o) > 0 && o.shareDay === g.dayIndex;
 
 /** the order's title: what it asks for, or the project's name */
 export function orderTitle(o: Order): string {
@@ -368,7 +375,19 @@ function deliver(g: Game, o: Order, k: ItemKey, n: number, via: 'hand' | 'post' 
   }
   g.stats.use(k, took);
   g.sys.collections?.shipped?.(g, k, took);
+  if (orderFull(o) && steadyOf(o) && (o.shares ?? 0) + 1 < steadyOf(o)) {
+    // steady supply: a day's share is in; its lines stay full (taking nothing more) until tomorrow
+    o.shares = (o.shares ?? 0) + 1;
+    o.shareDay = g.dayIndex;
+    g.emit({ t: 'sfx', id: 'chime' });
+    g.toast(`Today's share for ${orderTitle(o)} is in: ${o.shares} of ${steadyOf(o)} days. The next share tomorrow.`, undefined, C.lime);
+    return { took, coins };
+  }
   if (orderFull(o)) {
+    if (steadyOf(o)) {
+      o.shares = steadyOf(o);
+      o.shareDay = g.dayIndex;
+    }
     // a keystone's goods can all be in before its research is done: the works start once it is
     const wait = o.kind === 'works' ? keystoneWait(g, o.def) : null;
     if (wait) {
@@ -669,6 +688,9 @@ registerSystem({
         g.toast(`${custName(o.cust)}'s order lapsed (${o.lines[0].have}/${o.lines[0].n}). A new one comes on Monday.`);
       }
     }
+    // a steady-supply work's share from yesterday is used up: today's starts empty (a part share
+    // carries over until it's whole)
+    for (const o of os.open) if (steadyOf(o) && orderFull(o) && o.shareDay !== g.dayIndex) for (const l of o.lines) l.have = 0;
     postWorks(g, true);
     postDue(g, g.weekday === 0);
     postToday(g);
@@ -701,6 +723,17 @@ registerSystem({
     os.uid = Math.max(d?.uid ?? 1, ...os.open.map((o) => o.uid + 1));
     os.guild = { unlocked: false, week: -1, completed: 0, ...(d?.guild ?? {}) };
     os.worksDone = d?.worksDone ?? [];
+    // a project whose asks changed since the save (Phase 5's steady supply) takes its new lines,
+    // keeping what's in; a share that's whole counts as today's
+    for (const o of os.open) {
+      const p = o.kind === 'works' ? PROJECT_BY_ID.get(o.def) : undefined;
+      if (!p || (p.items.length === o.lines.length && p.items.every((it, i) => it.item === o.lines[i].spec && it.n === o.lines[i].n))) continue;
+      o.lines = p.items.map((it) => ({ spec: it.item, n: it.n, have: Math.min(it.n, o.lines.find((l) => l.spec === it.item)?.have ?? 0) }));
+      if (p.steady && orderFull(o)) {
+        o.shares = Math.max(1, o.shares ?? 0);
+        o.shareDay = g.dayIndex;
+      }
+    }
     os.seen = d?.seen ?? [...new Set(os.open.filter((o) => o.kind === 'standing').map((o) => o.def).concat(Object.keys(os.filled).filter((id) => STANDING_BY_ID.has(id))))];
   },
 });

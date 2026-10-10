@@ -298,7 +298,9 @@ export const REQUEST_POOL: { npc: string; item: string; n: number; seasons?: num
 // restoration board's crop, fish, forage and gem baskets were Stardew's Community Center and went
 // in 2.0 (DECISIONS #93); what's left asks for what lines make, and each waits for its era. Each is
 // listed under the place it serves (not a Community Center room), and finishing every work at one
-// place is not a "room" of its own.
+// place is not a "room" of its own. The Kettle's Cellar, Dairy Day and the Bakery Window were the
+// last baskets (the critic's Phases 3+4 re-check): they're steady supply now, a day's share on each
+// of three days, which a line feeding a crate tagged for the Council does on its own.
 export const PROJECTS: ProjectDef[] = [
   { id: 'p_greenhouse', name: 'Repair the Greenhouse', area: 'Your farm', desc: 'Glass, beams and brass to fix the old greenhouse on your farm.', items: [{ item: 'glass', n: 40 }, { item: 'beam', n: 20 }, { item: 'brass_bar', n: 10 }], money: 5000, after: ['flag:waterworks'],
     reward: { flag: 'greenhouse_fixed', text: 'Your greenhouse is restored: crops grow in any season!' } },
@@ -309,12 +311,12 @@ export const PROJECTS: ProjectDef[] = [
   // the Clock is the Starlight era's town keystone: it waits for the Tram
   { id: 'p_clock', name: 'Restart the Clock', area: 'The clocktower', desc: 'The great mechanism needs brass, coils and a heart.', items: [{ item: 'brass_gear', n: 40 }, { item: 'spark_coil', n: 10 }, { item: 'clockwork_core', n: 1 }], money: 10000, after: ['flag:tram'],
     reward: { flag: 'clock_fixed', text: 'The clocktower ticks again! The whole town celebrates.' } },
-  { id: 'p_preserves', name: "The Kettle's Cellar", area: 'The Copper Kettle', desc: "Rowan's cellar, stocked from your crocks and kegs for the winter.", items: [{ item: '#preserve', n: 10 }, { item: '#wine', n: 3 }, { item: 'honey', n: 3 }], after: ['flag:town_mill'],
+  { id: 'p_preserves', name: "The Kettle's Cellar", area: 'The Copper Kettle', desc: "Rowan stocks the cellar for winter: a day's worth from your crocks and kegs, three days running.", items: [{ item: '#preserve', n: 8 }, { item: '#wine', n: 2 }], after: ['flag:town_mill'], steady: 3,
     reward: { items: [{ item: 'keg', n: 4 }], text: 'Four kegs' } },
-  { id: 'p_dairy', name: 'Dairy Day', area: 'The Copper Kettle', desc: 'Cheese, butter and eggs for the inn.', items: [{ item: 'cheese', n: 5 }, { item: 'butter', n: 5 }, { item: 'egg', n: 10 }, { item: 'goat_milk', n: 2 }], after: ['r_dairy'],
+  { id: 'p_dairy', name: 'Dairy Day', area: 'The Copper Kettle', desc: "The inn's dairy, supplied a day at a time: cheese, butter and eggs on three days.", items: [{ item: 'cheese', n: 3 }, { item: 'butter', n: 3 }, { item: '#egg', n: 4 }], after: ['r_dairy'], steady: 3,
     reward: { items: [{ item: 'kitchen', n: 1 }], text: 'A steam kitchen' } },
   // the Bakery Window opens once the town has flour of its own (the Town Mill) and you have an oven
-  { id: 'p_bakery', name: 'Bakery Window', area: 'The Mercantile', desc: "Baked goods for the Mercantile's window, from the Town Mill's flour.", items: [{ item: 'bread', n: 5 }, { item: 'cake', n: 1 }, { item: 'cookies', n: 6 }, { item: 'pumpkin_pie', n: 2 }], after: ['flag:bread_town', 'r_cooking'],
+  { id: 'p_bakery', name: 'Bakery Window', area: 'The Mercantile', desc: "The Mercantile's window, kept full: a day's baking from the Town Mill's flour, three days.", items: [{ item: 'bread', n: 4 }, { item: 'cookies', n: 4 }], after: ['flag:bread_town', 'r_cooking'], steady: 3,
     reward: { items: [{ item: 'assembler', n: 1 }], text: "A tinker's bench (assembler)" } },
   { id: 'p_quarry', name: 'Quarry Road', area: 'The quarry', desc: 'Stone and gravel to pave the quarry road.', items: [{ item: 'stone', n: 200 }, { item: 'gravel', n: 50 }, { item: 'concrete', n: 20 }], after: ['r_crusher'],
     reward: { items: [{ item: 'drill_brass', n: 2 }], text: 'Two brass drills' } },
