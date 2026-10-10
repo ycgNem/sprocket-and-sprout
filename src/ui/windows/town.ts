@@ -10,7 +10,8 @@ import { ANIMALS } from '../../data/creatures';
 import { STRUCT_BY_ID } from '../../data/structures';
 import { key, kDef } from '../../sim/inventory';
 import { buy, buyKit, canAffordKit, crackGeode, dailyLeft, entryPrice, sellToShop, shopBuys, shopStock, startUpgrade, unitPrice, upgradeOptions } from '../../sim/systems/economy';
-import { finishHeartEvent, hearts, npcSys } from '../../sim/systems/npcs';
+import { finishHeartEvent, giftable, hearts, insideAt, npcSys, talkTo, wouldGift, type NPCState } from '../../sim/systems/npcs';
+import { counterAsks, handIn } from '../../sim/systems/quests';
 import { finishAsk, type Ask } from '../../sim/people';
 import { sundayLot } from '../../sim/systems/cart';
 import { sprite, drawFit } from '../../render/atlas';
@@ -101,8 +102,10 @@ function drawDialog(ui: UI, play: PlayScreen, st: WinState): boolean {
     } else {
       play.g.sys.dialogue = null;
       if (a.shop) {
+        // back to the counter: the shop, or the library's museum (a talk with whoever's in)
         play.win = null;
-        play.openWindow('shop', a.shop);
+        if (a.shop === 'museum') play.openWindow('museum');
+        else play.openWindow('shop', a.shop);
         return true;
       }
       return false;
@@ -182,6 +185,62 @@ function drawEvent(ui: UI, play: PlayScreen, st: WinState): boolean {
 }
 
 // ---------------- shops ----------------
+/**
+ * Chat, Give (what you hold) and Hand in (what their quests and orders want from your bag) with a
+ * villager at work indoors, and the others in with them to pick from. `after`: the window that
+ * comes back once a talk is done (a shop's id, or 'museum').
+ */
+export function counter(ui: UI, play: PlayScreen, st: WinState, n: NPCState, here: NPCState[], after: string, cx: number, cy: number, row = false) {
+  const g = play.g;
+  const name = shortName(NPC_BY_ID.get(n.id)?.name ?? n.id);
+  const bw = row ? 50 : 66, step = row ? bw + 4 : 0, down = row ? 0 : 17;
+  let bx = cx, by = cy;
+  const next = () => {
+    bx += step;
+    by += down;
+  };
+  if (ui.button('ct_chat', bx, by, bw, 14, 'Chat', { style: 'flat', tip: `Talk with ${name}` })) talkTo(g, n, after, true);
+  next();
+  const held = g.player.inv.slots[g.player.sel];
+  const hd = held ? kDef(held.k) : null;
+  const asks = counterAsks(g, n.id);
+  if (hd && n.met && (giftable(hd) || asks.length)) {
+    const wanted = asks.some((a) => a.k !== null && kDef(a.k).id === hd.id);
+    const ok = wanted || wouldGift(g, n, hd);
+    const tip = wanted ? `Hand ${name} your ${hd.name}: they asked for it` : ok ? `Give ${name} your ${hd.name} (a gift)` : n.giftedToday ? `${name} has had a gift today` : `${name} has had two gifts this week`;
+    if (ui.button('ct_give', bx, by, bw, 14, 'Give', { style: 'flat', disabled: !ok, tip })) talkTo(g, n, after);
+    ui.itemIcon(held!.k, bx + bw - 15, by - 1, 16);
+    next();
+  }
+  if (asks.length) {
+    const ok = asks.some((a) => a.ok);
+    const tip = [{ text: `${name} is waiting on`, color: C.amber }, ...asks.map((a) => ({ text: a.label, color: a.ok ? C.lime : C.pebble }))];
+    if (ui.button('ct_hand', bx, by, bw, 14, 'Hand in', { style: ok ? 'green' : 'flat', disabled: !ok, tip }) && !handIn(g, n.id, after)) play.toast('Nothing in your bag they asked for.');
+    next();
+  }
+  // the others in with them: a click talks to them instead
+  const others = here.filter((o) => o.id !== n.id).slice(0, 4);
+  if (!others.length) return;
+  let ox = row ? bx + 4 : cx, oy = row ? cy - 6 : by + 4;
+  if (!row) {
+    ui.text('Also here', cx, oy, C.oak);
+    oy += 10;
+  }
+  others.forEach((o, i) => {
+    const px = row ? ox + i * 28 : cx + (i % 2) * 30, py = row ? oy : oy + Math.floor(i / 2) * 28;
+    portrait(ui, o.id, px, py, 18);
+    if (ui.hover(px, py, 26, 26)) {
+      const cs = counterAsks(g, o.id);
+      ui.tip([{ text: NPC_BY_ID.get(o.id)?.name ?? o.id, color: C.amber }, { text: 'Click to talk with them here', color: C.pebble }, ...(cs.length ? [{ text: `Waiting on ${cs.length === 1 ? cs[0].label : cs.length + ' things'}`, color: cs.some((a) => a.ok) ? C.lime : C.pebble }] : [])]);
+      if (ui.clicked) {
+        ui.eat();
+        st.data.who = o.id;
+      }
+    }
+    if (counterAsks(g, o.id).some((a) => a.ok)) ui.text('!', px + 22, py, C.lime);
+  });
+}
+
 function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
   const shop = SHOP_BY_ID.get(st.arg)!;
@@ -197,8 +256,15 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
   st.data.tab = st.data.tab ?? 'Buy';
   tabs.forEach((t, i) => { if (ui.button('stab' + t, x + 10 + i * 62, y + 10, 58, 14, t, { active: st.data.tab === t })) st.data.tab = t; });
   ui.text(`${ICON.coin} ${g.player.money.toLocaleString()}`, x + w - 26, y + 14, C.walnut, { align: 'right' });
-  portrait(ui, shop.owner, x + w - 58, y + 30, 32, 1);
-  ui.text(shortName(owner.name), x + w - 38, y + 74, C.walnut, { align: 'center' });
+  // the counter: the keeper at work and anyone in with them, to chat with, give to, or hand a
+  // quest's or an order's goods to (the owner's playtest: at work, villagers could only sell)
+  const here = NPC_BY_ID.has(shop.owner) ? insideAt(g, shop.loc) : [];
+  if (!here.some((n) => n.id === st.data.who)) st.data.who = shop.owner;
+  const who: string = st.data.who;
+  portrait(ui, who, x + w - 58, y + 30, 32, 1);
+  ui.text(shortName(NPC_BY_ID.get(who)?.name ?? owner.name), x + w - 38, y + 74, C.walnut, { align: 'center' });
+  const sel = here.find((n) => n.id === who);
+  if (sel) counter(ui, play, st, sel, here, shop.id, x + w - 74, y + 84);
   const listX = x + 10, listY = y + 30, listW = w - 86, listH = 150;
   if (st.data.tab === 'Buy') {
     if (shop.id === 'cart' && !g.sys.cart?.stock?.length) ui.text('Sold out! Mags restocks every Monday.', listX, listY + 4, C.walnut);

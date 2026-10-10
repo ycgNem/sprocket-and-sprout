@@ -1,6 +1,7 @@
 // Journal (notebook, quests, orders, friends, collections, mail), world map, restoration board, museum.
 import { togglePetStay } from '../../sim/systems/pet';
 import { TRUST_REWARDS } from '../../data/trust';
+import { shortName } from '../../data/cookbook';
 import { C, PALETTE } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { NPCS, NPC_BY_ID } from '../../data/npcs';
@@ -8,7 +9,7 @@ import { FISH } from '../../data/fish';
 import { QUEST_BY_ID } from '../../data/goals';
 import { SEASON_NAMES } from '../../data/types';
 import { key } from '../../sim/inventory';
-import { hearts, npcSys, giftTaste } from '../../sim/systems/npcs';
+import { hearts, insideAt, npcSys, giftTaste } from '../../sim/systems/npcs';
 import { objDone, objText, questSys } from '../../sim/systems/quests';
 import { donateMuseum, goals, museumAccepts, MUSEUM_TOTAL, readMail } from '../../sim/systems/goals';
 import { tileColor } from '../hud';
@@ -19,7 +20,7 @@ import { registerWindow, WinState } from './index';
 import { sprite, drawFit } from '../../render/atlas';
 import { ICON, textWidth, ellipsize } from '../font';
 import { itemTooltip } from '../tooltips';
-import { portrait, trustRow } from './town';
+import { counter, portrait, trustRow } from './town';
 import { shopFor, shopStatus } from '../../sim/systems/town';
 import type { NPCState } from '../../sim/systems/npcs';
 import { charArtHeight } from '../../render/art/sheets';
@@ -352,7 +353,16 @@ function drawMuseum(ui: UI, play: PlayScreen, st: WinState): boolean {
     if (r.click && ok && s) donateMuseum(g, ITEMS[s.k >> 2].id);
   }
   ui.text('Next gift at ' + ([5, 10, 15, 20, 25].find((n) => n > gs.museum.length) ?? 'complete!') + ' donations', x + 12, y + h - 18, C.oak);
-  void st;
+  // whoever's in the library (Sable at work, a visitor): a word, a gift, what they asked for
+  const here = insideAt(g, 'library');
+  if (here.length) {
+    if (!here.some((n) => n.id === st.data.who)) st.data.who = (here.find((n) => n.id === 'sable') ?? here[0]).id;
+    const sel = here.find((n) => n.id === st.data.who)!;
+    portrait(ui, sel.id, x + 12, y + 128, 18);
+    ui.text(shortName(NPC_BY_ID.get(sel.id)?.name ?? sel.id), x + 42, y + 132, C.ink);
+    ui.text('in the library', x + 42, y + 142, C.oak);
+    counter(ui, play, st, sel, here, 'museum', x + 116, y + 134, true);
+  }
   void NPCS;
   return true;
 }

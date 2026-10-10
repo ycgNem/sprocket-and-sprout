@@ -334,8 +334,25 @@ export function wouldGift(g: Game, n: NPCState, hd: ItemDef): boolean {
   return n.giftsWeek < 2 || isBirthday(g, NPC_BY_ID.get(n.id)!);
 }
 
-/** Player interacts: gift if holding a giftable item and allowed, otherwise talk. */
-export function talkTo(g: Game, n: NPCState) {
+/**
+ * The villagers inside the building whose door is `loc` (the schedules' '<loc>_in'): a shop's keeper
+ * at work, and anyone in with them (the counter, src/ui/windows/town.ts)
+ */
+export function insideAt(g: Game, loc: string): NPCState[] {
+  const tile = g.map.locs.get(loc + '_in');
+  if (!tile) return [];
+  return npcSys(g).list.filter((n) => {
+    const t = !n.visible && g.map.locs.get(n.target);
+    return !!t && t[0] === tile[0] && t[1] === tile[1];
+  });
+}
+
+/**
+ * Player interacts: gift if holding a giftable item and allowed, otherwise talk. From a shop's
+ * counter (a villager at work inside, src/ui/windows/town.ts) `shopAfter` brings the shop back once
+ * the talk is done, and `chat` talks without handing over what you hold.
+ */
+export function talkTo(g: Game, n: NPCState, shopAfter?: string, chat = false) {
   const d = NPC_BY_ID.get(n.id)!;
   g.count('talk_' + n.id);
   // a scripted visit plays its own scene
@@ -348,9 +365,9 @@ export function talkTo(g: Game, n: NPCState) {
     return;
   }
   const p = g.player;
-  const held = p.inv.slots[p.sel];
+  const held = chat ? null : p.inv.slots[p.sel];
   // quests that want a delivery to this NPC take priority
-  if (held && g.sys.quests?.tryDeliver?.(g, n.id, held.k)) return;
+  if (held && g.sys.quests?.tryDeliver?.(g, n.id, held.k, shopAfter)) return;
   if (held && n.met && kDef(held.k).id === 'heart_charm') {
     g.sys.offerLocket?.(g, n);
     return;
@@ -360,11 +377,11 @@ export function talkTo(g: Game, n: NPCState) {
     if (giftable(hd)) {
       const bday = isBirthday(g, d);
       if (n.giftedToday) {
-        openDialog(g, n, `${shortName(d.name)} smiles. "You already gave me something today, {player}."`);
+        openDialog(g, n, `${shortName(d.name)} smiles. "You already gave me something today, {player}."`, shopAfter);
         return;
       }
       if (n.giftsWeek >= 2 && !bday) {
-        openDialog(g, n, `"That's very kind, but you've spoiled me enough this week!"`);
+        openDialog(g, n, `"That's very kind, but you've spoiled me enough this week!"`, shopAfter);
         return;
       }
       const taste = giftTaste(d, hd.id);
@@ -388,12 +405,12 @@ export function talkTo(g: Game, n: NPCState) {
       g.emit({ t: 'sfx', id: taste === 'love' || taste === 'like' ? 'heart' : 'talk' });
       g.count('gifts');
       if (hd.id === 'old_boot') g.sys.achUnlock?.(g, 'regift');
-      openDialog(g, n, text, undefined, taste === 'love' || taste === 'like' ? 1 : taste === 'neutral' ? 0 : 2);
+      openDialog(g, n, text, shopAfter, taste === 'love' || taste === 'like' ? 1 : taste === 'neutral' ? 0 : 2);
       return;
     }
   }
   // a specialist's own talk (an echo, a record, a drawing) instead of a chat line
-  if (n.met && specialTalk(g, n)) return;
+  if (n.met && specialTalk(g, n, shopAfter)) return;
   const visit: string | null = n.met ? g.sys.visitLine?.(g, n) ?? null : null;
   let text = visit ?? chooseLine(g, n, d);
   if (visit && !g.sys.visits.talked) {
@@ -410,7 +427,7 @@ export function talkTo(g: Game, n: NPCState) {
   }
   g.sys.quests?.notify?.(g, 'talk', 1, n.id);
   if (isBirthday(g, d) && !n.giftedToday) text += ` ...It's my birthday today, you know.`;
-  openDialog(g, n, text);
+  openDialog(g, n, text, shopAfter);
 }
 
 /**

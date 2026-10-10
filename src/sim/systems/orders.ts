@@ -115,6 +115,7 @@ export function orders(g: Game): OrdersState {
   const o = g.sys.orders as OrdersState & Record<string, any>;
   // cross-system hooks (quests.ts hands deliveries over, economy.ts runs consignment first)
   o.hand = handDeliver;
+  o.wants = orderWants;
   o.consign = consign;
   return o;
 }
@@ -583,7 +584,7 @@ export function payWorks(g: Game, o: Order): boolean {
  * F at a villager holding something their open order wants: the bag's matching goods go in,
  * silver first (it pays double), up to what the order still needs.
  */
-export function handDeliver(g: Game, npc: string, k: ItemKey): boolean {
+export function handDeliver(g: Game, npc: string, k: ItemKey, shopAfter?: string): boolean {
   const list = ordersFor(g, npc, k).filter((o) => o.kind === 'today' || o.kind === 'standing');
   if (!list.length) return false;
   const o = list[0];
@@ -611,8 +612,18 @@ export function handDeliver(g: Game, npc: string, k: ItemKey): boolean {
   void paid;
   g.emit({ t: 'sfx', id: 'coin' });
   g.emit({ t: 'fx', kind: 'coins', x: g.player.x, y: g.player.y - 1 });
-  g.emit({ t: 'ui', open: 'dialog', arg: { npc, name, pages: [line], hearts: nState ? hearts(nState) : 0 } });
+  g.emit({ t: 'ui', open: 'dialog', arg: { npc, name, pages: [line], hearts: nState ? hearts(nState) : 0, shop: shopAfter } });
   return true;
+}
+
+/**
+ * The counter's Hand in (a villager at work in their shop, src/ui/windows/town.ts): their open
+ * orders by hand (today's ask, a standing order), each with the first stack in the bag it takes
+ */
+export function orderWants(g: Game, npc: string): { label: string; k: ItemKey | null }[] {
+  return ordersFor(g, npc)
+    .filter((o) => o.kind === 'today' || o.kind === 'standing')
+    .map((o) => ({ label: `${orderTitle(o)}: ${orderLeft(o)} to go`, k: g.player.inv.slots.find((s) => s && fits(o, s.k))?.k ?? null }));
 }
 
 /** "Hand in" at the board (the works and the Guild's contracts): what the bag has that it wants */

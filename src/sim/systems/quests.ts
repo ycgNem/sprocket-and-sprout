@@ -360,7 +360,34 @@ function tracker(g: Game) {
   return out;
 }
 
-function tryDeliver(g: Game, npcId: string, k: number): boolean {
+/**
+ * What a villager wants that the counter can hand over (a villager at work in their shop, src/ui/
+ * windows/town.ts): their quests' deliveries (enough in the bag, or not yet) and their open orders
+ * by hand, each with the bag's first stack it takes (null: none in the bag)
+ */
+export function counterAsks(g: Game, npcId: string): { label: string; k: number | null; ok: boolean }[] {
+  const out: { label: string; k: number | null; ok: boolean }[] = [];
+  const name = (id: string) => (id[0] === '#' ? id.slice(1) + ' goods' : ITEM_BY_ID.get(id)?.name ?? id);
+  for (const a of questSys(g).active) {
+    const def = QUEST_BY_ID.get(a.id);
+    def?.objectives.forEach((o, j) => {
+      if (o.t !== 'deliver' || o.to !== npcId || a.prog[j] >= o.n) return;
+      const have = g.player.inv.countSpec(o.item);
+      const s = g.player.inv.slots.find((s) => s && matchesSpec(kDef(s.k), o.item));
+      out.push({ label: `${o.n} ${name(o.item)} for "${def.title}" (${have} in your bag)`, k: s?.k ?? null, ok: have >= o.n });
+    });
+  }
+  for (const w of (g.sys.orders?.wants?.(g, npcId) ?? []) as { label: string; k: number | null }[]) out.push({ ...w, ok: w.k !== null });
+  return out;
+}
+
+/** the counter's Hand in: the first thing a villager wants that the bag can give (false: nothing) */
+export function handIn(g: Game, npcId: string, shopAfter?: string): boolean {
+  const a = counterAsks(g, npcId).find((x) => x.ok && x.k !== null);
+  return !!a && tryDeliver(g, npcId, a.k!, shopAfter);
+}
+
+function tryDeliver(g: Game, npcId: string, k: number, shopAfter?: string): boolean {
   const q = questSys(g);
   for (const a of q.active) {
     const def = QUEST_BY_ID.get(a.id);
@@ -381,7 +408,7 @@ function tryDeliver(g: Game, npcId: string, k: number): boolean {
     return true;
   }
   // an order of theirs that takes it: today's ask or a standing order (src/sim/systems/orders.ts)
-  return !!g.sys.orders?.hand?.(g, npcId, k);
+  return !!g.sys.orders?.hand?.(g, npcId, k, shopAfter);
 }
 
 registerSystem({
