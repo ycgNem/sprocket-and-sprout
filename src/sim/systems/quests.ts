@@ -1,6 +1,7 @@
 // Quests: the tutorial chain and story quests. Progress via notify() hooks + polling. (Today's town
 // asks are orders now: src/sim/systems/orders.ts.)
 import { questName } from '../../data/cookbook';
+import { C } from '../../data/palette';
 import { CROP_BY_ID } from '../../data/crops';
 import { QUESTS, QUEST_BY_ID } from '../../data/goals';
 import { ITEM_BY_ID, ITEMS, matchesSpec } from '../../data/items';
@@ -269,6 +270,7 @@ function complete(g: Game, a: ActiveQuest) {
   if (giver && r.friendship?.[0] !== def.giver) addPoints(g, giver, def.main ? 100 : 40);
   // the play screen shows a banner, flies the reward in and plays the fanfare
   g.emit({ t: 'quest', title: def.title, money: r.money ?? 0, items: r.items ?? [] });
+  if (def.done) g.toast(def.done, undefined, C.amber);
   g.count('quests');
   startAvailable(g);
 }

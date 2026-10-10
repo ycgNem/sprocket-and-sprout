@@ -11,6 +11,8 @@ import { STRUCT_BY_ID } from '../data/structures';
 import { NPC_BY_ID } from '../data/npcs';
 import { ICON } from '../ui/font';
 import { ITEM_BY_ID, matchesSpec } from '../data/items';
+import { TREE_BY_ID } from '../data/trees';
+import { SEASON_NAMES } from '../data/types';
 import type { NPCLook } from '../data/types';
 import { SEC_PER_MIN, type Game, type GameEvent } from '../sim/Game';
 import { DX, DY, Dir, Ent, entName, entById, HOUSE_IDS } from '../sim/ents';
@@ -46,7 +48,7 @@ import { PULSE_COL, pulseEnts, pulseOf } from '../ui/pulse';
 import { checkTips } from './tips';
 import { drawFx, Juice, ladderPitch, RIBBON_Y, type Pt } from '../render/juice';
 import { ACH_BY_ID } from '../sim/systems/achievements';
-import { promptAt, questTarget, toolVerb } from '../sim/prompts';
+import { promptAt, questTarget, tilePrompt, toolVerb } from '../sim/prompts';
 import { POST_TIMES } from '../sim/systems/economy';
 import { quote } from '../sim/systems/economy';
 import { unlocksOf } from '../sim/systems/research';
@@ -687,6 +689,16 @@ export class PlayScreen implements Screen {
       this.structTip(ui, e);
       return;
     }
+    // a beach palm: its coconut, or when the next sets (the critic's re-check: a bare palm said nothing)
+    const tr = g.map.o(t.x, t.y) === O.TREE ? g.map.trees.get(g.map.idx(t.x, t.y)) : undefined;
+    const td = tr && tr.stage >= 4 ? TREE_BY_ID.get(tr.species) : undefined;
+    if (tr && td?.wild && td.fruit) {
+      const fruitName = ITEM_BY_ID.get(td.fruit)?.name ?? td.fruit;
+      const inSeason = g.time.season === td.season;
+      const sn = ((SEASON_NAMES as readonly string[])[td.season ?? 1] ?? 'summer').toLowerCase();
+      ui.tip([{ text: td.name, color: C.amber }, tr.fruit > 0 ? { text: `A ${fruitName.toLowerCase()} up top: F to shake it down`, color: C.lime } : { text: inSeason ? `No ${fruitName.toLowerCase()} today: one sets every other ${sn} day` : `Its ${fruitName.toLowerCase()}s set only in ${sn}`, color: C.pebble }]);
+      return;
+    }
     // the town keystones' landmarks (the Town Mill, the Waterworks, the airship): hovering one is
     // looking at it, for their observe stages (src/sim/systems/townworks.ts)
     const lm = landmarkAt(g, t.fx, t.fy);
@@ -843,8 +855,10 @@ export class PlayScreen implements Screen {
       const walking = input.isDown('up') || input.isDown('down') || input.isDown('left') || input.isDown('right');
       const fe = input.shift && !walking ? hereEnts(g)?.rootAt(fx, fy) ?? null : null;
       const fs = fe && !fe.ghost && !fe.st.rust && (fe.mach || fe.inv || fe.arm || fe.gen || fe.def.kind === 'pole') ? fe : null;
-      // Shift+F at your pet: stay around the farmhouse, or come along (the owner's playtest)
-      const fp = input.shift && !walking && !fs ? petAt(g, fx + 0.5, fy + 0.5) : null;
+      // Shift+F at your pet: stay around the farmhouse, or come along (the owner's playtest); as with
+      // F, only when nothing else at the tile answers (Shift is the run key: a stop at a crop with the
+      // cat on it harvests, the critic's re-check)
+      const fp = input.shift && !walking && !fs && !tilePrompt(g, fx, fy) ? petAt(g, fx + 0.5, fy + 0.5) : null;
       // Shift+F at the hamster's cage or its ball: out in the ball, or back in the cage
       const fh = input.shift && !walking && !fs && !fp && ballToggleAt(g, fx, fy);
       if (fs) this.openWindow('struct', fs.id);
@@ -1389,7 +1403,7 @@ export class PlayScreen implements Screen {
   /** a countdown over the shipping crate to the next post collection (noon, 6pm) */
   private drawPostTimer(ui: any) {
     const g = this.g;
-    if (this.modalOpen || g.player.where !== 'world' || g.sleeping || this.app.renderer.juice.banners.length) return;
+    if (this.modalOpen || this.win?.id === 'loadpick' || g.player.where !== 'world' || g.sleeping || this.app.renderer.juice.banners.length) return;
     const bin = g.ents.get(g.shipBinId);
     if (!bin) return;
     if (!this.onScreenUI(this.toUI(bin.x + 0.5, bin.y + 0.5), ui, 0)) return;

@@ -1,11 +1,14 @@
-// The hamster (the owner's playtest: "add a hamster and make a sprite for it"). A Hamster Cage from
-// the Mercantile comes with one: place it in the farmhouse, name it and pick its coat. A seed is its
-// supper, once a day (F with a seed in hand), and it likes a scratch; hearts as the pet's. It sleeps
-// the day away in its shavings and runs its wheel from dusk.
+// The hamster (the owner's playtest: "add a hamster and make a sprite for it"). It comes in its cage
+// from the Professor, early on ("Housewarming", src/data/goals.ts: you don't start with it); place
+// the cage in the farmhouse, name it and pick its coat. A seed is its supper, once a day (F with a
+// seed in hand), and it likes a scratch; hearts as the pet's. It sleeps the day away in its shavings
+// and runs its wheel from dusk.
 // The works' share: from a heart, a hamster fed today keeps the spring arms near its cage wound while
-// it runs (its evening, and the night shift while you sleep), so the Workshop wing's arms swing at
-// double speed. From three hearts it now and then saves you a few of the seeds you fed it. Shift+F
-// at the cage lets it out in its ball to roll about the farmhouse; Shift+F again puts it back.
+// it runs (its evening, and the night shift while you sleep), and on the night shift the machines
+// within reach of its wheel run a quarter faster: an hour's more work by morning (the critic's
+// re-check: arms are never a crock's bottleneck, so winding alone changed nothing). From three hearts
+// it now and then saves you a few of the seeds you fed it. Shift+F at the cage lets it out in its
+// ball to roll about the farmhouse; Shift+F again (or F at the cage) puts it back.
 // Its whims use its own dice, never the world's: nothing it does moves the crops, the weather or
 // the pacing bot (which never buys a cage).
 import { Game, registerSystem } from '../Game';
@@ -14,6 +17,7 @@ import { C } from '../../data/palette';
 import { kDef, key } from '../inventory';
 import { isRusted } from '../rust';
 import { isSpringArm, WIND_TIME } from './arms';
+export { WHEEL_BOOST } from './machines';
 import { DECOR_USE, decorList, decorSolid, houseMap, HOUSE_DOOR, type Decor } from './house';
 
 export const CAGE = 'f_hamster_cage';
@@ -70,6 +74,10 @@ export interface HamsterState {
   windT: number;
   /** spring-arm keys its wheel turned today */
   wound: number;
+  /** on the night shift: the machines in reach of its wheel (src/sim/systems/machines.ts runs them faster) */
+  near?: Set<number>;
+  /** ...and the ones of them that worked, for the morning's word */
+  helped?: Set<number>;
 }
 
 /** its own dice (never the world's: see the header) */
@@ -155,7 +163,7 @@ function feed(g: Game, h: HamsterState): boolean {
   const [x, y] = spot(g, h);
   g.emit({ t: 'sfx', id: 'squeak' });
   g.emit({ t: 'fx', kind: 'hearts', x, y });
-  g.toast(`${h.name} stuffs the ${d.name.toLowerCase()} into its cheeks${awake(g) || h.ball ? '' : ', then burrows back into the shavings'}.`);
+  g.toast(`${h.name} takes one of the ${d.name.toLowerCase()} and stuffs it into its cheeks${awake(g) || h.ball ? '' : ', then burrows back into the shavings'}.`);
   g.count('hamster_fed');
   return true;
 }
@@ -252,6 +260,17 @@ function windNear(g: Game, h: HamsterState, c: Decor, dt: number, fx: boolean) {
   }
 }
 
+/** the farmhouse machines within reach of its wheel (their middles, from the cage's) */
+function nearMachines(g: Game, c: Decor): Set<number> {
+  const cx = c.x + 1, cy = c.y + 0.5;
+  const out = new Set<number>();
+  for (const e of g.houseEnts.machines) {
+    if (e.ghost || isRusted(e)) continue;
+    if (Math.hypot(e.x + e.w / 2 - cx, e.y + e.h / 2 - cy) <= WHEEL_REACH + 0.5) out.add(e.id);
+  }
+  return out;
+}
+
 /** what it does next in the cage: by day, back to bed; by night mostly the wheel */
 function choose(g: Game, h: HamsterState, rng: Rng) {
   const go = (m: HamsterState['mode'], x: number, t: number) => {
@@ -321,9 +340,15 @@ function tickHamster(g: Game, dt: number) {
     h.ball = false;
     h.mode = 'wheel';
     h.cx = WHEEL_X;
-    if (winds(g, h)) windNear(g, h, c, dt, false);
+    if (winds(g, h)) {
+      windNear(g, h, c, dt, false);
+      const near = (h.near ??= nearMachines(g, c));
+      // (once a second: windNear's clock just came round)
+      if (h.windT === 1) for (const e of g.houseEnts.machines) if (near.has(e.id) && e.working) (h.helped ??= new Set()).add(e.id);
+    } else h.near = undefined;
     return;
   }
+  h.near = undefined;
   if (h.emoteT > 0 && (h.emoteT -= dt) <= 0) h.emote = null;
   const rng = hamRng(g);
   if (h.ball) {
@@ -356,18 +381,15 @@ function cageHover(g: Game, d: Decor): { text: string; color?: number }[] {
   const h = g.sys.hamster as HamsterState | undefined;
   if (!h?.named) return [{ text: 'Hamster Cage', color: C.amber }, { text: 'F: welcome its hamster (a name and a coat)', color: C.pebble }, { text: 'Shift+right-click to pick up', color: C.pebble }];
   if (d !== cageOf(g)) return [{ text: 'Hamster Cage', color: C.amber }, { text: `An empty cage: ${h.name} lives in the other one`, color: C.pebble }, { text: 'Right-click to pick up', color: C.pebble }];
+  // five lines at most, the done things bright (the critic's re-check: nine lines, the dimmest in it)
   const hh = hamsterHearts(h);
-  const fed = h.fedDay === g.dayIndex;
+  const fed = h.fedDay === g.dayIndex, petted = h.pettedDay === g.dayIndex;
   return [
-    { text: h.name, color: C.amber },
-    { text: `Your hamster (${HAMSTER_COATS[h.coat].toLowerCase()})  ` + HEART.repeat(hh) + '.'.repeat(5 - hh), color: C.rose },
-    { text: h.ball ? 'Out in its ball' : h.mode === 'wheel' ? 'Running its wheel' : awake(g) ? 'Up and about' : 'Asleep in its shavings: it wakes at dusk', color: C.butter },
-    { text: fed ? 'Had its seed today' : 'Hold a seed and press F: its supper, once a day', color: fed ? C.moss : C.pebble },
-    { text: h.pettedDay === g.dayIndex ? 'Petted today' : 'F or right-click for a scratch', color: C.pebble },
-    { text: hh < WHEEL_HEARTS ? 'From a heart, its wheel winds the spring arms by the cage' : fed ? `Its wheel winds the spring arms within ${WHEEL_REACH} tiles while it runs` : 'Fed, its wheel winds the spring arms by the cage', color: hh >= WHEEL_HEARTS && fed ? C.moss : C.pebble },
-    ...(hh >= 3 ? [{ text: 'Now and then saves you some of its seeds', color: C.moss }] : []),
-    { text: h.ball ? 'Shift+F: back in the cage' : 'Shift+F: out in its ball', color: C.pebble },
-    { text: 'Shift+right-click to pick up the cage', color: C.pebble },
+    { text: `${h.name}  ` + HEART.repeat(hh) + '.'.repeat(5 - hh), color: C.amber },
+    { text: h.ball ? 'Out in its ball' : h.mode === 'wheel' ? 'Running its wheel' : awake(g) ? 'Up and about' : 'Asleep: it wakes at dusk', color: C.cream },
+    { text: `${fed ? 'Fed today' : 'Hungry: a seed, F'}   ${petted ? 'Petted today' : 'A scratch: F'}`, color: fed && petted ? C.lime : C.butter },
+    ...(hh >= WHEEL_HEARTS ? [{ text: fed ? `Its wheel speeds the works within ${WHEEL_REACH} tiles at night` : 'Fed, its wheel speeds the works nearby at night', color: fed ? C.lime : C.pebble }] : []),
+    { text: h.ball ? 'Shift+F or F: back in the cage' : 'Shift+F: its ball   Shift+right-click: pick up', color: C.pebble },
   ];
 }
 
@@ -376,6 +398,8 @@ DECOR_USE.set(CAGE, {
     const h = hamsterSys(g);
     // a second cage is just a cage (F picks it up as any furniture)
     if (h.named && d !== cageOf(g)) return false;
+    // out in its ball: F at its cage calls it home (it was nudging the ball across the room)
+    if (h.ball) return toggleBall(g);
     hamsterUse(g);
     return true;
   },
@@ -384,8 +408,9 @@ DECOR_USE.set(CAGE, {
     const h = g.sys.hamster as HamsterState | undefined;
     if (!h?.named) return { verb: 'Name your hamster' };
     if (d !== cageOf(g)) return null;
+    if (h.ball) return { verb: `${h.name}: back in the cage` };
     const held = g.player.inv.slots[g.player.sel];
-    const hint = h.ball ? 'Shift+F: back in the cage' : 'Shift+F: the ball';
+    const hint = 'Shift+F: the ball';
     if (held && kDef(held.k).cat === 'seed' && h.fedDay !== g.dayIndex) return { verb: `Feed ${h.name}`, hint };
     return h.pettedDay === g.dayIndex ? null : { verb: `Pet ${h.name}`, hint };
   },
@@ -418,6 +443,10 @@ registerSystem({
     h.cx = BED_X;
     h.t = 10;
     h.wound = 0;
+    // the night's word: the machines its wheel kept going an hour longer
+    const n = h.helped?.size ?? 0;
+    if (n) g.toast(`${h.name} ran its wheel all night: ${n === 1 ? 'the machine' : `${n} machines`} by its cage got an hour's more work done.`, undefined, C.amber);
+    h.near = h.helped = undefined;
     const c = cageOf(g);
     const hh = hamsterHearts(h);
     // its cheek pouches: a few of yesterday's seeds, saved for you

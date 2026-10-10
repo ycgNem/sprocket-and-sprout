@@ -19,7 +19,7 @@ import { spawnDrop } from './systems/drops';
 import { deconstruct } from './build';
 import { isRusted, restore } from './rust';
 import { lesson } from './lessons';
-import { availableRecipes, machAccept, machInsert, setRecipe } from './systems/machines';
+import { availableRecipes, loadChoices, machAccept, machInsert, setRecipe } from './systems/machines';
 import { curMap } from './systems/player';
 import { Ent } from './ents';
 import { portInsert } from './ports';
@@ -651,35 +651,7 @@ function interactTile(g: Game, tx: number, ty: number, critter = false): boolean
   return false;
 }
 
-/** one line of the "Load which?" chooser: an item in the bag a machine takes, as an ingredient or as fuel */
-export interface LoadChoice {
-  k: ItemKey;
-  /** how many of it the bag holds, and how many the machine takes now */
-  have: number;
-  takes: number;
-  fuel: boolean;
-}
-
-/**
- * What a machine could take from the bag: each item once, the one it last ran on (or holds) first,
- * then the most plentiful; fuel for a burner as its own line.
- */
-export function loadChoices(g: Game, e: Ent): LoadChoice[] {
-  const m = e.mach;
-  if (!m || e.def.kind === 'beehouse') return [];
-  const have = new Map<ItemKey, number>();
-  for (const s of g.player.inv.slots) if (s && !kDef(s.k).tool && !kDef(s.k).weapon) have.set(s.k, (have.get(s.k) ?? 0) + s.n);
-  const out: LoadChoice[] = [];
-  for (const [k, n] of have) {
-    const takes = Math.min(n, machAccept(g, e, k, true));
-    if (takes <= 0) continue;
-    const fuel = !!e.def.fuel && !!kDef(k).fuel && !availableRecipes(g, e).some((r) => r.in.some((i) => kMatches(k, i.item)));
-    out.push({ k, have: n, takes, fuel });
-  }
-  const last = m.recipe?.in.map((i) => i.item) ?? [];
-  const rank = (c: LoadChoice) => (c.fuel ? 2 : m.inBuf.has(c.k) || last.includes(kId(c.k)) ? 0 : 1);
-  return out.sort((a, b) => rank(a) - rank(b) || b.have - a.have).slice(0, 6);
-}
+export { loadChoices, type LoadChoice } from './systems/machines';
 
 /** Load the chosen item from the bag (every stack of it, up to what the machine takes). Returns how many. */
 export function loadChosen(g: Game, e: Ent, k: ItemKey): number {
@@ -737,9 +709,7 @@ export function interactStruct(g: Game, e: Ent): boolean {
       collected = true;
     }
   }
-  // collected, and nothing in the bag it takes: that was the press
-  if (collected && !(e.mach && d.kind !== 'beehouse' && loadChoices(g, e).length)) return true;
-  // quick insert held item into machines
+  // quick insert held item into machines (a collect and a load are one press when you hold the input)
   if (e.mach && held && d.kind !== 'beehouse') {
     const hd = kDef(held.k);
     if (!hd.tool && !hd.weapon) {
@@ -754,13 +724,15 @@ export function interactStruct(g: Game, e: Ent): boolean {
       }
     }
   }
+  // a collect is the whole press: the chooser doesn't jump up after it (the critic's re-check: a row
+  // of crocks was a modal per crock); the bubble says the next F loads
+  if (collected) return true;
   // nothing loadable in hand: ask what to load from the bag, never take it unasked (the owner's
   // playtest: "what if I don't want to add them?"). The chooser is src/ui/windows/loadpick.ts.
   if (e.mach && d.kind !== 'beehouse' && loadChoices(g, e).length) {
     g.emit({ t: 'ui', open: 'loadpick', arg: e.id });
     return true;
   }
-  if (collected) return true;
   // the study desk: F loads research bundles from the bag, then (if no topic is picked) opens
   // the research tree, so the first study is one key away
   if (d.kind === 'lab') {

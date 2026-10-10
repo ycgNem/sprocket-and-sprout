@@ -1,7 +1,8 @@
-// The hamster and the counter, with real input (the owner's playtest): place the cage by clicking,
-// name the hamster in its window (typed), feed it a seed with F, its wheel at night, Shift+F for its
-// ball and back, the cage's hover, Shift+right-click to pick the cage up; then Bram at work in the
-// forge: the counter's Chat, and the shop back after the talk.
+// The hamster and the counter, with real input (the owner's playtest): the Housewarming quest (the
+// Professor's been by; F at the farmhouse door brings the cage and the goldfish), place the cage by
+// clicking, name the hamster in its window (typed), feed it a seed with F, its wheel at night, Shift+F
+// for its ball and back, the cage's hover, Shift+right-click to pick the cage up; then Bram at work in
+// the forge: the counter's Chat, and the shop back after the talk.
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 
@@ -27,17 +28,39 @@ await ev(`(async () => {
   for (const t of ['welcome', 'hoe', 'seeds', 'can', 'place', 'lab', 'belts', 'machine', 'power', 'blueprint', 'energy', 'night']) g.flags.add('tip_' + t);
   window.__app.startGame(g, { skin: 54, hair: 49, hairStyle: 'long', shirt: 56, pants: 46 });
   window.S = { g };
-  const I = await import('/src/sim/inventory.ts');
-  if (g.player.where !== 'house') g.sys.house.enter(g);
+  // the Professor has been by (the Keeper's Line's first two steps): Housewarming is next
+  const q = g.sys.quests;
+  q.active = q.active.filter((a) => a.id !== 'k1_line' && a.id !== 'k2_springs');
+  for (const id of ['k1_line', 'k2_springs']) { q.done.push(id); g.flags.add('quest_done:' + id); }
   g.time.min = 10 * 60;
-  g.player.inv.slots[2] = { k: I.key('f_hamster_cage'), n: 1 };
-  g.player.inv.slots[3] = { k: I.key('radish_seed'), n: 5 };
-  g.player.x = 4.5; g.player.y = 7.6; g.player.dir = 0;
+  // outside, at the farmhouse door
+  const b = g.map.buildings.find((b) => b.kind === 'farmhouse');
+  g.player.where = 'world'; g.player.x = b.door[0] + 0.5; g.player.y = b.y + b.h + 0.6; g.player.dir = 0;
 })()`);
-await wait(600);
+let started = false;
+for (let i = 0; i < 20 && !started; i++) {
+  await wait(200);
+  started = await ev(`S.g.sys.quests.active.some((a) => a.id === 's_housewarming')`);
+}
+check(started, 'Housewarming starts once the Professor has been by');
+check(!(await ev(`S.g.player.inv.countId('f_hamster_cage')`)), 'no cage on the first morning');
+// 0. F at the door: in, and the gifts
+await page.keyboard.press('KeyF');
+await wait(900);
+const gifts = await ev(`(() => ({ where: S.g.player.where, done: S.g.sys.quests.done.includes('s_housewarming'), cage: S.g.player.inv.countId('f_hamster_cage'), tank: S.g.player.inv.countId('f_tank') }))()`);
+check(gifts.where === 'house' && gifts.done && gifts.cage === 1 && gifts.tank === 1, 'walking in brings the cage and the goldfish: ' + JSON.stringify(gifts));
+await page.screenshot({ path: `${out}/0-housewarming.png` });
+await ev(`(() => { const g = S.g; window.__play.hud.toasts = []; g.player.x = 4.5; g.player.y = 7.6; g.player.dir = 0; })()`);
+await wait(300);
+/** the key that selects the hotbar slot holding an item */
+const slotKey = async (id) => {
+  const i = await ev(`(async () => { const I = await import('/src/sim/inventory.ts'); return S.g.player.inv.slots.findIndex((s) => s && I.kId(s.k) === '${id}'); })()`);
+  check(i >= 0 && i < 10, `${id} in the hotbar (slot ${i})`);
+  return i === 9 ? 'Digit0' : 'Digit' + (i + 1);
+};
 
-// 1. hold the cage (3) and click a floor tile: the naming window
-await page.keyboard.press('Digit3');
+// 1. hold the cage and click a floor tile: the naming window
+await page.keyboard.press(await slotKey('f_hamster_cage'));
 await wait(200);
 const tile = await ev(`(async () => {
   const H = await import('/src/sim/systems/house.ts');
@@ -62,7 +85,7 @@ check(named.named && named.name === 'Pocket' && !named.win, 'named by typing: ' 
 
 // 2. stand below the cage facing it, a seed in hand, F: its supper
 await ev(`(() => { const g = S.g; g.player.x = ${cx} + 0.5; g.player.y = ${cy} + 1.7; g.player.dir = 0; })()`);
-await page.keyboard.press('Digit4');
+await page.keyboard.press(await slotKey('radish_seed'));
 await wait(300);
 const bubble = await ev(`(async () => { const P = await import('/src/sim/prompts.ts'); return P.promptAt(S.g, ${cx}, ${cy})?.verb ?? null; })()`);
 check(bubble === 'Feed Pocket', 'the F bubble says Feed: ' + bubble);

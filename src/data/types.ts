@@ -395,6 +395,8 @@ export interface QuestDef {
   why?: string;
   /** on the main path (the Keeper's Line and the keystones): the Now strip shows it first */
   main?: boolean;
+  /** said once it's done, after the reward (what to do with it: "set the cage down...") */
+  done?: string;
   /**
    * the research keystone this quest walks through: its stages count only from when the quest starts
    * (looking at the town's mill on day 2 isn't the keystone's look)

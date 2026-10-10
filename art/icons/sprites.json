@@ -534,6 +534,7 @@
   {"match":"i:f_tapestry","rect":[64,512,16,16]},
   {"match":"i:f_banner","rect":[80,512,16,16]},
   {"match":"i:card_pancakes","rect":[96,512,16,16]},
+  {"match":"i:f_hamster_cage","rect":[112,512,16,16]},
   {"match":"q:1","rect":[0,528,7,7],"frame":[7,7]},
   {"match":"q:2","rect":[8,528,7,7],"frame":[7,7]},
   {"match":"q:3","rect":[16,528,7,7],"frame":[7,7]},

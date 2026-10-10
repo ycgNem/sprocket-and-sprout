@@ -93,6 +93,8 @@ export function enterHouse(g: Game) {
   g.player.dir = 0;
   g.emit({ t: 'sfx', id: 'door' });
   g.emit({ t: 'ui', open: 'fade' });
+  // a quest that sends you indoors ("Housewarming": its gifts wait inside)
+  g.sys.quests?.notify?.(g, 'visit', 1, 'farmhouse_in');
 }
 
 export function leaveHouse(g: Game) {

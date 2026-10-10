@@ -208,6 +208,16 @@ export const QUESTS: QuestDef[] = [
     ],
     reward: { money: 5000 } },
   // ---------------- Story ----------------
+  // the pets come early, as a small quest's reward, not with you on the first morning (the owner: "make it
+  // so you get it within the first 10 minutes or something, a small quest reward; spawning with it seems
+  // weird"): the hamster in its cage and a tank of goldfish, on the farmhouse step once the Professor has
+  // been by (the cat or dog still finds you as a stray on day 3)
+  { id: 's_housewarming', title: 'Housewarming', giver: 'ottoline', after: ['k2_springs'],
+    desc: "Prof. Cogwhistle has had two housewarming gifts carried up to your farmhouse: one of her workshop hamster's litter (\"she keeps winding herself up in my spring drawer\") and a tank of three very calm goldfish from Wren.",
+    hint: 'Walk in at your farmhouse door. Hold the cage or the tank and click the floor to set it down.',
+    objectives: [{ t: 'visit', loc: 'farmhouse_in', label: 'Go into your farmhouse', why: 'Your housewarming gifts are waiting inside.' }],
+    reward: { items: [{ item: 'f_hamster_cage', n: 1 }, { item: 'f_tank', n: 1 }, { item: 'radish_seed', n: 5 }], flag: 'housewarming' },
+    done: 'Hold the cage (or the tank) and click the floor to set it down: the hamster wants a name. It eats a seed a day.' },
   { id: 's_clock', title: 'The Silent Clock', giver: 'tobias', after: ['k9_bed'],
     desc: "The town clocktower stopped decades ago. Mayor Thistle hopes the town's works can start it again, one at a time. Visit the clocktower: its door has the Orders board's Works tab.",
     objectives: [{ t: 'visit', loc: 'clocktower' }],

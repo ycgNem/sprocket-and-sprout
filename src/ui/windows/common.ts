@@ -153,7 +153,8 @@ export function frame(ui: UI, x: number, y: number, w: number, h: number, title:
 }
 
 export function centered(ui: UI, w: number, h: number) {
-  return { x: Math.floor((ui.w - w) / 2), y: Math.floor((ui.h - h) / 2) - 10 };
+  // (frame's title plate stands 8 px above the panel: keep it on screen on short ones, 1366x620)
+  return { x: Math.floor((ui.w - w) / 2), y: Math.max(Math.min(9, Math.floor((ui.h - h) / 2)), Math.floor((ui.h - h) / 2) - 10) };
 }
 
 export function stackLine(ui: UI, s: Stack | null, x: number, y: number) {

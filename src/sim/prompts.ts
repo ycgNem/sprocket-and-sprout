@@ -10,7 +10,7 @@ import type { Ent } from './ents';
 import { kDef } from './inventory';
 import { cartHere } from './systems/cart';
 import { canTill } from './systems/farming';
-import { machAccept, stationRecipes } from './systems/machines';
+import { loadChoices, machAccept, stationRecipes } from './systems/machines';
 import { wouldGift } from './systems/npcs';
 import { petAt } from './systems/pet';
 import { tockAt } from './systems/tock';
@@ -76,7 +76,8 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   return null;
 }
 
-function tilePrompt(g: Game, tx: number, ty: number): Prompt | null {
+/** what F does at the tile itself, before any pet or Tock on it (Shift+F at the pet asks this first too) */
+export function tilePrompt(g: Game, tx: number, ty: number): Prompt | null {
   const p = g.player;
   const m = curMap(g);
   const o = m.o(tx, ty);
@@ -155,8 +156,10 @@ function structPrompt(g: Game, e: Ent): Prompt | null {
   if (d.kind === 'shipbin') return held && kDef(held.k).price > 0 && !kDef(held.k).tool ? at('Ship ' + kDef(held.k).name) : at('Open crate');
   if (d.kind === 'depot') return at(held ? 'Deliver' : 'Open');
   if (e.mach && d.kind !== 'beehouse') {
-    const loadable = p.inv.slots.some((sl) => sl && !kDef(sl.k).tool && !kDef(sl.k).weapon && !kDef(sl.k).fuel && machAccept(g, e, sl.k, true) > 0);
-    return loadable ? { ...at('Load'), hint: choice } : at('Open');
+    // what F does: loads what you hold, or asks what to load from the bag (src/ui/windows/loadpick.ts)
+    const hd = held ? kDef(held.k) : null;
+    if (held && hd && !hd.tool && !hd.weapon && machAccept(g, e, held.k, true) > 0) return { ...at('Load ' + hd.name), hint: choice };
+    return loadChoices(g, e).length ? { ...at('Load...'), hint: choice ?? 'Pick from your bag' } : at('Open');
   }
   if ((d.kind === 'tapper' || d.kind === 'fishtrap' || d.kind === 'harvester' || d.kind === 'drill') && e.inv && !e.inv.isEmpty()) return at('Collect');
   if (d.kind === 'belt' || d.kind === 'underground' || d.kind === 'splitter' || d.kind === 'path' || d.kind === 'fence' || d.kind === 'rail') return null;

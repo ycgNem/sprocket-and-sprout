@@ -253,8 +253,9 @@ function seasonChange(g: Game, newSeason: Season) {
   }
 }
 
-/** how far from its water bowl an adopted pet keeps the crows off */
-export const PET_GUARD = 14;
+/** how far from its water bowl an adopted pet keeps the crows off: a scarecrow's reach (the critic's
+ * re-check: at 14 it covered the whole home field from two hearts, and scarecrows by the house were moot) */
+export const PET_GUARD = 8;
 
 function crows(g: Game) {
   if (g.dayIndex < 5) return;
@@ -362,17 +363,19 @@ function treesDay(g: Game) {
     if (t.stage < 4) continue;
     // a beach palm (wild, its coconut its seed) holds one coconut, sets the next every other day,
     // and only by the sea air of its season, never under the greenhouse glass (the owner's playtest:
-    // coconuts were abused)
+    // coconuts were abused); the palms take turns, so the beach is never bare all at once (critic)
     if (def.fruit && (def.season === season || (inGreenhouse(g, i) && !def.wild))) {
       if (!def.wild) {
         if (t.fruit < 3) t.fruit++;
-      } else if (t.fruit < PALM_FRUIT && t.days % 2 === 0) t.fruit++;
+      } else if (t.fruit < PALM_FRUIT && palmSets(t.days, i)) t.fruit++;
     } else if (def.fruit && def.season !== season) t.fruit = 0;
   }
 }
 
 /** coconuts a beach palm holds at once */
 export const PALM_FRUIT = 1;
+/** does a beach palm set its coconut tonight? every other day, its turn by its tile */
+export const palmSets = (days: number, i: number) => (days + i) % 2 === 0;
 
 export function shakeTree(g: Game, i: number): { k: number; n: number }[] {
   const t = g.map.trees.get(i);

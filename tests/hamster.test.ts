@@ -1,4 +1,4 @@
-// The hamster (the owner's playtest, src/sim/systems/hamster.ts): a cage from the Mercantile, a name
+// The hamster (the owner's playtest, src/sim/systems/hamster.ts): its cage (the Housewarming quest), a name
 // and a coat, a seed for supper and a scratch, the wheel that winds the spring arms near its cage
 // (its evening and the night shift), the ball, its cheek-pouch seeds, and its own dice.
 import { describe, expect, it } from 'vitest';
@@ -58,8 +58,8 @@ function armNear(g: Game, cage: H.Decor): Ent {
 const seedInHand = (g: Game, n = 3) => (g.player.inv.slots[(g.player.sel = 0)] = { k: key('radish_seed'), n });
 
 describe('the hamster', () => {
-  it('the Mercantile sells its cage; placing the first one asks for a name and a coat', () => {
-    expect(SHOP_BY_ID.get('general')!.stock.some((e) => e.item === CAGE)).toBe(true);
+  it('the Mercantile keeps a spare cage once Housewarming has brought yours; placing the first one asks for a name and a coat', () => {
+    expect(SHOP_BY_ID.get('general')!.stock.find((e) => e.item === CAGE)?.unlock).toBe('flag:housewarming');
     const { g, h } = withCage(41, false);
     expect(g.events.some((e: any) => e.t === 'ui' && e.open === 'hamster')).toBe(true);
     expect(h.named).toBe(false);

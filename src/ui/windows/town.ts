@@ -218,9 +218,12 @@ export function counter(ui: UI, play: PlayScreen, st: WinState, n: NPCState, her
     if (ui.button('ct_hand', bx, by, bw, 14, 'Hand in', { style: ok ? 'green' : 'flat', disabled: !ok, tip }) && !handIn(g, n.id, after)) play.toast('Nothing in your bag they asked for.');
     next();
   }
-  // the others in with them: a click talks to them instead
-  const others = here.filter((o) => o.id !== n.id).slice(0, 4);
-  if (!others.length) return;
+  // the others in with them: a click talks to them instead; past four, a +N pages through them
+  const rest = here.filter((o) => o.id !== n.id);
+  if (!rest.length) return;
+  const more = rest.length > 4;
+  const page = more ? (st.data.otherPage ?? 0) % rest.length : 0;
+  const others = more ? [...rest.slice(page), ...rest.slice(0, page)].slice(0, 3) : rest;
   let ox = row ? bx + 4 : cx, oy = row ? cy - 6 : by + 4;
   if (!row) {
     ui.text('Also here', cx, oy, C.oak);
@@ -239,6 +242,11 @@ export function counter(ui: UI, play: PlayScreen, st: WinState, n: NPCState, her
     }
     if (counterAsks(g, o.id).some((a) => a.ok)) ui.text('!', px + 22, py, C.lime);
   });
+  if (more) {
+    const i = 3, px = row ? ox + i * 28 : cx + (i % 2) * 30, py = row ? oy : oy + Math.floor(i / 2) * 28;
+    const hidden = rest.filter((o) => !others.includes(o));
+    if (ui.button('ct_more', px, py + 4, 26, 18, `+${hidden.length}`, { style: 'flat', tip: [{ text: 'Also in here', color: C.amber }, ...hidden.map((o) => ({ text: NPC_BY_ID.get(o.id)?.name ?? o.id })), { text: 'Click for the next ones', color: C.pebble }] })) st.data.otherPage = (page + 3) % rest.length;
+  }
 }
 
 function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {

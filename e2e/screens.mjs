@@ -339,8 +339,9 @@ const SC = {
     g.player.where = 'world'; g.time.min = 14 * 60; const e = g.ents.at(54, 23); g.player.x = 54.5; g.player.y = 25.6; g.player.dir = 0;
     const m = P.machineQuestion(g, e); g.sys.pipAsk = { ent: e.id, lead: "Psst, Wren! I've been watching your preserving crock all afternoon.", q: m.q, answers: m.answers, right: m.right };
     const r = window.__app.renderer; r.cam.zoom = r.cam.targetZoom = 2; r.cam.x = g.player.x; r.cam.y = g.player.y - 0.6; })()`),
-  // F at the crock with nothing it takes in hand: "Load which?"
-  loadpick: async () => ev(`(() => { const g = S.g; g.sys.pipAsk = null; const e = g.ents.at(54, 23); e.mach.inBuf.clear(); g.player.sel = 9; g.player.inv.slots[9] = null;
+  // F at the crock with nothing it takes in hand: "Load which?", a card beside it (you face it)
+  loadpick: async () => ev(`(() => { const g = S.g; g.sys.pipAsk = null; const e = g.ents.at(54, 23); e.mach.inBuf.clear(); e.mach.outBuf = []; g.player.sel = 9; g.player.inv.slots[9] = null;
+    g.player.where = 'world'; g.player.x = 54.5; g.player.y = 24.6; g.player.dir = 0;
     g.player.inv.add(S.key('cogbean'), 7); g.player.inv.add(S.key('radish'), 12); g.player.inv.add(S.key('blueberry'), 30); S.play.openWindow('loadpick', e.id); })()`),
   // the counter: the Mercantile with Hazel in, a standing order the bag can answer
   counter: async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.time.min = 11 * 60; const ns = g.sys.npcs;

@@ -245,7 +245,7 @@ function machinePanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w:
   // the contract: batch time, buffers, what it runs on
   const times = [...new Set(all.map((r) => r.time))].sort((a, b) => a - b);
   const runs = e.def.powerUse ? `uses ${e.def.powerUse} sparks` : e.def.fuel ? 'burns fuel' : 'no power';
-  ui.text(`Batch ${times.length ? (times.length > 1 ? `${times[0]}-${times[times.length - 1]}s` : times[0] + 's') : '-'}  -  queues 2 batches  -  holds 60  -  ${runs}`, x + 14, listY + areaH + 13, C.oak);
+  ui.text(`Batch ${times.length ? (times.length > 1 ? `${times[0]}-${times[times.length - 1]}s` : times[0] + 's') : '-'}  -  by hand ~10 min, arms 2 batches  -  ${runs}`, x + 14, listY + areaH + 13, C.oak);
   if (locked) ui.text(`${locked} more recipe${locked > 1 ? 's' : ''} ${m.station === 'oven' ? 'to learn from villagers and the almanac' : 'locked behind research'}`, x + 14, listY + areaH + 2, C.oak);
   void st;
   void availableRecipes;

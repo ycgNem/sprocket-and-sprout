@@ -69,6 +69,8 @@ function startKit(g: Game) {
     const q = questSys(g);
     for (const d of QUESTS) if (d.tutorial && !q.done.includes(d.id)) q.done.push(d.id);
     g.flags.add('tutorial_done');
+    // no quests in sandbox: the Mercantile stocks the hamster's cage from the start
+    g.flags.add('housewarming');
     g.flags.add('bread_town');
   } else keeperStart(g);
   switch (g.farmKind) {

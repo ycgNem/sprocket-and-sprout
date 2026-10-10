@@ -134,7 +134,8 @@ describe('the farm pet', () => {
     expect(open.planted).toBeGreaterThan(40);
     expect(guarded.left).toBe(guarded.planted);
     expect(open.left).toBeLessThanOrEqual(open.planted);
-    expect(PET_GUARD).toBeGreaterThanOrEqual(10);
+    // as far as a scarecrow reaches (the critic's re-check: 14 covered the whole home field)
+    expect(PET_GUARD).toBe(8);
   });
 
   it('a cat rides a belt along and hops off at its end', () => {

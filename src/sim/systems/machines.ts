@@ -8,10 +8,12 @@ import { MState, offText, setHarvestWait, setState } from '../mstate';
 import { rustTick } from '../rust';
 import { feedersOf, fieldSource, fieldTiles, harvestWaitText, hasFeeder } from '../lines';
 import { CROP_BY_ID } from '../../data/crops';
-import { ItemKey, kDef, kMatches, key, kStack, Stack } from '../inventory';
+import { ItemKey, kDef, kId, kMatches, key, Stack } from '../inventory';
 
 const OUT_CAP = 60;
 const FUEL_CAP = 20;
+/** on the night shift the machines in reach of the hamster's wheel run this much faster (4 hours: one more; src/sim/systems/hamster.ts) */
+export const WHEEL_BOOST = 1.25;
 
 const stationCache = new Map<string, RecipeDef[]>();
 export function stationRecipes(station: string): RecipeDef[] {
@@ -45,11 +47,19 @@ function bufCountSpec(m: MachC, spec: string): number {
 }
 
 /**
- * How many batches of a recipe a machine takes by hand: about ten minutes of its work, from 10 (a
- * crock's minute-long batches) to 50 (a furnace's 8-second bars: 150 ore, where 10 was gone in 80
- * seconds; the owner's playtest). Arms keep 2 batches queued.
+ * How many batches of a recipe a machine takes by hand: about ten minutes of its work, at least 10
+ * (a crock's minute-long batches), and at most 50 batches or 150 of an input, whichever is more: a
+ * furnace's 8-second bars take 150 ore (where 10 was gone in 80 seconds; the owner's playtest), a
+ * sawmill 150 wood, five minutes of planks (the owner: 50 was gone in under two). Arms keep 2 queued.
  */
-export const handBatches = (r: RecipeDef) => Math.max(10, Math.min(50, Math.ceil(600 / Math.max(1, r.time))));
+export const HAND_SECS = 600;
+export function handBatches(r: RecipeDef): number {
+  const most = Math.max(1, ...r.in.map((i) => i.n));
+  return Math.max(10, Math.min(Math.ceil(HAND_SECS / Math.max(1, r.time)), Math.max(50, Math.floor(150 / most))));
+}
+
+/** fuel by hand: about ten minutes of burn (15 coal, 75 wood), not a whole stack (critic, Phase 5 re-check) */
+export const handFuel = (k: ItemKey) => Math.ceil(HAND_SECS / Math.max(1, fuelValue(k)));
 
 /** How many of item k this machine will accept (0 = refuse). */
 export function machAccept(g: Game, e: Ent, k: ItemKey, manual = false): number {
@@ -59,8 +69,10 @@ export function machAccept(g: Game, e: Ent, k: ItemKey, manual = false): number 
   if (e.def.fuel && fuelValue(k) > 0) {
     const isIngredient = availableRecipes(g, e).some((r) => r.in.some((i) => specMatch(k, i.item)));
     if (!isIngredient) {
-      if (m.fuel && m.fuel.k !== k) return 0;
-      return Math.max(0, (manual ? kStack(k) : FUEL_CAP) - (m.fuel?.n ?? 0));
+      // by hand a better fuel takes the place of a worse one (the worse goes back to the bag:
+      // machInsert); an arm only tops up what's in
+      if (m.fuel && m.fuel.k !== k) return manual && fuelValue(k) > fuelValue(m.fuel.k) ? handFuel(k) : 0;
+      return Math.max(0, (manual ? handFuel(k) : FUEL_CAP) - (m.fuel?.n ?? 0));
     }
   }
   const recipes = availableRecipes(g, e);
@@ -76,6 +88,39 @@ export function machAccept(g: Game, e: Ent, k: ItemKey, manual = false): number 
     }
   }
   return Math.max(0, best);
+}
+
+/** one line of the "Load which?" chooser: an item in the bag a machine takes, as an ingredient or as fuel */
+export interface LoadChoice {
+  k: ItemKey;
+  /** how many of it the bag holds, and how many the machine takes now */
+  have: number;
+  takes: number;
+  fuel: boolean;
+}
+
+/**
+ * What a machine could take from the bag: each item once, the one it last ran on (or holds) first,
+ * then the most plentiful; fuel for a burner on lines of its own, the best fuel first (coal before
+ * wood: the critic's re-check, where F's default burned 40 wood with coal in the bag), and ahead of
+ * the goods when a burner that has goods to work sits cold.
+ */
+export function loadChoices(g: Game, e: Ent): LoadChoice[] {
+  const m = e.mach;
+  if (!m || e.def.kind === 'beehouse') return [];
+  const have = new Map<ItemKey, number>();
+  for (const s of g.player.inv.slots) if (s && !kDef(s.k).tool && !kDef(s.k).weapon) have.set(s.k, (have.get(s.k) ?? 0) + s.n);
+  const out: LoadChoice[] = [];
+  for (const [k, n] of have) {
+    const takes = Math.min(n, machAccept(g, e, k, true));
+    if (takes <= 0) continue;
+    const fuel = !!e.def.fuel && !!kDef(k).fuel && !availableRecipes(g, e).some((r) => r.in.some((i) => kMatches(k, i.item)));
+    out.push({ k, have: n, takes, fuel });
+  }
+  const last = m.recipe?.in.map((i) => i.item) ?? [];
+  const cold = !!e.def.fuel && m.burn <= 0 && !m.fuel && (m.inBuf.size > 0 || m.crafting);
+  const rank = (c: LoadChoice) => (c.fuel ? (cold ? -1 : 2) : m.inBuf.has(c.k) || last.includes(kId(c.k)) ? 0 : 1);
+  return out.sort((a, b) => rank(a) - rank(b) || (a.fuel && b.fuel ? fuelValue(b.k) - fuelValue(a.k) : 0) || b.have - a.have).slice(0, 6);
 }
 
 /** is k an ingredient of a recipe it may run (or a fuel it burns)? false = the wrong input */
@@ -112,6 +157,11 @@ export function machInsert(g: Game, e: Ent, k: ItemKey, n: number, manual = fals
   const can = Math.min(n, machAccept(g, e, k, manual));
   if (can <= 0) return 0;
   if (e.def.fuel && fuelValue(k) > 0 && !availableRecipes(g, e).some((r) => r.in.some((i) => specMatch(k, i.item)))) {
+    // a better fuel by hand: the worse one goes back to your bag
+    if (m.fuel && m.fuel.k !== k) {
+      g.give(m.fuel.k, m.fuel.n, false);
+      m.fuel = null;
+    }
     if (!m.fuel) m.fuel = { k, n: 0 };
     m.fuel.n += can;
     return can;
@@ -242,6 +292,8 @@ export function updateMachines(g: Game, dt: number, ents: Ents = g.ents) {
   const speedMod = g.mods.machineSpeed + (g.sys.megaBonus?.machine ?? 0) + (g.hasPerk('engineer') ? 0.1 : 0) + (g.hasPerk('industrialist') ? 0.15 : 0);
   const boosts = STATION_PERKS.filter(([id]) => g.hasPerk(id));
   const now = g.simTime;
+  // on the night shift the hamster's wheel speeds the farmhouse machines in its reach (src/sim/systems/hamster.ts)
+  const wheel: Set<number> | undefined = g.nightShift ? g.sys.hamster?.near : undefined;
   for (const e of ents.machines) {
     const m = e.mach!;
     if (e.def.kind === 'beehouse') {
@@ -302,6 +354,7 @@ export function updateMachines(g: Game, dt: number, ents: Ents = g.ents) {
     // the keeper's jar runs its first few batches fast, so the opening's first pickle comes quickly;
     // a machine fitted with lubricant runs 10% faster for good
     let sp = m.speed * speedMod * (e.st.quick > 0 ? 4 : 1) * (e.st.lubed ? 1.1 : 1) * boosts.reduce((a, [, st, k]) => (st.has(e.def.station ?? '') ? a * k : a), 1);
+    if (wheel?.has(e.id)) sp *= WHEEL_BOOST;
     if (e.def.powerUse) {
       sp *= e.sat;
       if (e.sat <= 0.001) {

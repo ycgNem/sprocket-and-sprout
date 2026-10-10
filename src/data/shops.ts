@@ -70,7 +70,7 @@ export const SHOPS: ShopDef[] = [
       // reputation stock (the Orders board): Marigold's rare seeds
       { item: 'sunbell_seed', price: 180, unlock: 'rep:marigold:2' }, { item: 'tealeaf_seed', price: 200, unlock: 'rep:marigold:3' }, { item: 'starpetal_seed', price: 520, unlock: 'rep:marigold:5' },
       { item: 'chest_wood', price: 240 }, { item: 'scarecrow', price: 260 }, { item: 'sign', price: 40 },
-      ...FURNITURE.filter((f) => f.shop === 'general').map((f) => ({ item: f.id, price: f.price })),
+      ...FURNITURE.filter((f) => f.shop === 'general').map((f) => ({ item: f.id, price: f.price, unlock: f.unlock })),
     ],
     buys: ['crop', 'fruit', 'flower', 'forage', 'seed', 'artisan', 'food', 'animal'],
   },
