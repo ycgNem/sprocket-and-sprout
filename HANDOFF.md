@@ -16,18 +16,27 @@ era's keystone (Steam, the Waterworks, Spark Coils, Lamplighting, the Tram, the 
 keystone's stages count from its quest; keystone orders go up with their quest; the Town Mill asks
 40 meal and its payoff is a camera pan to the wheel; the Works tab lost Stardew's Community Center
 baskets; goods only a line makes; the Deepworks' vents, set-down lamps and chamber cards.
-The critic's re-check of the fixes: pending at the time of writing.
+The critic's re-check PASSED WITH FIXES (no Criticals): three Majors (after the Mill the next town
+keystone stayed hidden for two quests; every loaded save replayed its first morning's toasts; the
+Waterworks' oil waited for summer) and the Stardew test failed the professions ("only the names
+changed"). Its confirmation pass of the fixes also PASSED WITH FIXES: the Stardew test 3 pass, 1
+half (the mine), 0 fail; two new Majors (a crate tagged for the Council was re-tagged to the Kettle
+when the Mill finished; each early profession pair had a dead option). Everything from both is
+fixed (DECISIONS #99): the Waterworks' order goes up with k11 and the Now strip names its quest,
+any oil counts, Tinkering comes first and levels from machine output, the professions run
+machines (Governor, Field Hand, Long Reach, Crock Master, Sawyer, Drill Rigger, Furnace Hand)
+instead of raising prices, and the Earth stratum's cracked ceilings take plank props.
 **The owner deferred the 2.0 beta merge**; don't merge to `main` or push unless the owner says so.
 The owner's rules since Phase 1: hand farming stays, but the factory is the face (ROADMAP.md 3.2,
 DECISIONS #68); one path for every player, no "pick a direction" card (#72); the Preserves Jar is
 the Preserving Crock (#76). ROADMAP.md is the 2.0 plan; ROADMAP-1.1.md the finished 1.1 overhaul.
-- **Phases 3-4 on `works`** (`8f24f3d` Phase 2's must-fix list, `876dc2f`..`7d4c159` Phases 3-4 with the three agents' merges, then the critic's fixes to HEAD): the
+- **Phases 3-4 on `works`** (`8f24f3d` Phase 2's must-fix list, `876dc2f`..`7d4c159` Phases 3-4 with the three agents' merges, the critic's fixes to `426cb2b`, the re-checks' fixes `16d10cd`..`72ff71b`): the
   done-when checks: the bot reaches the Mill by day 20 on 8 of 8 seeds (days 15-18 after the fixes,
   `npx vite-node scripts/mill20.ts`); `data.test.ts` validates every order and keystone;
   `e2e/minex.mjs` walks all six strata; the year-long bot restores the lift; the Tram runs on a
   reloaded game (`tests/townworks.test.ts`); a chain-walk test takes k11 to k17
   (`tests/eras.test.ts`); the sweep is clean at 1280x720 and 1366x620. Pacing (28 days, 8 seeds):
-  Story 65.7k, Rush 66.0k; Rush medals 40k / 75k / 110k (DECISIONS #97).
+  Story 65.9k, Rush 66.3k; Rush medals 40k / 75k / 110k (DECISIONS #97).
 - **Phase 2 on `works`** (`7fc17bf` session 1, `b5c2140` session 2, `7bada4d` the pre-merge
   review fixes, then the critic's fixes): the Keeper's Line (rust and restore, the chain, the Now
   strip, lesson cards, the Notebook, undo), the Orders board with consignment, the river works
@@ -163,14 +172,14 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 222 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5, the Keeper's Line, orders, eras and the k11-k17 chain, the Deepworks, the town keystones, save v5)
+npm test                                   # 233 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5, the Keeper's Line, orders, eras and the k11-k17 chain, the critic's re-checks, professions, the Deepworks, the town keystones, save v5)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
 npx vite-node scripts/pace.ts story rush   # economy: the bot's 28-day earnings on 8 seeds (a few minutes)
 npx vite-node scripts/accept.ts            # the critic's Phase 2 acceptance: crocks working on days 5-7, day-6 income, the mill
 npx vite-node scripts/mill20.ts            # Phase 3's done-when: the day each main quest finished, per seed (the Mill by day 20)
 npm run build                              # production build, about 1.2 MB JS (386 KB gzipped) + ~520 KB of PNG sheets
 node e2e/smoke.mjs http://localhost:5173/  # real UI smoke, 0 console errors expected
-npm run screens                            # 71-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 for another size
+npm run screens                            # 71-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 or VIEW=960x600 (the web embed) for other sizes
 node e2e/coverage.mjs                      # every sprite name vs imported art (6415/6415 = 100% expected)
 node e2e/sprites.mjs <name> ...            # imported vs procedural sprites side by side
 BASE=http://localhost:5173/ node e2e/flow.mjs  # real input: two-step new game, farm, house, bed, reload
@@ -185,14 +194,15 @@ BASE=http://localhost:5173/ node e2e/minex.mjs     # the Deepworks: a level of e
 BASE=http://localhost:5173/ node e2e/townworks.mjs # the town keystones on screen: the mill, the lamps on your power, the fountain, the tram
 ```
 
-Last results (October 10, 2026, night, after the critic's Phase 3+4 fixes): typecheck, 222 tests,
-the year-long run, `mill20` 8/8 (days 15-18), `minex` and `townworks` pass with 0 console errors;
-the sweep is 71 shots / 0 issues at 1280x720 and at 1366x620. (From before Phase 3, not re-run:) `e2e/shift.mjs` 185/185; `e2e/perf.mjs` 0.32 ms a tick, the night shift
+Last results (October 10, 2026, late night, after the re-checks' fixes): typecheck, 233 tests,
+the year-long run (earned 202k), `mill20` 8/8 (days 15-18), `minex`, `townworks`, `smoke`, `flow`, `roxy` and
+`windows` pass with 0 console errors; the sweep is 71 shots / 0 issues at 1280x720, 1366x620 and
+960x600. (From before Phase 3, not re-run:) `e2e/shift.mjs` 185/185; `e2e/perf.mjs` 0.32 ms a tick, the night shift
 1.5 s. `e2e/qa.mjs` logs "missing sprite i:hoe_0" warnings: its contact sheet asks tools for an
 icon name they don't use (harmless).
 
-Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 10, night, branch `works`):
-- Story: average 65.7k coins (62.3k to 68.8k); Clockwork Rush 66.0k (64.7k to 68.6k). The Rush
+Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 10, late night, branch `works`):
+- Story: average 65.9k coins (62.3k to 68.8k); Clockwork Rush 66.3k (63.5k to 69.0k). The Rush
   medals are 40k / 75k / 110k (DECISIONS #97). Phase 2's numbers, for history:
 - Story: average 42.2k coins (39.6k to 45.4k). Before Phase 2: 20.9k; 1.1: 10.7k.
 - Clockwork Rush: average 39.9k (38.1k to 43.4k). Before Phase 2: 23.1k; 1.1: 13.0k.
@@ -317,9 +327,11 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 Phase 5 of ROADMAP.md (2.0 "The Works"), on branch `works`:
 
-> Read HANDOFF.md, DECISIONS.md #83-98 (what Phases 3-4 built and changed after the critic), then
-> ROADMAP.md sections 7.6-7.9 and Phase 5. First fix anything the critic's re-check of Phases 3-4
-> left (the status above). Then, on `works`: the six re-roles (Juniper the
+> Read HANDOFF.md, DECISIONS.md #83-99 (what Phases 3-4 built and changed after the critic), then
+> ROADMAP.md sections 7.6-7.9 and Phase 5. Left from the critic's reviews of Phases 3-4: fishing's
+> and combat's professions keep Stardew-like effects, and the Works tab's projects (the Kettle's
+> Cellar, Dairy Day, the Bakery Window) are still bundles in all but name; give them works answers
+> where they fit the re-roles. Then, on `works`: the six re-roles (Juniper the
 > millwright, Bram the foundry master, Sable the archivist, Thorne the old works' last engineer,
 > Hazel the draughtswoman, Pip the apprentice) with twelve rewritten heart events and about 40
 > lines each; Trust in the UI (hearts under the hood, gift points / 3); Pip's echo questions; the
@@ -373,6 +385,18 @@ Patterns from 1.2 Phases 3-4 (Orders, eras, the Town Mill, the Deepworks):
 - The Deepworks: `src/sim/systems/mine.ts` (strata from `src/data/deepworks.ts`, hazards with their
   own clocks and rng so level layouts don't change, `lamps` on the mine state, chamber cards with
   `card:<kind>` flags separate from `observed:<kind>`).
+- After the re-checks (DECISIONS #99): the era you're in is `townEra` (`src/sim/keystones.ts`: the
+  first era whose town keystone isn't done); the Now strip draws its quest's title and step
+  (`NowLine.steps`); toasts are a queue (three on screen, only those age; one within 0.3 s of a key
+  or click goes first; narrow screens stack them above the hotbar); a keystone finished indoors or
+  asleep shows its card then and `PlayScreen.sceneReplay` pans to it once you're outdoors; order
+  lines can ask for a tag (`#oil`: cogbean and sunflower oil), with `TAG_LABEL` and `specIcon`; a
+  crate tagged for the Council or the Guild never follows a business's new order.
+- Professions: `src/data/perks.ts` (ids kept from 1.x, effects new). Machine boosts by station in
+  `STATION_PERKS` (`src/sim/systems/machines.ts`); Governor in `updatePower` (`e.sat` is the net's
+  satisfaction / 0.75); Field Hand and Long Reach in `fieldHand` / `fieldReach`
+  (`src/sim/systems/fieldworks.ts`, also `fieldTiles`); Drill Rigger in `drillTick`. Tinkering gets
+  5 XP a machine batch; perk cards take their picture from `PERK_ICON` (`src/ui/windows/perks.ts`).
 - The bots and scripts: `tests/bot.ts` plays to the Town Mill (k10) and stops there;
   `scripts/mill20.ts` (the day each main quest finished), `scripts/pace.ts` (28-day earnings, the
   Rush medals' reference), `scripts/accept.ts` (Phase 2's days 5-12 check).

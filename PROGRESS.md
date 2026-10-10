@@ -291,12 +291,25 @@
   - any oil fills the Waterworks (the crock's cogbean oil counts), so it needn't wait for summer.
   - professions: Tinkering first, 5 XP a machine batch (level 5 around day 12-13, before farming's
     17-18); farming's perks work the field machines and the crock (Field Hand, Long Reach,
-    Seedwright, Crock Master), no sell-price perks.
+    Seedwright, Crock Master), foraging's and mining's each one machine perk (Sawyer, Drill Rigger,
+    Furnace Hand), no sell-price perks for them.
   - the Works tab names the places works serve (not Pantry/Workshop/Fields), no room-complete bonus.
   - smaller: Guild contracts wait for know-how; toasts queue; the journal lists the main path first;
     the Crystal is properly dark; the validate ring is a pixel gauge on the machine; a keystone
     finished overnight pans the camera when you step outside; "(now)" in research is the town's era
     and the era banner names the next era.
+- The critic's confirmation pass of those fixes: PASS WITH FIXES (the Stardew test 3 pass, 1 half on
+  the mine, 0 fail). Fixed (DECISIONS #99):
+  - a crate tagged for the Council or the Guild keeps its tag when a business posts a new order (the
+    Mill's finish re-tagged a Council crate to the Kettle and its Waterworks goods went to market).
+  - each early profession pair is a real choice: Governor (powered machines keep full speed down to
+    75% of their demand) against Engineer; Field Hand (every fourth field-machine pick a crop extra)
+    against Long Reach.
+  - the Earth stratum's placed fix: a cracked ceiling comes down when you walk under it, and 2 planks
+    prop it up for good.
+  - smaller: the research window opens on the Now step's topic; action feedback jumps the toast
+    queue; toasts stack above the hotbar on narrow screens; the compass points at the desk for a
+    research step; project descriptions wrap; perk cards have their own pictures.
 
 ## Next
 - Phase 5 (people, events, HQ) of ROADMAP.md; see HANDOFF.md "What's next".
