@@ -14,6 +14,7 @@ import { RECIPES } from '../src/data/recipes';
 import { ITEM_BY_ID, matchesSpec } from '../src/data/items';
 import { SHOP_BY_ID } from '../src/data/shops';
 import { STANDING_BY_ID } from '../src/data/orders';
+import { RESEARCH_BY_ID } from '../src/data/research';
 
 const secs = (g: Game, s: number) => { for (let i = 0; i < s * 60; i++) g.tick(); };
 const toasts = (g: Game) => g.events.filter((e) => e.t === 'toast').map((e) => (e as { text: string }).text);
@@ -100,6 +101,50 @@ describe('the one path past the Mill (C1)', () => {
     expect(q.done).toContain('k10_mill');
     expect(q.active.some((a) => a.id === 'k11_boiler')).toBe(true);
     expect(q.now(g, 1)[0].id).toBe('k11_boiler');
+  });
+
+  it('walks from k11 to k17: each step comes up in the Now strip in turn, and each quest hands over the next', () => {
+    const g = new Game({ seed: 13 });
+    const q = questSys(g);
+    for (const id of ['k1_line', 'k2_springs', 'k3_hands', 'k4_grow', 'k5_desk', 'k6_bottleneck', 'k7_town', 'k8_river', 'k9_bed', 'k9_power', 'k10_mill']) q.done.push(id);
+    q.active = q.active.filter((a) => !q.done.includes(a.id));
+    for (const id of ['r_power', 'r_milling', 'r_woodworking', 'r_metallurgy', 'r_preserves', 'r_masonry']) g.research.done.add(id);
+    g.flags.add('town_mill');
+    orders(g).worksDone.push('w_town_mill');
+    begin(g, 'k11_boiler');
+    secs(g, 1.1);
+    const os = orders(g);
+    // what each step needs, done the way the game would see it
+    const doStep = (id: string, i: number) => {
+      const o = QUEST_BY_ID.get(id)!.objectives[i];
+      switch (o.t) {
+        case 'research': g.research.done.add(o.id); break;
+        case 'made': q.notify(g, 'made', o.n, o.struct, { other: true, full: true }); break;
+        case 'flag': g.flags.add(o.flag); break;
+        case 'visit': { const l = g.map.locs.get(o.loc)!; g.player.x = l[0] + 0.5; g.player.y = l[1] + 0.5; break; }
+        case 'order': os.filled[o.id] = 1; if (o.id === 'p_clock') g.flags.add('clock_fixed'); break;
+        case 'stage': {
+          const k = (RESEARCH_BY_ID.get(o.id)!.keystone)!;
+          if (o.stage === 'observe') g.flags.add(k.observe!.flag);
+          else if (o.stage === 'experiment') for (const e of k.experiment ?? []) { if (e.t === 'count') g.counters[e.key] = (g.counters[e.key] ?? 0) + e.n; }
+          else g.flags.add('validated:' + o.id);
+          break;
+        }
+        default: throw new Error(`no way to do ${o.t} in ${id}`);
+      }
+    };
+    const chain = ['k11_boiler', 'k12_steam', 'k13_waterworks', 'k14_spark', 'k15_lamps', 'k16_tram', 'k17_clock'];
+    for (const id of chain) {
+      const def = QUEST_BY_ID.get(id)!;
+      expect(q.active.some((a) => a.id === id), id).toBe(true);
+      for (let i = 0; i < def.objectives.length; i++) {
+        const now = q.now(g, 1)[0];
+        expect(`${now.id}:${now.index}`, `${id} step ${i}`).toBe(`${id}:${i}`);
+        doStep(id, i);
+        secs(g, 1.1);
+      }
+      expect(q.done, id).toContain(id);
+    }
   });
 
   it('every main quest after the Mill names a step, and every keystone order belongs to a main quest', () => {

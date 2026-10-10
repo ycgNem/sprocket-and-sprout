@@ -6,7 +6,7 @@ import type { Game } from '../sim/Game';
 import type { Ent } from '../sim/ents';
 import { isOre, lampGlow, townLineNet, townworks, tramBin } from '../sim/systems/townworks';
 import { FOUNTAIN, isSquareLamp, MILL_WHEEL, PUMP_HOUSE, SQUARE_LAMPS, TOWN_LINE, TOWN_MILL, TRAM } from '../sim/world/townworks';
-import { drawSprite, sprite } from './atlas';
+import { drawItemIcon, drawSprite, sprite } from './atlas';
 import { FOUNTAIN_TOP, MILL_TOP, PUMP_TOP } from './art/townworks';
 import { EXTRA_TOP } from './art/structs';
 import type { Drawable, Renderer } from './renderer';
@@ -89,7 +89,14 @@ export function pushTownworks(g: Game, r: Renderer, D: Drawable[]) {
       // spray off the paddles rising out of the river (the west side), flour from the loading door
       if (Math.random() < 0.4) P.burst(hx - 26 + Math.random() * 12, hy + 11, 1, [C.aqua, C.cream, C.sky], { speed: 22, up: 34, g: 150, life: 0.45, size: 1 });
       if (Math.random() < 0.15) P.burst(hx - 18 + Math.random() * 40, hy + 13, 1, [C.cream, C.aqua], { speed: 10, up: 12, g: 90, life: 0.3, size: 1 });
-      if (Math.random() < 0.06) P.burst(TOWN_MILL.x * T + 50 + Math.random() * 12, TOWN_MILL.y * T - MILL_TOP + 56 + Math.random() * 14, 1, [C.cream, C.butter, C.tan], { speed: 5, up: 3, g: -5, life: 1.8, size: 1 });
+      if (Math.random() < 0.12) P.burst(TOWN_MILL.x * T + 50 + Math.random() * 12, TOWN_MILL.y * T - MILL_TOP + 56 + Math.random() * 14, 1, [C.cream, C.butter, C.tan], { speed: 5, up: 3, g: -5, life: 1.8, size: 1 });
+      // the town's own flour, sacked by the loading door (the critic: the running mill read as modest)
+      const sx = (TOWN_MILL.door[0] + 1.3) * T, sy = (TOWN_MILL.door[1] + 1) * T;
+      D.push({ y: TOWN_MILL.door[1] + 1.7, f: () => {
+        drawItemIcon(ctx, 'flour', sx, sy, 16);
+        drawItemIcon(ctx, 'flour', sx + 10, sy + 1, 16);
+        drawItemIcon(ctx, 'flour', sx + 5, sy - 7, 16);
+      } });
     }
   }
 
