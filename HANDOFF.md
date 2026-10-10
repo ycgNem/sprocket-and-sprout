@@ -46,8 +46,12 @@ All tests and e2e suites are green.
     (why she breaks the villager template), #48 the 2x UI on laptop windows.
   - `PROGRESS.md`: phase-by-phase status.
   - `SHARING.md`: putting the game online or packaging it.
-  - `ROADMAP.md`: the 1.0 → 1.1 overhaul (done): owner decisions, phases, hard art rules, and
-    **the open items at the end of Phase 4**, which are the starting list for the next version.
+  - `ROADMAP.md`: **the 1.2 "The Works" plan** (written 2026-10-09 after the owner's playtest):
+    the identity rebuild around automation, the owner's decisions D1-D12, the audit, the
+    Keeper's Line opening, the Deepworks, Orders, eras, the art brief, the playtest bug table
+    and seven phases with their prompts. Start there.
+  - `ROADMAP-1.1.md`: the finished 1.0 → 1.1 visual overhaul (history; its Phase 4 open items
+    are folded into ROADMAP.md section 10).
   - `STYLE.md`: the art rules (now with Roxy's exception and baked building shadows).
   - `references/`: the owner's taste: `notes.md`, palettes (Resurrect 64 is the chosen one), and
     screenshots of admired games (`games/`, gitignored because they are other studios' work).
@@ -234,12 +238,18 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
-1.1.0 is out. Next session (1.1.1, then 1.2):
+1.1.0 is out. The owner playtested it and asked for a scope change: 1.2 "The Works" rebuilds
+the game's identity around automation (ROADMAP.md). Next session is ROADMAP.md Phase 0:
 
-> Read ROADMAP.md and HANDOFF.md. Work the open items at the end of ROADMAP.md Phase 4, arm
-> redraw first (the art-director agent: arms read as "?" at rest). Then the deferred critic list
-> below. Run npm test, npm run screens and scripts/pace.ts, then the indie-critic agent. Commit;
-> push with the OK. For 1.1.1: bump package.json, Build desktop app.bat, gh release create v1.1.1.
+> Read ROADMAP.md (1.2) and HANDOFF.md. Phase 0: fix the playtest bugs in section 10 marked
+> Phase 0, write the owner's D1-D12 answers into DECISIONS.md, build e2e/seams.mjs and list the
+> offenders, regenerate the pickaxe frames and the flagstone/plank sets with the art-director
+> agent (≤ 60 generations). Run the checks. Bump to 1.1.1, build the desktop app, make the
+> GitHub release, then create the `works` branch for everything after.
+
+The "deferred critic list" below is now covered by ROADMAP.md (crop numbers 7.1, re-roles 7.6,
+the Exhibition 7.7, Tock Phase 5, the Post Tube is dropped in favour of consignment 7.4,
+crafting labels Phase 2, the cut list D3-D5).
 
 Patterns from 1.1's last session:
 - A belt that ends at a structure delivers into it through `portInsert` (`Game.beltSink`); full
