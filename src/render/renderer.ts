@@ -40,6 +40,8 @@ import { rusty } from './rust';
 import { STRATA, CHAMBER_BY_KIND } from '../data/deepworks';
 import { deepFrames } from './art/deep';
 import type { MineState } from '../sim/systems/mine';
+import { pushTownworks } from './townworks';
+import { LANDMARK, SQUARE_LAMP } from '../sim/world/townworks';
 
 const CH = TileMap.CHUNK;
 /** seconds the rust takes to lift off a restored machine */
@@ -548,7 +550,8 @@ export class Renderer {
             drawSprite(ctx, s, sxx, y * TILE + 15);
             ctx.globalAlpha = 1;
           } });
-        } else if (o === O.LAMPPOST) {
+        } else if (o === O.LAMPPOST && m.objData[i] !== SQUARE_LAMP) {
+          // (the square's twelve lamps are drawn by pushTownworks: they light on the player's power)
           const lit = g.daylight < 0.6 || m !== g.map;
           const s = sprite(`lamp:${lit ? 1 : 0}`);
           D.push({ y: y + 0.9, f: () => drawSprite(ctx, s, x * TILE, y * TILE) });
@@ -563,6 +566,8 @@ export class Renderer {
     }
     // buildings
     for (const b of m.buildings) {
+      // the town keystones' landmarks draw their own states (pushTownworks, below)
+      if (b.kind === LANDMARK) continue;
       // imported frames overhang their footprint (the airship's balloon by 68 px), so cull wider
       if ((b.x + b.w + 1) * TILE < vx0 || (b.x - 1) * TILE > vx1 || (b.y - 5) * TILE > vy1 || (b.y + b.h) * TILE < vy0) continue;
       const st = b.id === 'clocktower' ? (g.flags.has('clock_fixed') ? 1 : 0) : b.id === 'greenhouse' ? (g.flags.has('greenhouse_fixed') ? 1 : 0) : g.daylight < 0.55 ? 1 : 0;
@@ -570,6 +575,8 @@ export class Renderer {
       const s = sprite(b.id === 'airship' ? `bld:airship:${season}:${st}:${Math.floor(this.time * 3) % 4}` : `bld:${b.id}:${season}:${st}`);
       D.push({ y: b.y + b.h - 0.05, f: () => drawSprite(ctx, s, b.x * TILE, b.y * TILE) });
     }
+    // the town keystones: the Town Mill, the Waterworks, the square's lamps, the tram (src/render/townworks.ts)
+    if (m === g.map) pushTownworks(g, this, D);
     // actors
     this.drawActors(g, m, D);
     // sort + draw

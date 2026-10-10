@@ -66,7 +66,7 @@ describe('content data', () => {
     const craftable = new Set(RECIPES.map((r) => r.out[0].item));
     const sold = new Set([...SHOPS.flatMap((s) => s.stock.map((e) => e.item)), ...BUILDING_KITS.map((k) => k.id)]);
     for (const s of STRUCTURES) {
-      if (['construction_site', 'shipping_crate'].includes(s.id)) continue;
+      if (['construction_site', 'shipping_crate', 'tram_bin'].includes(s.id)) continue;
       expect(craftable.has(s.item) || sold.has(s.item) || s.kind === 'building', s.id).toBe(true);
     }
   });

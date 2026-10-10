@@ -10,6 +10,7 @@ import './systems/cart';
 import './systems/nights';
 import './systems/ponds';
 import './systems/town';
+import './systems/townworks';
 import './systems/research';
 import './systems/automation';
 import './systems/animals';

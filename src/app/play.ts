@@ -48,6 +48,7 @@ import { unlocksOf } from '../sim/systems/research';
 import { RESEARCH, ERA_NAMES } from '../data/research';
 import { DEBUG_KEYS, keyLabel } from '../engine/input';
 import { textWidth } from '../ui/font';
+import { landmarkAt, landmarkTip, lookAt } from '../sim/systems/townworks';
 
 export interface Toast { text: string; t: number; icon?: string; color?: number }
 
@@ -553,6 +554,14 @@ export class PlayScreen implements Screen {
       const windHint = this.reachOk(e.x, e.y, 2.6) || (e.w > 1 && this.reachOk(e.x + e.w - 1, e.y + e.h - 1, 2.6)) ? 'Right-click: wind it (2x for 30s)' : 'Walk up to it to wind it';
       lines.push({ text: isWindable(e) ? `${windHint}  F: open  ${ik}: inspect` : `F or right-click to open, hold ${ik} to inspect the line`, color: C.pebble });
       ui.tip(lines.slice(0, 6));
+      return;
+    }
+    // the town keystones' landmarks (the Town Mill, the Waterworks, the airship): hovering one is
+    // looking at it, for their observe stages (src/sim/systems/townworks.ts)
+    const lm = landmarkAt(g, t.fx, t.fy);
+    if (lm) {
+      lookAt(g, lm);
+      ui.tip(landmarkTip(g, lm));
     }
   }
 

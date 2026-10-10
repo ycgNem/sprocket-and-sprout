@@ -75,7 +75,8 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   if (cp && cartHere(g) && tx >= cp[0] - 1 && tx <= cp[0] + 3 && ty >= cp[1] - 1 && ty <= cp[1] + 2) return { verb: "Mags' cart", x: cp[0] + 1.5, y: cp[1] - 0.5 };
   const b = m.buildingAtTile(tx, ty) ?? m.buildingAtTile(tx, ty - 1);
   if (b && (ty === b.y + b.h - 1 || ty === b.y + b.h) && Math.abs(tx - b.door[0]) <= 1) {
-    const verb = b.kind === 'farmhouse' ? 'Enter' : b.kind === 'mine' ? 'Enter the Deepworks' : b.kind === 'tower' ? 'Clocktower' : b.kind === 'greenhouse' ? (g.flags.has('greenhouse_fixed') ? '' : 'Old greenhouse') : 'Enter the ' + b.name.split(' ').pop();
+    // the town keystones' landmarks (src/sim/systems/townworks.ts) are looked at, not entered
+    const verb = b.kind === 'farmhouse' ? 'Enter' : b.kind === 'mine' ? 'Enter the Deepworks' : b.kind === 'tower' ? 'Clocktower' : b.kind === 'greenhouse' ? (g.flags.has('greenhouse_fixed') ? '' : 'Old greenhouse') : b.kind === 'landmark' ? 'Look' : 'Enter the ' + b.name.split(' ').pop();
     if (verb) return { verb, x: b.door[0] + 0.5, y: b.y + b.h - 1.2 };
   }
   if (b && b.id === 'greenhouse') return null;

@@ -4,6 +4,7 @@ import { C } from '../../data/palette';
 import { TileMap, T, Z, O, BuildingInfo } from './tilemap';
 import type { FarmKind } from '../../data/modes';
 import { shapeFarm } from './farms';
+import { layTownworks, townworksBuildings } from './townworks';
 
 export const WORLD_W = 200;
 export const WORLD_H = 150;
@@ -253,6 +254,8 @@ export function generateWorld(seed: number, farm: FarmKind = 'classic'): TileMap
   const house = bld('farmhouse', 'farmhouse', 'Farmhouse', HOUSE.x, HOUSE.y, HOUSE.w, HOUSE.h, C.terracotta, C.cream);
   m.locs.set('farmhouse', [house.door[0], house.y + house.h]);
   bld('greenhouse', 'greenhouse', 'Greenhouse', GREENHOUSE.x, GREENHOUSE.y, GREENHOUSE.w, 2, C.frost, C.walnut);
+  // the town keystones' buildings: the Town Mill on the river, the Waterworks' pump house (./townworks.ts)
+  for (const b of townworksBuildings()) m.addBuilding(b);
 
   // greenhouse interior (zone + soil floor) under the glass roof
   rect(GREENHOUSE.x, GREENHOUSE.y + 2, GREENHOUSE.x + GREENHOUSE.w - 1, GREENHOUSE.y + GREENHOUSE.h - 1, (x, y) => {
@@ -406,6 +409,8 @@ export function generateWorld(seed: number, farm: FarmKind = 'classic'): TileMap
   });
   Ob(SHIPBIN_POS[0] + 2, SHIPBIN_POS[1], O.MAILBOX);
   shapeFarm(m, seed, farm, FARM, plantTree);
+  // the keystones' ground: the mill's and pump house's doorsteps, the fountain, the square's lamps
+  layTownworks(m);
 
   squareBridges(m);
   // artifact spots everywhere outdoors (respawn daily too)

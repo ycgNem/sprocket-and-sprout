@@ -29,6 +29,19 @@ export interface PowerState {
   histAcc: number;
 }
 
+/**
+ * A load on a grid that isn't one of its structures: the square's twelve lamps, whose cable comes
+ * to the town line at the farm gate (src/sim/systems/townworks.ts). It hangs on the nearest pole
+ * whose wires reach its point (x, y in tiles; a switched-off pole switches it off too). While `on`
+ * it draws `draw` sparks; `sat` is the share of that its grid gives (0 while off or off any grid).
+ */
+export interface PowerLoad { x: number; y: number; draw: number; on: boolean; net: number; sat: number }
+
+/** the grid's loads that aren't structures (see PowerLoad) */
+export function powerLoads(g: Game): PowerLoad[] {
+  return (g.sys.powerLoads ??= []) as PowerLoad[];
+}
+
 export function powerState(g: Game): PowerState {
   let p = g.sys.power as PowerState | undefined;
   if (!p || p.cover.length !== g.map.w * g.map.h) {
@@ -95,6 +108,16 @@ export function rebuildPower(g: Game) {
     });
   }
   for (const p of poles) ps.nets.get(p.net)!.poles++;
+  // loads that aren't structures (the town line) hang on the nearest pole whose wires reach them
+  for (const v of powerLoads(g)) {
+    let best: Ent | null = null, bd = Infinity;
+    for (const p of poles) {
+      const [px, py] = center(p);
+      const d = Math.hypot(px - v.x, py - v.y);
+      if (d <= (p.def.reach ?? 7) + 0.01 && d < bd) [best, bd] = [p, d];
+    }
+    v.net = best && !poleOff(g, best) ? best.net : 0;
+  }
   const assign = (e: Ent) => {
     e.net = 0;
     for (let y = e.y; y < e.y + e.h && !e.net; y++)
@@ -168,6 +191,10 @@ export function updatePower(g: Game, dt: number) {
     if (e.off || e.st.rust) continue;
     n.demand += (e.working ? e.def.powerUse ?? 0 : e.def.powerIdle ?? 0) * powerMul;
   }
+  for (const v of powerLoads(g)) {
+    const n = v.on && v.net ? ps.nets.get(v.net) : undefined;
+    if (n) n.demand += v.draw * powerMul;
+  }
   for (const e of g.ents.gens) {
     if (e.st.rust) {
       if (e.gen) e.gen.cap = e.gen.out = 0;
@@ -229,6 +256,7 @@ export function updatePower(g: Game, dt: number) {
     }
     e.sat = ps.nets.get(e.net)?.sat ?? 0;
   }
+  for (const v of powerLoads(g)) v.sat = v.on && v.net ? ps.nets.get(v.net)?.sat ?? 0 : 0;
   // history once per second
   ps.histAcc += dt;
   if (ps.histAcc >= 1) {
