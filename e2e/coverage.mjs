@@ -58,7 +58,9 @@ const res = await page.evaluate(async () => {
   for (const m of MONSTERS) for (const f of R(4)) add('creature', `mon:${m.id}:${f}`);
   for (const [k, coats] of Object.entries(PET_COATS)) for (const c of R(coats.length)) for (const p of R(4)) add('creature', `pet:${k}:${c}:${p}`);
   add('creature', 'bowl:0'); add('creature', 'bowl:1');
-  for (const n of ['bed:0:0', 'bed:1:0', 'dresser:0:0', 'fireplace:0:0', 'stove:0:0', 'stove:1:0', 'shelf:0:0', 'shelf:1:0', 'shelf:2:0', 'chair:0:0', 'almanac:0:0', 'plant:0:0', 'plant:1:0', 'plant:2:0', 'clock:0:0', 'rug:0:0', 'doormat:0:0'])
+  // Tock, the Professor's clockwork helper (Phase 5): the pets' seven poses, one coat
+  for (const p of R(7)) add('creature', `pet:tock:0:${p}`);
+  for (const n of ['bed:0:0', 'bed:1:0', 'dresser:0:0', 'fireplace:0:0', 'stove:0:0', 'stove:1:0', 'shelf:0:0', 'shelf:1:0', 'shelf:2:0', 'chair:0:0', 'almanac:0:0', 'plant:0:0', 'plant:1:0', 'plant:2:0', 'clock:0:0', 'rug:0:0', 'doormat:0:0', 'drafting:0:0', 'workbench:0:0', 'toolwall:0:0'])
     add('home', 'hf:' + n);
   for (const s of R(4)) { add('home', `hf:table:0:${s}`); add('home', `hf:window:0:${s}`); add('home', `hf:window:1:${s}`); }
   for (const f of FURNITURE) for (const s of R(4)) add('home', `hf:${f.sprite}:${s}`);

@@ -533,7 +533,7 @@ function workbench(): Furn {
   pb.rect(22, 3, 6, 5, C.slate); pb.rect(24, 1, 2, 2, C.stone);
   pb.disc(10, 5, 2.5, C.brass); pb.disc(15, 6, 1.8, C.amber);
   pb.outline(C.ink);
-  return { w: 32, h: 22, ox: 0, oy: 6, pb };
+  return { w: 32, h: 22, ox: 0, oy: 7, pb };
 }
 
 function toolwall(): Furn {
@@ -544,7 +544,7 @@ function toolwall(): Furn {
   pb.rect(12, 4, 1, 8, C.walnut); pb.rect(11, 10, 3, 2, C.stone);
   pb.disc(20, 7, 2.5, C.brass); pb.rect(25, 3, 2, 8, C.stone);
   pb.outline(C.ink);
-  return { w: 32, h: 16, ox: 0, oy: 0, pb };
+  return { w: 32, h: 16, ox: 0, oy: 9, pb };
 }
 
 // ---------- pets: pet:<kind>:<coat>:<pose> (0 stand, 1 walk, 2 sit, 3 sleep), facing right ----------

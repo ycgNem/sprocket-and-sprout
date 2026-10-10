@@ -118,6 +118,8 @@ export class Lighting {
           else if (o === O.WINDOW && g.daylight > 0.2) out.push({ x: x + 0.5, y: y + 2.2, r: 3.2, i: g.daylight * 0.9, c: g.daylight > 0.7 ? C.butter : C.apricot });
           else if (o === O.STOVE && g.flags.has('home_kitchen')) out.push({ x: x + 0.5, y: y + 0.4, r: 1.8, i: 0.6, c: C.apricot, flicker: true });
           else if (o === O.DRESSER) out.push({ x: x + 0.3, y: y - 0.2, r: 1.6, i: 0.6, c: C.butter });
+          // the drafting table's brass lamp, clamped over its right end
+          else if (o === O.DRAFTING && m.objData[i] === 0) out.push({ x: x + 1.7, y: y - 0.3, r: 2.5, i: 0.8, c: C.butter });
         }
       for (const d of g.sys.house?.decor ?? []) {
         const f = FURN_BY_ID.get(d.id);
