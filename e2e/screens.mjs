@@ -160,8 +160,8 @@ const SC = {
   skyfield: async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.time.min = 8 * 60; g.player.x = 182.5; g.player.y = 60.6; g.player.dir = 1; const n = g.sys.npcs.byId.get('roxy'); n.x = 184.5; n.y = 60.9; n.visible = true; n.path = []; n.dir = 3; })()`),
   'roxy-chat': async () => ev(`(() => { const g = S.g; const n = g.sys.npcs.byId.get('roxy'); n.met = true; n.points = 900; window.__npcs.openDialog(g, n, "Evening, gorgeous. Yes, I mean you. Don't look behind you, there's nobody there.", undefined, 0); })()`),
   map: async () => ev(`(() => { S.play.openWindow('map'); })()`),
-  restoration: async () => ev(`(() => { S.play.openWindow('restoration'); })()`),
-  // the Works tab with the Town Mill's order up (Milling studied)
+  // the Works tab: k10 on, so the Town Mill's order is up and part filled, waiting for Milling
+  restoration: async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.paused = false; const q = g.sys.quests; if (!q.active.some((a) => a.id === 'k10_mill')) q.active.push({ id: 'k10_mill', prog: [0, 0, 0, 0, 0], day: g.dayIndex }); for (let i = 0; i < 70; i++) g.tick(); const o = g.sys.orders.open.find((x) => x.def === 'w_town_mill'); if (o) { o.lines[0].have = 24; o.lines[1].have = 40; } S.play.openWindow('restoration'); })()`),
   // today's asks (the restoration shot is the Works tab)
   'board-today': async () => ev(`(() => { ${ORDERS}; S.play.openWindow('board', 'today'); })()`),
   // the Orders board: two standing orders and today's asks
