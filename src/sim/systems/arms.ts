@@ -2,7 +2,7 @@
 // Each arm reports its state (src/sim/mstate.ts): Starved when there is nothing behind it to
 // take, Blocked when what it holds (or could take) has nowhere to go in front.
 import type { Game } from '../Game';
-import { ArmState, DX, DY, Ent } from '../ents';
+import { ArmState, DX, DY, Ent, entName } from '../ents';
 import { ItemKey, kDef, kStack } from '../inventory';
 import { isBusy, MState, offText, setHarvestWait, setQueued, setRefused, setState } from '../mstate';
 import { rustTick } from '../rust';
@@ -49,7 +49,7 @@ export function windArm(g: Game, e: Ent): boolean {
   return true;
 }
 
-const nameOf = (e: Ent | null) => (e ? e.def.name.toLowerCase() : 'nothing');
+const nameOf = (e: Ent | null) => (e ? entName(e).toLowerCase() : 'nothing');
 
 export function updateArms(g: Game, dt: number) {
   const clock = g.hasPerk('clockmaker');

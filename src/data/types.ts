@@ -327,7 +327,10 @@ export type ObjectiveDef = ObjectiveBase & (
   | { t: 'floor'; n: number }
   | { t: 'catch'; n: number; fish?: string }
   | { t: 'till'; n: number }
-  | { t: 'plant'; n: number }
+  /** seeds planted; `crop`: only that crop */
+  | { t: 'plant'; n: number; crop?: string }
+  /** plants of a crop standing in reach of your own gleaners (not the keeper's), right now */
+  | { t: 'gleaned'; crop: string; n: number }
   | { t: 'water'; n: number }
   | { t: 'harvest'; n: number; item?: string }
   | { t: 'money'; n: number }
@@ -342,8 +345,8 @@ export type ObjectiveDef = ObjectiveBase & (
   | { t: 'restore'; struct?: string; at?: [number, number]; rect?: [number, number, number, number] }
   /** a flag the sim or the UI sets when something happens (read the diagnosis, a bean rode a belt) */
   | { t: 'flag'; flag: string }
-  /** batches finished by machines of a kind; `other`: not the keeper's own (st.keeper) */
-  | { t: 'made'; struct: string; n: number; other?: boolean }
+  /** batches finished by machines of a kind; `other`: not the keeper's own (st.keeper); `full`: at full power */
+  | { t: 'made'; struct: string; n: number; other?: boolean; full?: boolean }
   /** a machine of a kind with an arm or belt aimed at it; `other`: not the keeper's own */
   | { t: 'feeds'; struct: string; other?: boolean }
   /** items an arm has put into a machine of a kind (B3: the arm, not the hands, fed the jar) */

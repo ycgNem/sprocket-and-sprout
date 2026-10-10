@@ -1,5 +1,6 @@
 // Quests: tutorial chain, story quests, daily town requests. Progress via notify() hooks + polling.
 import { questName } from '../../data/cookbook';
+import { CROP_BY_ID } from '../../data/crops';
 import { QUESTS, QUEST_BY_ID, REQUEST_POOL } from '../../data/goals';
 import { ITEM_BY_ID, ITEMS, matchesSpec } from '../../data/items';
 import { NPC_BY_ID } from '../../data/npcs';
@@ -123,6 +124,7 @@ function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
     case 'grid': return gridCovers(g, o.struct);
     case 'flag': return g.flags.has(o.flag);
     case 'count': return (g.counters[o.key] ?? 0) >= o.n;
+    case 'gleaned': return gleanedCount(g, o.crop) >= o.n;
     case 'feeds': {
       const nodes = portGraph(g);
       return g.ents.all().some((e) => !e.ghost && !e.st.rust && e.def.id === o.struct && (!o.other || !e.st.keeper) && (nodes.get(e.id)?.ins.length ?? 0) > 0);
@@ -130,6 +132,21 @@ function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
     default:
       return prog >= ('n' in o ? o.n : 1);
   }
+}
+
+/** plants of a crop within reach of the player's own working gleaners (each picks the 3x3 around it) */
+export function gleanedCount(g: Game, crop: string): number {
+  const seen = new Set<number>();
+  for (const e of g.ents.all()) {
+    if (e.def.kind !== 'gleaner' || e.ghost || e.st.rust || e.st.keeper) continue;
+    const r = e.def.reach ?? 1;
+    for (let y = e.y - r; y <= e.y + r; y++)
+      for (let x = e.x - r; x <= e.x + r; x++) {
+        const i = g.map.idx(x, y);
+        if (g.soil.get(i)?.crop?.id === crop) seen.add(i);
+      }
+  }
+  return seen.size;
 }
 
 /** structures in a rect (x, y, w, h): how many there are and how many are still rusted */
@@ -194,7 +211,8 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
     case 'floor': return `Reach mine floor ${o.n} (${Math.min(o.n, g.sys.mine?.deepest ?? 0)}/${o.n})`;
     case 'catch': return `Catch ${o.n} fish (${Math.min(prog, o.n)}/${o.n})`;
     case 'till': return `Till ${o.n} soil (${Math.min(prog, o.n)}/${o.n})`;
-    case 'plant': return `Plant ${o.n} seeds (${Math.min(prog, o.n)}/${o.n})`;
+    case 'plant': return o.crop ? `Plant ${o.n} ${CROP_BY_ID.get(o.crop)?.name ?? o.crop} (${Math.min(prog, o.n)}/${o.n})` : `Plant ${o.n} seeds (${Math.min(prog, o.n)}/${o.n})`;
+    case 'gleaned': return `${o.n} ${CROP_BY_ID.get(o.crop)?.name ?? o.crop} plants in reach of your gleaners (${Math.min(gleanedCount(g, o.crop), o.n)}/${o.n})`;
     case 'water': return `Water ${o.n} crops (${Math.min(prog, o.n)}/${o.n})`;
     case 'harvest': return `Harvest ${o.n} ${o.item ? item(o.item) : 'crops'} (${Math.min(prog, o.n)}/${o.n})`;
     case 'money': return `Earn ${o.n.toLocaleString()} coins (${Math.min(o.n, g.earned).toLocaleString()})`;
@@ -249,7 +267,7 @@ export function poll(g: Game) {
   }
 }
 
-function notify(g: Game, type: string, n: number, extra?: string, opts?: { auto?: boolean; other?: boolean }) {
+function notify(g: Game, type: string, n: number, extra?: string, opts?: { auto?: boolean; other?: boolean; full?: boolean }) {
   const q = questSys(g);
   for (const a of q.active) {
     const def = QUEST_BY_ID.get(a.id);
@@ -264,13 +282,14 @@ function notify(g: Game, type: string, n: number, extra?: string, opts?: { auto?
         case 'load': if (o.struct === extra) a.prog[i] += n; break;
         case 'build': if (o.struct === extra) a.prog[i] += n; break;
         case 'catch': if (!o.fish || o.fish === extra) a.prog[i] += n; break;
-        case 'till': case 'plant': case 'water': a.prog[i] += n; break;
+        case 'plant': if (!o.crop || o.crop === extra) a.prog[i] += n; break;
+        case 'till': case 'water': a.prog[i] += n; break;
         case 'sleep': a.prog[i] = 1; break;
         case 'visit': if (o.loc === extra) a.prog[i] = 1; break;
         case 'crate':
           if ((!o.auto || opts?.auto) && extra && (o.item === extra || (o.item[0] === '#' && matchesSpec(ITEM_BY_ID.get(extra)!, o.item)))) a.prog[i] += n;
           break;
-        case 'made': if (o.struct === extra && (!o.other || opts?.other)) a.prog[i] += n; break;
+        case 'made': if (o.struct === extra && (!o.other || opts?.other) && (!o.full || opts?.full)) a.prog[i] += n; break;
         case 'armload': if (o.struct === extra) a.prog[i] += n; break;
         case 'order': if (o.id === extra) a.prog[i] = 1; break;
         default: break;

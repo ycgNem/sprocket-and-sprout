@@ -43,6 +43,13 @@ export function rustTick(e: Ent, now: number): boolean {
 /** F at a rusted structure: take its part from the bag and bring it back. True when handled. */
 export function restore(g: Game, e: Ent): boolean {
   if (!e.st.rust) return false;
+  // a piece that works with another waits for it (the gleaner's arm feeds the belt run)
+  const after = e.st.after as string | undefined;
+  if (after && g.ents.all().some((o) => o.def.id === after && o.st.rust)) {
+    g.toast(`The ${e.def.name.toLowerCase()} feeds the old ${ITEM_BY_ID.get(after)?.name.toLowerCase() ?? after} run: restore that first.`);
+    g.emit({ t: 'sfx', id: 'error' });
+    return true;
+  }
   const need = e.st.need as string | undefined;
   const n = (e.st.needN as number | undefined) ?? 1;
   const have = need ? g.player.inv.countId(need) : 0;
@@ -56,6 +63,7 @@ export function restore(g: Game, e: Ent): boolean {
   delete e.st.rust;
   delete e.st.need;
   delete e.st.needN;
+  delete e.st.after;
   // a restored pole, wheel or machine changes the grid and the port graph
   g.ents.powerDirty = true;
   g.ents.version++;

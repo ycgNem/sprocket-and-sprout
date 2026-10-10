@@ -91,7 +91,7 @@ export function plant(g: Game, cr: CropDef, i: number): boolean {
   const s = g.soil.get(i)!;
   s.crop = { id: cr.id, days: 0, stage: 0, ready: false, harvests: 0, dead: false, giant: -1, frac: 0 };
   s.idle = 0;
-  g.sys.quests?.notify?.(g, 'plant', 1);
+  g.sys.quests?.notify?.(g, 'plant', 1, cr.id);
   g.emit({ t: 'hop', tile: i });
   return true;
 }

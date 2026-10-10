@@ -140,12 +140,17 @@ registerSystem({
   },
   dayStart(g) {
     // days 2-7: the keeper's cellar sends up a dozen cogbeans, so the crock line runs until beds you
-    // planted ripen (B6's second jar starves on its own chest, not this one)
-    if ((!g.flags.has('tinker_start') && !g.flags.has('keepers_line')) || g.dayIndex < 1 || g.dayIndex > 6) return;
+    // planted ripen (B6's second jar starves on its own chest, not this one); then it tapers off, 8 a
+    // day on days 8-9 and 4 on days 10-11, and says so (critic, Phase 2 re-check: no silent cliff)
+    if ((!g.flags.has('tinker_start') && !g.flags.has('keepers_line')) || g.dayIndex < 1 || g.dayIndex > 10) return;
+    const n = g.dayIndex <= 6 ? 12 : g.dayIndex <= 8 ? 8 : 4;
     const chest = g.ents.at(OPENING.chest[0], OPENING.chest[1]);
-    if (chest?.def.kind === 'chest' && chest.inv && chest.inv.space(key('cogbean')) >= 12) chest.inv.add(key('cogbean'), 12);
-    else g.give(key('cogbean'), 12);
-    g.toast("The keeper's cellar sent up another dozen cogbeans.", 'i:cogbean');
+    if (chest?.def.kind === 'chest' && chest.inv && chest.inv.space(key('cogbean')) >= n) chest.inv.add(key('cogbean'), n);
+    else g.give(key('cogbean'), n);
+    if (g.dayIndex <= 5) g.toast("The keeper's cellar sent up another dozen cogbeans.", 'i:cogbean');
+    else if (g.dayIndex === 6) g.toast("The keeper's cellar sent up a dozen cogbeans: it's running low. Plant beds of your own.", 'i:cogbean');
+    else if (g.dayIndex <= 8) g.toast(`The keeper's cellar is nearly bare: ${n} cogbeans today.`, 'i:cogbean');
+    else g.toast(`The last of the keeper's cellar: ${n} cogbeans.${g.dayIndex === 10 ? ' From tomorrow the crocks eat what your beds grow.' : ''}`, 'i:cogbean');
   },
   dayEnd(g) {
     if (g.mode !== 'rush') return;

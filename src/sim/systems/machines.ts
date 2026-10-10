@@ -327,7 +327,7 @@ export function updateMachines(g: Game, dt: number) {
       g.emit({ t: 'fx', kind: 'puff', x: e.x + e.w / 2, y: e.y });
       // the play screen turns this into a hop, an output pop and a note (each machine has its own)
       g.emit({ t: 'made', ent: e.id, item: r.out[0].item, x: e.x + e.w / 2, y: e.y });
-      g.sys.quests?.notify?.(g, 'made', 1, e.def.id, { other: !e.st.keeper });
+      g.sys.quests?.notify?.(g, 'made', 1, e.def.id, { other: !e.st.keeper, full: !e.def.powerUse || e.sat >= 0.99 });
     }
   }
 }

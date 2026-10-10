@@ -28,7 +28,7 @@ export const CROPS: CropDef[] = [
     look: { style: 'cane', leaf: C.grass, fruit: C.rose }, desc: 'Tart red stalks. Wonderful in pies.', tags: ['vegetable'] }),
   crop({ id: 'flax', name: 'Flax', seasons: [SP, SU], stages: [1, 2, 2, 2], scythe: true, price: 30, seedPrice: 15, icon: 'grain', yield: [1, 2],
     look: { style: 'grain', leaf: C.grass, fruit: C.sky }, desc: 'Blue-flowered stems. A loom turns it into linen.', tags: ['fiber'] }),
-  crop({ id: 'cogbean', name: 'Cogbean', seasons: [SP, SU], stages: [1, 1, 1, 1], regrow: 3, trellis: true, price: 46, seedPrice: 60, icon: 'cogbean', yield: [1, 2],
+  crop({ id: 'cogbean', name: 'Cogbean', seasons: [SP, SU], stages: [1, 1, 1, 1], regrow: 2, trellis: true, price: 46, seedPrice: 60, icon: 'cogbean', yield: [1, 2],
     look: { style: 'pod', leaf: C.moss, fruit: C.brass }, edible: 6, desc: 'An odd bean with toothed pods. Tinkerers love it.', tags: ['vegetable'] }),
 
   // ---------------- Summer ----------------

@@ -2,7 +2,7 @@
 import { C } from '../../data/palette';
 import { ITEM_BY_ID } from '../../data/items';
 import type { RecipeDef } from '../../data/types';
-import type { Ent } from '../../sim/ents';
+import { entName, type Ent } from '../../sim/ents';
 import { Inventory, key, kDef, kId } from '../../sim/inventory';
 import { availableRecipes, machInsert, setRecipe, stationRecipes } from '../../sim/systems/machines';
 import { gridSentence, POLE_SWITCH, powerState, togglePole } from '../../sim/systems/power';
@@ -38,7 +38,7 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
   if (STRUCT_PANELS[kind]) topH = st.data.topH ?? 150;
   const h = topH + playerGridH + 24;
   const { x, y } = centered(ui, w, h);
-  if (!frame(ui, x, y, w, h, e.def.name)) return false;
+  if (!frame(ui, x, y, w, h, entName(e))) return false;
   const inv = p.inv;
   const top = y + 14;
   // what the crate held before this frame's clicks: goods put in through the window count for the

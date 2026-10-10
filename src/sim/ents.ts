@@ -14,6 +14,9 @@ export const rightOf = (d: Dir) => ((d + 1) & 3) as Dir;
 
 export const ITEM_SPACING = 0.25;
 
+/** a structure's name: its own title where it has one (the keeper's cellar chest, the grain bin), else its kind's */
+export const entName = (e: Ent): string => (e.st?.title as string | undefined) ?? e.def.name;
+
 export interface Lane {
   k: number[];
   /** positions along the lane, index 0 = front (highest) */

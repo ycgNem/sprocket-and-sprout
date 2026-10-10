@@ -108,6 +108,7 @@ export function buildRiverWorks(g: Game): boolean {
   for (const [x, y] of RIVER.poles) rustStruct(g.ents.add('pole_wood', x, y, 0));
   rustStruct(g.ents.add('mill', RIVER.mill[0], RIVER.mill[1], 0));
   const bin = g.ents.add('chest_wood', RIVER.bin[0], RIVER.bin[1], 0);
+  bin.st.title = 'Grain Bin';
   bin.inv?.add(key('barley'), 40);
   rustStruct(bin);
   g.ents.add('chest_wood', RIVER.meal[0], RIVER.meal[1], 0);
@@ -164,12 +165,16 @@ export function buildYard(g: Game) {
   // the keeper's cellar: two dozen beans, so day 1's line never runs dry (the cellar sends a
   // dozen more each morning through day 7)
   const cellar = g.ents.add('chest_wood', OPENING.chest[0], OPENING.chest[1], 0);
+  cellar.st.title = 'Cellar Chest';
   cellar.inv?.add(key('cogbean'), 24);
   cellar.st.yard = 1;
   // the rest of the works, rusted
   rustStruct(g.ents.add('arm_basic', OPENING.armTile[0], OPENING.armTile[1], 0), 'spring');
   for (const [x, y] of OPENING.belts) rustStruct(g.ents.add('belt_1', x, y, 3));
-  rustStruct(g.ents.add('arm_basic', OPENING.gleanArm[0], OPENING.gleanArm[1], 3), 'spring');
+  // the gleaner's arm waits for the belt run it feeds (critic, Phase 2 re-check: B5's "try" beat)
+  const glArm = g.ents.add('arm_basic', OPENING.gleanArm[0], OPENING.gleanArm[1], 3);
+  rustStruct(glArm, 'spring');
+  glArm.st.after = 'belt_1';
   // the gleaner still holds the keeper's last pick, for the belt run to carry once it's restored (B5)
   const gl = g.ents.add('gleaner', OPENING.gleaner[0], OPENING.gleaner[1], 0);
   rustStruct(gl);

@@ -232,8 +232,8 @@ describe('L5: a gleaner on a cogbean field -> arm -> jar -> arm -> crate', () =>
     expect(problems(g)).toEqual([]);
     const d = diagnose(g, crate);
     expect(d.key).toBe('field');
-    expect(d.gap).toMatch(/cogbean field gives 3\.5\/day; the preserving crock can use 17/);
-    expect(d.fix).toMatch(/27 more cogbean plants within a picker/);
+    expect(d.gap).toMatch(/cogbean field gives 5\.3\/day; the preserving crock can use 17/);
+    expect(d.fix).toMatch(/16 more cogbean plants within a picker/);
   });
 
   it('hand picks inside the gleaner\'s reach count toward the field, and the diagnosis says how many', async () => {

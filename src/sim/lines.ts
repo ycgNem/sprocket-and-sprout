@@ -7,7 +7,7 @@ import { availableRecipes, machTakesText } from './systems/machines';
 import { DAY_SECS } from './systems/stats';
 import { ITEMS } from '../data/items';
 import type { Game } from './Game';
-import { BeltKind, DX, DY, Ent, Ents } from './ents';
+import { BeltKind, DX, DY, Ent, Ents, entName } from './ents';
 import { kDef } from './inventory';
 import { MState } from './mstate';
 import { rebuildBelts } from './systems/belts';
@@ -182,7 +182,7 @@ export interface Diagnosis {
 
 const MAKER_KINDS = new Set(['gleaner', 'harvester', 'gantry', 'planter', 'drill', 'lab']);
 const isMaker = (e: Ent) => !!e.mach || MAKER_KINDS.has(e.def.kind);
-const label = (e: Ent) => e.def.name.toLowerCase();
+const label = (e: Ent) => entName(e).toLowerCase();
 
 /** what a starved machine waits for, in words */
 function wantName(e: Ent): string {

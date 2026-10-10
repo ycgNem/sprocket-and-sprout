@@ -11,7 +11,7 @@ import { ICON } from '../ui/font';
 import { ITEM_BY_ID, matchesSpec } from '../data/items';
 import type { NPCLook } from '../data/types';
 import { SEC_PER_MIN, type Game, type GameEvent } from '../sim/Game';
-import { DX, DY, Dir, Ent } from '../sim/ents';
+import { DX, DY, Dir, Ent, entName } from '../sim/ents';
 import { key, kDef, kId, itemName } from '../sim/inventory';
 import { canPlace, deconstruct, place, rotateStruct, structFootprint } from '../sim/build';
 import { eatHeld, interact, useHeld } from '../sim/actions';
@@ -537,7 +537,7 @@ export class PlayScreen implements Screen {
     if (g.player.where !== 'world') return;
     const e = g.ents.rootAt(t.x, t.y);
     if (e && !e.ghost) {
-      const lines: { text: string; color?: number }[] = [{ text: e.def.name + (e.ghost ? ' (ghost)' : ''), color: C.amber }];
+      const lines: { text: string; color?: number }[] = [{ text: entName(e) + (e.ghost ? ' (ghost)' : ''), color: C.amber }];
       // the machine contract's one line: what it's doing, or exactly what it waits for
       const sl = structStateLine(g, e);
       if (sl) lines.push(sl);

@@ -10,7 +10,7 @@ import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { centered, frame } from './common';
 import { registerWindow, WinState } from './index';
-import { ICON, ellipsize, wrapText } from '../font';
+import { ICON, ellipsize, textWidth, wrapText } from '../font';
 import { itemTooltip } from '../tooltips';
 import { linesTab } from './linetab';
 import { gridSentence } from '../../sim/systems/power';
@@ -252,14 +252,16 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     yy += 2;
   }
   const units = researchUnits(sel.id, g);
-  ui.text(`${sel.keystone ? 'Study' : 'Cost'}: ${units} x`, px + 6, yy, C.oak);
-  sel.cost.forEach((c, i) => ui.itemIcon(key(c.item), px + 62 + i * 15, yy - 4, 14));
+  // "15 of each" when a topic takes several bundles: the critic read "15 x [green][copper]" as 15 in all
+  const costText = `Cost: ${units} ${sel.cost.length > 1 ? 'of each' : 'x'}`;
+  ui.text(costText, px + 6, yy, C.oak);
+  sel.cost.forEach((c, i) => ui.itemIcon(key(c.item), px + 10 + textWidth(costText) + i * 15, yy - 4, 14));
   yy += 14;
   // what you have toward it (bag + desks), so a pick you can't afford yet says so up front
   const have = (id: string) => g.player.inv.countId(id) + labs.reduce((a, l) => a + (l.inv?.countId(id) ?? 0), 0);
   const short = sel.cost.filter((c) => have(c.item) < units);
   if (!g.research.done.has(sel.id)) {
-    yy += ui.para(short.length ? `You have ${short.map((c) => have(c.item)).join(' + ')} of ${units}: craft more (C)` : 'You have enough bundles', px + 6, yy, pw - 12, short.length ? C.brick : C.moss) + 2;
+    yy += ui.para(short.length ? `You have ${short.map((c) => `${have(c.item)} ${ITEM_BY_ID.get(c.item)?.name.split(' ')[0].toLowerCase()}`).join(', ')} of ${units}: craft more (C)` : 'You have enough bundles', px + 6, yy, pw - 12, short.length ? C.brick : C.moss) + 2;
   }
   const unl = unlocksOf(sel.id);
   if (unl.items.length && yy < py + h - 90) {
