@@ -1073,6 +1073,125 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
 - Done when: `e2e/minex.mjs` walks every stratum; the longrun bot restores the lift; the Tram
   runs on a saved and reloaded game.
 
+#### Phases 3 and 4: the build spec (written 2026-10-10, before the build)
+
+The owner asked for Phases 3 and 4 in one run on `works`, built and then checked together: the
+"done when" lines of both phases are run once both are in. The decisions below fill the gaps in
+sections 7-8; they go into DECISIONS.md as they land.
+
+**Eras and research (7.3, 8).** `ResearchDef.pos` becomes `era` (1 Spring, 2 Water, 3 Steam, 4
+Clockwork, 5 Starlight) + `row`; the column inside an era band is the prerequisite depth inside
+that era. Bundle colours follow the era (Spring: sprout; Water: + copper; Steam: + rose; Clockwork:
++ brass; Starlight: + star). Re-sequenced: Reaching and Sorting Arms in Water (spring arms built
+from a basic arm, no power), Brass Arms (`r_fast_arm`) and Brass Sprinklers in Steam. New nodes:
+Threshing (Steam, the thresher), Dyes & Pastes (Water: starch paste and pigment in the crock).
+- **Keystones (8)**, each with stages shown as four pips: *Observe* (look at a thing: a flag set
+  by hovering it, holding I over it or walking up to it), *Experiment* (objectives, the quest kinds),
+  *Validate* (an item made at ≥ N a minute, held for M minutes), then *Apply* (the bundles, as
+  before). A desk on a keystone whose stages aren't done waits ("Waiting: observe the town's mill")
+  and takes no bundles. The eight: Conveyance (Spring: the Keeper's Line's miniature), Water Power
+  and Milling (Water), Steam Power and Spark Coils (Steam), Clockwork Assembly (Clockwork),
+  Bumblebots and Grand Works (Starlight). Their observations are the keeper's wheel (Water
+  Power), the town's silent mill (Milling) and, from Phase 4, the Deepworks' chambers (Steam Power:
+  the Clayworks boiler; Spark Coils: the Ember lamp works; Clockwork Assembly: the Crystal lockers;
+  Grand Works: the fallen star).
+- **Era rewards replace the 12 flat-buff nodes** (Hearty Living, Scholarship, Market Savvy, Arm
+  Grip I and II, Fine and Precision Tuning, Swift Wings, Busy Hives, Grand Scholarship, Trade
+  Routes, Long Arms). An era's town keystone grants its pieces in one card: Spring (More Power
+  done): +40 energy, desks 30% faster; Water (the Town Mill): arms carry 1 more, +5% prices;
+  Steam (the Waterworks): machines 10% faster; (Lamplighting): reach +3; Clockwork (the Tram): arms
+  carry 1 more, machines 15% faster, desks 50% faster; Starlight (the Clock): +10% prices, bots
+  40% faster, 4 more bots a hive. Pieces keep the old node ids (`research.rewards`), so a save that
+  had researched a pruned node keeps that bonus (the v5 migration moves it from `done` to
+  `rewards`).
+- **The window**: five era bands with tinted headers and the era's keystone named in each; both
+  axes scroll (wheel down, shift + wheel across), Fit, the info panel never covers a node. Colours
+  (the 1.1 leftover): researched = moss fill, available = cream with a pulsing amber rim, studying
+  = apricot, locked = dim slate, keystone = a copper double frame with its four pips under it.
+
+**Orders (7.4): one board, three tabs.** `src/sim/systems/orders.ts` owns every ask in town; the
+old daily requests (quests.ts), Guild contracts (contracts.ts) and restoration projects (goals.ts)
+move into it. An order has lines (`spec`, `n`, `have`), a customer (a business id), a kind, a due
+day and its pay (coins an item, a reward on completion, reputation).
+- **Today**: three small asks a day from `REQUEST_POOL` (posted after k9 "A Second Bed", the
+  critic's Minor), no "accept" step: bring them by hand (F at the villager) or let a tagged crate
+  carry them; they end at midnight.
+- **Standing**: each business's recurring orders, weekly (Monday), growing with reputation; the
+  Phase 2 orders stay (Rowan's pickles and barley meal, Bram's oil). Businesses: the Copper Kettle
+  (Rowan: food), the Anvil & Ember (Bram: metal), Oakroot Joinery (Juniper: wood), Cogwhistle
+  Workshop (the Professor: parts), the Valley Clinic (Ines: tea, herbs), Halloway's Bait & Tackle
+  (Wren: fish, rope), the Mercantile (Marigold: produce, preserves), Meadowlark Ranch (Clem: hay,
+  grain), Vane Air Freight (Roxy: anything, bulk, premium) and the Trading Guild (the weekly bulk
+  contracts; delivered at the Freight Depot, by consignment, or by hand at the board).
+- **Reputation**: six ranks per business (Associate 0, Supplier 2, Trusted Supplier 5, Purveyor 9,
+  Master Purveyor 14, Partner 20); +1 a filled order (+2 a big one). A rank unlocks the business's
+  next standing order and its special stock (shop entries with `unlock: 'rep:<business>:<rank>'`);
+  the Guild's rank keeps its shipping bonus (+3% a rank).
+- **Works**: the town's projects for the Town Council: the 16 restoration projects (the clocktower
+  board is gone; its door opens the board's Works tab) and the keystones (the Town Mill, the
+  Waterworks, Lamplighting, the Tram, the Clock). Delivered by hand from the Works tab, or by a
+  crate tagged "Ship to: the Town Council" (the post fills keystones first, then the rest).
+- **Consignment** stays the crate's "Ship to:" tag: any open order of that customer, any kind.
+- The board is the noticeboard on the square (F from any side) and J → Orders (J opens on Orders
+  while k7 is active).
+
+**Crops (7.1).** The crops still on Stardew's exact numbers (about 18: tomato, melon, blueberry,
+ember pepper, corn, wheat, hops, pumpkin, cranberry, eggplant, grape, beet, yam, thistlechoke,
+rhubarb, cabbage, potato, strawberry) are re-derived: per-plant value = (seed price + days to
+harvest x 6) x the kind's multiplier (vegetable 1.0, fruit 1.15, grain/fiber 0.8, rare 1.6), divided
+by the average yield; regrowing crops count the regrow days and spread the seed over a season's
+harvests; then hand-adjusted where a role needs it (the five the bot leans on keep their place).
+**Rapeseed** (summer, 6 days, scythed, 2-3 seeds a plant): the mill presses it to oil.
+
+**Crop intermediates (4.10).** Canvas (loom: 2 flax, 2 cotton or 8 fiber) → canvas belts (1 canvas
++ 1 plank + 1 gear = 6 belts). Oil (mill: sunflower, rapeseed) → **lubricant** (oil + sap, by hand):
+fitted to a machine (F holding it) it runs 10% faster for good. Starch paste (crock: potato, yam,
+corn) and pigment (crock: beet, mooncap, starpetal) behind Dyes & Pastes: paste for sign labels and
+the Works, pigment for the Tram's livery and Hazel's orders. Spirit (keg: 2 sweetcane or 3 barley)
+burns in a steam engine for twice a coal. **The thresher** (Steam, 40 sparks, 2 s a sheaf): wheat,
+barley or corn → 2 grain + straw (50%); the mill grinds grain to flour; straw goes in the silo as
+hay or by hand to fiber.
+
+**The Town Mill keystone, end to end.** The town's old mill stands on the river at the west end of
+Main Street, its wheel still. After More Power the chain's next step is **k10 "The Town Mill"**:
+look at the silent mill (Milling's observation), grind meal on your own grid (experiment), keep a
+mill making 3 a minute for 2 minutes (validate), study Milling, then fill the Works order: 120
+flour or barley meal (`#flour`), 40 planks and 8 copper gears, by hand or by a crate tagged for the
+Town Council. Then the flag `town_mill`: the mill's wheel turns (and the town's bread comes from
+it), the Copper Kettle and the Mercantile sell bread and flour, the Bakery Window project opens,
+Rowan posts a weekly bread order, and the Water era's reward card shows.
+
+**Save v5.** Requests, Guild state and project progress move into orders; pruned research ids move
+from `done` to `rewards`; a topic being studied that was pruned is cleared. `tests/migrate.test.ts`
+loads real saves (three 1.1.1 saves from the pre-merge review and two 2.0 beta saves, gzipped in
+`tests/fixtures/`).
+
+**The Deepworks (7.2, Phase 4).** 30 levels, 6 strata of 5, each with its own tiles, ores, a
+hazard, a pest and a works chamber on its fifth level:
+
+| Levels | Stratum | Ores | Hazard / problem | Pest | Chamber (level 5, 10, ...) |
+|---|---|---|---|---|---|
+| 1-5 | Earth | copper, clay, coal | loose rock (a rumble, rocks fall where a crack shows) | rust-mite (eats ore left on the floor) | **the old lift** (restore: 4 planks, 2 copper gears, 1 rope): rides to any restored chamber |
+| 6-10 | Clayworks | tin, clay | the collapsed gallery: level 6 needs 20 beams to shore up (the sawmill's first job) | rust-mite | the seized boiler (Steam Power's observation) |
+| 11-15 | Frost | iron, frost shards | **flooded** until the Waterworks drains it (level 11's stair is under water) | clatter-crab (blocks a gallery until hit) | **the old pump** (restore: 2 iron plates, 1 spring) |
+| 16-20 | Ember | gold, coal | gas pockets: a lantern (Spark Coils) or the gas puffs you back up a level | clatter-crab | the lamp works (Spark Coils' observation) |
+| 21-25 | Crystal | gems, quartz | dark galleries (light from crystals only) | wisp (hides the ladder; hit it to show it) | the old works' lockers: blueprints (Clockwork Assembly's observation) and **the rail cart** (restore: 20 planks, 10 iron bars, 4 brass gears) |
+| 26-30 | Starfall | starmetal, gems | falling star-shards | wisp | the fallen star (Grand Works' observation) |
+
+Floors still regenerate daily from the seed and day; `deepest`, restored chambers and the drained
+flag are saved; old saves' `deepest` halves (floor 60 → 30), and their lift flags map the same way.
+Swords stay; `s_deep` asks for level 10 and gates nothing; pests are the old monster code with new
+looks and behaviours.
+
+**The town keystones of Phase 4.** *The Waterworks* (Steam; Works order: 20 brass bars, 10 copper
+coils, 50 oil, 4 iron plates): the pump house by the square starts, the fountain runs, the Frost
+stratum drains, mist towers unlock. *Lamplighting* (Steam, after Spark Coils; Works order: 12 lamps
+and 6 copper coils; then a pole at the farm gate linked to your grid): the square's 12 lamps light
+at night on your power (they draw 12 sparks after dark; unpowered they stay dark). *The Tram*
+(Clockwork; the rail cart restored in the Crystal stratum, then a Works order of 300 planks, 40
+brass gears and 20 pigment): every morning the cart runs the quarry road to town with 20 of the
+ore you left in its bin at the quarry and sells them at a 30% premium; a cart sprite runs the road.
+
 ### Phase 5 — People, events, HQ (2-3 sessions)
 - 7.6 the six re-roles with 12 rewritten heart events and ~40 lines each; Trust in the UI;
   Pip's echo questions; 7.7 the Sprocket Fair and the Harvest Haul (Kite Day and Pumpkin Roll
