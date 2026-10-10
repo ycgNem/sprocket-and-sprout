@@ -265,10 +265,28 @@
   `data.test.ts` validates every order and keystone; `e2e/minex.mjs` walks all six strata (0
   console errors); the year-long bot restores the lift; the Tram runs on a reloaded game. Tests:
   204 (and the year-long run). Pacing (28 days, 8 seeds): Story 62.9k, Rush 65.5k.
+- The critic's end review of Phases 3+4 failed narrowly (the one path ended at k10; the Now strip
+  fell back to "Build a Coop"). Its fixes:
+  - main quests k11-k17 hand over each era's town keystone (Steam, the Waterworks, Spark Coils,
+    Lamplighting, the Tram, the Clock); Harvest Bundles from a crock, a loom and the smelter; Seed
+    Sowers in the Water era. DECISIONS #93.
+  - a keystone's stages count from its quest; validate shows its rate and clock and a ring over the
+    machine; keystone orders go up with their quest and wait for its research; the Town Mill asks
+    40 meal and finishes with a camera pan to its wheel, then its card, then the era's. DECISIONS #94.
+  - the Works tab without Stardew's crop, fish, forage and gem baskets (old saves paid back); works
+    open by era; standing orders wait for their know-how; fillable orders first. DECISIONS #95.
+  - goods only a line makes (bread from meal, no shop oil, beams from a sawmill, capped planks and
+    brass gears, machines for coins), paste and pigment worth their inputs, the tram carries bars;
+    professions renamed. DECISIONS #96. Rush medals 40k / 75k / 110k. DECISIONS #97.
+  - the Deepworks: firedamp vents on a clock, lamps set down in the dark, chamber study cards,
+    Starfall's shard rings (an agent in a worktree, merged). DECISIONS #98.
+  - After the fixes: the bot reaches the Mill on days 16-17 (8 of 8 seeds); a chain-walk test takes
+    k11 to k17; tests 222; the sweep is clean at both sizes; `e2e/minex.mjs` and
+    `e2e/townworks.mjs` pass. Pacing: Story 65.7k, Rush 66.0k.
 
 ## Next
-- The critic's review of Phases 3-4 and the sweep (see HANDOFF.md), then Phase 5 (people, events,
-  HQ) of ROADMAP.md.
+- Phase 5 (people, events, HQ) of ROADMAP.md; see HANDOFF.md "What's next" (the critic's re-check
+  of Phases 3-4 and anything it left).
 - Older ideas: more interior variety (decor items placeable indoors), farmhouse expansion tiers;
   more depth for mid-game automation goals and late-game megaprojects.
 
@@ -276,3 +294,4 @@
 - Bumblebots in flight during a manual mid-day save return to their hive on load.
 - A tree felled or a rock left on a path doesn't re-plan a villager's cached path (placing or removing a structure does).
 - By day 7 the pace bot's farm is field-heavy (about 50 structure tiles to 75-80 tilled): it grows the Town Mill's barley by hand. Rule 5 (3.2) holds on day 5.
+- The pace bot stops at the Town Mill: it doesn't play k11 on (Sawmilling, the gallery, Steam Power), so its research stays at 13 topics after day 16 and its cash piles up. The chain past the Mill is tested by `tests/eras.test.ts`, not by the bot.
