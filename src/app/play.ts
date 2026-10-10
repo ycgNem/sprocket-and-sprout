@@ -52,6 +52,7 @@ import { unlocksOf } from '../sim/systems/research';
 import { RESEARCH, ERA_NAMES, ERA_REWARDS } from '../data/research';
 import { DEBUG_KEYS, keyLabel } from '../engine/input';
 import { textWidth } from '../ui/font';
+import { copySizeTag } from '../ui/windows/fair';
 import { landmarkAt, landmarkTip, lookAt } from '../sim/systems/townworks';
 
 export interface Toast { text: string; t: number; icon?: string; color?: number }
@@ -441,6 +442,8 @@ export class PlayScreen implements Screen {
     this.drawPostTimer(ui);
     this.drawCompass(ui);
     this.worldHover(ui);
+    // the blueprint tool's copy box: its size by the cursor, in green when it fits the Sprocket Fair's plate
+    if (this.mode === 'copy' && this.rectStart && !this.win) copySizeTag(ui, Math.abs(this.mouseTile().x - this.rectStart.x) + 1, Math.abs(this.mouseTile().y - this.rectStart.y) + 1);
     if (this.win) {
       this.win.t += dt;
       const def = WINDOWS[this.win.id];

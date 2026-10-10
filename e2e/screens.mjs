@@ -44,9 +44,11 @@ await ev(async () => {
 });
 
 const report = [];
+/** shots whose setup puts the mouse somewhere on purpose (the copy box's size tag sits by the cursor) */
+const KEEP_MOUSE = new Set(['copy-size']);
 /** Screenshot the current state, run the overlap audit on the last frame, box any issues. */
 async function shot(name) {
-  await page.mouse.move(VW - 1, VH - 1); // park the mouse in a corner so hover tooltips stay out of the way
+  if (!KEEP_MOUSE.has(name)) await page.mouse.move(VW - 1, VH - 1); // park the mouse in a corner so hover tooltips stay out of the way
   await wait(450);
   await page.screenshot({ path: `${out}/${name}.png` });
   const { issues, k } = await ev(() => {
@@ -255,21 +257,59 @@ const SC = {
     await wait(800);
   },
   // ---- 2.0 Phase 5 (on the bot's day-5 farm, after the shots above) ----
-  // the Sprocket Fair: the Professor's picker with the tool's copy and a library line, then a run's result
+  // the Sprocket Fair on the square: the Professor's 6x6 plate, the three entries running beside it,
+  // the villagers at their places, and her key bubble ("Enter the Sprocket Fair")
+  'fair-square': async () => {
+    await ev(`(async () => { const g = S.g; const G = await import('/src/sim/Game.ts'); S.play.closeWindow(); g.weather = 'sun';
+      g.time.season = 0; g.time.day = 13; g.time.min = 10 * 60; G.SYSTEMS.find((s) => s.name === 'festivals').dayStart(g);
+      g.player.where = 'world'; g.player.x = 133.5; g.player.y = 69.5; window.__app.renderer.invalidateAll(); })()`);
+    // the villagers walk to their places
+    for (let k = 0; k < 6; k++) { await wait(250); await ev(() => { const g = window.__game; for (let i = 0; i < 600; i++) g.tick(); }); }
+    await ev(`(() => { const g = S.g; S.play.closeWindow(); S.play.hud.toasts = []; S.play.achQ = []; S.play.lessons.q = []; window.__app.renderer.juice.banners.length = 0;
+      // the Fair's four at their places (the others walk there on their own)
+      for (const id of ['ottoline', 'tobias', 'bram', 'juniper']) { const [x, y] = g.map.loc('fest_' + id); const n = g.sys.npcs.byId.get(id); n.x = x + 0.5; n.y = y + 0.9; n.visible = true; n.path = []; n.target = 'fest_' + id; n.moving = false; n.dir = 2; }
+      const [sx, sy] = g.map.loc('fest_ottoline'); g.player.x = sx + 1.5; g.player.y = sy + 0.9; g.player.dir = 3; g.player.sel = 0;
+      const r = window.__app.renderer; r.cam.zoom = r.cam.targetZoom = 2; r.cam.x = g.player.x; r.cam.y = g.player.y - 0.6; })()`);
+    await wait(500);
+  },
+  // the Sprocket Fair: the Professor's picker with the tool's copy and a library line, a run's first minute, then its result
   'fair-pick': async () => ev(`(async () => { const g = S.g; const D = await import('/src/sim/drafting.ts');
     const it = (def, dx, dy, rot = 0, extra = {}) => ({ def, dx, dy, rot, ...extra });
     const row = (y) => [it('chest_wood', 0, y), it('arm_basic', 1, y, 1), it('jar', 2, y, 0, { last: 'jar:pickles_cogbean' }), it('arm_basic', 3, y, 1), it('shipping_crate', 4, y)];
     S.play.blueprint = { items: [...row(0), ...row(1)], w: 5, h: 2 };
     if (!D.drafting(g).lib.some((e) => e.name === 'Pickle row')) D.addBlueprint(g, 'Pickle row', { items: [0, 1, 2, 3].flatMap(row), w: 5, h: 4 });
     g.time.season = 0; g.time.day = 13; g.time.min = 10 * 60; S.play.closeWindow(); S.play.hud.toasts = []; S.play.openWindow('festival', 'f_fair'); S.play.win.data.sel = 1; })()`),
+  // half way through the first minute: the plate's line working, the value so far, the entries ticking over
+  'fair-run': async () => ev(`(async () => { const T = await import('/src/sim/testbed.ts'); const D = await import('/src/sim/drafting.ts'); const d = S.play.win.data;
+    const e = D.drafting(S.g).lib.find((x) => x.name === 'Pickle row'); const run = T.startBed(S.g, e.bp); T.stepBed(run, 1800); d.run = run; d.name = e.name; d.bp = e.bp; d.mode = 'run'; })()`),
   'fair-result': async () => {
     await ev(`(async () => { const T = await import('/src/sim/testbed.ts'); const D = await import('/src/sim/drafting.ts'); const d = S.play.win.data;
       const e = D.drafting(S.g).lib.find((x) => x.name === 'Pickle row'); const run = T.startBed(S.g, e.bp); T.stepBed(run, T.BED_TICKS); d.run = run; d.name = e.name; d.mode = 'run'; })()`);
     await wait(300);
     await ev(`(() => { S.play.hud.toasts = []; })()`);
   },
+  // the drafting table's bench test of the same line: the result without the prizes
+  'bench-test': async () => {
+    await ev(`(async () => { const T = await import('/src/sim/testbed.ts'); const D = await import('/src/sim/drafting.ts'); S.play.closeWindow();
+      const lib = D.drafting(S.g).lib; const i = lib.findIndex((x) => x.name === 'Pickle row'); S.play.openWindow('bench', { name: lib[i].name, bp: lib[i].bp, sel: i });
+      const d = S.play.win.data; const run = T.startBed(S.g, lib[i].bp); T.stepBed(run, T.BED_TICKS); d.run = run; d.name = lib[i].name; d.bp = lib[i].bp; d.mode = 'run'; })()`);
+    await wait(300);
+    await ev(`(() => { S.play.hud.toasts = []; })()`);
+  },
+  // a bench test with something to say: a furnace row that runs its chest's stack of ore dry, and a stray crock left off
+  'bench-notes': async () => {
+    await ev(`(async () => { const T = await import('/src/sim/testbed.ts'); const g = S.g; S.play.closeWindow(); g.player.inv.add(S.key('copper_ore'), 1);
+      const it = (def, dx, dy, rot = 0, extra = {}) => ({ def, dx, dy, rot, ...extra });
+      const bp = { w: 5, h: 3, items: [it('chest_wood', 0, 0), it('arm_basic', 1, 0, 1), it('furnace', 2, 0, 0, { recipe: 'smelt:copper' }), it('arm_basic', 3, 0, 1), it('shipping_crate', 4, 0), it('jar', 2, 2)] };
+      const name = 'A furnace row and a stray crock'; S.play.openWindow('bench', { name, bp, sel: 0 });
+      const d = S.play.win.data; const run = T.startBed(g, bp); T.stepBed(run, T.BED_TICKS); d.run = run; d.name = name; d.bp = bp; d.mode = 'run'; })()`);
+    await wait(300);
+    await ev(`(() => { S.play.hud.toasts = []; })()`);
+  },
+  // the Orders board four days before the Fair: its notice pinned over the orders
+  'board-fair': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.time.season = 0; g.time.day = 10; g.time.min = 9 * 60; ${ORDERS}; S.play.openWindow('board'); })()`),
   // the Harvest Haul's auction, mid-call: a few bids in, "Going once..."
-  auction: async () => ev(`(async () => { const g = S.g; const A = await import('/src/sim/auction.ts'); S.play.closeWindow(); g.time.season = 2; g.time.day = 16; g.time.min = 10 * 60;
+  auction: async () => ev(`(async () => { const g = S.g; const A = await import('/src/sim/auction.ts'); S.play.closeWindow(); g.time.season = 2; g.time.day = 15; g.time.min = 10 * 60;
     g.player.money = Math.max(g.player.money, 30000); g.sys.auctions = {}; const a = A.auctionAt(g, 'haul');
     for (let i = 0; i < 80 && a.log.length < 5; i++) { if (A.canBid(a, g.player.money)) A.playerBid(a, g.player.money); A.tickAuction(a, 0.25); }
     a.answer = null; a.call = 'once'; a.t = 0; S.play.openWindow('auction', 'haul'); })()`),
@@ -279,6 +319,20 @@ const SC = {
   broker: async () => ev(`(async () => { const g = S.g; const Cart = await import('/src/sim/systems/cart.ts'); S.play.closeWindow(); g.time.season = 0; g.time.day = 14; g.time.min = 11 * 60;
     g.player.where = 'world'; const c = Cart.cart(g); const e = Cart.shortStock('pickles_cogbean', 12); if (!c.stock.some((x) => x.item === e.item)) c.stock.push(e);
     S.play.openWindow('shop', 'cart'); })()`),
+  // Mags' Sunday lot, mid-call: Roxy and Prof. Cogwhistle bidding (the longest name, cut to its column)
+  'auction-sunday': async () => ev(`(async () => { const g = S.g; const A = await import('/src/sim/auction.ts'); S.play.closeWindow();
+    g.player.money = Math.max(g.player.money, 30000); const a = A.auctionAt(g, 'cart');
+    for (let i = 0; i < 80 && a.log.length < 5; i++) { if (A.canBid(a, g.player.money)) A.playerBid(a, g.player.money); A.tickAuction(a, 0.25); }
+    a.answer = null; a.call = 'once'; a.t = 0; S.play.openWindow('auction', 'cart'); })()`),
+  // dragging the blueprint tool's copy box round the keeper's line: its size by the cursor, green for the Fair's plate
+  'copy-size': async () => {
+    await ev(`(() => { const g = S.g; S.play.closeWindow(); S.play.hud.toasts = []; S.play.achQ = []; g.player.where = 'world'; g.time.min = 11 * 60; g.player.x = 51.5; g.player.y = 28.5; g.player.dir = 2;
+      const r = window.__app.renderer; r.cam.zoom = r.cam.targetZoom = 2; r.cam.x = g.player.x; r.cam.y = g.player.y - 0.6; S.play.mode = 'copy'; S.play.rectStart = { x: 54, y: 25 }; })()`);
+    await wait(400);
+    const p = await ev(() => { const r = window.__app.renderer; return { s: r.tileToScreen(49.5, 20.5), d: window.__app.dpr }; });
+    await page.mouse.move(p.s.x / p.d, p.s.y / p.d);
+    await wait(300);
+  },
 };
 
 for (const [name, fn] of Object.entries(SC)) {

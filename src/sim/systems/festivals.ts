@@ -1,13 +1,19 @@
 // Seasonal festivals: villagers gather in the decorated square; talk to the host to take part.
-// Four (DECISIONS #53): the Sprocket Fair (spring 13: the Professor's test bed, src/sim/fair.ts
-// and testbed.ts), Lantern Night (summer 20), the Harvest Haul (fall 16: the Mayor's auction,
+// Four (DECISIONS #53): the Sprocket Fair (spring 13: the Professor's test plate, src/sim/fair.ts
+// and testbed.ts; the plate and the entries stand on the square, src/sim/world/fairground.ts),
+// Lantern Night (summer 20), the Harvest Haul (fall 15, a Monday: the Mayor's auction,
 // src/sim/auction.ts, and double pay for standing orders, orders.ts) and Frostlight Skate (winter 24).
-// Kite Day and the Pumpkin Roll were retired in 2.0; a save that went to them keeps its count.
+// The Fair and the Haul are told ahead: the Professor's letter from spring 9 and the Orders board's
+// notice (festivalNotice). Kite Day and the Pumpkin Roll were retired in 2.0; a save that went to
+// them keeps its count.
 import { FESTIVALS } from '../../data/goals';
 import { NPCS } from '../../data/npcs';
 import type { FestivalDef, Season } from '../../data/types';
+import { fairEntries } from '../fair';
 import { Game, registerSystem } from '../Game';
 import { key } from '../inventory';
+import { FAIR_SPOTS, fairgroundTile } from '../world/fairground';
+import { send } from './goals';
 
 export function festivalOn(season: Season | number, day: number): FestivalDef | null {
   return FESTIVALS.find((f) => f.season === season && f.day === day) ?? null;
@@ -30,18 +36,60 @@ export function festivalActive(g: Game): FestivalDef | null {
   return f;
 }
 
-/** spots around the square for each villager during a festival */
+/**
+ * spots around the square for each villager during a festival; on the Sprocket Fair's day the
+ * Professor waits at the plate, Bram and Juniper by their entries, and nobody stands on them
+ */
 function spots(g: Game): Map<string, string> {
   const out = new Map<string, string>();
   const [cx, cy] = g.map.loc('square');
+  const fair = festivalToday(g)?.activity === 'fair';
   NPCS.forEach((n, i) => {
     const a = (i / NPCS.length) * Math.PI * 2;
     const id = `fest_${n.id}`;
-    const x = Math.round(cx + Math.cos(a) * 6), y = Math.round(cy - 2 + Math.sin(a) * 4);
+    let x = Math.round(cx + Math.cos(a) * 6), y = Math.round(cy - 2 + Math.sin(a) * 4);
+    if (fair && FAIR_SPOTS[n.id]) [x, y] = FAIR_SPOTS[n.id];
+    else if (fair)
+      for (let r = 7; r <= 10 && fairgroundTile(x, y); r++) {
+        x = Math.round(cx + Math.cos(a) * r);
+        y = Math.round(cy - 2 + Math.sin(a) * r * (2 / 3));
+      }
     g.map.locs.set(id, [x, y]);
     out.set(n.id, id);
   });
   return out;
+}
+
+const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const ordinal = (d: number) => d + (d % 10 === 1 && d !== 11 ? 'st' : d % 10 === 2 && d !== 12 ? 'nd' : d % 10 === 3 && d !== 13 ? 'rd' : 'th');
+
+/**
+ * The Orders board's notice of a festival coming (src/ui/windows/orders.ts): the Sprocket Fair from
+ * four days ahead (spring 9), the Harvest Haul from three (fall 12), and each on its day. None in
+ * Clockwork Rush.
+ */
+export function festivalNotice(g: Game): string | null {
+  if (g.mode === 'rush') return null;
+  const { season, day } = g.time;
+  for (const f of FESTIVALS) {
+    if (f.season !== season) continue;
+    if (f.activity === 'fair' && day >= f.day - 4 && day <= f.day)
+      return day === f.day ? 'The Sprocket Fair is on today, 9am to 6pm: bring a line that fits a 6x6 plate, chests at its start.' : `The Sprocket Fair on the ${ordinal(f.day)}: bring a line that fits a 6x6 plate, chests at its start.`;
+    if (f.activity === 'haul' && day >= f.day - 3 && day <= f.day)
+      return day === f.day ? 'The Harvest Haul is on today: every standing order pays double, by hand and by the post.' : `The Harvest Haul on ${DAY_NAMES[(f.day - 1) % 7]} the ${ordinal(f.day)}: every standing order pays double that day.`;
+  }
+  return null;
+}
+
+/** the Professor writes ahead of the Sprocket Fair (from spring 9, one letter a year) */
+function fairLetter(g: Game) {
+  const f = FESTIVALS.find((x) => x.activity === 'fair');
+  if (!f || g.mode === 'rush' || g.map.w <= 100 || g.time.season !== f.season || g.time.day < f.day - 4 || g.time.day >= f.day) return;
+  const [prof, bram, juniper] = fairEntries(g.time.year).map((e) => e.score.toLocaleString('en-US'));
+  send(g, `fair_${g.time.year}`, {
+    from: 'ottoline', title: `The Sprocket Fair on the ${ordinal(f.day)}`,
+    text: `Dear ${g.player.name},\n\nThe Sprocket Fair is on the square on the ${ordinal(f.day)}, nine till six. Bring me a line that fits a 6x6 plate, chests at its start: I fill them from your farm's goods, stoke the burners and run it for five minutes. What it makes, less what it uses up, is judged against this year's entries: my old crock (${prof} coins a minute), Bram's furnace (${bram}) and Juniper's mills (${juniper}).\n\nCopy one of your lines with the blueprint tool, or bench-test a drawing at your drafting table first.\n\nProf. Ottoline Cogwhistle`,
+  });
 }
 
 /** count a festival as taken part in (Festive Spirit counts each one once) */
@@ -109,6 +157,7 @@ registerSystem({
     };
     const f = festivalToday(g);
     if (f) g.toast(`Today is ${festivalName(f)}! ${f.desc}`, undefined, 6);
+    fairLetter(g);
   },
   afterLoad(g) {
     // 2.0 Phase 5: Kite Day is the Sprocket Fair and the Pumpkin Roll the Harvest Haul. A save that

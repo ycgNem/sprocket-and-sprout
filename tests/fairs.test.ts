@@ -1,28 +1,40 @@
-// 2.0 Phase 5: the festivals' rework. The Sprocket Fair's test bed and its entries, the Harvest
+// 2.0 Phase 5: the festivals' rework. The Sprocket Fair's test plate and its entries, the Harvest
 // Haul's double pay and auction, Mags the freight broker (her stock, her Sunday lot, shortages), and
-// a 1.x save's festival flags.
+// a 1.x save's festival flags. The Fair as revised after the critic's Phase 5 review: five minutes
+// scored by the value a line adds at base prices, baskets for gleaners and cranes, the entries tuned
+// on sample lines and the pacing bot's spring-13 farms, the plate on the square and the Fair told
+// ahead; the Haul on fall 15, a Monday.
 import { describe, expect, it } from 'vitest';
 import '../src/sim';
 import { DAY_END, Game, SYSTEMS } from '../src/sim/Game';
-import { key, kDef } from '../src/sim/inventory';
-import type { Blueprint, BlueprintItem } from '../src/sim/blueprint';
-import { BED_COAL, BED_STOCK, BED_TICKS, bedScore, bedTally, scoreBlueprint, startBed, stepBed } from '../src/sim/testbed';
-import { FAIR_ENTRIES, FAIR_TOP_YEAR, fairEntries, fairPlace, fairResult } from '../src/sim/fair';
+import { key, kDef, sellPrice } from '../src/sim/inventory';
+import { copyBlueprint, type Blueprint, type BlueprintItem } from '../src/sim/blueprint';
+import { BED_COAL, BED_MINUTES, BED_STOCK, BED_TICKS, bedScore, bedTally, homeGoods, ranDry, scoreBlueprint, startBed, stepBed } from '../src/sim/testbed';
+import { CLOCK_YEAR, FAIR_ENTRIES, FAIR_TOP_YEAR, fairEntries, fairPlace, fairResult } from '../src/sim/fair';
 import { FESTIVALS } from '../src/data/goals';
-import { festivalToday, finishActivity } from '../src/sim/systems/festivals';
+import { NPCS } from '../src/data/npcs';
+import { STRUCT_BY_ID } from '../src/data/structures';
+import { festivalNotice, festivalToday, finishActivity } from '../src/sim/systems/festivals';
 import { consign, handDeliver, haulToday, orders, payFor, SHORT_PAY, SHORT_SIZE, type Order } from '../src/sim/systems/orders';
 import { STANDING_BY_ID } from '../src/data/orders';
 import {
   auctionAt, CALL_SECS, canBid, closeLot, HAUL_LOTS, lotSold, newAuction, nextBid, OPEN_WAIT, playerBid, settle, SUNDAY_LOTS, tickAuction, venue, type Auction, type Lot,
 } from '../src/sim/auction';
 import { CART_PARTS, cart, shortStock, sundayLot } from '../src/sim/systems/cart';
-import { ITEM_BY_ID } from '../src/data/items';
+import { ITEMS, ITEM_BY_ID } from '../src/data/items';
 import { CROPS } from '../src/data/crops';
 import { FURNITURE } from '../src/data/furniture';
 import { questSys } from '../src/sim/systems/quests';
 import { npcSys, talkTo } from '../src/sim/systems/npcs';
 import { serialize, deserialize } from '../src/sim/save';
 import { ACHIEVEMENTS } from '../src/sim/systems/achievements';
+import { promptAt } from '../src/sim/prompts';
+import { addBlueprint, drafting, loadLib, saveLib } from '../src/sim/drafting';
+import { FAIR_ENTRY_LINES, FAIR_PLATE, FAIR_SPOTS, fairgroundTile } from '../src/sim/world/fairground';
+import { OPENING, RIVER } from '../src/sim/opening';
+import { goals } from '../src/sim/systems/goals';
+import { market } from '../src/sim/systems/economy';
+import { Bot } from './bot';
 
 const LOOK = { skin: 1, hair: 2, hairStyle: 'short', shirt: 3, pants: 4 } as const;
 
@@ -32,26 +44,44 @@ function sleep(g: Game) {
   g.tick();
 }
 
-// ---------------- sample lines for the bed ----------------
+// ---------------- sample lines for the plate ----------------
 const piece = (def: string, dx: number, dy: number, rot = 0, extra: Partial<BlueprintItem> = {}): BlueprintItem => ({ def, dx, dy, rot: rot as BlueprintItem['rot'], ...extra });
 const bp = (items: BlueprintItem[]): Blueprint => ({ items, w: Math.max(...items.map((i) => i.dx)) + 1, h: Math.max(...items.map((i) => i.dy)) + 1 });
 /** chest -> arm -> machine -> arm -> shipping crate, along row y (w: the machine's width) */
 const row = (y: number, mach: string, extra: Partial<BlueprintItem> = {}, arm = 'arm_basic', w = 1): BlueprintItem[] => [
   piece('chest_wood', 0, y), piece(arm, 1, y, 1), piece(mach, 2, y, 0, extra), piece(arm, 2 + w, y, 1), piece('shipping_crate', 3 + w, y),
 ];
+/** n such rows, one under another */
+const rows = (n: number, mach: string, extra: Partial<BlueprintItem> = {}, arm = 'arm_basic', w = 1) => Array.from({ length: n }, (_, i) => row(i * w, mach, extra, arm, w)).flat();
 /** a crock that last ran pickled cogbeans at home (the blueprint keeps it) */
 const PICKLES = { last: 'jar:pickles_cogbean' };
-const MEAL = { recipe: 'mill:barley' };
-const COPPER = { recipe: 'smelt:copper' };
+/** a field machine's line: it picks from its basket into a crock, and an arm takes the pickles to a crate */
+const picker = (def: string, crop?: string) => bp([piece(def, 0, 0, 0, crop ? { crop } : {}), piece('arm_basic', 1, 0, 1), piece('jar', 2, 0, 0, PICKLES), piece('arm_basic', 3, 0, 1), piece('shipping_crate', 4, 0)]);
 const LINES = {
-  crock1: bp(row(0, 'jar', PICKLES)),
-  crock2: bp([0, 1].flatMap((y) => row(y, 'jar', PICKLES))),
-  crock4: bp([0, 1, 2, 3].flatMap((y) => row(y, 'jar', PICKLES))),
-  crock6: bp([0, 1, 2, 3, 4, 5].flatMap((y) => row(y, 'jar', PICKLES))),
-  furnace4: bp([0, 1, 2, 3].flatMap((y) => row(y, 'furnace', COPPER))),
-  // powered: grist mills (2x2) on the bed's grid, fed and emptied by Brass Arms
-  mill2: bp([0, 2].flatMap((y) => row(y, 'mill', MEAL, 'arm_fast', 2))),
-  mill3: bp([0, 2, 4].flatMap((y) => row(y, 'mill', MEAL, 'arm_fast', 2))),
+  crock1: bp(rows(1, 'jar', PICKLES)),
+  crock2: bp(rows(2, 'jar', PICKLES)),
+  crock3: bp(rows(3, 'jar', PICKLES)),
+  crock4: bp(rows(4, 'jar', PICKLES)),
+  crock6: bp(rows(6, 'jar', PICKLES)),
+  // a gleaner that last picked cogbeans, and a harvest crane (on the plate's grid)
+  gleaned: picker('gleaner', 'cogbean'),
+  craned: picker('harvester', 'cogbean'),
+  furnace1: bp(rows(1, 'furnace', { recipe: 'smelt:copper' })),
+  furnace2: bp(rows(2, 'furnace', { recipe: 'smelt:copper' })),
+  furnace6: bp(rows(6, 'furnace', { recipe: 'smelt:copper' })),
+  tin6: bp(rows(6, 'furnace', { recipe: 'smelt:tin' })),
+  iron6: bp(rows(6, 'furnace', { recipe: 'smelt:iron' })),
+  gold6: bp(rows(6, 'furnace', { recipe: 'smelt:gold' })),
+  tincan6: bp(rows(6, 'furnace', { recipe: 'smelt:tincan' })),
+  // powered: grist mills (2x2) on the plate's grid, fed and emptied by Brass Arms
+  mill1: bp(rows(1, 'mill', { recipe: 'mill:barley' }, 'arm_fast', 2)),
+  mill3: bp(rows(3, 'mill', { recipe: 'mill:barley' }, 'arm_fast', 2)),
+  mill3grain: bp(rows(3, 'mill', { recipe: 'mill:grain' }, 'arm_fast', 2)),
+  // seed sifters turning good radishes into cheap seed: they destroy value
+  sift6: bp(rows(6, 'seed_sifter', { recipe: 'seeds:radish' })),
+  // the critic's rigs: six columns of machine / arm / chest / arm / machine, nothing taking the goods away
+  rig12: bp([0, 1, 2, 3, 4, 5].flatMap((x) => [piece('furnace', x, 0), piece('arm_basic', x, 1, 0), piece('chest_wood', x, 2), piece('arm_basic', x, 3, 2), piece('furnace', x, 4)])),
+  rig12sift: bp([0, 1, 2, 3, 4, 5].flatMap((x) => [piece('seed_sifter', x, 0), piece('arm_basic', x, 1, 0), piece('chest_wood', x, 2), piece('arm_basic', x, 3, 2), piece('seed_sifter', x, 4)])),
   // nothing to feed it: a crock on its own, and a crock fed by a belt from nowhere
   lone: bp([piece('jar', 0, 0)]),
   belted: bp([piece('belt_1', 0, 0, 1), piece('belt_1', 1, 0, 1), piece('arm_basic', 2, 0, 1), piece('jar', 3, 0, 0, PICKLES), piece('arm_basic', 4, 0, 1), piece('shipping_crate', 5, 0)]),
@@ -60,60 +90,147 @@ const LINES = {
   // a crock line whose chest also leaks its beans into a second crate: only the pickles count
   leak: bp([...row(0, 'jar', PICKLES), piece('arm_basic', 0, 1, 2), piece('shipping_crate', 0, 2)]),
 };
-const KNOW = ['r_arms', 'r_belts', 'r_preserves', 'r_brewing', 'r_power', 'r_milling', 'r_metallurgy', 'r_brass', 'r_glass', 'r_sawmill', 'r_spark', 'r_assembly', 'r_assembly2'];
+type LineName = keyof typeof LINES;
+const KNOW = ['r_arms', 'r_belts', 'r_preserves', 'r_brewing', 'r_power', 'r_milling', 'r_metallurgy', 'r_brass', 'r_glass', 'r_sawmill', 'r_spark', 'r_assembly', 'r_assembly2', 'r_seed_sifting', 'r_harvester'];
+/** what the sample farm has at home (the plate stocks a chest only with goods your farm has) */
+const HOME = ['cogbean', 'copper_ore', 'tin_ore', 'iron_ore', 'barley', 'grain', 'radish', 'tin_can'];
 
-/** a year-1 farm that knows the machines (the bed brings its know-how and reads its prices) */
+/** a year-1 farm that knows the machines and has the goods (the plate brings its know-how and stocks from its goods) */
 function farm(seed = 1): Game {
   const g = new Game({ seed });
   for (const r of KNOW) g.research.done.add(r);
+  for (const id of HOME) g.player.inv.add(key(id), 1);
   return g;
 }
 
-describe('the Sprocket Fair test bed', () => {
-  const real = farm();
-  const score = Object.fromEntries(Object.entries(LINES).map(([n, b]) => [n, scoreBlueprint(real, b)])) as Record<keyof typeof LINES, number>;
+/** within 5% (and 3 coins) of a recorded score */
+const near = (v: number, want: number) => expect(Math.abs(v - want), `${v} vs ${want}`).toBeLessThanOrEqual(Math.max(3, Math.abs(want) * 0.05));
 
-  it('scores a crock line and a powered line, the same every time and however the minute is stepped', () => {
-    expect(score.crock2).toBeGreaterThan(0);
-    expect(score.mill3).toBeGreaterThan(0);
-    expect(score.furnace4).toBeGreaterThan(0);
-    // more machines, more goods
+describe('the Sprocket Fair test plate', () => {
+  const real = farm();
+  const score = Object.fromEntries(Object.entries(LINES).map(([n, b]) => [n, scoreBlueprint(real, b)])) as Record<LineName, number>;
+
+  it('scores a line by the value it adds, in coins a minute over five minutes, the same however the run is stepped', () => {
+    expect(BED_MINUTES).toBe(5);
+    expect(BED_TICKS).toBe(5 * 60 * 60);
+    for (const n of ['crock2', 'mill3', 'furnace2', 'gleaned', 'craned'] as const) expect(score[n], n).toBeGreaterThan(0);
+    // more machines, more value
     expect(score.crock4).toBeGreaterThan(score.crock2);
-    expect(score.mill3).toBeGreaterThan(score.mill2);
+    expect(score.mill3).toBeGreaterThan(score.mill1);
     // deterministic for the same blueprint
     for (const n of ['crock2', 'mill3'] as const) expect(scoreBlueprint(real, LINES[n])).toBe(score[n]);
-    // the Professor's window steps the minute in small chunks: the same score
+    // the Professor's window steps the run in small chunks: the same score
     const run = startBed(real, LINES.mill3);
     while (run.ticks < BED_TICKS) stepBed(run, 17);
     expect(run.ticks).toBe(BED_TICKS);
     expect(bedScore(run)).toBe(score.mill3);
-    // a whole minute and no more
+    // five minutes and no more
     stepBed(run, 600);
     expect(run.ticks).toBe(BED_TICKS);
   });
 
-  it('stocks the chests that feed machines, stokes the burners and powers the bed', () => {
-    const run = startBed(real, LINES.furnace4);
+  it('counts what the line made less the stock it used up, at base prices by quality', () => {
+    const run = startBed(real, LINES.crock2);
+    stepBed(run, BED_TICKS);
+    const t = bedTally(run);
+    const pickle = key('pickles_cogbean'), bean = key('cogbean');
+    const pickles = t.made.find((x) => x.k === pickle)!, beans = t.used.find((x) => x.k === bean)!;
+    expect(pickles.coins).toBe(pickles.n * sellPrice(pickle));
+    expect(beans.coins).toBe(-beans.n * sellPrice(bean));
+    // two crocks, a minute a batch: four batches each done and the fifth nearly, its bean used
+    expect(pickles.n).toBe(8);
+    expect(beans.n).toBe(10);
+    expect(t.cooking.length).toBe(1);
+    expect(t.cooking[0].k).toBe(pickle);
+    expect(t.cooking[0].n).toBeGreaterThan(1.9);
+    // the batch cooking at the bell counts by how far along it is: its pickle done so far, its bean the rest
+    const p = t.cooking[0].n / 2;
+    const want = pickles.coins + beans.coins + 2 * (p * sellPrice(pickle) + (1 - p) * sellPrice(bean));
+    expect(Math.abs(t.coins - want)).toBeLessThan(0.01);
+    expect(bedScore(run)).toBe(Math.round(t.coins / 5));
+    // the base price by quality: silver a quarter more (an artisan good keeps its input's quality)
+    expect(sellPrice(key('pickles_cogbean', 1))).toBe(Math.round(sellPrice(pickle) * 1.25));
+  });
+
+  it("is a pure function of the goods: the market's saturation, drift and hot goods don't touch it", () => {
+    const flooded = farm();
+    const m = market(flooded);
+    for (const id of ['pickles_cogbean', 'cogbean', 'copper_bar', 'copper_ore', 'barley_flour', 'barley']) m.sat[ITEMS.findIndex((d) => d.id === id)] = 900;
+    for (const d of ITEMS) m.drift[d.cat] = 0.5;
+    m.hot = ['pickles_cogbean', 'copper_bar', 'barley_flour'];
+    for (const n of ['crock2', 'furnace2', 'mill3'] as const) expect(scoreBlueprint(flooded, LINES[n]), n).toBe(score[n]);
+  });
+
+  it("stocks the chests from the farm's goods, stokes the burners and powers the plate", () => {
+    const run = startBed(real, LINES.furnace2);
     const chests = run.g.ents.all().filter((e) => e.def.kind === 'chest');
-    expect(chests.length).toBe(4);
+    expect(chests.length).toBe(2);
     for (const c of chests) expect(c.inv!.count(key('copper_ore'))).toBe(BED_STOCK);
     for (const f of run.g.ents.machines) expect(f.mach!.fuel?.n).toBe(BED_COAL);
-    const crocks = startBed(real, LINES.crock2);
-    for (const c of crocks.g.ents.all().filter((e) => e.def.kind === 'chest')) expect(c.inv!.count(key('cogbean'))).toBe(BED_STOCK);
     const mills = startBed(real, LINES.mill3);
     expect(mills.skipped).toEqual([]);
     stepBed(mills, 120);
     for (const m of mills.g.ents.machines) expect(m.sat).toBe(1);
-    // the crock line's pickles take a minute a batch: the score counts the batch cooking at the bell
-    stepBed(crocks, BED_TICKS);
-    const t = bedTally(crocks);
-    expect(t.cooking.length).toBe(1);
-    expect(kDef(t.cooking[0].k).id).toBe('pickles_cogbean');
-    expect(t.cooking[0].n).toBeGreaterThan(1.5);
-    expect(t.cooking[0].n).toBeLessThanOrEqual(2);
+    // a stack a chest: a furnace on copper (3 ore every 8 s) runs it dry before the bell, and the result says so
+    stepBed(run, BED_TICKS);
+    expect(ranDry(run)).toEqual(['copper_ore']);
+    stepBed(mills, BED_TICKS);
+    expect(ranDry(mills)).toEqual([]);
+    // gold ore the farm never dug isn't stocked (the furnaces locked to gold make nothing), nor junk worth nothing
+    expect(score.gold6).toBe(0);
+    expect(startBed(real, LINES.gold6).missing).toEqual(['gold_ore']);
+    expect(score.tincan6).toBe(0);
+    expect(startBed(real, LINES.tincan6).missing).toEqual(['tin_can']);
+    // ...but a farm with some gold has its gold line run
+    const rich = farm();
+    rich.player.inv.add(key('gold_ore'), 1);
+    expect(scoreBlueprint(rich, LINES.gold6)).toBeGreaterThan(score.iron6);
+    // the farm's goods: the bag, its structures, its fields, and what it ever shipped or found
+    const g = new Game({ seed: 2 });
+    const home = homeGoods(g);
+    expect(home.has('cogbean')).toBe(true); // the keeper's beans
+    expect(home.has('barley')).toBe(true); // the river works' grain bin
+    expect(home.has('gold_ore')).toBe(false);
+    goals(g).shipped.gold_ore = 1;
+    expect(homeGoods(g).has('gold_ore')).toBe(true);
   });
 
-  it('scores nothing for a line with nothing to feed it, or goods it only carried', () => {
+  it('a gleaner or a crane picks from a basket of the crop it last picked, and the line pays for it', () => {
+    // the keeper's gleaner, never yet restored, holds his last pick: a copy carries that crop
+    const g = farm(3);
+    const gl = g.ents.rootAt(OPENING.gleaner[0], OPENING.gleaner[1])!;
+    expect(gl.def.kind).toBe('gleaner');
+    expect(copyBlueprint(g, gl.x, gl.y, gl.x, gl.y).items[0].crop).toBe('cogbean');
+    // working, it remembers the crop it last picked, basket or no
+    delete gl.st.rust;
+    gl.inv!.remove(key('cogbean'), 99);
+    for (let i = 0; i < 600 && !gl.st.lastCrop; i++) g.tick();
+    expect(gl.st.lastCrop).toBe('cogbean');
+    gl.inv!.remove(key('cogbean'), 99);
+    const copy = copyBlueprint(g, gl.x - 1, gl.y, gl.x, gl.y);
+    expect(copy.items.find((it) => it.def === 'gleaner')?.crop).toBe('cogbean');
+    // the drafting table keeps it through a save
+    expect(addBlueprint(g, 'Gleaner', copy)).toBe(true);
+    loadLib(g, JSON.parse(JSON.stringify(saveLib(g))));
+    expect(drafting(g).lib.at(-1)!.bp.items.find((it) => it.def === 'gleaner')?.crop).toBe('cogbean');
+    // on the plate it picks at its own rate into the crock, and the beans it used are paid for
+    const run = startBed(real, LINES.gleaned);
+    expect(run.noBasket).toBe(0);
+    stepBed(run, BED_TICKS);
+    const t = bedTally(run);
+    expect(t.used.find((x) => kDef(x.k).id === 'cogbean')?.n).toBe(5);
+    expect(t.made.find((x) => kDef(x.k).id === 'pickles_cogbean')?.n).toBe(4);
+    expect(score.gleaned).toBe(score.crock1);
+    // a crane does the same on the plate's power
+    expect(score.craned).toBe(score.crock1);
+    // one that never picked has no basket: its line makes nothing
+    const none = startBed(real, picker('gleaner'));
+    expect(none.noBasket).toBe(1);
+    stepBed(none, BED_TICKS);
+    expect(bedScore(none)).toBe(0);
+  });
+
+  it('scores nothing for goods only carried; leaves off a machine whose goods go nowhere; scores below zero for destroying value', () => {
     expect(score.lone).toBe(0);
     expect(score.belted).toBe(0);
     expect(score.passthru).toBe(0);
@@ -122,6 +239,14 @@ describe('the Sprocket Fair test bed', () => {
     const crate = run.g.ents.all().find((e) => e.def.kind === 'shipbin' && e.y === run.g.ents.all().find((c) => c.def.kind === 'chest')!.y + 2)!;
     expect(crate.inv!.count(key('cogbean'))).toBeGreaterThan(0);
     expect(score.leak).toBe(score.crock1);
+    // the critic's rigs: twelve furnaces or sifters, nothing taking their goods away, are left off
+    for (const n of ['rig12', 'rig12sift'] as const) {
+      expect(score[n], n).toBe(0);
+      expect(startBed(real, LINES[n]).idle.length).toBe(12);
+    }
+    expect(startBed(real, LINES.lone).idle).toEqual(['jar']);
+    // sifters turning radishes into seed, arms taking the seed away: they destroy value, and the score says so
+    expect(score.sift6).toBeLessThan(0);
   });
 
   it('leaves the real game untouched', () => {
@@ -143,51 +268,94 @@ describe('the Sprocket Fair test bed', () => {
   });
 
   it("tunes the year's entries to the sample lines", () => {
+    // the sample lines' scores (coins a minute of value added, year 1, no perks), as recorded in src/sim/fair.ts
+    const recorded: Partial<Record<LineName, number>> = {
+      crock1: 68, crock2: 136, crock3: 204, crock4: 271, crock6: 407, gleaned: 68, craned: 68,
+      furnace1: 276, furnace2: 552, furnace6: 1656, tin6: 1933, iron6: 2522,
+      mill1: 373, mill3: 1119, mill3grain: 2138, sift6: -708,
+    };
+    for (const [n, v] of Object.entries(recorded)) near(score[n as LineName], v);
     const [prof, bram, juniper] = fairEntries(1).map((e) => e.score);
     expect(fairEntries(1).map((e) => e.who)).toEqual(['ottoline', 'bram', 'juniper']);
-    // a modest two-crock line beats the Professor's pickles (one crock doesn't)
-    expect(score.crock1).toBeLessThan(prof);
-    expect(score.crock2).toBeGreaterThan(prof);
-    // a line of four to six machines beats Bram's copper (two crocks don't)
-    expect(score.crock2).toBeLessThan(bram);
-    expect(score.crock4).toBeGreaterThan(bram);
-    expect(score.furnace4).toBeGreaterThan(bram);
-    // a strong powered line beats Juniper's meal (two mills, or six crocks, don't)
-    expect(score.mill2).toBeLessThan(juniper);
-    expect(score.crock6).toBeLessThan(juniper);
-    expect(score.mill3).toBeGreaterThan(juniper);
-    expect(fairPlace(1, score.mill3)).toEqual({ beaten: 3, byHalf: false });
+    expect([prof, bram, juniper]).toEqual([50, 250, 2000]);
+    // any first real line beats the Professor: one crock, a gleaner's crock
+    expect(score.crock1).toBeGreaterThan(prof);
+    expect(score.gleaned).toBeGreaterThan(prof);
+    // a dense spring line beats Bram: four crocks, a furnace row, a grist mill (three crocks don't)
+    expect(score.crock3).toBeLessThan(bram);
+    for (const n of ['crock4', 'furnace1', 'mill1'] as const) expect(score[n], n).toBeGreaterThan(bram);
+    // Juniper waits for the Mill era: grist mills on grain (or six furnaces on iron from the Frost); no
+    // crock line, copper or tin, or barley mills beat Juniper
+    for (const n of ['crock6', 'furnace6', 'tin6', 'mill3'] as const) expect(score[n], n).toBeLessThan(juniper);
+    for (const n of ['mill3grain', 'iron6'] as const) expect(score[n], n).toBeGreaterThan(juniper);
+    expect(fairPlace(1, score.mill3grain)).toEqual({ beaten: 3, byHalf: false });
     // the entries come back bigger each year, until the sixth
     for (let y = 2; y <= FAIR_TOP_YEAR; y++) fairEntries(y).forEach((e, i) => expect(e.score).toBeGreaterThan(fairEntries(y - 1)[i].score));
     expect(fairEntries(FAIR_TOP_YEAR + 3)).toEqual(fairEntries(FAIR_TOP_YEAR));
     expect(FAIR_ENTRIES.every((e) => e.what.length > 0)).toBe(true);
   });
 
-  it('pays the candle rewards once a save and a prize each year', () => {
+  it("places the pacing bot's own spring-13 lines as the entries mean to", () => {
+    // seed 2024 (seeds 7 and 99 score the same windows alike)
+    const g = new Game({ seed: 2024, name: 'Bot', farmName: 'Bolt' });
+    const bot = new Bot(g);
+    for (let d = 0; d < 12; d++) bot.playDay();
+    expect([g.time.season, g.time.day]).toEqual([0, 13]);
+    const [prof, bram, juniper] = fairEntries(1).map((e) => e.score);
+    const copy = (x: number, y: number, w = 6, h = 6) => scoreBlueprint(g, copyBlueprint(g, x, y, x + w - 1, y + h - 1));
+    // the keeper's line copied round its crocks (the farm's crate comes along as a crate)
+    const keeper = copy(OPENING.jar[0] - 5, OPENING.jar[1] - 3);
+    // the keeper's river mill copied with its bin and meal chest (the wheel stays: it wants the river)
+    const river = copy(RIVER.bin[0], RIVER.mill[1] - 2);
+    // the bot's own first line: chest, arm, crock, arm, chest
+    const l1 = g.ents.get(bot.lineIn!)!;
+    const own = copy(l1.x, l1.y, 5, 1);
+    near(keeper, 68);
+    near(river, 373);
+    near(own, 68);
+    for (const s of [keeper, river, own]) {
+      expect(s).toBeGreaterThan(prof);
+      expect(s).toBeLessThan(juniper);
+    }
+    expect(own).toBeLessThan(bram);
+    expect(river).toBeGreaterThan(bram);
+  }, 120000);
+
+  it('pays the candle rewards once a save and a prize each year, the Gilded Clock from year 2, and nothing for no value', () => {
     const g = new Game({ seed: 9 });
     const m0 = g.player.money, fest0 = g.counters.festivals ?? 0;
     const tickets = () => g.player.inv.count(key('ticket'));
-    // beat the Professor: the purse (2,500) and the year's first tier (5 tokens, 300 coins)
-    const r1 = fairResult(g, 200);
+    const [prof, , juniper] = fairEntries(1).map((e) => e.score);
+    // a line that adds no value, or destroys it, wins nothing (not even the tokens for trying)
+    expect(fairResult(g, -708)).toMatchObject({ beaten: 0, candles: [], tickets: 0, money: 0, best: false });
+    expect(fairResult(g, 0)).toMatchObject({ candles: [], tickets: 0, money: 0, best: false });
+    expect(g.player.money).toBe(m0);
+    expect(tickets()).toBe(0);
+    expect(g.counters.best_f_fair).toBeUndefined();
+    // a better run the same day: the purse (2,500) and the year's first tier (5 tokens, 300 coins)
+    const r1 = fairResult(g, prof + 10);
     expect(r1).toMatchObject({ beaten: 1, candles: [1], tickets: 5, money: 300, best: true });
     expect(g.player.money).toBe(m0 + 2500 + 300);
     expect(g.counters.festivals).toBe(fest0 + 1);
     // all three: the Lantern and the Medal, and what the top tier adds to the first
-    const r2 = fairResult(g, 2000);
+    const r2 = fairResult(g, juniper + 10);
     expect(r2).toMatchObject({ beaten: 3, candles: [2, 3], tickets: 15, money: 1200 });
     expect(tickets()).toBe(20);
     expect(g.flags.has('founders_medal')).toBe(true);
     expect(g.player.inv.count(key('f_lantern'))).toBe(1);
-    // the same again pays nothing; half again the top entry wins the Gilded Clock
-    expect(fairResult(g, 2000)).toMatchObject({ candles: [], tickets: 0, money: 0, best: false });
-    const r4 = fairResult(g, 2600);
-    expect(r4).toMatchObject({ byHalf: true, candles: [4], tickets: 0, money: 0 });
-    expect(g.player.inv.count(key('f_gilded_clock'))).toBe(1);
-    expect(g.counters.fair_ribbons).toBe(3);
+    // half again the top entry wins no Gilded Clock in the first year, and the same prize pays nothing again
+    expect(CLOCK_YEAR).toBe(2);
+    expect(fairResult(g, juniper * 2)).toMatchObject({ beaten: 3, byHalf: true, candles: [], tickets: 0, money: 0 });
+    expect(g.flags.has('candle_4')).toBe(false);
+    expect(g.counters.fair_ribbons).toBe(2);
     expect(g.counters.festivals).toBe(fest0 + 1);
-    // next year: no candles left, the prize again
+    // the next year: the year's prize again, and half again the top entry wins the Gilded Clock and 20,000
     g.time.year = 2;
-    expect(fairResult(g, 300)).toMatchObject({ beaten: 1, candles: [], tickets: 5, money: 300 });
+    const top2 = Math.max(...fairEntries(2).map((e) => e.score));
+    const m2 = g.player.money;
+    expect(fairResult(g, Math.ceil(top2 * 1.5))).toMatchObject({ beaten: 3, byHalf: true, candles: [4], tickets: 20, money: 1500 });
+    expect(g.player.inv.count(key('f_gilded_clock'))).toBe(1);
+    expect(g.player.money).toBe(m2 + 20000 + 1500);
     // the Blue Ribbon and Going, Going, Gone are achievements with icons that exist
     for (const id of ['fair_ribbon', 'auction_win', 'festivals']) {
       const a = ACHIEVEMENTS.find((x) => x.id === id)!;
@@ -197,13 +365,25 @@ describe('the Sprocket Fair test bed', () => {
   });
 });
 
+/** a fresh game on a festival day at a time, its festival's morning run and the festival ticked on */
+function onDay(seed: number, season: number, day: number, min = 10 * 60): Game {
+  const g = new Game({ seed });
+  g.time.season = season as Game['time']['season'];
+  g.time.day = day;
+  g.time.min = min;
+  SYSTEMS.find((s) => s.name === 'festivals')!.dayStart!(g);
+  for (let i = 0; i < 31; i++) g.tick();
+  return g;
+}
+
 describe('the four festivals', () => {
   it('are on their days with their hosts (none in Clockwork Rush)', () => {
     const by = Object.fromEntries(FESTIVALS.map((f) => [f.id, f]));
     expect(FESTIVALS.map((f) => f.id).sort()).toEqual(['f_fair', 'f_firefly', 'f_haul', 'f_skate']);
     expect(by.f_fair).toMatchObject({ name: 'Sprocket Fair', season: 0, day: 13, start: 540, end: 1080, host: 'ottoline', activity: 'fair' });
+    expect(by.f_fair.chatFirst).toBeUndefined();
     expect(by.f_firefly).toMatchObject({ name: 'Lantern Night', season: 1, day: 20, host: 'sable', activity: 'firefly' });
-    expect(by.f_haul).toMatchObject({ name: 'Harvest Haul', season: 2, day: 16, start: 540, end: 1080, host: 'tobias', activity: 'haul' });
+    expect(by.f_haul).toMatchObject({ name: 'Harvest Haul', season: 2, day: 15, start: 540, end: 1080, host: 'tobias', activity: 'haul' });
     expect(by.f_skate).toMatchObject({ name: 'Frostlight Skate', season: 3, day: 24, host: 'marigold', activity: 'skate' });
     // the game's voice: no em dashes
     const emDash = String.fromCharCode(0x2014);
@@ -216,38 +396,118 @@ describe('the four festivals', () => {
     expect(festivalToday(g)).toBe(null);
   });
 
-  it("opens the Fair at the Professor once she's had her word, and at the Mayor as Kite Day did", () => {
+  it("puts the Harvest Haul on fall 15, a Monday every year (the day the week's standing orders go up), with nothing else that day", () => {
     const g = new Game({ seed: 3 });
-    g.time.season = 0;
-    g.time.day = 13;
-    g.time.min = 10 * 60;
-    for (let i = 0; i < 31; i++) g.tick();
+    for (const year of [1, 2, 5]) {
+      g.time.year = year;
+      g.time.season = 2;
+      g.time.day = 15;
+      expect(g.weekday, `year ${year}`).toBe(0);
+      expect(festivalToday(g)?.id).toBe('f_haul');
+    }
+    expect(FESTIVALS.filter((f) => f.season === 2 && f.day === 15).length).toBe(1);
+    expect(NPCS.filter((n) => n.birthday.season === 2 && n.birthday.day === 15)).toEqual([]);
+  });
+
+  it('opens the Fair at the first F at the Professor, and her key bubble says so; the Mayor opens it too', () => {
+    const g = onDay(3, 0, 13);
     expect(g.sys.festivals.active?.id).toBe('f_fair');
     const opened = () => g.events.some((e) => e.t === 'ui' && e.open === 'festival' && e.arg === 'f_fair');
     const prof = npcSys(g).byId.get('ottoline')!, mayor = npcSys(g).byId.get('tobias')!;
-    g.player.sel = g.player.inv.slots.findIndex((s) => !s);
-    // the Mayor opens it straight away, without a chat (as he opened Kite Day)
+    // at her place by the plate: the bubble over her names the Fair, whatever you hold
+    g.player.where = 'world';
+    g.player.sel = 0;
+    prof.visible = true;
+    [prof.x, prof.y] = [FAIR_SPOTS.ottoline[0] + 0.5, FAIR_SPOTS.ottoline[1] + 0.5];
+    expect(promptAt(g, FAIR_SPOTS.ottoline[0], FAIR_SPOTS.ottoline[1])?.verb).toBe('Enter the Sprocket Fair');
+    // the first F, before any chat today, opens her plate (no chat first)
+    g.events.length = 0;
+    expect(prof.talked).toBe(false);
+    talkTo(g, prof);
+    expect(opened()).toBe(true);
+    expect(g.events.some((e) => e.t === 'ui' && e.open === 'dialog')).toBe(false);
+    // the Mayor opens it straight away too (as he opened Kite Day)
     g.events.length = 0;
     talkTo(g, mayor);
     expect(opened()).toBe(true);
     expect(mayor.talked).toBe(false);
-    // the Professor's first F is the day's chat, the next opens her bed
-    g.events.length = 0;
-    g.sys.dialogue = null;
-    talkTo(g, prof);
-    expect(opened()).toBe(false);
-    expect(prof.talked).toBe(true);
-    expect(g.events.some((e) => e.t === 'ui' && e.open === 'dialog')).toBe(true);
-    g.sys.dialogue = null;
-    talkTo(g, prof);
-    expect(opened()).toBe(true);
-    // the Haul's Mayor opens it at once
-    g.events.length = 0;
+    // the Haul's Mayor opens it at once, on fall 15
+    const h = onDay(3, 2, 15);
+    talkTo(h, npcSys(h).byId.get('tobias')!);
+    expect(h.events.some((e) => e.t === 'ui' && e.open === 'festival' && e.arg === 'f_haul')).toBe(true);
+  });
+
+  it('stands on the square: the plate and the entries clear of everything, the hosts by them and nobody on them', () => {
+    const g = onDay(4, 0, 13);
+    const sq = g.map.loc('square');
+    // every tile the plate and the entries take: on the plaza, in the open, and taken once
+    const taken = new Map<string, number>();
+    const take = (x: number, y: number) => taken.set(`${x},${y}`, (taken.get(`${x},${y}`) ?? 0) + 1);
+    for (let y = FAIR_PLATE.y; y < FAIR_PLATE.y + FAIR_PLATE.h; y++) for (let x = FAIR_PLATE.x; x < FAIR_PLATE.x + FAIR_PLATE.w; x++) take(x, y);
+    for (const l of FAIR_ENTRY_LINES)
+      for (const p of l.pieces) {
+        const [w, h] = STRUCT_BY_ID.get(p.def)!.size;
+        for (let y = p.y; y < p.y + h; y++) for (let x = p.x; x < p.x + w; x++) take(x, y);
+      }
+    expect(taken.size).toBe(36 + 4 + 4 + 1 + 1 + 1 + 1 + 1);
+    for (const [xy, n] of taken) {
+      const [x, y] = xy.split(',').map(Number);
+      expect(n, xy).toBe(1);
+      expect(fairgroundTile(x, y), xy).toBe(true);
+      expect(g.map.buildingAt[g.map.idx(x, y)], xy).toBeFalsy();
+      expect(g.map.obj[g.map.idx(x, y)], xy).toBeFalsy();
+      expect(Math.abs(x - sq[0]) <= 11 && Math.abs(y - sq[1]) <= 8, xy).toBe(true);
+    }
+    expect(FAIR_ENTRY_LINES.map((l) => l.who).sort()).toEqual(['bram', 'juniper', 'ottoline']);
+    // on Fair day the Professor waits by the plate, the Mayor by her, Bram and Juniper by their lines, and nobody stands on them
+    for (const [id, xy] of Object.entries(FAIR_SPOTS)) expect(g.map.loc('fest_' + id)).toEqual(xy);
+    for (const n of NPCS) {
+      const [x, y] = g.map.loc('fest_' + n.id);
+      expect(fairgroundTile(x, y), n.id).toBe(false);
+    }
+    // on another festival's day the ring is as it always was
+    const other = onDay(4, 1, 20, 19 * 60);
+    expect(other.map.loc('fest_ottoline')).not.toEqual(FAIR_SPOTS.ottoline);
+  });
+
+  it('is told ahead: the Professor writes from spring 9 and the Orders board says so; the Haul from fall 12', () => {
+    const g = new Game({ seed: 5, name: 'Robin', farmName: 'Willow' });
+    const letters = () => [...goals(g).mail, ...(goals(g).queue ?? [])];
+    while (g.dayIndex < 7) sleep(g);
+    expect([g.time.season, g.time.day]).toEqual([0, 8]);
+    expect(letters().some((m) => m.id === 'fair_1')).toBe(false);
+    expect(festivalNotice(g)).toBe(null);
+    sleep(g);
+    const letter = letters().find((m) => m.id === 'fair_1')!;
+    expect(letter).toBeTruthy();
+    expect(letter.from).toBe('ottoline');
+    expect(letter.text).toContain('6x6 plate, chests at its start');
+    expect(letter.text).toContain(fairEntries(1)[2].score.toLocaleString('en-US'));
+    expect(letter.text.includes(String.fromCharCode(0x2014))).toBe(false);
+    expect(festivalNotice(g)).toBe('The Sprocket Fair on the 13th: bring a line that fits a 6x6 plate, chests at its start.');
+    // one letter a year, however many mornings it's in the window
+    for (let i = 0; i < 3; i++) sleep(g);
+    expect(letters().filter((m) => m.id === 'fair_1').length).toBe(1);
+    sleep(g);
+    expect(g.time.day).toBe(13);
+    expect(festivalNotice(g)).toContain('is on today');
+    sleep(g);
+    expect(festivalNotice(g)).toBe(null);
+    // the Haul: from fall 12, on the Monday
     g.time.season = 2;
+    g.time.day = 11;
+    expect(festivalNotice(g)).toBe(null);
+    g.time.day = 12;
+    expect(festivalNotice(g)).toBe('The Harvest Haul on Monday the 15th: every standing order pays double that day.');
+    g.time.day = 15;
+    expect(festivalNotice(g)).toContain('every standing order pays double');
     g.time.day = 16;
-    for (let i = 0; i < 31; i++) g.tick();
-    talkTo(g, mayor);
-    expect(g.events.some((e) => e.t === 'ui' && e.open === 'festival' && e.arg === 'f_haul')).toBe(true);
+    expect(festivalNotice(g)).toBe(null);
+    // none in Clockwork Rush
+    g.time.season = 0;
+    g.time.day = 10;
+    g.mode = 'rush';
+    expect(festivalNotice(g)).toBe(null);
   });
 
   it('remaps a 1.x save: Kite Day counts as the Fair, the Pumpkin Roll as the Haul', () => {
@@ -263,7 +523,7 @@ describe('the four festivals', () => {
     expect(g2.counters.best_f_pumpkin).toBeUndefined();
     expect(g2.counters.festivals).toBe(3);
     // Kite Day's prize this year was paid: a Fair run still wins its candle, not the year's prize again
-    const r = fairResult(g2, 200);
+    const r = fairResult(g2, fairEntries(1)[0].score + 10);
     expect(r).toMatchObject({ candles: [1], tickets: 0, money: 0 });
     expect(g2.counters.festivals).toBe(3);
   });
@@ -284,25 +544,25 @@ describe('the Harvest Haul', () => {
     const pickle = key('pickles_cogbean');
     const o = standing(g, 40);
     const day = (season: number, d: number) => { g.time.season = season as Game['time']['season']; g.time.day = d; };
-    day(2, 16);
+    day(2, 15);
     expect(haulToday(g)).toBe(true);
     expect(payFor(g, o, pickle, 3)).toBe(900);
     // silver doubles on top
     expect(payFor(g, o, key('pickles_cogbean', 1), 1)).toBe(600);
     // a Today ask isn't a standing order
     expect(payFor(g, { ...o, kind: 'today' }, pickle, 3)).toBe(450);
-    for (const [s, d] of [[2, 15], [2, 17], [0, 13], [1, 16]]) {
+    for (const [s, d] of [[2, 14], [2, 16], [0, 13], [1, 15]]) {
       day(s, d);
       expect(haulToday(g)).toBe(false);
       expect(payFor(g, o, pickle, 3)).toBe(450);
     }
     // by hand, at Rowan's
-    day(2, 16);
+    day(2, 15);
     g.player.inv.add(pickle, 4);
     const m0 = g.player.money;
     expect(handDeliver(g, 'rowan', pickle)).toBe(true);
     expect(g.player.money - m0).toBe(4 * 300);
-    day(2, 17);
+    day(2, 16);
     g.player.inv.add(pickle, 4);
     const m1 = g.player.money;
     handDeliver(g, 'rowan', pickle);
@@ -310,14 +570,14 @@ describe('the Harvest Haul', () => {
     // by the post: a crate tagged for Rowan
     const bin = g.ents.get(g.shipBinId)!;
     bin.st.tag = 'rowan';
-    day(2, 16);
+    day(2, 15);
     bin.inv!.add(pickle, 5);
     expect(consign(g, [bin]).total).toBe(5 * 300);
     day(2, 18);
     bin.inv!.add(pickle, 5);
     expect(consign(g, [bin]).total).toBe(5 * 150);
     // Clockwork Rush has no festivals
-    day(2, 16);
+    day(2, 15);
     g.mode = 'rush';
     expect(haulToday(g)).toBe(false);
   });

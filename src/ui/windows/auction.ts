@@ -1,7 +1,7 @@
 // The auction window (ROADMAP.md 7.7 and 7.9, Phase 5): the Harvest Haul's lot, called by the Mayor
 // with Roxy and Bram bidding, and Mags' Sunday lot at the cart, with Roxy and the Professor. You
 // bid in steps; they answer; "Going once... going twice... Sold!". The rules: src/sim/auction.ts.
-// Also the Haul's festival panel (F at the Mayor on fall 16): the lot, the double pay, the stall.
+// Also the Haul's festival panel (F at the Mayor on fall 15): the lot, the double pay, the stall.
 import { C } from '../../data/palette';
 import { FESTIVALS } from '../../data/goals';
 import { ITEM_BY_ID } from '../../data/items';
@@ -82,18 +82,19 @@ function drawAuction(ui: UI, play: PlayScreen, st: WinState): boolean {
   const lx = x + 18 + a.lot.items.length * 24;
   ui.text(ellipsize(a.lot.name, x + W - 14 - lx), lx, y + 64, C.ink);
   ui.text(`Worth about ${n0(a.lot.worth)} coins`, lx, y + 74, C.walnut);
-  // the bidders, and the standing bid
-  let bx = x + 14;
-  for (const b of a.bidders) {
+  // the bidders and you, a column each: portrait, name (cut to its column: "Prof. Cogwhistle"), last bid
+  const colW = Math.floor((W - 28) / (a.bidders.length + 1));
+  a.bidders.forEach((b, i) => {
+    const bx = x + 14 + i * colW;
     portrait(ui, b.id, bx, y + 92, 16, 0);
     const last = [...a.log].reverse().find((l) => l.who === b.id);
-    ui.text(Name(b.id), bx + 28, y + 95, a.high === b.id ? C.amber : C.ink);
+    ui.text(ellipsize(Name(b.id), colW - 32), bx + 28, y + 95, a.high === b.id ? C.amber : C.ink);
     ui.text(last ? n0(last.amt) : '-', bx + 28, y + 105, C.walnut);
-    bx += 92;
-  }
+  });
+  const mx = x + 14 + a.bidders.length * colW;
   const mine = [...a.log].reverse().find((l) => l.who === 'you');
-  ui.text('You', bx + 4, y + 95, a.high === 'you' ? C.amber : C.ink);
-  ui.text(mine ? n0(mine.amt) : '-', bx + 4, y + 105, C.walnut);
+  ui.text('You', mx + 4, y + 95, a.high === 'you' ? C.amber : C.ink);
+  ui.text(mine ? n0(mine.amt) : '-', mx + 4, y + 105, C.walnut);
   ui.text(a.high ? `Standing bid: ${n0(a.bid)} (${name(a.high)})` : `Opening at ${n0(a.bid)}`, x + 14, y + 124, C.ink, { scale: 2 });
   const by = y + H - 26;
   if (a.call !== 'sold') {

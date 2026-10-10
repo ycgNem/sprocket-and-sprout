@@ -1,9 +1,11 @@
 // The Sprocket Fair and the Harvest Haul, real input (keyboard F, mouse clicks on the windows'
 // buttons) against a running dev server:
-// 1) spring 13 at the square: F at the Professor opens the Fair; pick the 6x6 crock line from the
-//    drafting table's library, Run, watch the minute, read the score and the prize;
-// 2) fall 16: F at the Mayor opens the Haul; to the auction; bid by clicking until the lot is yours,
-//    and check it's in the bag.
+// 1) spring 13 at the square: her key bubble says "Enter the Sprocket Fair" and the first F at the
+//    Professor opens it; pick the 6x6 crock line from the drafting table's library, Run, watch the
+//    first minute and the fast four, read the score (the sim's own for that line) and the prize;
+// 2) the drafting table's Bench test: click the line, Bench test, the same score and no prize;
+// 3) fall 15, a new day: F at the Mayor opens the Haul; to the auction; bid by clicking until the lot
+//    is yours, and check it's in the bag.
 // Usage: BASE=http://127.0.0.1:5182/ node e2e/fairs.mjs   (prints PASS/FAIL lines; screenshots in e2e/out/)
 import { chromium } from 'playwright';
 const base = process.env.BASE ?? 'http://localhost:5173/';
@@ -27,6 +29,7 @@ for (let i = 0; i < 8 && await ev(() => !!window.__play.win); i++) { await page.
 await ev(async () => {
   window.__drafting = await import('/src/sim/drafting.ts');
   window.__inv = await import('/src/sim/inventory.ts');
+  window.__testbed = await import('/src/sim/testbed.ts');
 });
 const calm = () => ev(() => {
   const g = window.__game, p = window.__play;
@@ -73,26 +76,32 @@ await ev(() => {
   const row = (y) => [it('chest_wood', 0, y), it('arm_basic', 1, y, 1), it('jar', 2, y, 0, { last: 'jar:pickles_cogbean' }), it('arm_basic', 3, y, 1), it('shipping_crate', 4, y)];
   p.blueprint = { items: [...row(0), ...row(1)], w: 5, h: 2 };
   window.__drafting.addBlueprint(g, 'Pickle row', { items: [0, 1, 2, 3].flatMap(row), w: 5, h: 4 });
-  g.weather = 'sun';
-  g.time.season = 0; g.time.day = 13; g.time.min = 10 * 60;
-  window.__app.renderer.invalidateAll?.();
+  // to bed on the evening of spring 12: the Fair's morning comes as the game runs it
+  g.time.season = 0; g.time.day = 12; g.time.min = 22 * 60;
+  g.goToBed();
+  g.time.min = 1559.99;
+  g.tick();
 });
 await wait(900);
 await calm();
+await ev(() => {
+  const g = window.__game;
+  g.time.min = 10 * 60; g.weather = 'sun';
+  window.__app.renderer.invalidateAll?.();
+});
+await wait(600);
+await calm();
 const m1 = await meet('ottoline');
-await wait(150);
-// she has a word with you first (your chat for the day), then F again opens her test bed
+check(m1.spot.join() === '133,66', `on Fair day the Professor waits by the plate's south edge: ${JSON.stringify(m1)}`);
+await ev(() => { window.__app.renderer.juice.banners.length = 0; });
+await wait(300);
+// the key bubble over her says what F does, and the first F (no chat first) opens her plate
+const bubble = await ev(() => window.__play.promptKey);
+check(/Enter the Sprocket Fair/.test(bubble), `her key bubble: ${JSON.stringify(bubble)}`);
 await page.keyboard.press('KeyF');
 await wait(500);
-const f0 = await ev(() => ({ win: window.__play.win?.id, npc: window.__play.win?.arg?.npc, line: window.__play.win?.arg?.pages?.[0], talked: window.__game.sys.npcs.byId.get('ottoline').talked }));
-check(f0.win === 'dialog' && f0.npc === 'ottoline' && f0.talked, `F at the Professor on spring 13: her word first: ${JSON.stringify(f0)}`);
-for (let i = 0; i < 6 && await ev(() => window.__play.win?.id === 'dialog'); i++) { await page.keyboard.press('Enter'); await wait(250); }
-await meet('ottoline');
-await wait(150);
-await page.keyboard.press('KeyF');
-await wait(500);
-const f1 = await ev(() => ({ win: window.__play.win?.id, arg: window.__play.win?.arg, active: window.__game.sys.festivals?.active?.id }));
-check(f1.win === 'festival' && f1.arg === 'f_fair', `then F opens the Sprocket Fair: ${JSON.stringify({ ...m1, ...f1 })}`);
+const f1 = await ev(() => ({ win: window.__play.win?.id, arg: window.__play.win?.arg, active: window.__game.sys.festivals?.active?.id, talked: window.__game.sys.npcs.byId.get('ottoline').talked }));
+check(f1.win === 'festival' && f1.arg === 'f_fair' && !f1.talked, `the first F at the Professor on spring 13 opens the Sprocket Fair: ${JSON.stringify({ ...m1, ...f1 })}`);
 await page.screenshot({ path: 'e2e/out/fairs-1-pick.png' });
 // pick the library's pickle row, then Run
 const picked = (await clickBtn('row1')) && (await wait(250), await ev(() => window.__play.win?.data?.sel));
@@ -100,28 +109,66 @@ check(picked === 1, `clicked the library's Pickle row: sel=${picked}`);
 await clickBtn('run');
 await wait(400);
 const r0 = await ev(() => ({ mode: window.__play.win?.data?.mode, name: window.__play.win?.data?.name, ticks: window.__play.win?.data?.run?.ticks }));
-check(r0.mode === 'run' && r0.name === 'Pickle row', `Run builds it on the bed: ${JSON.stringify(r0)}`);
+check(r0.mode === 'run' && r0.name === 'Pickle row', `Run builds it on the plate: ${JSON.stringify(r0)}`);
 await wait(7000);
-const mid = await ev(() => ({ ticks: window.__play.win?.data?.run?.ticks, skipped: window.__play.win?.data?.run?.skipped }));
+const mid = await ev(() => { const r = window.__play.win?.data?.run; return { ticks: r?.ticks, skipped: r?.skipped, idle: r?.idle, missing: r?.missing }; });
 await page.screenshot({ path: 'e2e/out/fairs-2-run.png' });
-check(mid.ticks > 600 && mid.ticks < 3600 && mid.skipped.length === 0, `the minute plays out on the bed (about 15 s): ${mid.ticks} ticks after 7.4 s, nothing left off`);
+check(mid.ticks > 600 && mid.ticks < 3600 && !mid.skipped.length && !mid.idle.length && !mid.missing.length, `the first minute plays out on the plate (about 12 s of the 15): ${mid.ticks} ticks after 7.4 s, nothing left off`);
 let res = null;
 for (let i = 0; i < 40 && !res; i++) { await wait(500); res = await ev(() => (window.__play.win?.data?.mode === 'done' ? window.__play.win.data.res : null)); }
 const st1 = await ev(() => ({ money: window.__game.player.money, tickets: window.__game.player.inv.countId('ticket'), candles: [1, 2, 3, 4].filter((c) => window.__game.flags.has('candle_' + c)), lantern: window.__game.player.inv.countId('f_lantern'), entries: window.__fairEntries }));
-// four crocks of pickles make about 450 coins a minute: past the Professor's 140 and Bram's 380
-check(!!res && res.score > 0 && res.beaten >= 1, `score and place: ${JSON.stringify(res)}`);
-const want = [0, 5, 10, 20][res?.beaten ?? 0];
+// four crocks of pickles add about 270 coins a minute: past the Professor's 50 and Bram's 250
+const sim = await ev(() => window.__testbed.scoreBlueprint(window.__game, window.__drafting.drafting(window.__game).lib.find((e) => e.name === 'Pickle row').bp));
+check(!!res && res.score > 0 && res.score === sim && res.beaten === 2, `score and place: ${JSON.stringify(res)} (the sim scores the line ${sim})`);
+const want = res && res.score > 0 ? [2, 5, 10, 20][res.beaten] : 0;
 check(!!res && res.candles.join() === st1.candles.join() && res.candles.length === res.beaten && st1.tickets === want && res.tickets === want, `prizes: candles ${JSON.stringify(res?.candles)} (${st1.lantern ? "the purse and the Founder's Lantern" : 'the purse'}), ${st1.tickets} tokens and ${res?.money} coins`);
 await page.screenshot({ path: 'e2e/out/fairs-3-result.png' });
 await clickBtn('done');
 await wait(300);
 check(!(await ev(() => window.__play.win)), 'Done closes the Fair');
 
-// ---------------- 2) the Harvest Haul ----------------
+// ---------------- 2) the drafting table's bench test ----------------
+await ev(() => window.__play.openWindow('drafting'));
+await wait(400);
+await clickBtn('row0');
+await wait(250);
+const dsel = await ev(() => ({ win: window.__play.win?.id, sel: window.__play.win?.data?.sel, bench: !!window.__play.win?.data?.btn?.bench }));
+await page.screenshot({ path: 'e2e/out/fairs-6-drafting.png' });
+check(dsel.win === 'drafting' && dsel.sel === 0 && dsel.bench, `the drafting table, the Pickle row chosen: ${JSON.stringify(dsel)}`);
+const before = await ev(() => ({ money: window.__game.player.money, tickets: window.__game.player.inv.countId('ticket'), best: window.__game.counters.best_f_fair, paid: window.__game.counters.fair_paid_1 }));
+await clickBtn('bench');
+await wait(400);
+const b0 = await ev(() => ({ win: window.__play.win?.id, mode: window.__play.win?.data?.mode, name: window.__play.win?.data?.name }));
+check(b0.win === 'bench' && b0.mode === 'run' && b0.name === 'Pickle row', `Bench test runs it on the plate: ${JSON.stringify(b0)}`);
+let bres = null;
+for (let i = 0; i < 50 && !bres; i++) { await wait(500); bres = await ev(() => (window.__play.win?.data?.mode === 'done' ? { score: window.__testbed.bedScore(window.__play.win.data.run), res: window.__play.win.data.res ?? null } : null)); }
+await page.screenshot({ path: 'e2e/out/fairs-7-bench.png' });
+const after = await ev(() => ({ money: window.__game.player.money, tickets: window.__game.player.inv.countId('ticket'), best: window.__game.counters.best_f_fair, paid: window.__game.counters.fair_paid_1 }));
+check(!!bres && bres.score === sim && bres.res === null && JSON.stringify(after) === JSON.stringify(before), `the bench test scores it ${bres?.score} and pays nothing: ${JSON.stringify(before)} -> ${JSON.stringify(after)}`);
+await clickBtn('done');
+await wait(300);
+const back = await ev(() => ({ win: window.__play.win?.id, sel: window.__play.win?.data?.sel }));
+check(back.win === 'drafting' && back.sel === 0, `Back returns to the drafting table on the same line: ${JSON.stringify(back)}`);
+await ev(() => window.__play.closeWindow());
+await wait(200);
+
+// ---------------- 3) the Harvest Haul ----------------
+// a new day: to bed on the evening of fall 14, and the Haul's morning comes as the game runs it
 await ev(() => {
   const g = window.__game;
-  g.time.season = 2; g.time.day = 16; g.time.min = 10 * 60; g.weather = 'sun';
+  g.time.season = 2; g.time.day = 14; g.time.min = 22 * 60;
   g.player.money = 60000;
+  g.goToBed();
+  g.time.min = 1559.99;
+  g.tick();
+});
+await wait(900);
+await calm();
+const morning = await ev(() => { const g = window.__game; return { season: g.time.season, day: g.time.day, min: Math.round(g.time.min), weekday: g.weekday }; });
+check(morning.season === 2 && morning.day === 15 && morning.weekday === 0, `slept into fall 15, a Monday: ${JSON.stringify(morning)}`);
+await ev(() => {
+  const g = window.__game;
+  g.time.min = 10 * 60; g.weather = 'sun';
   window.__app.renderer.invalidateAll?.();
 });
 await wait(900);
@@ -131,7 +178,7 @@ await wait(150);
 await page.keyboard.press('KeyF');
 await wait(500);
 const h1 = await ev(() => ({ win: window.__play.win?.id, arg: window.__play.win?.arg }));
-check(h1.win === 'festival' && h1.arg === 'f_haul', `F at the Mayor on fall 16 opens the Harvest Haul: ${JSON.stringify({ ...m2, ...h1 })}`);
+check(h1.win === 'festival' && h1.arg === 'f_haul', `F at the Mayor on fall 15 (a ${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][await ev(() => window.__game.weekday)]}) opens the Harvest Haul: ${JSON.stringify({ ...m2, ...h1 })}`);
 await page.screenshot({ path: 'e2e/out/fairs-4-haul.png' });
 await clickBtn('auction');
 await wait(400);

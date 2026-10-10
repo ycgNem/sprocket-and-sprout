@@ -359,21 +359,23 @@ export const MEGAPROJECTS: MegaprojectDef[] = [
 export const MEGA_BY_ID = new Map(MEGAPROJECTS.map((m) => [m.id, m]));
 
 export const FESTIVALS: FestivalDef[] = [
-  // the Sprocket Fair (2.0, was Kite Day): bring a line to the Professor's 6x6 test bed (src/sim/testbed.ts,
-  // src/sim/fair.ts); its prizes score in entries beaten, and the candle rewards come once per save
-  // the Professor runs the bed and has a word with you first; the Mayor opens the Fair as he opened Kite
-  // Day (the day plays as it did: the pacing bot's numbers stay put)
-  { id: 'f_fair', name: 'Sprocket Fair', the: true, season: 0, day: 13, start: 540, end: 1080, host: 'ottoline', cohost: 'tobias', chatFirst: true, activity: 'fair',
-    desc: "Bring a line to the Professor's test bed on the square. Whatever it makes in a minute is judged against the town's best.",
-    intro: "Welcome to the Sprocket Fair! Choose a blueprint that fits my 6x6 test bed and I'll build it right here. Full chests, stoked furnaces, a humming grid, then one minute on the clock. What it finishes is judged at market prices against this year's entries.",
+  // the Sprocket Fair (2.0, was Kite Day): bring a line to the Professor's 6x6 plate on the square
+  // (src/sim/testbed.ts, src/sim/fair.ts); its prizes score in entries beaten, and the candle rewards
+  // come once per save. The first F at the Professor opens it (the Mayor opens it too, as he opened Kite
+  // Day); the plate and the three entries stand on the square while it's on (src/render/fairground.ts)
+  { id: 'f_fair', name: 'Sprocket Fair', the: true, season: 0, day: 13, start: 540, end: 1080, host: 'ottoline', cohost: 'tobias', activity: 'fair',
+    desc: "Bring a line to the Professor's 6x6 plate on the square. The value it adds in five minutes is judged against the town's best.",
+    intro: "Welcome to the Sprocket Fair! Pick a blueprint that fits my 6x6 plate and I'll build it right here: its chests filled from your farm's goods, the burners stoked, the plate's grid humming. Five minutes on the clock, and the value it adds is judged against this year's entries.",
     prizes: [{ score: 1, items: [{ item: 'ticket', n: 5 }], money: 300 }, { score: 2, items: [{ item: 'ticket', n: 10 }], money: 800 }, { score: 3, items: [{ item: 'ticket', n: 20 }], money: 1500 }] },
   { id: 'f_firefly', name: 'Lantern Night', season: 1, day: 20, start: 1080, end: 1440, host: 'sable', activity: 'firefly',
     desc: 'Fireflies and paper lanterns over the summer square. Catch as many fireflies as you can!',
     intro: 'Lantern Night! Click the fireflies before they drift away. Golden ones are worth extra.',
     prizes: [{ score: 15, items: [{ item: 'ticket', n: 5 }], money: 300 }, { score: 30, items: [{ item: 'ticket', n: 10 }, { item: 'sunbell_seed', n: 10 }], money: 900 }, { score: 45, items: [{ item: 'ticket', n: 20 }, { item: 'lamp', n: 4 }], money: 1800 }] },
   // the Harvest Haul (2.0, was the Pumpkin Roll): every standing order pays double today (orders.ts),
-  // and the Mayor auctions a rare lot (src/sim/auction.ts). Its prizes: 1 for bidding, 2 for winning
-  { id: 'f_haul', name: 'Harvest Haul', the: true, season: 2, day: 16, start: 540, end: 1080, host: 'tobias', activity: 'haul',
+  // and the Mayor auctions a rare lot (src/sim/auction.ts). Its prizes: 1 for bidding, 2 for winning.
+  // Fall 15 is a Monday, the day the week's standing orders go up, so a line that fills them by the
+  // post is paid double too (the Orders board says so from fall 12)
+  { id: 'f_haul', name: 'Harvest Haul', the: true, season: 2, day: 15, start: 540, end: 1080, host: 'tobias', activity: 'haul',
     desc: "The town's trade fair: every standing order pays double today, and the Mayor auctions a rare lot on the square.",
     intro: "Welcome, welcome to the Harvest Haul! Every business in town pays double for its standing order today, by hand or by the post. And on the block I have this year's lot. Roxy and Bram have been eyeing it since breakfast.",
     prizes: [{ score: 1, items: [{ item: 'ticket', n: 10 }], money: 0 }, { score: 2, items: [{ item: 'ticket', n: 20 }], money: 0 }] },

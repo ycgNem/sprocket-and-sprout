@@ -97,11 +97,14 @@ export function gleanerTick(g: Game, e: Ent, dt: number) {
     return;
   }
   const dawn = dawnOn(g, e);
+  // the Sprocket Fair's test bed has no field: a basket of the crop it last picked (src/sim/testbed.ts)
+  if (g.sys.bedBasket?.(g, e)) return;
   for (const [x, y] of around(g, e)) {
     if (!g.map.inb(x, y)) continue;
     const i = g.map.idx(x, y);
     const s = g.soil.get(i);
     if (!pickable(g, s?.crop, dawn)) continue;
+    e.st.lastCrop = s!.crop!.id;
     const out = harvest(g, i, g.rng, true);
     if (!out) continue;
     fieldHand(g, e, out);
