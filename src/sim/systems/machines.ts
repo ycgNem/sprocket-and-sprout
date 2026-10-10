@@ -223,12 +223,16 @@ function fieldCrop(g: Game, field: Ent): string | null {
   return prod ? (ITEM_BY_ID.get(prod)?.name ?? prod).toLowerCase() : null;
 }
 
-/** Crock Master's machines: crocks, kegs and cheese presses */
-const CROCKS = new Set(['jar', 'keg', 'press']);
+/** professions that run a kind of machine faster: perk id -> stations and the boost */
+const STATION_PERKS: [string, Set<string>, number][] = [
+  ['artisan', new Set(['jar', 'keg', 'press']), 1.2], // Crock Master
+  ['gatherer', new Set(['sawmill', 'charcoal']), 1.25], // Sawyer
+  ['blacksmith', new Set(['smelter']), 1.25], // Furnace Hand
+];
 
 export function updateMachines(g: Game, dt: number) {
   const speedMod = g.mods.machineSpeed + (g.sys.megaBonus?.machine ?? 0) + (g.hasPerk('engineer') ? 0.1 : 0) + (g.hasPerk('industrialist') ? 0.15 : 0);
-  const crockMaster = g.hasPerk('artisan');
+  const boosts = STATION_PERKS.filter(([id]) => g.hasPerk(id));
   const now = g.simTime;
   for (const e of g.ents.machines) {
     const m = e.mach!;
@@ -289,7 +293,7 @@ export function updateMachines(g: Game, dt: number) {
     }
     // the keeper's jar runs its first few batches fast, so the opening's first pickle comes quickly;
     // a machine fitted with lubricant runs 10% faster for good
-    let sp = m.speed * speedMod * (e.st.quick > 0 ? 4 : 1) * (e.st.lubed ? 1.1 : 1) * (crockMaster && CROCKS.has(e.def.station ?? '') ? 1.2 : 1);
+    let sp = m.speed * speedMod * (e.st.quick > 0 ? 4 : 1) * (e.st.lubed ? 1.1 : 1) * boosts.reduce((a, [, st, k]) => (st.has(e.def.station ?? '') ? a * k : a), 1);
     if (e.def.powerUse) {
       sp *= e.sat;
       if (e.sat <= 0.001) {

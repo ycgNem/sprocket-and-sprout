@@ -1,7 +1,8 @@
 // Professions: at skill levels 5 and 10 you choose one of two perks. Tinkering comes first and rises
 // with what your machines make; farming's are about the field machines and the crock, not sell
-// prices (the critic's Stardew test, Phases 3+4 re-check: "only the names changed"). Ids are kept
-// from 1.x, so a save keeps its picks (with the new effects).
+// prices (the critic's Stardew test, Phases 3+4 re-check: "only the names changed"); foraging and
+// mining each have one that runs their machines too (Sawyer, Drill Rigger, Furnace Hand). Ids are
+// kept from 1.x, so a save keeps its picks (with the new effects).
 export interface PerkDef { id: string; skill: string; level: 5 | 10; name: string; desc: string }
 
 export const PERKS: PerkDef[] = [
@@ -14,12 +15,12 @@ export const PERKS: PerkDef[] = [
   { id: 'artisan', skill: 'farming', level: 10, name: 'Crock Master', desc: 'Crocks, kegs and cheese presses work 20% faster.' },
   { id: 'agriculturist', skill: 'farming', level: 10, name: 'Seedwright', desc: 'All crops grow 10% faster.' },
   { id: 'lumberjack', skill: 'foraging', level: 5, name: 'Woodcutter', desc: 'Felled trees drop 25% more wood, and hardwood more often.' },
-  { id: 'gatherer', skill: 'foraging', level: 5, name: 'Forager', desc: '20% chance to gather double forage.' },
+  { id: 'gatherer', skill: 'foraging', level: 5, name: 'Sawyer', desc: 'Sawmills and charcoal kilns work 25% faster.' },
   { id: 'botanist', skill: 'foraging', level: 10, name: 'Wildcrafter', desc: 'Forage is always at least gold quality.' },
   { id: 'tapper_pro', skill: 'foraging', level: 10, name: 'Woodwright', desc: 'Planks, beams and wood goods sell for 40% more.' },
   { id: 'miner', skill: 'mining', level: 5, name: 'Prospector', desc: '+1 ore from every ore rock.' },
-  { id: 'geologist', skill: 'mining', level: 5, name: 'Gemcutter', desc: 'Gems and minerals sell for 30% more.' },
-  { id: 'blacksmith', skill: 'mining', level: 10, name: 'Smelter', desc: 'Metal bars sell for 40% more.' },
+  { id: 'geologist', skill: 'mining', level: 5, name: 'Drill Rigger', desc: 'Drills at the quarry work 25% faster.' },
+  { id: 'blacksmith', skill: 'mining', level: 10, name: 'Furnace Hand', desc: 'Furnaces and blast furnaces smelt 25% faster.' },
   { id: 'excavator', skill: 'mining', level: 10, name: 'Delver', desc: 'Geodes and relics turn up twice as often.' },
   { id: 'angler', skill: 'fishing', level: 5, name: 'Fishmonger', desc: 'Fish sell for 25% more.' },
   { id: 'trapper', skill: 'fishing', level: 5, name: 'Trap-setter', desc: 'Fish traps catch one extra shellfish each day.' },

@@ -402,6 +402,23 @@ describe('professions', () => {
     expect(fieldReach(g2, crane)).toBe(4);
   });
 
+  it("Sawyer runs a charcoal kiln a quarter faster: foraging's and mining's perks work machines too", async () => {
+    const { machInsert } = await import('../src/sim/systems/machines');
+    const run = (perk: string | null) => {
+      const g = new Game({ seed: 24 });
+      if (perk) g.player.perks.push(perk);
+      const kiln = place(g, 'charcoal_kiln', 60, 36, 0);
+      for (let s = 0; s < 40; s++) {
+        machInsert(g, kiln, key('wood'), 99, true);
+        kiln.mach!.outBuf = [];
+        for (let i = 0; i < 60 * 10; i++) g.tick();
+      }
+      return kiln.mach!.made;
+    };
+    const plain = run(null), sawyer = run('gatherer');
+    expect(sawyer).toBeGreaterThan(plain * 1.15);
+  });
+
   it('Tinkering comes first and rises with what your machines make', async () => {
     const { SKILLS } = await import('../src/sim/Game');
     expect(SKILLS[0]).toBe('tinkering');

@@ -596,7 +596,7 @@ export function interact(g: Game, tx: number, ty: number): boolean {
       const lvl = p.skills.foraging ?? 0;
       const luck = g.buffLvl('luck');
       const q = g.hasPerk('botanist') ? 2 : g.rng.next() < lvl * 0.05 + luck * 0.04 ? 2 : g.rng.next() < lvl * 0.08 + 0.1 ? 1 : 0;
-      g.give(key(id, ITEM_BY_ID.get(id)?.quality ? q : 0), g.rng.next() < luck * 0.1 + (g.hasPerk('gatherer') ? 0.2 : 0) ? 2 : 1);
+      g.give(key(id, ITEM_BY_ID.get(id)?.quality ? q : 0), g.rng.next() < luck * 0.1 ? 2 : 1);
       g.addXp('foraging', 7);
       g.count('foraged');
       g.emit({ t: 'sfx', id: 'pickup' });

@@ -507,7 +507,10 @@ recommendations are the decisions.
       first choice. Farming's perks work the field machines and the crock instead of raising prices:
       Field Hand (gleaners, cranes, sowers and the gantry 25% faster) or Long Reach (a gleaner's 5x5,
       cranes and sowers a tile further) at 5, Seedwright or Crock Master (crocks, kegs and presses 20%
-      faster) at 10. Ids are kept. The other skills' perks are unchanged (Phase 5 may reshape them).
+      faster) at 10. Foraging and mining each trade a sell-price or luck perk for one that runs their
+      machines: Sawyer (sawmills and charcoal kilns 25% faster, was Forager), Drill Rigger (quarry
+      drills 25% faster, was Gemcutter), Furnace Hand (furnaces 25% faster, was Smelter's +40% bars).
+      Ids are kept. Fishing's and combat's perks are unchanged (Phase 5 may reshape them).
     - *The Works tab lists works under the place they serve* (the Copper Kettle, the clocktower, the
       smithy, the Mercantile, your farm, the quarry), the Winter Pantry is the Kettle's Cellar, and
       finishing every work at one place is no longer a Community Center room with its own bonus.

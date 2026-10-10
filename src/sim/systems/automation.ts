@@ -199,7 +199,7 @@ function drillTick(g: Game, e: Ent, dt: number) {
       return;
     }
   }
-  let rate = (e.def.speed ?? 0.5) * g.mods.machineSpeed;
+  let rate = (e.def.speed ?? 0.5) * g.mods.machineSpeed * (g.hasPerk('geologist') ? 1.25 : 1);
   if (e.def.fuel) {
     if (e.st.burn <= 0) {
       const f = e.st.fuel;
