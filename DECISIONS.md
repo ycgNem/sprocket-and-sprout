@@ -606,3 +606,49 @@ recommendations are the decisions.
     walk to the Town Mill moved the bot's dice and failed seed 2024's day-5 test; the bio says
     Juniper stops on the bridge to listen to it), and Hazel's two Today asks sit where her old two
     were, so the day's draw picks the same villagers.
+109. **The Sprocket Fair's test bed (7.7, Phase 5; spring 13, Kite Day's place).** You bring a
+    blueprint that fits 6x6 (the blueprint tool's copy or a drafting-table entry) and the Professor
+    builds it in a throwaway `new Game({ blank })` with your research, rewards, flags, mods, perks
+    and bonuses, so the line runs as at home. A chest that feeds a machine gets 99 of each input
+    (its locked recipe's, else the one it last ran, a blueprint item's new `last`, else the first it
+    can run), a burner 20 coal, and `sys.bedPower` powers every consumer fully; it runs 60 s of works
+    time (about 10 ms). The score is the real game's market value of the goods made a minute (in a
+    crate, a chest nothing takes from, or a machine's output nothing takes from, each capped by what
+    was made, so goods that only passed through score nothing; a last batch at the bell counts by its
+    progress). Pieces that can't stand on the bed (a water wheel, a drill) are left off and named.
+    The Mayor co-hosts and opens it; the Professor's first F that day is her chat, so a bot's (and a
+    player's) day keeps its dice.
+110. **The Fair's entries and prizes.** Three entries, each roughly that villager's own line: the
+    Professor's pickled cogbeans (140 a minute in year 1), Bram's copper bars (380, about one
+    furnace), Juniper's barley meal (1,700, about two mills), growing x1.6 a year to year 6. Two
+    crocks beat the Professor, four beat Bram, three mills with Brass Arms beat Juniper; scoring by
+    value favours valuable goods, as the works do. Once a save, the four Founder's candles (flags
+    `candle_1`..`candle_4`, so 1.x saves keep what they won): beat one entry for a 2,500-coin purse,
+    two for the Lantern, three for the Medal (+5%), all three and the top one by half for the Gilded
+    Clock and 20,000. Every year a prize by the best tier (2 tokens for trying; 5 and 300, 10 and
+    800, 20 and 1,500), a better run later that year paying the difference.
+111. **The Harvest Haul (fall 16, the Pumpkin Roll's place).** Every standing order pays double all
+    day, by hand and by the noon, 6pm and night posts (`payFor(g, o, k, n)`); Today asks, contracts
+    and works don't. The Mayor's auction: one lot a year in turn (a Clockwork Assembler, brass gears
+    and spark coils, starmetal bars, Gilded Express Belts), opening at half its worth and stepping by
+    5%, against Roxy and Bram whose hidden limits are 0.75-1.2x worth, seeded per save and year; you
+    pay your bid or lose at no cost. 10 tokens for bidding, 20 for winning. No Haul in Rush.
+112. **Mags the freight broker (7.9).** Fridays and Sundays, 8am to 7pm: four of six rare parts
+    (brass gear, spring, spark coil, lens, iron plate, lubricant), a clockwork core about one week in
+    three, two or three off-season seeds, a sapling, one curio (a recipe card you don't know, or
+    cart-only furniture); no gems or relics. Her Sunday lot is an auction against Roxy and the
+    Professor. Her stock has its own seed, and her restock still draws and drops the old peddler's
+    numbers from `g.rng`, so the world's dice are unchanged (without that, seed 2024 missed the Mill
+    by day 20). An old save's gem and relic stock is replaced on load.
+113. **Shortages (7.9).** On a Monday about one week in three (seeded per save and week) from the
+    Town Mill on, one regular weekly standing order with nothing in yet runs short: twice the size,
+    25% more an item, "Shortage" on the board and a toast, and Mags stocks its input (the crop,
+    fruit or ore a single-input recipe makes it from, else the goods) at three times the price. It
+    ends with the week and survives a save; none in Sandbox or Rush. Story pace moves a little when
+    one lands in the bot's 28 days (seed 2: +381 from a shortage on day 22).
+114. **Founder's Day retired; Kite Day and the Pumpkin Roll remapped.** The spring-1 evaluation, its
+    window, letter, `eval_pending` and debug button are gone; the kite and pumpkin minigames too. On
+    load `fest_seen_f_kite` becomes `fest_seen_f_fair` and `fest_seen_f_pumpkin` `fest_seen_f_haul`
+    (and the per-year flags), so Festive Spirit counts the same; `best_f_kite`, `best_f_pumpkin` and
+    `eval_pending` are dropped. New achievements: Blue Ribbon (beat all three Fair entries) and
+    Going, Going, Gone (win a lot).
