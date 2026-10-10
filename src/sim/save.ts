@@ -370,6 +370,10 @@ export function migrate(d: any): any {
 export function deserialize(raw: any): { game: Game; look: NPCLook } {
   const d = migrate(raw);
   const g = new Game({ seed: d.seed, name: d.player.name, farmName: d.player.farmName, favorite: d.player.favorite, mode: d.mode ?? 'story', farm: d.farmKind ?? 'classic', loading: true });
+  // the constructor's dayStart ran on an empty game (no flags or quests yet, so it read as a 1.x
+  // save): its "posted an order" and "New quests" toasts and lesson cards are about nothing this save
+  // holds. What load and afterLoad raise below is real and stays.
+  g.events.length = 0;
   // remove the starting entities the constructor made
   for (const e of g.ents.all()) g.ents.remove(e);
   g.time = { ...d.time, season: d.time.season as Season };

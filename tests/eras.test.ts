@@ -16,6 +16,8 @@ import { SHOP_BY_ID } from '../src/data/shops';
 import { STANDING_BY_ID } from '../src/data/orders';
 import { RESEARCH_BY_ID } from '../src/data/research';
 import { townEra } from '../src/sim/keystones';
+import { serialize, deserialize } from '../src/sim/save';
+import { Bot } from './bot';
 
 const secs = (g: Game, s: number) => { for (let i = 0; i < s * 60; i++) g.tick(); };
 const toasts = (g: Game) => g.events.filter((e) => e.t === 'toast').map((e) => (e as { text: string }).text);
@@ -244,4 +246,17 @@ describe('goods and their makers (M1, M3, M4)', () => {
     expect(r.n).toBe(20);
     expect(bin.inv!.countId('iron_bar') + bin.inv!.countId('copper_ore')).toBe(4);
   });
+});
+
+describe("the critic's re-check of Phases 3+4", () => {
+  it('a loaded save shows no news from its first morning: no orders posted again, no quests started again, no lesson cards', () => {
+    const g = new Game({ seed: 2024, name: 'Bot', farmName: 'Bolt' });
+    const bot = new Bot(g);
+    for (let d = 0; d < 5; d++) bot.playDay();
+    const look = { skin: 1, hair: 2, hairStyle: 'short' as const, shirt: 3, pants: 4 };
+    const g2 = deserialize(JSON.parse(JSON.stringify(serialize(g, look)))).game;
+    const news = g2.events.filter((e) => e.t === 'lesson' || (e.t === 'toast' && /posted an order|New quest/.test((e as { text: string }).text)));
+    expect(news).toEqual([]);
+    expect(questSys(g2).active.map((a) => a.id)).toEqual(questSys(g).active.map((a) => a.id));
+  }, 120000);
 });
