@@ -77,7 +77,13 @@ async function shot(name) {
 
 const clearArea = `(x0, y0, x1, y1) => { const g = window.__game; for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) g.map.setO(x, y, window.__O.NONE); }`;
 const S = `window.S = { g: window.__game, play: window.__play, key: (id, q = 0) => window.__itemIndex.get(id) * 4 + q };`;
-const ORDERS = `(() => { const os = S.g.sys.orders; if (!os.open.length) { os.open.push({ id: 'rowan_pickles', n: 6, have: 4, due: S.g.dayIndex + 2, day: S.g.dayIndex }, { id: 'bram_oil', n: 6, have: 1, due: S.g.dayIndex + 365, day: S.g.dayIndex }); os.posted.push('rowan_pickles', 'bram_oil'); os.rep.rowan = 1; } })()`;
+// the Orders board (2.0 Phase 3): two standing orders part filled, a Today ask, Rowan a rank up
+const ORDERS = `(() => { const os = S.g.sys.orders; const d = S.g.dayIndex; if (!os.open.some((o) => o.kind === 'standing')) {
+  os.open.push({ uid: os.uid++, kind: 'standing', def: 'rowan_pickles', cust: 'rowan', lines: [{ spec: 'pickles_cogbean', n: 6, have: 4 }], day: d, due: d + 2, unit: 150, silver: true, rep: 1 },
+    { uid: os.uid++, kind: 'standing', def: 'bram_oil', cust: 'bram', lines: [{ spec: 'cogbean_oil', n: 6, have: 1 }], day: d, due: d + 365, unit: 0, rep: 1 },
+    { uid: os.uid++, kind: 'today', def: 'req:juniper:wood', cust: 'juniper', lines: [{ spec: 'wood', n: 20, have: 0 }], day: d, due: d, pay: 300, rep: 1, text: 'Twenty logs for the joinery, if you have them.' });
+  for (const c of ['rowan', 'bram', 'juniper']) if (!os.posted.includes(c)) os.posted.push(c);
+  os.rep.rowan = 3; } })()`;
 const ALL_TIPS = ['tip_welcome', 'tip_hoe', 'tip_seeds', 'tip_can', 'tip_place', 'tip_lab', 'tip_belts', 'tip_machine', 'tip_power', 'tip_mine', 'tip_fish', 'tip_blueprint', 'tip_energy', 'tip_night', 'tip_home', 'tip_stray', 'tip_depot', 'tip_furniture', 'tip_perkhint', 'tip_quickstack', 'tip_bots'];
 
 // name -> async setup. Run in order; each starts from where the previous left off.
@@ -155,6 +161,8 @@ const SC = {
   'roxy-chat': async () => ev(`(() => { const g = S.g; const n = g.sys.npcs.byId.get('roxy'); n.met = true; n.points = 900; window.__npcs.openDialog(g, n, "Evening, gorgeous. Yes, I mean you. Don't look behind you, there's nobody there.", undefined, 0); })()`),
   map: async () => ev(`(() => { S.play.openWindow('map'); })()`),
   restoration: async () => ev(`(() => { S.play.openWindow('restoration'); })()`),
+  // the Works tab with the Town Mill's order up (Milling studied)
+  'board-works': async () => ev(`(() => { S.g.research.done.add('r_milling'); for (let i = 0; i < 70; i++) S.g.tick(); S.play.openWindow('board', 'works'); })()`),
   // the Orders board: two standing orders and today's asks
   board: async () => ev(`(() => { ${ORDERS}; S.play.openWindow('board'); })()`),
   museum: async () => ev(`(() => { S.g.player.inv.add(S.key('amethyst'), 1); S.g.player.inv.add(S.key('old_cog'), 1); S.play.openWindow('museum'); })()`),
@@ -167,8 +175,9 @@ const SC = {
   stats: async () => ev(`(() => { const g = S.g; for (let i = 0; i < 400; i++) { g.stats.add(S.key('wood'), 1); g.stats.add(S.key('stone'), 2); g.stats.use(S.key('wood'), 1); g.tick(); } S.play.openWindow('stats'); })()`),
   research: async () => ev(`(() => { S.g.research.done.add('r_belts'); S.g.research.done.add('r_preserves'); S.play.openWindow('research'); S.play.win.data.sel = 'r_arms'; })()`),
   // 1.2 bug 10: every topic reachable (scrolled to the far corners, and the Fit overview)
-  'research-traps': async () => ev(`(async () => { const { RESEARCH_BY_ID } = await import('/src/data/research.ts'); S.play.openWindow('research'); const p = RESEARCH_BY_ID.get('r_traps').pos; S.play.win.data.panX = -(p[0] * 66 - 150); S.play.win.data.panY = -(p[1] * 58 - 100); S.play.win.data.sel = 'r_traps'; })()`),
-  'research-bots': async () => ev(`(async () => { const { RESEARCH_BY_ID } = await import('/src/data/research.ts'); S.play.openWindow('research'); const p = RESEARCH_BY_ID.get('r_bot_count').pos; S.play.win.data.panX = -(p[0] * 66 - 150); S.play.win.data.panY = -(p[1] * 58 - 100); S.play.win.data.sel = 'r_bot_count'; })()`),
+  // the keystone pips (Milling: observed, experiment done, validate running) and the Starlight band
+  'research-keystone': async () => ev(`(() => { const g = S.g; for (const id of ['r_belts', 'r_arms', 'r_preserves', 'r_metallurgy', 'r_power']) g.research.done.add(id); g.flags.add('observed:town_mill'); g.counters['made:mill'] = 25; S.play.openWindow('research'); S.play.win.data.focus = 'r_milling'; })()`),
+  'research-bots': async () => ev(`(() => { S.play.openWindow('research'); S.play.win.data.focus = 'r_bot_count'; })()`),
   'research-fit': async () => ev(`(() => { S.play.openWindow('research'); S.play.win.data.fit = true; })()`),
   // 1.2 Phase 1: the automation core and the Field Works
   'works-lines': async () => ev(`(async () => { const g = S.g; S.play.closeWindow(); (${clearArea})(38, 26, 60, 36); const B = window.__build;
@@ -201,8 +210,13 @@ const SC = {
   'farm-winter': async () => ev(`(() => { const g = S.g; g.time.season = 3; g.weather = 'snow'; window.__app.renderer.invalidateAll(); })()`),
   'farm-night': async () => ev(`(() => { const g = S.g; g.time.season = 0; g.weather = 'sun'; g.time.min = 22 * 60; window.__app.renderer.invalidateAll(); })()`),
   'town-storm': async () => ev(`(() => { const g = S.g; g.weather = 'storm'; g.player.x = 133; g.player.y = 64; g.time.min = 15 * 60; })()`),
+  // the town keystones done (2.0 Phases 3-4): the Town Mill's wheel turning at dusk, the pump house, the lit square
+  'town-mill': async () => ev(`(() => { const g = S.g; g.weather = 'sun'; for (const f of ['town_mill', 'waterworks', 'lamps_hung']) g.flags.add(f); g.player.x = 104.5; g.player.y = 61; g.time.min = 18 * 60 + 40; for (let i = 0; i < 120; i++) g.tick(); })()`),
   house: async () => ev(`(() => { const g = S.g; g.weather = 'sun'; g.time.min = 19 * 60; window.__house.enterHouse(g); })()`),
   mine: async () => ev(`(() => { const g = S.g; g.time.min = 11 * 60; window.__mine.enterFloor(g, 3); })()`),
+  // the Deepworks (Phase 4): the Frost's pools and the dark Crystal galleries under the HUD
+  'deep-frost': async () => ev(`(() => { window.__mine.enterFloor(S.g, 12); })()`),
+  'deep-crystal': async () => ev(`(() => { window.__mine.enterFloor(S.g, 23); })()`),
   summary: async () => ev(`(() => { const g = S.g; g.player.where = 'world'; g.player.x = 54; g.player.y = 31; const bin = g.ents.get(g.shipBinId); bin.inv.add(S.key('radish'), 20); bin.inv.add(S.key('strawberry', 2), 5); bin.inv.add(S.key('wine_grape'), 2); g.goToBed(); g.time.min = 1559.99; g.tick(); })()`),
   // the tally once it has counted up
   'summary-end': async () => ev(`(() => { S.play.win.t = 9; })()`),

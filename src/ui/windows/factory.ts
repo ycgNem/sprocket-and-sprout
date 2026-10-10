@@ -101,6 +101,16 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     st.data.firstEra = cur?.era ?? 1;
     if (cur && cur.era > 1) st.data.panX = -(L.start[cur.era] * GAP_X + (cur.era - 1) * BAND_PAD);
   }
+  // a topic to show (st.data.focus, e.g. from the screenshot sweep): picked, and scrolled to the middle
+  if (st.data.focus && RESEARCH_BY_ID.has(st.data.focus)) {
+    const [c, r] = L.cell(st.data.focus);
+    const era = RESEARCH_BY_ID.get(st.data.focus)!.era;
+    st.data.panX = -(c * GAP_X + (era - 1) * BAND_PAD - vw / 2 + NODE_W);
+    st.data.panY = -(r * GAP_Y - vh / 2 + NODE_H);
+    st.data.sel = st.data.focus;
+    st.data.firstEra = era;
+    st.data.focus = undefined;
+  }
   st.data.panX = Math.max(-spanX, Math.min(0, st.data.panX));
   st.data.panY = Math.max(-spanY, Math.min(0, st.data.panY));
   const ox = vx + 10 + st.data.panX, oy = vy + 6 + HEAD + st.data.panY;
