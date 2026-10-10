@@ -213,7 +213,7 @@ function wantedInput(g: Game, e: Ent): string {
 /** the crop most of a field machine's plants are (item name, lower case), or null */
 function fieldCrop(g: Game, field: Ent): string | null {
   const n = new Map<string, number>();
-  for (const [x, y] of fieldTiles(field)) {
+  for (const [x, y] of fieldTiles(g, field)) {
     if (!g.map.inb(x, y)) continue;
     const c = g.soil.get(g.map.idx(x, y))?.crop;
     if (c && !c.dead) n.set(c.id, (n.get(c.id) ?? 0) + 1);
@@ -223,8 +223,12 @@ function fieldCrop(g: Game, field: Ent): string | null {
   return prod ? (ITEM_BY_ID.get(prod)?.name ?? prod).toLowerCase() : null;
 }
 
+/** Crock Master's machines: crocks, kegs and cheese presses */
+const CROCKS = new Set(['jar', 'keg', 'press']);
+
 export function updateMachines(g: Game, dt: number) {
   const speedMod = g.mods.machineSpeed + (g.sys.megaBonus?.machine ?? 0) + (g.hasPerk('engineer') ? 0.1 : 0) + (g.hasPerk('industrialist') ? 0.15 : 0);
+  const crockMaster = g.hasPerk('artisan');
   const now = g.simTime;
   for (const e of g.ents.machines) {
     const m = e.mach!;
@@ -285,7 +289,7 @@ export function updateMachines(g: Game, dt: number) {
     }
     // the keeper's jar runs its first few batches fast, so the opening's first pickle comes quickly;
     // a machine fitted with lubricant runs 10% faster for good
-    let sp = m.speed * speedMod * (e.st.quick > 0 ? 4 : 1) * (e.st.lubed ? 1.1 : 1);
+    let sp = m.speed * speedMod * (e.st.quick > 0 ? 4 : 1) * (e.st.lubed ? 1.1 : 1) * (crockMaster && CROCKS.has(e.def.station ?? '') ? 1.2 : 1);
     if (e.def.powerUse) {
       sp *= e.sat;
       if (e.sat <= 0.001) {
@@ -320,6 +324,9 @@ export function updateMachines(g: Game, dt: number) {
       m.made++;
       // keystone experiments count batches by machine kind ("grind 20 meal": made:mill)
       g.count('made:' + e.def.id);
+      // your works raise Tinkering, 5 XP a batch: with the Keeper's Line's crocks and the mill it
+      // reaches level 5 around day 12, before farming does (its perks are the first choice you make)
+      g.addXp('tinkering', 5);
       if (e.st.quick > 0) e.st.quick--;
       m.crafting = false;
       m.progress = 0;

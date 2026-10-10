@@ -91,10 +91,10 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   const colL = Math.max(leftW, play.lessons.q.length ? 244 : 0) + 4, colR = cx - 6;
   const midX = colR - colL >= 200 ? Math.round((colL + colR) / 2) : Math.round(ui.w / 2);
   const maxW = colR - colL >= 200 ? Math.min(320, colR - colL) : Math.min(320, ui.w - 240);
-  // at most three on screen, newest kept; held (not drawn, not aging) while a window is open,
-  // since windows cover the top of the screen
+  // at most three on screen, oldest first; the rest wait their turn (play.ts ages only these three).
+  // Held (not drawn, not aging) while a window is open, since windows cover the top of the screen;
   // a quest ribbon owns the middle of the screen for a moment: toasts wait for it
-  for (const t of play.modalOpen || play.app.renderer.juice.banners.length ? [] : play.hud.toasts.slice(-3)) {
+  for (const t of play.modalOpen || play.app.renderer.juice.banners.length ? [] : play.hud.toasts.slice(0, 3)) {
     const life = toastLife(t.text);
     const a = t.t < life - 0.7 ? 1 : 1 - (t.t - (life - 0.7)) / 0.7;
     ui.ctx.globalAlpha = Math.max(0, Math.min(1, a, t.t * 6));

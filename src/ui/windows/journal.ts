@@ -7,7 +7,7 @@ import { QUEST_BY_ID } from '../../data/goals';
 import { SEASON_NAMES } from '../../data/types';
 import { key } from '../../sim/inventory';
 import { hearts, npcSys, giftTaste } from '../../sim/systems/npcs';
-import { objText, questSys } from '../../sim/systems/quests';
+import { objDone, objText, questSys } from '../../sim/systems/quests';
 import { donateMuseum, goals, museumAccepts, MUSEUM_TOTAL, readMail } from '../../sim/systems/goals';
 import { tileColor } from '../hud';
 import type { PlayScreen } from '../../app/play';
@@ -55,15 +55,19 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
     const q = questSys(g);
     let yy = by + 6 - ui.scrollOffset('jq', bx, by, bw, bh, 40 + q.active.length * 60 + q.done.length * 10);
     ui.clip(bx, by, bw, bh);
-    for (const a of q.active) {
+    // the main path first (as in the Now strip), then the tutorial steps, then the rest
+    const rank = (id: string) => (QUEST_BY_ID.get(id)?.main ? 0 : QUEST_BY_ID.get(id)?.tutorial ? 1 : 2);
+    for (const a of [...q.active].sort((p, r) => rank(p.id) - rank(r.id))) {
       const d = QUEST_BY_ID.get(a.id);
       if (!d) continue;
-      ui.text(d.title, bx + 8, yy, C.ink);
+      ui.text(d.main ? `${d.title}  (the main path)` : d.title, bx + 8, yy, C.ink);
       ui.text(`from ${NPC_BY_ID.get(d.giver)?.name ?? 'the town'}`, bx + bw - 8, yy, C.oak, { align: 'right' });
       yy += 11;
       yy += ui.para(d.desc, bx + 8, yy, bw - 16, C.walnut, 9) + 2;
+      // done steps in green, the ones still to do in ink
       d.objectives.forEach((o, i) => {
-        ui.text('- ' + objText(g, o, a.prog[i]), bx + 14, yy, C.moss);
+        const done = objDone(g, o, a.prog[i]);
+        ui.text((done ? '+ ' : '- ') + objText(g, o, a.prog[i]), bx + 14, yy, done ? C.moss : C.ink);
         yy += 10;
       });
       if (d.hint) {

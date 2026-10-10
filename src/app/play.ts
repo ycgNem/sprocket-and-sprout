@@ -232,8 +232,10 @@ export class PlayScreen implements Screen {
       ex.t = 0;
       return;
     }
+    // a queue: three on screen, the rest wait their turn (a keystone's finish raises five at once,
+    // and "New quest" was the one dropped); past eight the oldest waiting ones go
     this.hud.toasts.push({ text, t: 0, icon, color });
-    if (this.hud.toasts.length > 4) this.hud.toasts.shift();
+    if (this.hud.toasts.length > 8) this.hud.toasts.splice(3, 1);
   }
 
   /** player feet -> approx body center */
@@ -444,7 +446,7 @@ export class PlayScreen implements Screen {
     app.audio.update(dt, g, near);
     // hud timers
     // toasts wait while a window covers the screen, then play out once it closes
-    if (!this.modalOpen && !r.juice.banners.length) for (const t of this.hud.toasts) t.t += dt;
+    if (!this.modalOpen && !r.juice.banners.length) for (const t of this.hud.toasts.slice(0, 3)) t.t += dt;
     this.hud.toasts = this.hud.toasts.filter((t) => t.t < toastLife(t.text));
     this.tipT += dt;
     if (this.tipT > 0.5) {
@@ -1362,7 +1364,7 @@ export class PlayScreen implements Screen {
       ctx.strokeRect(dx * TILE + 1.5, dy * TILE + 1.5, TILE - 3, TILE - 3);
     }
     if (def.kind === 'pole' || def.kind === 'sprinkler' || def.kind === 'harvester' || def.kind === 'planter' || def.kind === 'scarecrow' || def.kind === 'hive') {
-      const r = def.kind === 'pole' ? def.supply ?? 2 : def.kind === 'sprinkler' ? Math.max(1, def.reach ?? 0) : def.reach ?? 3;
+      const r = def.kind === 'pole' ? def.supply ?? 2 : def.kind === 'sprinkler' ? Math.max(1, def.reach ?? 0) : (def.reach ?? 3) + ((def.kind === 'harvester' || def.kind === 'planter') && this.g.hasPerk('rancher') ? 1 : 0);
       const [w, h] = def.size;
       ctx.fillStyle = rgba(def.kind === 'pole' ? C.sky : C.leaf, 0.14);
       ctx.fillRect((x - r) * TILE, (y - r) * TILE, (w + r * 2) * TILE, (h + r * 2) * TILE);

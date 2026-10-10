@@ -72,9 +72,6 @@ function perkPrice(g: Game, d: ItemDef): number {
   const pk = g.player.perks;
   if (!pk.length) return 1;
   let m = 1;
-  if ((d.cat === 'crop' || d.cat === 'fruit') && pk.includes('tiller')) m *= 1.1;
-  if (d.cat === 'animal' && pk.includes('rancher')) m *= 1.2;
-  if (d.cat === 'artisan' && pk.includes('artisan')) m *= 1.25;
   if ((d.id === 'plank' || d.id === 'beam' || d.id === 'hardwood' || d.id === 'resin' || d.id === 'syrup') && pk.includes('tapper_pro')) m *= 1.4;
   if ((d.cat === 'gem' || d.cat === 'mineral') && pk.includes('geologist')) m *= 1.3;
   if (d.cat === 'bar' && pk.includes('blacksmith')) m *= 1.4;

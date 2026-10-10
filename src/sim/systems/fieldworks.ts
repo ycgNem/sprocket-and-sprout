@@ -62,11 +62,19 @@ export const GLEANER_BASKET = 12;
 /** seconds between picks (half that while wound) */
 export const GLEANER_PICK = 2;
 
-function around(e: Ent): [number, number][] {
+/** the tiles a gleaner picks: the 3x3 around it, a 5x5 with Long Reach */
+function around(g: Game, e: Ent): [number, number][] {
+  const r = g.hasPerk('rancher') ? 2 : 1;
   const out: [number, number][] = [];
-  for (let y = e.y - 1; y <= e.y + 1; y++) for (let x = e.x - 1; x <= e.x + 1; x++) if (x !== e.x || y !== e.y) out.push([x, y]);
+  for (let y = e.y - r; y <= e.y + r; y++) for (let x = e.x - r; x <= e.x + r; x++) if (x !== e.x || y !== e.y) out.push([x, y]);
   return out;
 }
+
+/** Field Hand: the field machines work a quarter faster */
+export const fieldHand = (g: Game) => (g.hasPerk('tiller') ? 1.25 : 1);
+
+/** how far a crane or sower reaches (a tile further with Long Reach) */
+export const fieldReach = (g: Game, e: Ent) => (e.def.reach ?? 3) + (g.hasPerk('rancher') ? 1 : 0);
 
 export function gleanerTick(g: Game, e: Ent, dt: number) {
   const now = g.simTime;
@@ -76,7 +84,7 @@ export function gleanerTick(g: Game, e: Ent, dt: number) {
     mul = 2;
   }
   e.st.anim = Math.max(0, (e.st.anim ?? 0) - dt);
-  e.st.cd = (e.st.cd ?? 0) - dt * mul;
+  e.st.cd = (e.st.cd ?? 0) - dt * mul * fieldHand(g);
   if (e.st.cd > 0) return;
   e.st.cd = GLEANER_PICK;
   if (itemsIn(e) >= GLEANER_BASKET) {
@@ -85,7 +93,7 @@ export function gleanerTick(g: Game, e: Ent, dt: number) {
     return;
   }
   const dawn = dawnOn(g, e);
-  for (const [x, y] of around(e)) {
+  for (const [x, y] of around(g, e)) {
     if (!g.map.inb(x, y)) continue;
     const i = g.map.idx(x, y);
     const s = g.soil.get(i);
@@ -108,7 +116,7 @@ export function gleanerTick(g: Game, e: Ent, dt: number) {
     return;
   }
   e.working = false;
-  setState(e, MState.Idle, fieldIdleText(g, around(e)), now);
+  setState(e, MState.Idle, fieldIdleText(g, around(g, e)), now);
 }
 
 // ---------------- the field gantry ----------------
@@ -270,7 +278,7 @@ export function gantryTick(g: Game, e: Ent, dt: number) {
     return;
   }
   e.working = true;
-  const speed = (e.def.speed ?? 1) * Math.max(0, e.sat) * (dir < 0 ? 1.5 : 1);
+  const speed = (e.def.speed ?? 1) * Math.max(0, e.sat) * (dir < 0 ? 1.5 : 1) * fieldHand(g);
   if (dir > 0) {
     e.st.pos += dt * speed;
     // work each row as the gantry reaches it

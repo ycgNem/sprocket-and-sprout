@@ -102,12 +102,12 @@ export function drawMenu(ui: UI, play: PlayScreen, st: WinState): boolean {
 
 /** what raises each skill and what its levels give (the numbers live in the systems that use them) */
 const SKILL_INFO: Record<string, { icon: string; raise: string; gives: string }> = {
-  farming: { icon: 'cogbean', raise: 'Harvest crops you grew', gives: 'Better crops, the odd extra one, cheaper hoeing' },
+  farming: { icon: 'cogbean', raise: 'Harvest crops you grew', gives: 'Better crops, cheaper hoeing; its perks work the field machines' },
   foraging: { icon: 'wild_garlic', raise: 'Forage, chop trees', gives: 'Better-quality forage, cheaper axe swings' },
   mining: { icon: 'copper_ore', raise: 'Break rocks and ore', gives: 'More ore per rock, cheaper pickaxe swings' },
   fishing: { icon: 'silver_dart', raise: 'Catch fish', gives: 'A wider catch zone, cheaper casts' },
   combat: { icon: 'sword_1', raise: 'Clear pests in the Deepworks', gives: 'Falling rock and star-shards hurt you less' },
-  tinkering: { icon: 'copper_gear', raise: 'Collect from machines, craft', gives: 'Its perks speed up machines and arms' },
+  tinkering: { icon: 'copper_gear', raise: 'Your machines at work, crafting', gives: 'Its perks speed up machines and arms' },
 };
 
 function skillCard(ui: UI, play: PlayScreen, s: string, x: number, y: number, w: number, h: number, choose: boolean) {

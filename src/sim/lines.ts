@@ -246,9 +246,10 @@ function sourceKey(src: Ent | null): string {
 }
 
 /** the tiles a field machine picks from */
-export function fieldTiles(e: Ent): [number, number][] {
+export function fieldTiles(g: Game, e: Ent): [number, number][] {
   if (e.def.kind === 'gantry') return e.strip ?? [];
-  const r = e.def.reach ?? 1;
+  // Long Reach: a gleaner picks a 5x5, a crane or sower a tile further
+  const r = (e.def.reach ?? 1) + (g.hasPerk('rancher') ? 1 : 0);
   const out: [number, number][] = [];
   for (let y = e.y - r; y <= e.y + e.h - 1 + r; y++) for (let x = e.x - r; x <= e.x + e.w - 1 + r; x++) if (!(x >= e.x && x < e.x + e.w && y >= e.y && y < e.y + e.h)) out.push([x, y]);
   return out;
@@ -259,7 +260,7 @@ export function noteHandPick(g: Game, i: number, n: number) {
   const x = i % g.map.w, y = Math.floor(i / g.map.w);
   for (const e of g.ents.others) {
     if (e.ghost || !FIELD_KINDS.has(e.def.kind)) continue;
-    if (fieldTiles(e).some(([fx, fy]) => fx === x && fy === y)) g.stats.states.handPicked(e, n);
+    if (fieldTiles(g, e).some(([fx, fy]) => fx === x && fy === y)) g.stats.states.handPicked(e, n);
   }
 }
 
@@ -270,7 +271,7 @@ export function noteHandPick(g: Game, i: number, n: number) {
 export function fieldYield(g: Game, e: Ent): { perDay: number; perPlant: number; crop: string; plants: number } {
   let perDay = 0, plants = 0;
   const count = new Map<string, number>();
-  for (const [x, y] of fieldTiles(e)) {
+  for (const [x, y] of fieldTiles(g, e)) {
     if (!g.map.inb(x, y)) continue;
     const s = g.soil.get(g.map.idx(x, y));
     if (!s?.crop || s.crop.dead) continue;

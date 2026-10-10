@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import '../src/sim';
 import { Game } from '../src/sim/Game';
 import { key } from '../src/sim/inventory';
-import { questSys, objText } from '../src/sim/systems/quests';
+import { questSys, objText, nowLines } from '../src/sim/systems/quests';
 import { stages } from '../src/sim/systems/research';
 import { boardHandIn, openOrder, orders } from '../src/sim/systems/orders';
 import { tramBin, tramRun } from '../src/sim/systems/townworks';
@@ -22,7 +22,7 @@ import { Bot } from './bot';
 const secs = (g: Game, s: number) => { for (let i = 0; i < s * 60; i++) g.tick(); };
 const toasts = (g: Game) => g.events.filter((e) => e.t === 'toast').map((e) => (e as { text: string }).text);
 /** put a main quest on, as the chain would (its objectives start from nothing) */
-const q11 = (g: Game) => questSys(g).now(g, 9).find((l) => l.id === 'k11_boiler')!;
+const q11 = (g: Game) => nowLines(g, 9).find((l) => l.id === 'k11_boiler')!;
 const begin = (g: Game, id: string) => questSys(g).active.push({ id, prog: QUEST_BY_ID.get(id)!.objectives.map(() => 0), day: g.dayIndex });
 
 describe('a keystone counts from its quest', () => {

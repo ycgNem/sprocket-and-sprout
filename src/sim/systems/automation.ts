@@ -13,7 +13,7 @@ import { fuelValue } from './machines';
 import { O, T } from '../world/tilemap';
 import { MState, offText, setState } from '../mstate';
 import { rustTick } from '../rust';
-import { dawnOn, fieldIdleText, gantryTick, gleanerTick, pickable } from './fieldworks';
+import { dawnOn, fieldHand, fieldIdleText, fieldReach, gantryTick, gleanerTick, pickable } from './fieldworks';
 import { ORE_TYPES } from '../world/tilemap';
 
 function area(e: Ent, r: number) {
@@ -66,7 +66,7 @@ function harvesterTick(g: Game, e: Ent, dt: number) {
     setState(e, MState.Unpowered, e.net ? 'No power: the grid has nothing to give' : 'No power: place a pole within reach', now);
     return;
   }
-  e.st.cd -= dt * e.sat * (e.def.speed ?? 1) * g.mods.machineSpeed;
+  e.st.cd -= dt * e.sat * (e.def.speed ?? 1) * g.mods.machineSpeed * fieldHand(g);
   if (e.st.cd > 0) return;
   e.st.cd = 0.7;
   if (e.inv!.slots.every((s) => s && s.n >= 99)) {
@@ -75,7 +75,7 @@ function harvesterTick(g: Game, e: Ent, dt: number) {
     return;
   }
   const m = g.map;
-  for (const [x, y] of area(e, e.def.reach ?? 3)) {
+  for (const [x, y] of area(e, fieldReach(g, e))) {
     if (!m.inb(x, y)) continue;
     const i = m.idx(x, y);
     const s = g.soil.get(i);
@@ -101,7 +101,7 @@ function harvesterTick(g: Game, e: Ent, dt: number) {
     return;
   }
   e.working = false;
-  setState(e, MState.Idle, fieldIdleText(g, area(e, e.def.reach ?? 3)), now);
+  setState(e, MState.Idle, fieldIdleText(g, area(e, fieldReach(g, e))), now);
 }
 
 function planterTick(g: Game, e: Ent, dt: number) {
@@ -116,7 +116,7 @@ function planterTick(g: Game, e: Ent, dt: number) {
     setState(e, MState.Unpowered, e.net ? 'No power: the grid has nothing to give' : 'No power: place a pole within reach', now);
     return;
   }
-  e.st.cd -= dt * e.sat * (e.def.speed ?? 1) * g.mods.machineSpeed;
+  e.st.cd -= dt * e.sat * (e.def.speed ?? 1) * g.mods.machineSpeed * fieldHand(g);
   if (e.st.cd > 0) return;
   e.st.cd = 0.9;
   const inv = e.inv!;
@@ -128,7 +128,7 @@ function planterTick(g: Game, e: Ent, dt: number) {
     return;
   }
   const m = g.map;
-  for (const [x, y] of area(e, e.def.reach ?? 3)) {
+  for (const [x, y] of area(e, fieldReach(g, e))) {
     if (!m.inb(x, y)) continue;
     const i = m.idx(x, y);
     let s = g.soil.get(i);

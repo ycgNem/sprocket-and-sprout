@@ -372,14 +372,18 @@ describe('professions', () => {
   it('level 5 and 10 offer a choice of two perks that change the game', async () => {
     const P = await import('../src/sim/perks');
     const { unitPrice } = await import('../src/sim/systems/economy');
+    const { fieldHand, fieldReach } = await import('../src/sim/systems/fieldworks');
     const g = new Game({ seed: 20 });
     expect(P.pendingPerk(g)).toBeNull();
     g.player.skills.farming = 5;
     expect(P.pendingPerk(g)).toEqual({ skill: 'farming', level: 5 });
+    // farming's perks work the field machines; they don't raise sell prices (the critic's Stardew test)
     const before = unitPrice(g, key('radish'));
+    expect(fieldHand(g)).toBe(1);
     expect(P.choosePerk(g, 'tiller')).toBe(true);
     expect(P.choosePerk(g, 'rancher')).toBe(false); // only one per tier
-    expect(unitPrice(g, key('radish'))).toBeGreaterThan(before);
+    expect(fieldHand(g)).toBe(1.25);
+    expect(unitPrice(g, key('radish'))).toBe(before);
     expect(P.pendingPerk(g)).toBeNull();
     g.player.skills.combat = 10;
     expect(P.pendingPerk(g)).toEqual({ skill: 'combat', level: 5 });
@@ -389,6 +393,26 @@ describe('professions', () => {
     expect(P.pendingPerk(g)).toEqual({ skill: 'combat', level: 10 });
     expect(P.choosePerk(g, 'warrior')).toBe(true);
     expect(P.perksFor(g, 'combat').map((p) => p.id)).toEqual(['defender', 'warrior']);
+    // Long Reach: a gleaner's 3x3 becomes a 5x5, a crane reaches a tile further
+    const g2 = new Game({ seed: 21 });
+    g2.player.skills.farming = 5;
+    const crane = { def: { reach: 3 } } as Parameters<typeof fieldReach>[1];
+    expect(fieldReach(g2, crane)).toBe(3);
+    P.choosePerk(g2, 'rancher');
+    expect(fieldReach(g2, crane)).toBe(4);
+  });
+
+  it('Tinkering comes first and rises with what your machines make', async () => {
+    const { SKILLS } = await import('../src/sim/Game');
+    expect(SKILLS[0]).toBe('tinkering');
+    const { machInsert } = await import('../src/sim/systems/machines');
+    const g = new Game({ seed: 23 });
+    const jar = place(g, 'jar', 60, 36, 0);
+    const xp = g.player.xp.tinkering, made = jar.mach!.made;
+    machInsert(g, jar, key('cogbean'), 20, true);
+    for (let i = 0; i < 60 * 200 && jar.mach!.made === made; i++) g.tick();
+    expect(jar.mach!.made).toBe(made + 1);
+    expect(g.player.xp.tinkering).toBeGreaterThanOrEqual(xp + 5);
   });
 });
 

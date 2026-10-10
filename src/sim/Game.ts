@@ -155,7 +155,8 @@ export interface Mods {
   marketBonus: number;
 }
 
-export const SKILLS = ['farming', 'foraging', 'mining', 'fishing', 'combat', 'tinkering'] as const;
+// Tinkering first: the works' own skill, raised by what your machines make (src/data/perks.ts)
+export const SKILLS = ['tinkering', 'farming', 'foraging', 'mining', 'fishing', 'combat'] as const;
 export const XP_LEVELS = [0, 150, 450, 900, 1600, 2600, 4000, 6000, 8500, 12000, 16000];
 
 export interface GameOptions {
