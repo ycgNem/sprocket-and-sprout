@@ -13,8 +13,13 @@ fixes (#115-#123), the owner's playtest (#124-#129), the critic's confirmation p
 #132), the bridges and fences pass (#134) and the release (#135) are all in. The patch notes are
 the title screen's "What's new" (`src/data/patchnotes.ts`) and PATCHNOTES.md.
 **Where it stopped:** released; nothing is pending. Next is Phases 6 and 7 in a new session
-("What's next" below). `main` and `works` are the same commit; keep working on `works` and merge to
-`main` (fast-forward, in `../sns-p0check`) only when the owner says ship.
+("What's next" below). `main` is the release commit `ecf9eb0` (tag `v2.0.0-beta`); `works` is ahead
+only by docs and two release helpers (`node scripts/casecheck.mjs`: import paths match file case for
+the Linux deploy; `node scripts/release-notes.mjs "<version>"`: a PATCHNOTES.md section as a release
+body). Keep working on `works`; merge to `main` (fast-forward, in `../sns-p0check`) only when the
+owner says ship. Left on disk, safe to delete: `../sns-review` (the critic's build copy) and the
+merged worktrees `../sns-crops`, `../sns-deep`, `../sns-town` (remove their node_modules junction
+first).
 The owner's rules since Phase 1: hand farming stays, but the factory is the face (ROADMAP.md 3.2,
 DECISIONS #68); one path for every player, no "pick a direction" card (#72); the Preserves Jar is
 the Preserving Crock (#76). ROADMAP.md is the 2.0 plan; ROADMAP-1.1.md the finished 1.1 overhaul.

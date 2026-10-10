@@ -10,6 +10,7 @@ import can be rerun. Rules: `STYLE.md`. Plan: `ROADMAP.md`.
 | `npcs/` | NPC character sheets | `scripts/art-import.mjs` | `src/art/npc-*.*` |
 | `airship/` | Roxy's airship (`bld:airship:<season>:<night>:<frame>`), graded by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/airship.*` |
 | `terrain/` | Wang tilesets, base variants, per-tile classes, decals | `scripts/terrain-import.mjs` | `src/art/terrain.*` |
+| `fences/` | fences, walls, gates and the paddock by neighbour mask (`fence:<kind>:<mask>`), hand-pixeled by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/fences.*` |
 | everything else | sprites by name (crops, objects, trees, buildings, machines, icons…) | `scripts/sprites-import.mjs` | `src/art/<group>.*` |
 
 ## How a sheet replaces procedural art
@@ -64,6 +65,27 @@ batch shares one consistent style. So:
 
 Free fix-ups: `pixelart_workbench` (lint, repair, selout, shade). Cheap: `reduce_colors`,
 `correct_pixelart` (0.1 generation).
+
+## Drawn by script (0 generations)
+
+Small, rule-bound pieces are cheaper and more exact pixeled by script than generated (2.0 beta: the
+bridges, the fences and the hamster cage's icon cost 0 generations). Each script checks the palette
+and writes PNGs the usual importers take:
+
+- `node art/terrain/tools/planks.mjs`: the plank deck set (`planks_h/0-8`, `planks_v/0-8`, ends,
+  sides, rails, posts) into `art/terrain/tiles/`, then the terrain import. `src/render/planks.ts`
+  says which piece goes where.
+- `node art/fences/build.mjs`, then `node scripts/sprites-import.mjs art/fences/sprites.json`: the
+  101 fence, wall, gate and paddock frames. `src/render/fences.ts` picks them by mask; the
+  east-west pieces are asserted to equal the old single sprites.
+- `node art/icons/hand.mjs && node art/icons/tools/build.mjs && node scripts/sprites-import.mjs
+  art/icons/sprites.json`: icons drawn from character grids in `hand.mjs` (`raw/hand/<id>.png`,
+  picked in `art/icons/picks.json`; review image `e2e/out/icons-hand.png`). `art/icons/items.tsv`
+  is stale by 15 post-1.1 items, 11 of them with no pick yet (see HANDOFF.md), so regenerate it
+  with `list-items.ts` only together with their picks, or `build.mjs` fails.
+- Tock (`art/creatures/tock.mjs`) and the hamster (`art/creatures/hamster.mjs`; its cage and wheel
+  `art/home/hamstercage.mjs`) are hand-pixeled as ASCII parts, every pose sharing one body; the
+  PixelLab batches in their `raw/` folders were only the design reference.
 
 ## Boundaries (several agents work at once)
 
