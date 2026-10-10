@@ -1574,6 +1574,16 @@ export class Renderer {
       const s = sprite(`deep:${c.kind}:${on ? 1 : 0}:${n > 1 ? Math.floor(this.time * (c.kind === 'star' ? 2 : 3)) % n : 0}`);
       D.push({ y: c.y + 0.95, f: () => drawSprite(ctx, s, c.x * TILE, (c.y + 1) * TILE) });
     }
+    // lamps set down on the floor: the farm's lantern post, lit
+    const lampF = Math.floor(this.time * 8) % 4;
+    for (const [lx, ly] of mst?.lamps ?? []) {
+      if (!onScreen(lx + 0.5, ly + 0.5)) continue;
+      const s = sprite(`st:lamp:${lampF}:1:0`);
+      D.push({ y: ly + 0.98, f: () => {
+        drawSprite(ctx, sprite('shadow:10'), lx * TILE + 8, (ly + 1) * TILE - 2);
+        drawSprite(ctx, s, lx * TILE, ly * TILE);
+      } });
+    }
     // the Deepworks' pests
     for (const mo of mst?.monsters ?? []) {
       if (!onScreen(mo.x, mo.y)) continue;

@@ -64,7 +64,7 @@ export const STRATA: StratumDef[] = [
     id: 'crystal', name: 'Crystal', levels: [21, 25], ores: [], rock: 0.2, ore: 0, gem: 0.05, ice: 0,
     extra: [['quartz', 0.25]], decor: 'crystal', decorP: 0.03, ladder: [0.04, 0.012], art: 4,
     dark: 0.84, lantern: 3.2, tint: C.deepsea,
-    intro: 'The Crystal (levels 21-25): gems and quartz in dark galleries, lit only by the crystals. Wisps hide the ladders.',
+    intro: 'The Crystal (levels 21-25): gems and quartz in galleries too dark for your lantern. Set lamps down on the floor to light them. Wisps hide the ladders.',
   },
   {
     id: 'starfall', name: 'Starfall', levels: [26, 30], ores: [[5, 5]], rock: 0.19, ore: 0.05, gem: 0.02, ice: 0,

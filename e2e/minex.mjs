@@ -71,7 +71,24 @@ for (const [i, level] of LEVELS.entries()) {
   console.log(`stratum-${i + 1}.png`, JSON.stringify(info));
 }
 
-// every works chamber level's machines (5, 10, 15, 20, 25, 30)
+// the Crystal's dark galleries, lit by two lamps set down on the floor beside the wisp's ladder
+await visit(23);
+const lit = await page.evaluate(() => {
+  const { g, key } = window.S;
+  const st = g.sys.mine;
+  g.player.inv.add(key('lamp'), 2);
+  g.player.sel = g.player.inv.slots.findIndex((s) => s && s.k === key('lamp'));
+  const px = Math.floor(g.player.x), py = Math.floor(g.player.y);
+  for (const [dx, dy] of [[-2, -1], [2, -1], [-2, 0], [2, 0], [-1, -2], [1, -2], [-2, 1], [2, 1]]) if (st.lamps.length < 2) st.setLamp(g, px + dx, py + dy);
+  return { lamps: st.lamps.length, lantern: st.lantern };
+});
+await quiet();
+await snap();
+await page.waitForTimeout(700);
+await page.screenshot({ path: 'e2e/out/win/crystal-lamps.png' });
+console.log('crystal-lamps.png', JSON.stringify(lit));
+
+// every works chamber level's machines (5, 10, 15, 20, 25, 30), their study cards already seen
 for (const level of [5, 10, 15, 20, 25, 30]) {
   await page.evaluate((level) => {
     const { g } = window.S;

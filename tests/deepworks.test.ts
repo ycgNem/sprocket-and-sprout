@@ -5,13 +5,15 @@ import { Game } from '../src/sim/Game';
 import { key } from '../src/sim/inventory';
 import { O, ORE_TYPES, T, type TileMap } from '../src/sim/world/tilemap';
 import {
-  BEAMS_TO_SHORE, CRACK_FUSE, DEEP_FLAGS, FLOOD_TEXT, MAX_FLOOR, VENT_HURT, generateFloor, liftLevels, mine, themeOf,
+  BEAMS_TO_SHORE, CRACK_FUSE, DEEP_FLAGS, FLOOD_TEXT, LAMP_LIGHT, MAX_FLOOR, VENT_HURT, generateFloor, liftLevels, mine, minePrompt, themeOf,
   type Hazard, type MineState, type Monster,
 } from '../src/sim/systems/mine';
 import { CHAMBERS, CHAMBER_BY_KIND, OBSERVATIONS, STRATA, VENT_CYCLE, VENT_ON, VENT_TELL, type ChamberKind } from '../src/data/deepworks';
 import { MONSTERS } from '../src/data/creatures';
 import { ITEM_BY_ID } from '../src/data/items';
 import { C } from '../src/data/palette';
+import { useHeld } from '../src/sim/actions';
+import { serialize, deserialize } from '../src/sim/save';
 import { dropsState, spawnDrop } from '../src/sim/systems/drops';
 
 const SEEDS = [1, 7, 23, 404, 9001];
@@ -616,5 +618,127 @@ describe('the Deepworks: works chambers', () => {
     st.enterPrompt(g);
     expect(g.player.where).toBe('world');
     expect(opened(g, 'elevator').map((e) => e.arg)).toEqual([[1, 5, 10, 15, 20]]);
+  });
+});
+
+describe('the Deepworks: lamps light the dark', () => {
+  /** hold the bag's lamps */
+  const holdLamps = (g: Game, n: number) => {
+    g.player.inv.add(key('lamp'), n);
+    g.player.sel = g.player.inv.slots.findIndex((s) => s?.k === key('lamp'));
+  };
+  /** the floor tiles round the player where F would set a lamp down (the key prompt points at them) */
+  const lampSpots = (g: Game) => {
+    const out: [number, number][] = [];
+    const px = Math.floor(g.player.x), py = Math.floor(g.player.y);
+    for (let y = py - 2; y <= py + 2; y++)
+      for (let x = px - 2; x <= px + 2; x++) {
+        const pr = minePrompt(g, x, y);
+        if (pr?.verb !== 'Set lamp') continue;
+        const at: [number, number] = [Math.floor(pr.x), Math.round(pr.y + 0.1)];
+        if (!out.some(([a, b]) => a === at[0] && b === at[1])) out.push(at);
+      }
+    return out;
+  };
+  /** a tile of the level where `pred` holds */
+  const tileWhere = (m: TileMap, pred: (i: number) => boolean): [number, number] => {
+    const i = m.obj.findIndex((_, j) => pred(j));
+    expect(i).toBeGreaterThanOrEqual(0);
+    return [i % m.w, Math.floor(i / m.w)];
+  };
+
+  it('a lamp set down on a Crystal floor lights a wide pool, F picks it up, and leaving the level brings the lamps back', () => {
+    expect(STRATA[4].intro).toContain('lamps');
+    const g = new Game({ seed: 3 }), st = mine(g), inv = g.player.inv;
+    st.enter(g, 22);
+    holdLamps(g, 3);
+    const spots = lampSpots(g);
+    expect(spots.length).toBeGreaterThan(1);
+    const [a, b] = spots;
+    // F on the floor: one lamp from the bag, a light far wider than your lantern down here
+    expect(st.interact(g, a[0], a[1])).toBe(true);
+    expect(st.lamps).toEqual([a]);
+    expect(inv.countId('lamp')).toBe(2);
+    expect(st.lights.find((l) => !l.dyn && l.x === a[0] + 0.5 && l.y === a[1] - 0.4)?.r).toBe(LAMP_LIGHT);
+    expect(LAMP_LIGHT).toBeGreaterThan(st.lantern * 2);
+    expect(st.solid(g, a[0], a[1])).toBe(true);
+    expect(minePrompt(g, a[0], a[1])?.verb).toBe('Pick up');
+    // a click with one in hand sets another down
+    expect(useHeld(g, b[0], b[1])).toBe(true);
+    expect(st.lamps).toEqual([a, b]);
+    expect(inv.countId('lamp')).toBe(1);
+    // never on a wall, a pool, the ladder up, a rock or another lamp (and nothing leaves the bag)
+    const m = st.map!;
+    const wall = tileWhere(m, (i) => m.ground[i] === T.MINEWALL), pool = tileWhere(m, (i) => m.ground[i] === T.MINEWATER);
+    const exit = tileWhere(m, (i) => m.obj[i] === O.MINE_EXIT), rock = tileWhere(m, (i) => m.obj[i] === O.ROCK);
+    for (const [x, y] of [wall, pool, exit, rock, a]) {
+      expect(st.setLamp(g, x, y), `${x},${y}`).toBe(false);
+      expect(minePrompt(g, x, y)?.verb, `${x},${y}`).not.toBe('Set lamp');
+    }
+    expect(inv.countId('lamp')).toBe(1);
+    // F on a lamp picks it up again, and its light goes
+    expect(st.interact(g, a[0], a[1])).toBe(true);
+    expect(st.lamps).toEqual([b]);
+    expect(inv.countId('lamp')).toBe(2);
+    expect(st.lights.some((l) => l.x === a[0] + 0.5 && l.y === a[1] - 0.4)).toBe(false);
+    // down a level: the lamps left behind come back to the bag, however far off they stand
+    g.player.x += 8;
+    st.enter(g, 23);
+    expect(st.lamps).toEqual([]);
+    expect(inv.countId('lamp')).toBe(3);
+    // and out of the Deepworks
+    const c = lampSpots(g)[0];
+    st.interact(g, c[0], c[1]);
+    expect(inv.countId('lamp')).toBe(2);
+    st.leave(g);
+    expect(st.lamps).toEqual([]);
+    expect(inv.countId('lamp')).toBe(3);
+  });
+
+  it('facing down from the top of a tile (still under your feet), F sets the lamp on the next one on', () => {
+    const g = new Game({ seed: 3 }), st = mine(g), inv = g.player.inv;
+    st.enter(g, 22);
+    holdLamps(g, 1);
+    const m = st.map!;
+    const open = (x: number, y: number) => m.g(x, y) === T.MINEFLOOR && m.o(x, y) === O.NONE && !st.hazards.some((h) => h.x === x && h.y === y);
+    const i = m.obj.findIndex((_, j) => open(j % m.w, Math.floor(j / m.w)) && open(j % m.w, Math.floor(j / m.w) + 1) && !st.monsters.some((mo) => Math.floor(mo.x) === j % m.w));
+    const x = i % m.w, y = Math.floor(i / m.w);
+    g.player.x = x + 0.5;
+    g.player.y = y + 0.3;
+    g.player.dir = 2;
+    // (the tile you face is your own: src/sim/systems/player.ts facingTile)
+    expect(Math.floor(g.player.y - 0.2 + 0.75)).toBe(y);
+    expect(minePrompt(g, x, y)).toMatchObject({ verb: 'Set lamp', x: x + 0.5 });
+    expect(st.interact(g, x, y)).toBe(true);
+    expect(st.lamps).toEqual([[x, y + 1]]);
+    expect(inv.countId('lamp')).toBe(0);
+    // and F there picks it back up
+    expect(minePrompt(g, x, y)?.verb).toBe('Pick up');
+    st.interact(g, x, y);
+    expect(st.lamps).toEqual([]);
+    expect(inv.countId('lamp')).toBe(1);
+  });
+
+  it('never on a chamber or a gallery; a lamp left out overnight or in a save comes home', () => {
+    const g = new Game({ seed: 3 }), st = mine(g), inv = g.player.inv;
+    holdLamps(g, 2);
+    st.enter(g, 25);
+    const chamber = tileWhere(st.map!, (i) => st.map!.obj[i] === O.CHAMBER);
+    expect(st.setLamp(g, chamber[0], chamber[1])).toBe(false);
+    st.enter(g, 6);
+    expect(st.setLamp(g, st.gallery![0], st.gallery![1])).toBe(false);
+    expect(inv.countId('lamp')).toBe(2);
+    // a save underground puts you at the entrance: the lamp set down counts as in the bag
+    const [x, y] = lampSpots(g)[0];
+    st.interact(g, x, y);
+    expect(inv.countId('lamp')).toBe(1);
+    const look = { skin: 1, hair: 2, hairStyle: 'short' as const, shirt: 3, pants: 4 };
+    const g2 = deserialize(JSON.parse(JSON.stringify(serialize(g, look)))).game;
+    expect(g2.player.inv.countId('lamp')).toBe(2);
+    // passing out in the Deepworks: you wake at home, and so do your lamps
+    g.endDay(true);
+    expect(g.player.where).not.toBe('mine');
+    expect(st.lamps).toEqual([]);
+    expect(inv.countId('lamp')).toBe(2);
   });
 });
