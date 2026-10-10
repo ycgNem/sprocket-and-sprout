@@ -62,8 +62,12 @@ const shot = async (name, s) => {
 // ---- the Town Mill ----
 const blds = await ev(() => window.__game.map.buildings.filter((b) => b.kind === 'landmark').map((b) => b.id));
 check(blds.includes('town_mill') && blds.includes('pump_house'), `the mill and the pump house stand in the world: ${blds}`);
+// before k10 "The Town Mill" asks, walking past isn't the keystone's look (DECISIONS #94)
 await shot('mill-still', { x: 100, y: 55.6, min: 600, px: 101.5, py: 61, unflags: ['town_mill'] });
-check(await ev(() => window.__game.flags.has('observed:town_mill')), 'walking up to the mill counts as looking at it');
+check(await ev(() => !window.__game.flags.has('observed:town_mill')), "walking past the mill before its quest isn't the look");
+await ev(() => { const q = window.__game.sys.quests; if (!q.active.some((a) => a.id === 'k10_mill')) q.active.push({ id: 'k10_mill', prog: [0, 0, 0, 0, 0], day: window.__game.dayIndex }); });
+await shot('mill-still', { x: 100, y: 55.6, min: 600, px: 101.5, py: 61.2, unflags: ['town_mill'] });
+check(await ev(() => window.__game.flags.has('observed:town_mill')), 'walking up to the mill counts as looking at it once k10 asks');
 await shot('mill-turning', { x: 100, y: 55.6, min: 600, flags: ['town_mill'] });
 await shot('mill-night', { x: 100, y: 55.6, min: 21 * 60 });
 // hovering the mill from across town counts too
