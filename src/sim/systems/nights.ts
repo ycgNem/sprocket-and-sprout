@@ -5,7 +5,10 @@ import { O, T, Z } from '../world/tilemap';
 import { FARM } from '../world/worldgen';
 import { openingTile } from '../opening';
 
-function freeFarmTile(g: Game, w = 1, h = 1): [number, number] | null {
+/** small debris an impact flattens (a meteorite clears its own crater) */
+const DEBRIS = new Set<number>([O.WEED, O.TWIG, O.ROCK, O.TALLGRASS, O.FLOWER]);
+
+function freeFarmTile(g: Game, w = 1, h = 1, debrisOk = false): [number, number] | null {
   const m = g.map;
   for (let tries = 0; tries < 400; tries++) {
     // sample inside the farm's bounds (the zone check below still applies)
@@ -14,7 +17,8 @@ function freeFarmTile(g: Game, w = 1, h = 1): [number, number] | null {
     for (let yy = y - 1; yy <= y + h && ok; yy++)
       for (let xx = x - 1; xx <= x + w && ok; xx++) {
         const i = m.idx(xx, yy);
-        if (m.zone[i] !== Z.FARM || !m.walkable(xx, yy) || m.obj[i] || g.soil.has(i) || g.ents.at(xx, yy) || openingTile(g, xx, yy)) ok = false;
+        const obj = m.obj[i] && !(debrisOk && DEBRIS.has(m.obj[i]));
+        if (m.zone[i] !== Z.FARM || (!m.walkable(xx, yy) && !(debrisOk && DEBRIS.has(m.obj[i]))) || obj || g.soil.has(i) || g.ents.at(xx, yy) || openingTile(g, xx, yy)) ok = false;
       }
     if (ok) return [x, y];
   }
@@ -22,10 +26,13 @@ function freeFarmTile(g: Game, w = 1, h = 1): [number, number] | null {
 }
 
 function meteorite(g: Game): string | null {
-  const spot = freeFarmTile(g, 3, 3);
+  const spot = freeFarmTile(g, 3, 3, true);
   if (!spot) return null;
   const [x, y] = spot;
-  for (let yy = y; yy < y + 3; yy++) for (let xx = x; xx < x + 3; xx++) g.map.setG(xx, yy, T.DIRT);
+  for (let yy = y; yy < y + 3; yy++) for (let xx = x; xx < x + 3; xx++) {
+    g.map.setG(xx, yy, T.DIRT);
+    if (DEBRIS.has(g.map.o(xx, yy))) g.map.setO(xx, yy, O.NONE);
+  }
   for (const [dx, dy] of [[1, 1], [0, 1], [2, 1], [1, 0], [1, 2]]) {
     g.map.setO(x + dx, y + dy, O.ORE_ROCK);
     g.map.objData[g.map.idx(x + dx, y + dy)] = 5; // starmetal

@@ -11,12 +11,15 @@ import type { UI } from './ui';
 import type { PlayScreen } from '../app/play';
 import { drawChronometer, drawHotbar, drawBuildBar, drawRushTracker } from './hudparts';
 import { drawPulse } from './pulse';
+import { drawNowStrip } from './nowstrip';
 
 export interface HudState {
   pickups: { k: number; n: number; t: number }[];
   toasts: { text: string; t: number; icon?: string; color?: number }[];
   /** screen areas the HUD drew this frame (tracker, toasts, pickups, right column, hotbar), for overlays to avoid */
   occupied?: { x: number; y: number; w: number; h: number }[];
+  /** the bottom of the top-left column (Rush tracker + Now strip), where lesson cards hang */
+  leftY?: number;
 }
 
 /** Seconds a toast stays up (it fades out over the last 0.7 s). Tips get longer to read. */
@@ -72,9 +75,22 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
     ui.ctx.globalAlpha = 1;
   });
 
-  // ---- toasts (top center) ----
+  // ---- the Now strip (top left): the one current step and its why (ROADMAP.md 6.2) ----
+  let ty = 4;
+  ty = drawRushTracker(ui, g, ty);
+  const stripTop = ty;
+  ty = drawNowStrip(ui, play, ty);
+  const leftW = ty > stripTop ? 258 : ty > 4 ? 168 : 0;
+  if (ty > 4) occ.push({ x: 0, y: 0, w: leftW, h: ty });
+  // lesson cards hang under it (src/ui/lessoncard.ts)
+  play.hud.leftY = ty;
+
+  // ---- toasts (top, between the left column and the right one) ----
   // toasts make room under an achievement banner
   let toastY = 28 + (play.achQ.length ? 44 : 0);
+  const colL = Math.max(leftW, play.lessons.q.length ? 244 : 0) + 4, colR = cx - 6;
+  const midX = colR - colL >= 200 ? Math.round((colL + colR) / 2) : Math.round(ui.w / 2);
+  const maxW = colR - colL >= 200 ? Math.min(320, colR - colL) : Math.min(320, ui.w - 240);
   // at most three on screen, newest kept; held (not drawn, not aging) while a window is open,
   // since windows cover the top of the screen
   // a quest ribbon owns the middle of the screen for a moment: toasts wait for it
@@ -82,36 +98,20 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
     const life = toastLife(t.text);
     const a = t.t < life - 0.7 ? 1 : 1 - (t.t - (life - 0.7)) / 0.7;
     ui.ctx.globalAlpha = Math.max(0, Math.min(1, a, t.t * 6));
-    const lines = wrapText(t.text, Math.min(320, ui.w - 240));
+    const lines = wrapText(t.text, maxW - 14);
     const w = Math.max(...lines.map((l) => textWidth(l))) + 14;
     const h = lines.length * 10 + 5;
-    ui.panel(ui.w / 2 - w / 2, toastY, w, h, 'dark', false);
-    occ.push({ x: ui.w / 2 - w / 2, y: toastY, w, h });
-    lines.forEach((l, li) => ui.text(l, ui.w / 2, toastY + 4 + li * 10, t.color ?? C.cream, { align: 'center' }));
+    ui.panel(midX - Math.round(w / 2), toastY, w, h, 'dark', false);
+    occ.push({ x: midX - Math.round(w / 2), y: toastY, w, h });
+    lines.forEach((l, li) => ui.text(l, midX, toastY + 4 + li * 10, t.color ?? C.cream, { align: 'center' }));
     ui.ctx.globalAlpha = 1;
     toastY += h + 2;
   }
-
-  // ---- quest tracker (top left) ----
-  const tracker: { title: string; lines: { text: string; done: boolean }[] }[] = g.sys.quests?.tracker?.(g) ?? [];
-  let ty = 4;
-  ty = drawRushTracker(ui, g, ty);
-  for (const q of tracker.slice(0, 3)) {
-    const lines = q.lines.flatMap((l) => wrapText((l.done ? '+ ' : '- ') + l.text, 150).map((t, i) => ({ t: i ? '  ' + t : t, done: l.done })));
-    const h = 17 + lines.length * 10;
-    ui.panel(4, ty, 160, h, 'dark', false);
-    ui.fill(4, ty, 160, 1, C.brass);
-    ui.text(q.title, 9, ty + 4, C.amber);
-    // objective pips
-    q.lines.forEach((l, i) => ui.fill(160 - (q.lines.length - i) * 6, ty + 5, 4, 4, l.done ? C.leaf : C.slate));
-    lines.forEach((l, i) => ui.text(l.t, 9, ty + 15 + i * 10, l.done ? C.leaf : C.cream));
-    ty += h + 3;
-  }
-  if (ty > 4) occ.push({ x: 0, y: 0, w: 168, h: ty });
   // mine floor
   if (p.where === 'mine') {
     ui.panel(4, ty, 70, 16, 'dark', false);
     ui.text(`Floor ${g.sys.mine?.floor ?? 1}`, 10, ty + 5, C.amber);
+    play.hud.leftY = ty + 20;
   }
 }
 

@@ -12,6 +12,7 @@ import { canPlant, canTill, cropTotal, fertilize, harvest, inGreenhouse, plant, 
 import { fuelValue } from './machines';
 import { O, T } from '../world/tilemap';
 import { MState, offText, setState } from '../mstate';
+import { rustTick } from '../rust';
 import { dawnOn, fieldIdleText, gantryTick, gleanerTick, pickable } from './fieldworks';
 import { ORE_TYPES } from '../world/tilemap';
 
@@ -288,7 +289,7 @@ registerSystem({
     // chests and crates: Blocked only when full and nothing is emptying them (ROADMAP.md 4.2)
     if (g.tickN % 30 === 0) for (const e of g.ents.others) if (!e.ghost && e.inv && (e.def.kind === 'chest' || e.def.kind === 'shipbin')) containerState(g, e);
     for (const e of g.ents.others) {
-      if (e.ghost) continue;
+      if (e.ghost || rustTick(e, g.simTime)) continue;
       switch (e.def.kind) {
         case 'harvester': harvesterTick(g, e, dt); break;
         case 'planter': planterTick(g, e, dt); break;

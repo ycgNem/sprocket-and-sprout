@@ -44,56 +44,22 @@ function swap(g: Game, from: string, to: string) {
 }
 
 export { OPENING } from '../opening';
-import { OPENING } from '../opening';
+import { OPENING, buildYard } from '../opening';
 
 /**
- * The clockwork opening: the old keeper left ripe cogbeans and a working preserves jar
- * by the shipping crate, and you arrive with arms, belts and a study desk. Belts, arms
- * and preserving are known from minute one, so the first automation happens in minutes.
+ * The Keeper's Line (ROADMAP.md 6): the old keeper's works, rusted, with the jar still running on
+ * its last beans. You arrive with your tools, two arms and a few cogbean seeds; Preserving and
+ * Clockwork Arms are in the keeper's notes, Conveyance is studied in B5.
  */
-function tinkerStart(g: Game) {
+function keeperStart(g: Game) {
   const p = g.player;
   const give = (id: string, n: number) => p.inv.add(key(id), n);
-  for (const r of ['r_belts', 'r_arms', 'r_preserves']) g.research.done.add(r);
-  g.flags.add('lab');
-  g.flags.add('tinker_start');
+  for (const r of ['r_arms', 'r_preserves']) g.research.done.add(r);
+  g.flags.add('keepers_line');
   give('arm_basic', 2);
-  give('belt_1', 12);
+  give('cogbean_seed', 4);
   give('chest_wood', 1);
-  give('lab', 1);
-  give('bundle_green', 6);
-  // the keeper's bean patch, ripe and ready
-  const B = OPENING.beans;
-  for (let y = B.y; y < B.y + B.h; y++)
-    for (let x = B.x; x < B.x + B.w; x++) {
-      const i = g.map.idx(x, y);
-      g.map.obj[i] = O.NONE;
-      g.map.trees.delete(i);
-      g.map.ground[i] = T.DIRT;
-      g.soil.set(i, { water: true, fert: null, idle: 0, crop: { id: 'cogbean', days: 8, stage: 4, ready: true, harvests: 0, dead: false, giant: -1, frac: 0 } });
-    }
-  // a clear patch of dirt for the first planting
-  const P = OPENING.plot;
-  for (let y = P.y; y < P.y + P.h; y++)
-    for (let x = P.x; x < P.x + P.w; x++) {
-      const i = g.map.idx(x, y);
-      g.map.obj[i] = O.NONE;
-      g.map.trees.delete(i);
-      g.map.ground[i] = T.DIRT;
-    }
-  const [jx, jy] = OPENING.jar;
-  for (const [x, y] of [OPENING.jar, OPENING.armTile, OPENING.chest, OPENING.feedArm]) {
-    g.map.obj[g.map.idx(x, y)] = O.NONE;
-    g.map.trees.delete(g.map.idx(x, y));
-  }
-  // the keeper's jar runs its first three batches at 4x: the first pickle in ~15 s
-  g.ents.add('jar', jx, jy, 0).st.quick = 3;
-  // the keeper's cellar: a dozen cogbeans for an arm to feed the jar with ("Hands Free")
-  g.ents.add('chest_wood', OPENING.chest[0], OPENING.chest[1], 0).inv?.add(key('cogbean'), 12);
-  // these tutorial steps are covered by the opening
-  const q = questSys(g);
-  for (const id of ['t_research', 't_belts', 't_factory', 't_professor']) if (!q.done.includes(id)) q.done.push(id);
-  g.flags.add('tutorial_done');
+  buildYard(g);
 }
 
 function startKit(g: Game) {
@@ -103,7 +69,7 @@ function startKit(g: Game) {
     const q = questSys(g);
     for (const d of QUESTS) if (d.tutorial && !q.done.includes(d.id)) q.done.push(d.id);
     g.flags.add('tutorial_done');
-  } else tinkerStart(g);
+  } else keeperStart(g);
   switch (g.farmKind) {
     case 'riverside':
       give('rod_0', 1);
@@ -152,7 +118,7 @@ function startKit(g: Game) {
  */
 function arrangeHotbar(g: Game) {
   const p = g.player;
-  const order = ['tool:hoe', 'tool:can', 'tool:axe', 'tool:pick', 'arm_basic', 'belt_1', 'chest_wood', 'lab', 'bundle_green', 'radish_seed'];
+  const order = ['tool:hoe', 'tool:can', 'tool:axe', 'tool:pick', 'arm_basic', 'cogbean_seed', 'belt_1', 'chest_wood', 'jar', 'radish_seed'];
   const all = p.inv.slots.filter(Boolean) as { k: number; n: number }[];
   const pick = (m: string) => {
     const i = all.findIndex((s) => (m.startsWith('tool:') ? kDef(s.k).tool?.kind === m.slice(5) : s.k === key(m)));
@@ -171,9 +137,9 @@ registerSystem({
     startKit(g);
   },
   dayStart(g) {
-    // days 2-4: the keeper's cellar sends up a dozen cogbeans, so the starter line runs until the
-    // first radishes ripen (the bean patch alone regrows about 4 a day)
-    if (!g.flags.has('tinker_start') || g.dayIndex < 1 || g.dayIndex > 3) return;
+    // days 2-4: the keeper's cellar sends up a dozen cogbeans, so the jar line runs until the
+    // gleaner's bed ripens (B6's second jar starves on its own chest, not this one)
+    if ((!g.flags.has('tinker_start') && !g.flags.has('keepers_line')) || g.dayIndex < 1 || g.dayIndex > 3) return;
     const chest = g.ents.at(OPENING.chest[0], OPENING.chest[1]);
     if (chest?.def.kind === 'chest' && chest.inv && chest.inv.space(key('cogbean')) >= 12) chest.inv.add(key('cogbean'), 12);
     else g.give(key('cogbean'), 12);

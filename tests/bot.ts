@@ -2,11 +2,11 @@
 // Used by the pacing test (Node) and the Playwright bot (browser).
 import type { Game } from '../src/sim/Game';
 import { CROPS, CROP_BY_ID } from '../src/data/crops';
-import { ITEM_BY_ID } from '../src/data/items';
+import { ITEM_BY_ID, matchesSpec } from '../src/data/items';
 import { RECIPES } from '../src/data/recipes';
 import { key, kDef } from '../src/sim/inventory';
 import { till, plant, waterTile, harvest, canTill } from '../src/sim/systems/farming';
-import { useTool } from '../src/sim/actions';
+import { interactStruct, useTool } from '../src/sim/actions';
 import { buy, shopStock, entryPrice } from '../src/sim/systems/economy';
 import { craft, canCraft } from '../src/sim/crafting';
 import { canPlace, place } from '../src/sim/build';
@@ -34,6 +34,8 @@ export interface DayLog {
 }
 
 const SECOND = 60; // ticks
+/** the keeper's yard is the Keeper's Line's: the bot's own fields and builds stay out of it */
+const inYard = (x: number, y: number) => x >= OPENING.yard.x && x < OPENING.yard.x + OPENING.yard.w && y >= OPENING.yard.y && y < OPENING.yard.y + OPENING.yard.h;
 /** what the bot keeps in its bag for the works (tests/bot.ts works()) */
 const WORKS_PARTS = new Set(['jar', 'arm_basic', 'chest_wood', 'gleaner', 'splitter_1', 'belt_1', 'plank', 'rope', 'copper_gear']);
 
@@ -103,7 +105,7 @@ export class Bot {
     for (let y = 26; y < 60 && out.length < n; y++)
       for (let x = 44; x < 70 && out.length < n; x++) {
         const i = g.map.idx(x, y);
-        if (g.map.zone[i] !== Z.FARM || g.map.buildingAt[i] || g.ents.at(x, y)) continue;
+        if (g.map.zone[i] !== Z.FARM || g.map.buildingAt[i] || g.ents.at(x, y) || inYard(x, y)) continue;
         if (g.map.ground[i] === T.PATH || g.map.ground[i] === T.POND) continue;
         if (Math.abs(x - 49) <= 1 && y <= 23) continue;
         out.push([x, y]);
@@ -170,9 +172,12 @@ export class Bot {
 
   farmMorning() {
     const g = this.g;
-    // harvest + ship
+    // harvest + ship (the keeper's bean patch too: it regrows every 3 days)
     const bin = g.ents.get(g.shipBinId)!;
-    for (const [x, y] of this.plot) {
+    const B = OPENING.beans;
+    const keeperPatch: [number, number][] = [];
+    if (g.flags.has('keepers_line')) for (let y = B.y; y < B.y + B.h; y++) for (let x = B.x; x < B.x + B.w; x++) keeperPatch.push([x, y]);
+    for (const [x, y] of [...keeperPatch, ...this.plot]) {
       const i = g.map.idx(x, y);
       const s = g.soil.get(i);
       if (s?.crop?.ready) {
@@ -194,13 +199,14 @@ export class Bot {
         const researching = g.flags.has('lab') && !!g.research.current;
         const keep = d.cat === 'crop' || d.cat === 'fruit' ? (researching ? 8 : 3) : 0;
         // the works first: the L1 jar line takes up to a day's worth of vegetables and fruit
-        const lineIn = this.lineIn !== null ? g.ents.get(this.lineIn) : null;
+        const lineIn = this.lineIn !== null ? g.ents.get(this.lineIn) : g.ents.at(OPENING.chest[0], OPENING.chest[1]);
         if (lineIn?.inv && (d.cat === 'crop' || d.cat === 'fruit') && sl.n > keep) {
           const room = Math.max(0, 17 - lineIn.inv.slots.reduce((a, s) => a + (s ? s.n : 0), 0));
           const give = Math.min(room, sl.n - keep);
           sl.n -= give - lineIn.inv.add(sl.k, give);
         }
-        const n = Math.max(0, sl.n - keep);
+        const forRowan = this.step() === 'k7_town:1' && matchesSpec(d, '#preserve') ? 6 : 0;
+        const n = Math.max(0, sl.n - Math.max(keep, forRowan));
         if (n > 0) {
           bin.inv!.add(sl.k, n);
           sl.n -= n;
@@ -393,7 +399,7 @@ export class Bot {
         for (let r = 0; r < rows && ok; r++)
           for (let k = 0; k < n && ok; k++) {
             const tx = x + k, ty = y + r;
-            if (this.plot.some(([a, b]) => Math.abs(a - tx) <= 1 && Math.abs(b - ty) <= 1)) ok = false;
+            if (this.plot.some(([a, b]) => Math.abs(a - tx) <= 1 && Math.abs(b - ty) <= 1) || inYard(tx, ty)) ok = false;
             else if (!canPlace(g, 'chest_wood', tx, ty, 0).ok) ok = false;
           }
         if (ok) return [x, y];
@@ -513,7 +519,7 @@ export class Bot {
     const g = this.g;
     for (let y = 24; y < 34; y++)
       for (let x = 40; x < 60; x++) {
-        if (this.plot.some(([a, b]) => Math.abs(a - x) <= 1 && Math.abs(b - y) <= 1)) continue;
+        if (this.plot.some(([a, b]) => Math.abs(a - x) <= 1 && Math.abs(b - y) <= 1) || inYard(x, y)) continue;
         if (canPlace(g, id, x, y, 0).ok) {
           g.player.inv.removeSpec(id, 1);
           place(g, id, x, y, 0);
@@ -577,40 +583,240 @@ export class Bot {
     this.collectDrops();
   }
 
-  /** the clockwork opening: pick the keeper's beans, feed the jar, place an arm into the crate */
-  opening() {
-    const g = this.g;
-    if (!g.flags.has('tinker_start') || this.openingDone) return;
-    this.openingDone = true;
-    const B = OPENING.beans;
-    this.walkTo(B.x + 1, B.y);
-    for (let y = B.y; y < B.y + B.h; y++)
-      for (let x = B.x; x < B.x + B.w; x++) {
-        for (const st of harvest(g, g.map.idx(x, y)) ?? []) g.player.inv.add(st.k, st.n);
-        this.wait(0.3);
-      }
-    const jar = g.ents.machines.find((e) => e.def.id === 'jar');
-    this.walkTo(OPENING.jar[0], OPENING.jar[1] + 1);
-    if (jar) {
-      for (const sl of g.player.inv.slots) {
-        if (!sl || kDef(sl.k).id !== 'cogbean') continue;
-        const n = machInsert(g, jar, sl.k, sl.n, true);
-        sl.n -= n;
-      }
-      g.player.inv.slots = g.player.inv.slots.map((s) => (s && s.n > 0 ? s : null));
-      // what pressing F at the jar reports to the quests
-      g.sys.quests?.notify?.(g, 'load', 1, 'jar');
-    }
-    const [ax, ay] = OPENING.armTile;
-    if (canPlace(g, 'arm_basic', ax, ay, 0).ok && g.player.inv.countId('arm_basic') > 0) {
-      g.player.inv.removeSpec('arm_basic', 1);
-      place(g, 'arm_basic', ax, ay, 0);
-      g.sys.quests?.notify?.(g, 'build', 1, 'arm_basic');
-      this.notes.push('opening line built');
-    }
+  /** the Keeper's Line step the Now strip shows ("k3_hands:1"), or '' when the chain is done */
+  private step(): string {
+    const n = questSys(this.g).now(this.g, 1)[0];
+    return n && n.id.startsWith('k') ? `${n.id}:${n.index}` : '';
   }
 
-  openingDone = false;
+  /** wait (in 1 s ticks, up to `max` s) until the chain leaves `step` */
+  private waitPast(step: string, max: number) {
+    for (let t = 0; t < max && this.step() === step && !this.g.sleeping; t++) this.wait(1);
+  }
+
+  /** F at a structure in the yard, standing beside it */
+  private F(xy: [number, number]) {
+    const e = this.g.ents.at(xy[0], xy[1]);
+    if (!e) return false;
+    this.walkTo(xy[0], xy[1] + 1);
+    interactStruct(this.g, e);
+    this.wait(0.3);
+    return true;
+  }
+
+  private put(id: string, xy: [number, number], rot: 0 | 1 | 2 | 3) {
+    if (this.g.ents.at(xy[0], xy[1])) return null;
+    this.walkTo(xy[0], xy[1] + 1);
+    return this.placeAt(id, xy[0], xy[1], rot);
+  }
+
+  /**
+   * The Keeper's Line (ROADMAP.md 6), played the way a player would: one step at a time, walking
+   * to each piece. Called through the day; it does what the current step needs and moves on.
+   * B6's jar comes from the Mercantile, so the town part waits for the shop's hours.
+   */
+  keeperLine(town = false) {
+    const g = this.g;
+    if (!g.flags.has('keepers_line')) return;
+    const q = questSys(g);
+    for (let guard = 0; guard < 40 && !g.sleeping; guard++) {
+      const s = this.step();
+      if (!s) return;
+      switch (s) {
+        case 'k1_line:0': {
+          const B = OPENING.beans;
+          this.walkTo(B.x, B.y);
+          let picked = 0;
+          for (let y = B.y; y < B.y + B.h && picked < 4; y++)
+            for (let x = B.x; x < B.x + B.w && picked < 4; x++) {
+              for (const st of harvest(g, g.map.idx(x, y)) ?? []) {
+                g.player.inv.add(st.k, st.n);
+                picked += st.n;
+              }
+              this.wait(0.3);
+            }
+          break;
+        }
+        case 'k1_line:1':
+          this.F(OPENING.jar);
+          break;
+        case 'k1_line:2': {
+          this.wait(8);
+          this.F(OPENING.jar);
+          const i = g.player.inv.slots.findIndex((sl) => sl && kDef(sl.k).tags?.includes('preserve'));
+          if (i >= 0) {
+            g.player.sel = i;
+            this.F([g.ents.get(g.shipBinId)!.x, g.ents.get(g.shipBinId)!.y]);
+          }
+          break;
+        }
+        case 'k2_springs:0': {
+          // the Professor walks in from the road: meet her by the jar
+          const n = npcSys(g).byId.get('ottoline')!;
+          for (let t = 0; t < 40 && (g.sys.keeper?.visit !== 1 || n.path.length); t++) this.wait(0.5);
+          this.walkTo(Math.floor(n.x), Math.floor(n.y));
+          npcSys(g).interact(g, n);
+          g.sys.dialogue = null;
+          this.wait(4);
+          break;
+        }
+        case 'k2_springs:1':
+          this.F(OPENING.armTile);
+          break;
+        case 'k2_springs:2':
+          this.waitPast(s, 90);
+          break;
+        case 'k3_hands:0':
+          this.put('arm_basic', OPENING.feedArm, 0);
+          break;
+        case 'k3_hands:1':
+        case 'k3_hands:2':
+          this.waitPast(s, 120);
+          break;
+        case 'k4_grow:0':
+          for (const [x, y] of OPENING.bed) this.use('hoe', x, y);
+          break;
+        case 'k4_grow:1': {
+          const cr = CROP_BY_ID.get('cogbean')!;
+          for (const [x, y] of OPENING.bed)
+            if (g.player.inv.countId('cogbean_seed') > 0 && plant(g, cr, g.map.idx(x, y))) {
+              g.player.inv.removeSpec('cogbean_seed', 1);
+              g.sys.quests?.notify?.(g, 'plant', 1);
+              this.wait(0.25);
+            }
+          break;
+        }
+        case 'k4_grow:2':
+          for (const [x, y] of OPENING.bed) this.use('can', x, y);
+          break;
+        case 'k4_grow:3':
+          this.F(OPENING.gleaner);
+          break;
+        case 'k5_desk:0':
+          this.F(OPENING.desk);
+          break;
+        case 'k5_desk:1': {
+          // 3 cogbeans make a bundle: from the bag, else from the cellar chest
+          const chest = g.ents.at(OPENING.chest[0], OPENING.chest[1]);
+          const need = 3 - g.player.inv.countId('cogbean');
+          if (need > 0 && chest?.inv) {
+            const n = Math.min(need, chest.inv.countId('cogbean'));
+            chest.inv.removeSpec('cogbean', n);
+            g.player.inv.add(key('cogbean'), n);
+          }
+          const r = RECIPES.find((x) => x.id === 'hand:bundle_green_3crop')!;
+          if (canCraft(g, r)) craft(g, r, 1);
+          else this.wait(30);
+          break;
+        }
+        case 'k5_desk:2':
+          this.F(OPENING.desk);
+          setResearch(g, 'r_belts');
+          break;
+        case 'k5_desk:3':
+          // looking over the belt run (a player hovers it)
+          this.walkTo(OPENING.belts[1][0], OPENING.belts[1][1] + 1);
+          g.flags.add('observed:belt_1');
+          break;
+        case 'k5_desk:4':
+          for (const xy of OPENING.belts) if (g.ents.at(xy[0], xy[1])?.st.rust) this.F(xy);
+          break;
+        case 'k5_desk:5':
+          this.F(OPENING.gleanArm);
+          break;
+        case 'k5_desk:6':
+          this.waitPast(s, 120);
+          break;
+        case 'k6_bottleneck:0': {
+          if (g.player.inv.countId('jar') === 0) {
+            if (!town || !shopOpen(g, 'general').open) return;
+            const e = shopStock(g, 'general').find((x) => x.item === 'jar');
+            if (!e || !buy(g, e, 1)) return;
+            this.notes.push('bought the second jar');
+            this.walkTo(OPENING.jar2[0], OPENING.jar2[1] + 1);
+          }
+          this.put('jar', OPENING.jar2, 0);
+          break;
+        }
+        case 'k6_bottleneck:1':
+          if (g.player.inv.countId('chest_wood') === 0) {
+            const r = RECIPES.find((x) => x.station === 'hand' && x.out[0].item === 'chest_wood');
+            if (r && canCraft(g, r)) craft(g, r, 1);
+          }
+          this.put('chest_wood', OPENING.jar2Chest, 0);
+          this.put('arm_basic', OPENING.jar2Feed, 0);
+          if (this.step() === s) return;
+          break;
+        case 'k6_bottleneck:2':
+          // it starves: the bot reads why (a player hovers it or holds I)
+          this.wait(12);
+          g.flags.add('read:starved');
+          break;
+        case 'k6_bottleneck:3': {
+          // the fix: beans into its chest (from the bag, or carried over from the cellar chest)
+          const box = g.ents.at(OPENING.jar2Chest[0], OPENING.jar2Chest[1]);
+          const cellar = g.ents.at(OPENING.chest[0], OPENING.chest[1]);
+          if (box?.inv && cellar?.inv) {
+            const n = Math.min(6, cellar.inv.countId('cogbean'));
+            cellar.inv.removeSpec('cogbean', n);
+            box.inv.add(key('cogbean'), n);
+            const mine = Math.min(6, g.player.inv.countId('cogbean'));
+            g.player.inv.removeSpec('cogbean', mine);
+            box.inv.add(key('cogbean'), mine);
+          }
+          this.waitPast(s, 300);
+          if (this.step() === s) return;
+          break;
+        }
+        case 'k6_bottleneck:4': {
+          this.put('arm_basic', OPENING.jar2Out, 0);
+          for (const [x, y, rot] of OPENING.jar2Belts) this.put('belt_1', [x, y], rot);
+          if (this.step() === s) return;
+          break;
+        }
+        case 'k7_town:0':
+          if (!town) return;
+          // reading the board on the square
+          this.walkTo(126, 65);
+          g.flags.add('board:read');
+          break;
+        case 'k7_town:1': {
+          // the line's pickles: out of the crate before the post takes them, and out of the jars
+          const gather = () => {
+            const bin = g.ents.get(g.shipBinId);
+            if (bin?.inv) for (let i = 0; i < bin.inv.slots.length; i++) {
+              const sl = bin.inv.slots[i];
+              if (sl && matchesSpec(kDef(sl.k), '#preserve')) {
+                g.player.inv.add(sl.k, sl.n);
+                bin.inv.slots[i] = null;
+              }
+            }
+            for (const e of g.ents.machines) if (e.def.id === 'jar' && e.mach) for (const st of e.mach.outBuf.splice(0)) g.player.inv.add(st.k, st.n);
+          };
+          gather();
+          if (!town) {
+            // wait by the crate for the line to make the rest
+            for (let t = 0; t < 40 && g.player.inv.countSpec('#preserve') < 6 && !g.sleeping; t++) {
+              this.wait(10);
+              gather();
+            }
+            return;
+          }
+          if (g.player.inv.countSpec('#preserve') < 6) return;
+          const rowan = npcSys(g).byId.get('rowan')!;
+          const i = g.player.inv.slots.findIndex((sl) => sl && matchesSpec(kDef(sl.k), '#preserve'));
+          g.player.sel = i;
+          q.tryDeliver(g, 'rowan', g.player.inv.slots[i]!.k);
+          void rowan;
+          if (this.step() === s) return;
+          break;
+        }
+        default:
+          // B8 and anything the bot doesn't script is left to the rest of its day
+          return;
+      }
+    }
+  }
 
   playDay() {
     const g = this.g;
@@ -618,7 +824,7 @@ export class Bot {
     const day = g.dayIndex;
     // you wake up inside the farmhouse
     if (g.player.where === 'house') g.sys.house.leave(g);
-    this.opening();
+    this.keeperLine();
     this.farmMorning();
     this.expandPlot(Math.min(80, 12 + day * 6));
     this.farmMorning();
@@ -627,7 +833,9 @@ export class Bot {
     this.walkTo(120, 60);
     this.talk();
     this.shop();
+    this.keeperLine(true);
     this.walkTo(56, 30);
+    this.keeperLine();
     this.farmMorning();
     if (g.player.inv.countId('fiber') < 20) this.gather();
     if (day >= 2 && (g.player.inv.countId('copper_ore') < 15 || day % 3 === 0)) this.mineTrip();

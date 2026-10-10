@@ -4,12 +4,14 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 9, 2026, late night): 1.2 "The Works" Phases 0 and 1 are done; 1.1.1 is
-released** (the owner pushed `main` and published v1.1.1 with the installers, for a friend's
-playtest). **Next: Phase 2, on `works`** (the prompt is under "What's next"). The owner's newest
-direction: hand farming stays, but the factory must be apparent and un-Stardew-like from the
-first screen (ROADMAP.md 3.2, DECISIONS #68). ROADMAP.md is the 1.2 plan (the identity rebuild
-around automation); the old 1.1 overhaul is ROADMAP-1.1.md.
+**Status (October 9, 2026, ~midnight): Phase 2 (the Keeper's Line) is in progress on `works`,
+session 1 of about 3.** A new game now opens on the keeper's rusted works with the jar running;
+B1-B6 play as specified, B7-B8 are placeholders, and the bot plays B1-B7 by day 3. What's done and
+what's left: ROADMAP.md Phase 2; the prompt for session 2 is under "What's next". Phases 0 and 1
+are done; 1.1.1 is released (website + installers). The owner's rules since: hand farming stays,
+but the factory is the face (ROADMAP.md 3.2, DECISIONS #68); one path for every player, no "pick a
+direction" card (DECISIONS #72). ROADMAP.md is the 1.2 plan; ROADMAP-1.1.md the finished 1.1
+overhaul.
 - **Phase 0 = 1.1.1 on `main`** (commits `1c0d50e`..`ba760a9`, version bumped): the owner's
   playtest bugs, the overhead pickaxe for all 9 looks, flagstone paths, plank decks, the seam
   audit, painted ground transitions (the farming glitch), placed paths that change the ground;
@@ -273,17 +275,17 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
-Phases 0 and 1 of ROADMAP.md (1.2 "The Works") are done and 1.1.1 is released. Next session is
-ROADMAP.md Phase 2, on branch `works`:
+Phase 2 of ROADMAP.md (1.2 "The Works") continues on branch `works`, session 2:
 
-> Read ROADMAP.md sections 3.1, 3.2, 5 and 6, and HANDOFF.md. On `works`: first re-spec the
-> opening against 3.2 (the keeper's yard as derelict works to bring back, machines moving in the
-> first frame, no debris chores, the factory pulse and Now strip from minute 0; every beat ends
-> with a machine doing something) and get the indie-critic's quick read on it. Then replace both
-> tutorial chains with the Keeper's Line (eight beats), the Now strip, the Keeper's Notebook, the
-> lesson cards, undo, the Professor's visit, Rowan's first order (silver pickles, cogbean oil) on
-> a minimal Orders board, the Skills cards, a `day5-farm` sweep shot. Make tests/bot.ts play
-> B1-B8. Run the checks, then the indie-critic with the eight questions and the Stardew test.
+> Read ROADMAP.md sections 3.2, 6 (6.0 and the critic's notes under the beat table) and Phase 2's
+> status, and HANDOFF.md. On `works`: the minimal Orders board (Today + Rowan's standing order) with
+> consignment by crate tag, so B7 fills by the post; B8 reworked as the critic proposed (Bram's bars
+> for cogbean oil, the keeper's rusted wheel, poles and grist mill by the river with last autumn's
+> barley, two Brass Arms, a 40-spark wheel and a real brownout; lamps dim in a brownout); the Skills
+> cards (bug 5); the crafting labels; the `day5-farm` shot and sweep scenarios for the Now strip,
+> a lesson card and the Notebook. Make tests/bot.ts finish B8 by day 5 on 8 seeds. Run the checks,
+> then the indie-critic's full review with the eight questions and the Stardew test. Ask the owner
+> about renaming the Preserves Jar. Merge to `main` as the 2.0 beta only when the owner says so.
 
 Owner rules to keep in mind (all in DECISIONS.md): cut old systems freely, but hand farming
 (till, plant, water, harvest) stays (#61); the factory must be apparent and un-Stardew-like at a

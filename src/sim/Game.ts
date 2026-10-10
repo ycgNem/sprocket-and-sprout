@@ -6,7 +6,8 @@ import { TileMap } from './world/tilemap';
 import { generateWorld, PLAYER_START, WORLD_W, WORLD_H, SHIPBIN_POS } from './world/worldgen';
 import { Ents, type Dir, type Ent } from './ents';
 import { portInsert, portUses } from './ports';
-import { Inventory, key } from './inventory';
+import { Inventory, kDef, key } from './inventory';
+import { lesson } from './lessons';
 import { updateBelts } from './systems/belts';
 import { updateArms } from './systems/arms';
 import { updateMachines } from './systems/machines';
@@ -112,7 +113,11 @@ export type GameEvent =
   /** an arm dropped goods in a shipping crate (the play screen shows what they'll fetch) */
   | { t: 'crated'; k: number; n: number; x: number; y: number; ent?: number }
   /** the post collected the crate at noon or 6pm */
-  | { t: 'post'; label: string; total: number };
+  | { t: 'post'; label: string; total: number }
+  /** a rusted structure was restored (src/sim/rust.ts): the rust lifts on screen */
+  | { t: 'restored'; ent: number; x: number; y: number }
+  /** a lesson card to show for the first time (src/data/lessons.ts) */
+  | { t: 'lesson'; id: string };
 
 export interface DaySummary {
   day: number;
@@ -370,8 +375,18 @@ export class Game {
   /** a belt that ends at a structure feeds it; goods reaching the shipping crate show their value */
   private beltSink = (dst: Ent, k: number, dir: Dir): boolean => {
     const n = portInsert(this, dst, k, 1, dir);
-    if (n > 0 && dst.def.kind === 'shipbin') this.emit({ t: 'crated', k, n, x: dst.x + 0.5, y: dst.y - 0.1, ent: dst.id });
-    return n > 0;
+    if (n <= 0) return false;
+    if (dst.def.kind === 'shipbin') {
+      this.emit({ t: 'crated', k, n, x: dst.x + 0.5, y: dst.y - 0.1, ent: dst.id });
+      this.sys.quests?.notify?.(this, 'crate', n, kDef(k).id, { auto: true });
+    }
+    // the first time a belt delivers into each kind of structure (the Keeper's Line's B5 checks it)
+    const fed = 'belt_into:' + dst.def.id;
+    if (!this.flags.has(fed)) {
+      this.flags.add(fed);
+      lesson(this, 'belt');
+    }
+    return true;
   };
 
   private beltUses = (dst: Ent, k: number): boolean => portUses(this, dst, k);
@@ -438,6 +453,7 @@ export class Game {
     const before = batches();
     this.runWorks(NIGHT_SECS);
     const summary: DaySummary = { day: this.time.day, season: this.time.season, year: this.time.year, sold: [], total: 0, passedOut, penalty: 0, nightBatches: batches() - before };
+    if (summary.nightBatches) lesson(this, 'night');
     for (const s of SYSTEMS) s.dayEnd?.(this, summary);
     const p = this.player;
     // passing out costs your morning, not your coins (cozy mode forgives it entirely)

@@ -165,6 +165,10 @@ export function deconstruct(g: Game, e: Ent, refund = true): boolean {
     g.toast("That can't be moved.");
     return false;
   }
+  if (root.st.rust && refund) {
+    g.toast(`The keeper's ${root.def.name.toLowerCase()} is rusted solid. Press F to restore it first.`);
+    return false;
+  }
   if (root.ghost) {
     g.ents.remove(root);
     return true;

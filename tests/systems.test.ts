@@ -138,30 +138,25 @@ describe('megaprojects', () => {
 });
 
 describe('tutorial', () => {
-  it('the clockwork opening: pick the keeper beans, feed the jar, then the arm, planting and water quests', async () => {
+  it("the Keeper's Line opens on the works: the first beat starts at once, one step at a time", async () => {
     const g = new Game({ seed: 28 });
     const q = questSys(g);
-    expect(q.active.some((a) => a.id === 't_welcome')).toBe(true);
-    // ripe beans and a jar wait by the house; arms and belts are known from minute one
-    expect([...g.soil.values()].filter((s) => s.crop?.id === 'cogbean' && s.crop.ready).length).toBe(8);
-    expect(g.ents.machines.some((e) => e.def.id === 'jar')).toBe(true);
+    expect(q.active.map((a) => a.id)).toEqual(['k1_line']);
+    // ripe beans by the jar line; arms and preserving are known, Conveyance is studied in B5
+    expect([...g.soil.values()].filter((s) => s.crop?.id === 'cogbean' && s.crop.ready).length).toBe(11);
     expect(g.research.done.has('r_arms')).toBe(true);
-    // the keeper's jar runs its first batches fast
-    expect(g.ents.machines.find((e) => e.def.id === 'jar')!.st.quick).toBe(3);
-    // the first quest completes the moment the jar is fed (not when the pickle comes out)
-    q.notify(g, 'harvest', 8, 'cogbean');
+    expect(g.research.done.has('r_belts')).toBe(false);
+    // the keeper's jar runs fast until the line is whole
+    expect(g.ents.machines.find((e) => e.def.id === 'jar')!.st.quick).toBeGreaterThan(3);
+    // one objective at a time in the Now strip, with its why
+    expect(q.now(g, 3).length).toBe(1);
+    expect(q.now(g, 1)[0].why).toBeTruthy();
+    q.notify(g, 'harvest', 4, 'cogbean');
     q.notify(g, 'load', 1, 'jar');
-    expect(q.done.includes('t_welcome')).toBe(true);
-    const active = q.active.map((a) => a.id);
-    expect(active).toContain('t_arm');
-    expect(active).toContain('t_plant');
-    expect(active).toContain('t_water');
-    // bed waits for the evening on day one, so nobody is sent to sleep at 8am
-    q.notify(g, 'water', 6);
-    expect(q.active.some((a) => a.id === 't_sleep')).toBe(false);
-    g.time.min = 18 * 60 + 1;
-    for (let i = 0; i < 61; i++) g.tick();
-    expect(q.active.some((a) => a.id === 't_sleep')).toBe(true);
+    expect(q.now(g, 1)[0].index).toBe(2);
+    q.notify(g, 'crate', 2, 'pickles_cogbean');
+    expect(q.done).toContain('k1_line');
+    expect(q.active.map((a) => a.id)).toEqual(['k2_springs']);
   });
 });
 

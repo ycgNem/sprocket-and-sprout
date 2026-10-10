@@ -16,20 +16,38 @@ import { canPlace } from '../src/sim/build';
 
 const look = { skin: 1, hair: 2, hairStyle: 'short' as const, shirt: 3, pants: 4 };
 
-describe('the clockwork opening', () => {
-  it("keeps its marked tiles clear of weeds and storm debris on every seed, so the first arm always fits", () => {
+describe("the keeper's yard (ROADMAP.md 6.0)", () => {
+  it('stays clear of weeds and storm debris on every seed, and every marked tile takes its piece', () => {
+    const Y = OPENING.yard;
+    const marked: [string, [number, number]][] = [
+      ['arm_basic', OPENING.feedArm], ['jar', OPENING.jar2], ['chest_wood', OPENING.jar2Chest], ['arm_basic', OPENING.jar2Feed],
+      ['arm_basic', OPENING.jar2Out], ['arm_basic', OPENING.shareArm], ...OPENING.jar2Belts.map(([x, y]) => ['belt_1', [x, y]] as [string, [number, number]]),
+    ];
     for (let seed = 1; seed <= 150; seed++) {
       const g = new Game({ seed });
       for (let d = 0; d < 3; d++) {
-        for (const [x, y] of [OPENING.armTile, OPENING.feedArm]) {
-          // the day starts in the farmhouse after sleeping, so check the ground, then a placement on day one
-          expect(g.map.obj[g.map.idx(x, y)], `seed ${seed} day ${d} arm tile ${x},${y}`).toBe(O.NONE);
-          if (d === 0) expect(canPlace(g, 'arm_basic', x, y, 0).ok, `seed ${seed} arm tile ${x},${y}`).toBe(true);
-        }
+        // no debris chores in the first hour (3.2 rule 2): not at the start, not after a night
+        for (let y = Y.y; y < Y.y + Y.h; y++)
+          for (let x = Y.x; x < Y.x + Y.w; x++) {
+            const o = g.map.obj[g.map.idx(x, y)];
+            expect(o === O.NONE || o === O.MAILBOX, `seed ${seed} day ${d} ${x},${y} has object ${o}`).toBe(true);
+          }
+        if (d === 0) for (const [id, [x, y]] of marked) expect(canPlace(g, id, x, y, 0).ok, `seed ${seed} ${id} at ${x},${y}`).toBe(true);
         g.time.min = DAY_END - 0.001;
         g.tick();
       }
     }
+  });
+
+  it("opens on the works: the jar running, the rest of the keeper's machines rusted", () => {
+    const g = new Game({ seed: 3 });
+    const at = (xy: [number, number]) => g.ents.at(xy[0], xy[1])!;
+    expect(at(OPENING.jar).st.keeper).toBe(1);
+    expect(at(OPENING.jar).mach!.inBuf.size).toBeGreaterThan(0);
+    for (const xy of [OPENING.armTile, OPENING.gleanArm, OPENING.gleaner, OPENING.desk, ...OPENING.belts]) expect(at(xy).st.rust, `${xy}`).toBe(1);
+    // the jar works from the first second, so the factory pulse reads "1 working"
+    for (let i = 0; i < 60; i++) g.tick();
+    expect(at(OPENING.jar).working).toBe(true);
   });
 });
 
@@ -39,9 +57,10 @@ describe('farm maps', () => {
       const g = new Game({ seed: 99, farm: f.id });
       const [px, py] = PLAYER_START;
       expect(g.map.walkable(Math.floor(px), Math.floor(py))).toBe(true);
-      // the opening pieces exist on every map
+      expect(g.map.walkable(Math.floor(g.player.x), Math.floor(g.player.y))).toBe(true);
+      // the opening pieces exist on every map: the keeper's patch (8) and the gleaner's bed (3)
       expect(g.ents.machines.some((e) => e.def.id === 'jar')).toBe(true);
-      expect([...g.soil.values()].filter((s) => s.crop?.id === 'cogbean').length).toBe(8);
+      expect([...g.soil.values()].filter((s) => s.crop?.id === 'cogbean').length).toBe(11);
       const g2 = deserialize(JSON.parse(JSON.stringify(serialize(g, look)))).game;
       expect(g2.farmKind).toBe(f.id);
       expect(g2.map.ground).toEqual(g.map.ground);
@@ -90,7 +109,8 @@ describe('modes', () => {
     expect(researchUnits('r_fertilizer', g)).toBe(3);
     const g2 = deserialize(JSON.parse(JSON.stringify(serialize(g, look)))).game;
     expect(researchUnits('r_fertilizer', g2)).toBe(3);
-    expect(questSys(g).active.every((a) => a.id.startsWith('t_'))).toBe(true);
+    // Rush keeps only the tutorial: the Keeper's Line
+    expect(questSys(g).active.every((a) => a.id.startsWith('k'))).toBe(true);
   });
 
   it('slowing time while building slows the factory too (no output exploit)', () => {

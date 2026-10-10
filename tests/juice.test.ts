@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import '../src/sim';
 import { Game } from '../src/sim/Game';
 import { interact } from '../src/sim/actions';
-import { kDef } from '../src/sim/inventory';
+import { kDef, key } from '../src/sim/inventory';
 import { canTill, inGreenhouse, till } from '../src/sim/systems/farming';
 import { promptAt, toolVerb } from '../src/sim/prompts';
 import { OPENING } from '../src/sim/systems/modes';
@@ -86,33 +86,36 @@ describe('key prompts', () => {
 
 
 describe('first session after the replay review', () => {
-  it('the desk quest completes when a topic is started, not finished (no soft-lock)', async () => {
+  it("picking Conveyance at the desk completes B5's study step at once (no wait for the study)", async () => {
     const { questSys } = await import('../src/sim/systems/quests');
+    const { setResearch } = await import('../src/sim/systems/research');
     const g = new Game({ seed: 6 });
     const q = questSys(g);
-    q.active.push({ id: 't_desk', prog: [0, 0], day: 0 });
-    g.ents.add('lab', 40, 32, 0);
-    g.research.current = 'r_brewing';
+    q.active.push({ id: 'k5_desk', prog: [0, 0, 0, 0, 0, 0, 0], day: 0 });
+    g.flags.add('lab');
+    setResearch(g, 'r_belts');
     for (let i = 0; i < 61; i++) g.tick();
-    expect(q.done).toContain('t_desk');
+    expect(q.now(g, 1)[0].index).not.toBe(2);
+    expect(g.flags.has('study:r_belts')).toBe(true);
   });
 
-  it("the keeper's bean chest sits below the jar, with a dozen cogbeans for the feeding arm", async () => {
+  it("the keeper's cellar chest sits below the jar with two dozen beans, and B3's arm tile is free", async () => {
     const g = new Game({ seed: 6 });
     const chest = g.ents.at(OPENING.chest[0], OPENING.chest[1])!;
     expect(chest.def.id).toBe('chest_wood');
-    expect(chest.inv!.countId('cogbean')).toBe(12);
+    expect(chest.inv!.countId('cogbean')).toBe(24);
     expect(g.ents.at(OPENING.feedArm[0], OPENING.feedArm[1])).toBeFalsy();
   });
 
-  it('"Meet the Neighbors" counts villagers you already met', async () => {
-    const { questSys } = await import('../src/sim/systems/quests');
+  it('F at the jar takes its pickles and loads your beans in one press', async () => {
+    const { interactStruct } = await import('../src/sim/actions');
     const g = new Game({ seed: 6 });
-    const q = questSys(g);
-    for (const id of ['marigold', 'tobias', 'ottoline']) g.sys.npcs.byId.get(id).met = true;
-    q.active.push({ id: 't_town', prog: [0, 0, 0], day: 1 });
-    for (let i = 0; i < 61; i++) g.tick();
-    expect(q.done).toContain('t_town');
+    const jar = g.ents.at(OPENING.jar[0], OPENING.jar[1])!;
+    while (!jar.mach!.outBuf.length) g.tick();
+    g.player.inv.add(key('cogbean'), 3);
+    interactStruct(g, jar);
+    expect(g.player.inv.countSpec('#preserve')).toBeGreaterThan(0);
+    expect(g.player.inv.countId('cogbean')).toBe(0);
   });
 });
 

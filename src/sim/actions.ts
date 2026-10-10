@@ -15,7 +15,9 @@ import { O, T, Z } from './world/tilemap';
 import { canTill, fertilize, harvest, harvestStreak, plant, plantSapling, shakeTree, sprinklerTiles, till, waterTile, canPlant } from './systems/farming';
 import { spawnDrop } from './systems/drops';
 import { deconstruct } from './build';
-import { machInsert, setRecipe } from './systems/machines';
+import { isRusted, restore } from './rust';
+import { lesson } from './lessons';
+import { machAccept, machInsert, setRecipe } from './systems/machines';
 import { curMap } from './systems/player';
 import { Ent } from './ents';
 import { portInsert } from './ports';
@@ -211,6 +213,11 @@ export function hitStructure(g: Game, e: Ent): boolean {
   const root = e.parent ?? e;
   const shake: Map<number, number> = (g.sys.structShake ??= new Map());
   shake.set(root.id, 4);
+  if (isRusted(root)) {
+    g.emit({ t: 'sfx', id: 'thud' });
+    g.toast(`The keeper's ${root.def.name.toLowerCase()} is rusted solid. Press F to restore it.`);
+    return false;
+  }
   if ((root.def.kind === 'chest' || root.def.kind === 'shipbin') && root.inv && !root.inv.isEmpty()) {
     g.emit({ t: 'sfx', id: 'thud' });
     g.toast(`The ${root.def.name.toLowerCase()} has things in it. Empty it, or use remove mode.`);
@@ -570,6 +577,7 @@ export function interact(g: Game, tx: number, ty: number): boolean {
       g.emit({ t: 'fx', kind: 'leaves', x: tx + 0.5, y: ty + 0.5, c: cr.look.leaf, n: 6 });
       // the play screen plays the (streak-pitched) pick sound and flies the crop to its slot
       g.emit({ t: 'harvest', x: tx + 0.5, y: ty + 0.5, k: out[0].k, n: out.reduce((a, s) => a + s.n, 0), streak: streak.n, bonus: streak.bonus });
+      if (out.some((s) => s.k & 3)) lesson(g, 'quality');
     }
     return true;
   }
@@ -617,13 +625,16 @@ export function interactStruct(g: Game, e: Ent): boolean {
   const p = g.player;
   const held = p.inv.slots[p.sel];
   const d = e.def;
+  // the keeper's rusted machines come back with F (src/sim/rust.ts)
+  if (isRusted(e.parent ?? e)) return restore(g, e.parent ?? e);
   if (d.kind === 'scarecrow') {
     const lines = ['The scarecrow stares into the middle distance.', 'You tell the scarecrow about your day. It seems to listen.', "The scarecrow's button eyes look... grateful?", 'A crow lands on the scarecrow, sees you, and leaves.'];
     g.toast(lines[(g.counters.scare_talk = (g.counters.scare_talk ?? 0) + 1) % lines.length]);
     if (g.counters.scare_talk >= 3) g.sys.achUnlock?.(g, 'scarecrow');
     return true;
   }
-  // collect machine output first
+  // collect machine output first, then (same press) load it from the bag if there's anything it takes
+  let collected = false;
   if (e.mach && e.mach.outBuf.length) {
     let got = 0;
     for (const s of [...e.mach.outBuf]) {
@@ -635,9 +646,10 @@ export function interactStruct(g: Game, e: Ent): boolean {
     if (got) {
       g.emit({ t: 'sfx', id: 'collect' });
       g.addXp('tinkering', 2);
-      return true;
+      collected = true;
     }
   }
+  if (collected && !(e.mach && d.kind !== 'beehouse' && p.inv.slots.some((s) => s && !kDef(s.k).tool && !kDef(s.k).weapon && !kDef(s.k).fuel && machAccept(g, e, s.k, true) > 0))) return true;
   // quick insert held item into machines
   if (e.mach && held && d.kind !== 'beehouse') {
     const hd = kDef(held.k);
@@ -727,6 +739,7 @@ export function interactStruct(g: Game, e: Ent): boolean {
         g.emit({ t: 'sfx', id: 'ship' });
         // the play screen pops what they'll fetch, like goods an arm drops in
         g.emit({ t: 'crated', k: held.k, n, x: e.x + 0.5, y: e.y - 0.1, ent: e.id });
+        g.sys.quests?.notify?.(g, 'crate', n, hd.id);
       }
       return true;
     }

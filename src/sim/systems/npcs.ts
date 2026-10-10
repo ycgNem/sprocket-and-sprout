@@ -91,6 +91,9 @@ function pickSchedule(g: Game, d: NPCDef): ScheduleDef {
 
 /** Location where the NPC should be right now (festival overrides). */
 function currentTarget(g: Game, n: NPCState): string {
+  // a scripted visit (the Professor walking into the keeper's yard, src/sim/systems/keeper.ts)
+  const visit = g.sys.visitSpot?.(g, n.id);
+  if (visit) return visit;
   const fest = g.sys.festivals?.npcSpot?.(g, n.id);
   if (fest) return fest;
   const s = n.schedule;
@@ -302,6 +305,8 @@ export function wouldGift(g: Game, n: NPCState, hd: ItemDef): boolean {
 export function talkTo(g: Game, n: NPCState) {
   const d = NPC_BY_ID.get(n.id)!;
   g.count('talk_' + n.id);
+  // a scripted visit plays its own scene
+  if (g.sys.visitTalk?.(g, n)) return;
   const fest = g.sys.festivals?.active;
   if (fest && fest.host === n.id) {
     n.met = true;

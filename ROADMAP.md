@@ -205,8 +205,10 @@ A good day ends with a line a little better than it started, and the tally prove
 **Loop 3, the era (5-30 days).** An order or a keystone needs something you can't make yet →
 research it (Phase 3: observe, experiment, apply) → the new machine creates a new bottleneck →
 the Deepworks or the town supplies the missing input → the keystone completes and the town
-visibly changes (the mill turns, the fountain runs, the square lights up) → a "Plan the works"
-card offers three directions for the next era.
+visibly changes (the mill turns, the fountain runs, the square lights up) → the next era's
+keystone is the town's next need. **One path for every player** (the owner, DECISIONS #72): no
+"pick a direction" card; the eras and keystones come in one authored order, and lines, the
+Deepworks and orders are all parts of that path, not alternatives to it.
 
 **Hands and works.** The hands are fast and fine early, the only source of gold and star quality
 and the harvest streak; the works is slow to set up and then runs while you sleep. Early days are
@@ -217,8 +219,9 @@ quality orders, festivals and the quality plot pay for them (4.9).
 **Units.** Everything the player reads about a line is per day ("jar 17/day", "field 4/day"), the unit farming already speaks.
 
 **Pacing targets** (Story, a new player; the bot checks the ones it can): first automated sale
-≤ 4 min; first full line ≤ 10 min; first Starved diagnosis on day 2; first machine-harvested crop
-(a gleaner) by day 5; power by day 8; the field gantry by day 30; the Mill keystone by day 20.
+≤ 4 min; the first restored machine before minute 3; first full line ≤ 10 min; the first
+machine-harvested crop (the keeper's gleaner) on day 1; first Starved diagnosis on day 2; power by
+day 5 (B8; day 8 if B8 leaves the chain); the field gantry by day 30; the Town Mill keystone by day 20.
 
 ### 3.2 Factory first, at a glance (the owner, 2026-10-09)
 
@@ -610,22 +613,82 @@ Replaces both tutorial chains in `src/data/goals.ts`. One chain, eight beats, in
 yard on every map (the `OPENING` tile rule stays, `src/sim/opening.ts`). Time targets are real
 minutes at Story speed.
 
-**Revise against 3.2 before building** (added 2026-10-09, after this table was written): the
-table below is the skeleton. Phase 2 first re-specs the yard as the keeper's derelict works (what
-is rusted, what each beat restores), makes sure B1's first frame has machines moving, and keeps
-every beat ending on a machine doing something; get the critic's quick read on the revision
-before building it.
+**Re-spec'd against 3.2** (2026-10-09, Phase 2's first step; the critic's quick read is folded in
+where it changed something). The skeleton table this replaces opened on a farmhouse and a dirt
+plot with the arm missing; this one opens on the keeper's works.
 
-| Beat | Minute | What happens | What it teaches | The "why" line |
-|---|---|---|---|---|
-| **B1 The broken line** | 0-4 | The keeper's note. The jar and crate are there; the arm between them is gone ("sent to the Professor for mending"). Pick the ripe cogbeans, F the jar, carry pickles to the crate by hand. The noon post pays. | Move, F, inventory, the crate, the post, the coin shower. | "Every jar you carry is a jar you didn't plant." |
-| **B2 The Professor's arm** | 4-7 | Prof. Cogwhistle walks onto the farm (a scripted visit, like the day-4 Roxy card) with the mended arm. Place it on the marked tile; the pick/drop squares show; watch it carry the next pickle. | Arms: behind → front, orientation, "it turns itself". | "It only does one thing. That is the point." |
-| **B3 Hands free** | 7-10 | The cellar chest of beans + a second arm: chest → arm → jar → arm → crate. The quest completes when 4 pickles ship with zero manual jar loads since the quest began (`g.counters.manualLoad`). | A complete process. The word "line". | "That's a line. It runs while you don't." |
-| **B4 Room to grow** | 10-14 | Till, plant, water the marked plot (cogbean seeds from the note). The chest is "the keeper's last beans"; the plot is tomorrow's. | Farming as the line's supply. Water = growth. | "A line is only as good as what feeds it." |
-| **B5 The desk** | 14-20 | Wood and stone from the yard; craft bundles (fiber + crop); place the desk; research **Conveyance** as the first keystone in miniature: *Observe* (hold the keeper's spare belt piece), *Experiment* (lay 4 belts from the jar's arm into the crate), *Apply* (the desk finishes it overnight-fast: 2 real minutes). | Research has stages; belts deliver into what they hit; crafting. | "You don't research what you haven't touched." |
-| **B6 The bottleneck** | day 2, 20-30 | The post's day-1 pay buys a second jar at the Mercantile (the quest hands the coins and sends the player to town: the town beat). Two jars on one chest: the second shows the **Starved** glyph; the "Starved" lesson card; three fixes are each possible: plant more, buy beans from Roxy's hold (add cogbeans to `airfreight`), or move the second jar onto the plot's own arm. | Diagnosis. Multiple solutions. The glyph, the tooltip, the Line tab. | "A stopped machine is a question. The glyph is the answer." |
-| **B7 The town wants** | day 2-3 | The first **order**: Rowan wants 6 pickles by Friday. Deliver by hand, or tag the crate (consignment): the post delivers tagged goods to the inn. The crate's price tag drops after 10 of one thing: saturation, in one sentence. Reputation with the inn +1: Rowan teaches the Cogbean oil recipe. | Orders, consignment, saturation, reputation, a second recipe for one input. | "The town is your real customer. The crate is just the door." |
-| **B8 Deeper** | day 3-5 | Bram wants copper: the quarry road, the Deepworks entrance, copper rocks, the furnace. Then the first full keystone, **Water Power**, with a real experiment: a wheel on the river, two poles, the mill; the brownout when the mill and a Brass Arm share the wheel. Ends with **Plan the works**: a card with three directions (more lines / the Deepworks / the Orders board) that each start a story thread. | Exploration gives materials and a problem; power; the first real choice. | "From here, you decide." |
+### 6.0 The keeper's yard: derelict works to bring back
+
+The farm opens on the old keeper's works, not on a farmhouse and debris. The machines rusted while
+the farm stood empty; the jar is the one thing still running. Every beat brings one machine back.
+
+**Minute 0, the first frame** (the camera on the yard, the player beside the jar):
+- the keeper's jar bubbling on its last three beans (a pickle about every 15 s), so the factory
+  pulse reads "1 working" from the first second;
+- the crate beside it with the post timer ("Noon post 4:10");
+- in rust colours: the seized arm between the jar and the crate, a dead belt run feeding the jar
+  from the east, a gleaner at its far end on a half-planted bed, the keeper's study desk;
+- the Now strip ("Now: pick the keeper's cogbeans 0/8") with its why line; no quest box, no letter;
+- a clear yard: no weed, stone, twig or stump anywhere in it (`openingTile` covers the whole yard
+  rectangle, x 47-63, y 20-29).
+
+**Rust and Restore** (the one new mechanic). A structure with `st.rust` does nothing, is drawn in a
+rust ramp of its own sprite (no animation), reads Idle "Rusted: F to restore" (arms add "needs a
+mainspring"), and can't be picked up or broken while rusted. F on it restores it: the rust lifts
+over half a second with a dust puff, a clank and a chime, and it starts at once. Arms take a
+mainspring (`spring`; the Professor brings two); belts, the gleaner and the desk take nothing.
+The first restore shows the "The keeper's works" lesson card. Only new games have rust.
+
+**The yard** (every map; world tiles; the crate stays at 54,21):
+
+```
+        48 49 50 51 52 53 54 55 56 57 58 59 60 61
+  y21    H  H  H  H  H  .  C  .  m  .  .  .  .  .     H house, C crate, m mailbox
+  y22    =  =  =  .  .  .  A1 .  .  .  .  f  f  k     A1 rusted arm, jar -> crate (B2)
+  y23    =  =  =  .  .  P  J  r  r  r  r  A3 G  k     J the keeper's jar, running; r rusted belts into J;
+  y24    .  .  .  .  .  .  S  .  .  .  .  f  f  k       A3 rusted arm; G rusted gleaner (B4, B5)
+  y25    .  D  D  .  .  .  K  .  .  .  .  .  .  .     S B3's arm (chest -> jar); K the cellar chest (12 beans)
+  y26    .  D  D  .  .  .  .  .  B  B  B  B  .  .     D rusted study desk (B5); f bed tiles for B4;
+  y27    .  .  .  .  .  .  .  .  B  B  B  B  .  .       k the keeper's 3 ripe plants; B ripe patch (B1); P start
+```
+
+B6 adds the second jar west of the chest: the jar at (52,25), its feed arm at (53,25) facing west,
+its out-arm at (52,24) facing north, and four belts (52,23) -> (52,22) -> (53,22) -> (53,21) into
+the crate. B8's cold engine is the keeper's water wheel on the river by the farm gate, rusted, with
+its two poles and a rusted grist mill: the player passes it on the first walk to town (B6).
+
+**The kit**: hoe, can, axe, pickaxe (scythe in the bag), 2 clockwork arms, 4 cogbean seeds, 1
+chest. Known at the start: Preserving and Clockwork Arms (the keeper's notes). Conveyance is B5.
+
+| Beat | When | What happens (one objective at a time in the Now strip) | Ends with a machine doing something | What it teaches | The "why" line |
+|---|---|---|---|---|---|
+| **B1 The broken line** | 0-1:30 min | Pick 4 of the keeper's cogbeans; feed the jar (F collects its pickles and loads your beans in one press); carry 2 pickles to the crate. The noon post (about minute 4) pays during B2 or B3, with the coin shower. | the jar bubbling on your beans; the crate holding its goods, the post timer counting down | move, F, the bag, the crate, the post | "The arm's seized. Until it's mended, you're the arm." |
+| **B2 The Professor's springs** | 1:30-3 min | Prof. Cogwhistle walks into the yard from the east road the moment B1 is done (a scripted visit, no letter). F on her: three lines, two mainsprings (a quest item: they can't be shipped). Restore the keeper's arm (F). | the arm swinging at once, its take/drop squares shown for 5 s, carrying a pickle into the crate | Restore; an arm takes from behind and drops in front | "It only does one thing. That is the point." |
+| **B3 Hands free** | 3-6 min | Put an arm from your bag on the marked tile between the cellar chest and the jar (it snaps there and turns itself). Done when that arm has fed the jar 4 beans and 4 pickles reach the crate by arm. The keeper's jar runs at 4x until B3 is done, and the cellar chest starts with 24 beans, so day 1's line never runs dry. | chest -> arm -> jar -> arm -> crate running with nobody touching it | placing and facing; a whole process; the word "line" | "That's a line. It runs while you don't." |
+| **B4 Room to grow** | 8-12 min (evening) | The cellar is the keeper's last beans. Till, plant and water the 4 marked tiles of the gleaner's bed, then restore the gleaner (F). | the gleaner sweeping its 3x3 and picking the keeper's three ripe plants into its basket | farming as the line's supply; water = growth; a field is a source a machine can pick | "A line is only as good as what feeds it." |
+| **B5 The desk** | day 1 evening or day 2 morning | Restore the keeper's desk (F): it holds the keeper's notes and one sprout bundle. Craft a second (C: 3 cogbeans, from the chest). Feed the desk (F) and pick **Conveyance** (T, now 2 bundles), the first keystone in miniature with three pips: *Observe* (hover the rusted belt run, or hold I over it), *Experiment* (restore the gleaner's arm with the second spring and the four belts; done when a bean rides into the jar: the gleaner's basket starts with the keeper's last pick, 6 beans), *Apply* (the desk studies it in about 90 s, finishing during B6's walk to town). Reward: 12 belts and 2 arms from the Professor. | beans riding the belt from the gleaner into the jar | research has stages; belts deliver into whatever they run into; crafting; the desk | "You don't research what you haven't touched." |
+| **B6 The bottleneck** | day 2 | The day-1 posts paid for a second jar: the first walk to town (over the bridge, past the keeper's rusted wheel), the Mercantile. Place it on the marked tile west of the cellar chest, your kit chest (empty) on the tile below it and an arm between them, its out-arm and the four marked belts to the crate. The arms snap to their tiles but don't turn themselves this time (R turns them; a wrong facing shows the squares and the "Arms take from behind" card). Its chest is empty, so within a minute it shows the **Starved** glyph and the "Starved" card, while the first jar keeps running (the cellar's dozen still fills the cellar chest through day 4). Read why (hover, hold I, or the Lines tab). Fixes that work on day 2: carry beans into its chest; a third arm from the cellar chest into it; turn the gleaner's belt into it (pays from day 4). Done when the second jar makes 3 pickles. | both jars running | diagnosis; more than one answer; the glyph, the hover line, the Lines tab | "A stopped machine is a question. The glyph is the answer." |
+| **B7 The town wants** | day 2-3 | The Orders board on the square (and J -> Orders): Rowan's standing order, 6 pickles by Friday, silver pays double. Deliver by hand at the inn, or tag the crate for the inn in its window (consignment: at each post, tagged goods that fit an open order go to it first). The crate's price tag shows saturation (the "Saturation" card the first time a price drops 20%). Filled: inn reputation +1, and Rowan teaches cogbean oil (a second jar recipe for the same bean). | the post carrying tagged pickles to the inn: a machine filling an order | orders, consignment, saturation, reputation, one input with two recipes | "The town is your real customer. The crate is just the door." |
+| **B8 Deeper** | day 3-5 | Bram needs copper for the keeper's water wheel: the quarry road, the Deepworks entrance, copper rocks; a furnace and 5 copper bars. Then **Water Power**, the first full keystone: restore the wheel (with the bars), its two poles and the keeper's grist mill. Bram's thanks, two Brass Arms, on the same grid take it past the wheel's 60 sparks: the "Brownout" card, the power lamp and its two fixes (switch something off at a pole, or more power). Then the next main objective is the town's next need, **the Mill** keystone (Phase 3): one path, no choice card (DECISIONS #72). | the mill turning on the wheel, and slowing in the brownout | exploration gives materials and a problem; power; a brownout | "The valley runs on what you build next." |
+
+**The critic's quick read** (2026-10-09, approve with changes) is folded into the rows above: B1
+shorter with the Professor at about 1:30, F at a machine collecting and loading in one press, B3
+checking that the arm fed the jar, the jar at 4x through B3 with 24 beans in the cellar, B6
+starving on its own empty chest (not the shared one) and practising facing, unsellable mainsprings,
+the gleaner's basket starting with 6 beans, a seed top-up if B4 starts with none. **B8 is to be
+reworked when it's built** (the critic: no mill input grows in spring, idle consumers draw only
+idle power, 81% reads as Working): Bram's bars come from an order (6 cogbean oil for 5 copper
+bars), the Deepworks entrance becomes the first step after B8 rather than a mining run on the
+critical path, the keeper's grain bin holds last autumn's 40 barley for the mill, Bram's two
+Brass Arms load and empty it, the old wheel restores at 40 sparks so the grid runs at about 54%,
+and lamps dim in a brownout (the Phase 1 leftover) ships first. The keystone after B8 is called
+**the Town Mill** so it doesn't collide with the grist mill B8 restores. Suggested for the owner:
+rename the Preserves Jar (Stardew's own machine name sits at the centre of the opening).
+
+**The Stardew test, on paper** (the first 15 minutes are B1-B4): a works that's alive from the
+first frame, with machine states you can read (rust, the pulse lamps, the post timer); restoring
+machines and an arm line that runs itself; a machine that harvests your field. Three things
+Stardew doesn't have, and no debris chore before them.
 
 ### 6.1 Rules of the chain
 
@@ -804,8 +867,9 @@ in Phase 6.
 
 The Field Works ladder (4.9) runs through the eras: gleaners in Spring, cranes in Water, sowers, the field gantry and the thresher in Steam, long rails and the Dawn Shift in Clockwork. Phase 1 builds the machines and moves the crane's and sower's research earlier in today's tree; Phase 3 places them in the era columns.
 
-Each era's keystone is the "why" of its research; each era ends with a **Plan the works** card
-(three directions). Era rewards replace the 12 flat-buff nodes. The research tree's `pos`
+Each era's keystone is the "why" of its research; each era ends by handing the player the next
+era's keystone as the town's next need, in one fixed order for everyone (DECISIONS #72: no
+"Plan the works" choice card). Era rewards replace the 12 flat-buff nodes. The research tree's `pos`
 becomes `era` + `row`. The 28-day pacing bot should reach the Mill by day 20 on 6 of 8 seeds.
 
 ---
@@ -915,7 +979,25 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
   within 15% of 1.1's numbers; the `indie-critic` approves the loop (3.1) and the spec (section 4)
   before the build, and its short automation-only review of the build finds no "I can't tell why
   it stopped".
-### Phase 2 — The Keeper's Line (2-3 sessions)
+### Phase 2 — The Keeper's Line (2-3 sessions) — IN PROGRESS (session 1 of ~3, 2026-10-09, on `works`)
+- **Done in session 1:** the re-spec (6.0) and the critic's quick read (approve with changes,
+  folded in); rust and restore (`src/sim/rust.ts`, the rust ramp `src/render/rust.ts`, the badge);
+  the keeper's yard (`src/sim/opening.ts` `buildYard`); the chain B1-B8 in `src/data/goals.ts`
+  (B1-B6 as specified; B7 a hand delivery to Rowan until the Orders board; B8 the old copper,
+  furnace and Water Power steps until its rework); the Professor's visit (`src/sim/systems/keeper.ts`);
+  new objective kinds (crate, restore, flag, made, feeds, armload; `label`, `why`, `goto`); the Now
+  strip (`src/ui/nowstrip.ts`); lesson cards (`src/data/lessons.ts`, `src/ui/lessoncard.ts`, the
+  sim triggers); the Keeper's Notebook tab (`src/ui/windows/notebook.ts`); undo (Ctrl+Z); F
+  collects and loads in one press; the bot plays B1-B7 (by day 3 on seed 2024);
+  `tests/keeper.test.ts` (the 150-seed B6 starve, wreck the yard, old saves, rust rules).
+- **Left:** the minimal Orders board with Rowan's standing order and consignment (B7); B8's rework
+  (critic's version above) and the rusted river works; the Skills cards (bug 5); the crafting
+  labels; the `day5-farm` sweep shot and new sweep scenarios (Now strip, lesson card, Notebook);
+  the bot through B8 by day 5 on 8 seeds; the full critic review with the eight questions and the
+  Stardew test; the owner's call on renaming the Preserves Jar; then the 2.0 beta merge.
+- Pacing after session 1 (8 seeds, 28 days): Story 35.5k (was 20.9k), Rush 33.9k (was 23.1k), day
+  1 about 4.1k; no seed collapses. The jar line now runs from minute 3: Phase 3's economy pass
+  re-tunes it with the Rush medals.
 - Section 6 in full: the eight beats, the Now strip, the Notebook, lesson cards, undo, the
   Professor's visit scene, Rowan's first order (a minimal Orders board: Today + one Standing
   entry; the rest is Phase 3), the Skills cards (bug 5), the crafting labels.

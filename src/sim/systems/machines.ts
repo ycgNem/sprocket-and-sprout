@@ -5,6 +5,7 @@ import type { Game } from '../Game';
 import type { Ent, MachC } from '../ents';
 import { ITEM_BY_ID } from '../../data/items';
 import { MState, offText, setHarvestWait, setState } from '../mstate';
+import { rustTick } from '../rust';
 import { feedersOf, fieldSource, harvestWaitText, hasFeeder } from '../lines';
 import { ItemKey, kDef, kMatches, key, kStack, Stack } from '../inventory';
 
@@ -203,6 +204,7 @@ export function updateMachines(g: Game, dt: number) {
       updateBees(g, e, dt);
       continue;
     }
+    if (rustTick(e, now)) continue;
     if (e.off) {
       e.working = false;
       setState(e, MState.Idle, offText(e), now);
@@ -294,6 +296,7 @@ export function updateMachines(g: Game, dt: number) {
       g.emit({ t: 'fx', kind: 'puff', x: e.x + e.w / 2, y: e.y });
       // the play screen turns this into a hop, an output pop and a note (each machine has its own)
       g.emit({ t: 'made', ent: e.id, item: r.out[0].item, x: e.x + e.w / 2, y: e.y });
+      g.sys.quests?.notify?.(g, 'made', 1, e.def.id, { other: !e.st.keeper });
     }
   }
 }

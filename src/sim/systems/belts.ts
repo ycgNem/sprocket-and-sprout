@@ -2,6 +2,7 @@
 // to the next segment. Processed downstream-first so queues compress cleanly.
 import { BeltC, BeltKind, DX, DY, Dir, Ent, Ents, ITEM_SPACING, Lane, leftOf, opposite } from '../ents';
 import { isBusy, MState, setQueued, setRefused, setState } from '../mstate';
+import { rustTick } from '../rust';
 import { kDef } from '../inventory';
 
 /** Recompute next pointers, curves, underground pairing lengths and update order. */
@@ -191,7 +192,7 @@ export function updateBelts(ents: Ents, dt: number, sink?: BeltSink, now = 0, us
   for (let oi = 0; oi < order.length; oi++) {
     const e = order[oi];
     const b = e.belt;
-    if (!b) continue;
+    if (!b || rustTick(e, now)) continue;
     const adv = b.speed * dt;
     let moved = false, any = false;
     for (let li = 0; li < 2; li++) {

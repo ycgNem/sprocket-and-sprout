@@ -24,6 +24,7 @@ import { portrait, heartsRow } from './town';
 import { shopFor, shopStatus } from '../../sim/systems/town';
 import type { NPCState } from '../../sim/systems/npcs';
 import { charArtHeight } from '../../render/art/sheets';
+import { drawNotebook } from './notebook';
 
 // ---------------- journal ----------------
 function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
@@ -32,10 +33,11 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
   const { x, y } = centered(ui, w, h);
   if (!frame(ui, x, y, w, h, 'Journal')) return false;
   st.data.tab = st.data.tab ?? st.arg ?? 'quests';
-  const tabs = [['quests', 'Quests'], ['friends', 'Friends'], ['collect', 'Collections'], ['feats', 'Achievements'], ['mail', 'Mail']];
+  const tabs = [['notebook', 'Notebook'], ['quests', 'Quests'], ['friends', 'Friends'], ['collect', 'Collections'], ['feats', 'Achievements'], ['mail', 'Mail']];
   let jump = false;
+  const tw = Math.min(70, Math.floor((w - 20) / tabs.length));
   tabs.forEach(([id, label], i) => {
-    if (ui.button('jt' + id, x + 10 + i * 70, y + 10, 66, 14, label, { active: st.data.tab === id })) {
+    if (ui.button('jt' + id, x + 10 + i * tw, y + 10, tw - 4, 14, label, { active: st.data.tab === id })) {
       if (id === 'feats') jump = true;
       else st.data.tab = id;
     }
@@ -47,7 +49,8 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
   }
   const bx = x + 10, by = y + 30, bw = w - 20, bh = h - 40;
   ui.panel(bx, by, bw, bh, 'inset', false);
-  if (st.data.tab === 'quests') {
+  if (st.data.tab === 'notebook') drawNotebook(ui, play, st, bx, by, bw, bh);
+  else if (st.data.tab === 'quests') {
     const q = questSys(g);
     const gs = g.sys.guild;
     const guildH = gs?.unlocked ? 24 + gs.list.length * 10 : 0;
@@ -329,6 +332,8 @@ const MAP_NAME: Record<string, string> = {
 function drawBoard(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
   const q = questSys(g);
+  // the Keeper's Line's B7: the town's orders have been read
+  g.flags.add('board:read');
   const w = 380, h = 220;
   const { x, y } = centered(ui, w, h);
   if (!frame(ui, x, y, w, h, 'Notice Board')) return false;

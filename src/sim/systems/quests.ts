@@ -9,6 +9,7 @@ import type { ObjectiveDef, QuestDef } from '../../data/types';
 import { Game, registerSystem } from '../Game';
 import { key, kDef } from '../inventory';
 import { addPoints, hearts, npcSys } from './npcs';
+import { portGraph } from '../lines';
 
 export interface ActiveQuest {
   id: string;
@@ -39,6 +40,7 @@ export function questSys(g: Game): QuestSys & Record<string, any> {
   const q = g.sys.quests;
   q.notify = notify;
   q.tracker = tracker;
+  q.now = nowLines;
   q.tryDeliver = tryDeliver;
   return q;
 }
@@ -52,7 +54,7 @@ function start(g: Game, def: QuestDef) {
   const q = questSys(g);
   if (q.done.includes(def.id) || q.active.some((a) => a.id === def.id)) return;
   q.active.push({ id: def.id, prog: def.objectives.map(() => 0), day: g.dayIndex });
-  if (g.dayIndex > 0 || def.id !== 't_welcome') {
+  if (g.dayIndex > 0 || def.id !== 'k1_line') {
     g.toast(`New quest: ${def.title}`, undefined, 6);
     // a soft sting and a scroll unfurling over your head for a new quest; the fanfare is for finishing one
     g.emit({ t: 'sfx', id: 'chime', v: 0.7 });
@@ -96,9 +98,9 @@ function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
       return rate >= o.perMin || prog > 0;
     }
     // things crafted before the quest started count if you still have them (in the bag or placed)
-    case 'craft': return prog >= o.n || (!o.fresh && g.player.inv.countId(o.item) + g.ents.all().filter((e) => !e.ghost && e.def.item === o.item).length >= o.n);
-    // structures placed before the quest started count too
-    case 'build': return prog >= o.n || g.ents.all().filter((e) => !e.ghost && e.def.id === o.struct).length >= o.n;
+    case 'craft': return prog >= o.n || (!o.fresh && g.player.inv.countId(o.item) + g.ents.all().filter((e) => !e.ghost && !e.st.rust && e.def.item === o.item).length >= o.n);
+    // structures placed before the quest started count too (the keeper's rusted ones aren't yours yet)
+    case 'build': return prog >= o.n || g.ents.all().filter((e) => !e.ghost && !e.st.rust && e.def.id === o.struct).length >= o.n;
     // "any topic" counts once one is being studied (a costly first pick must not stall the tutorial)
     case 'research': return o.id === '*' ? (g.counters.research ?? 0) >= 1 || !!g.research.current : g.research.done.has(o.id);
     case 'floor': return (g.sys.mine?.deepest ?? 0) >= o.n;
@@ -107,6 +109,20 @@ function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
     case 'sleep':
     case 'visit':
       return prog >= 1;
+    // a rusted structure brought back: the one at a tile, or no rusted one of the kind left
+    case 'restore': {
+      if (o.at) {
+        const e = g.ents.rootAt(o.at[0], o.at[1]);
+        return !!e && !e.st.rust;
+      }
+      const of = g.ents.all().filter((e) => !e.ghost && e.def.id === o.struct);
+      return of.length > 0 && of.every((e) => !e.st.rust);
+    }
+    case 'flag': return g.flags.has(o.flag);
+    case 'feeds': {
+      const nodes = portGraph(g);
+      return g.ents.all().some((e) => !e.ghost && !e.st.rust && e.def.id === o.struct && (!o.other || !e.st.keeper) && (nodes.get(e.id)?.ins.length ?? 0) > 0);
+    }
     default:
       return prog >= ('n' in o ? o.n : 1);
   }
@@ -114,6 +130,12 @@ function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
 
 export function objText(g: Game, o: ObjectiveDef, prog: number): string {
   const item = (id: string) => (id[0] === '#' ? id.slice(1) + ' goods' : ITEM_BY_ID.get(id)?.name ?? id);
+  // a hand-written label for the Now strip, with the count when there is one to show
+  if (o.label) {
+    const n = 'n' in o ? o.n : 0;
+    if (o.t === 'have') return `${o.label} (${Math.min(o.n, g.player.inv.countSpec(o.item))}/${o.n})`;
+    return n > 1 && o.t !== 'build' ? `${o.label} (${Math.min(prog, n)}/${n})` : o.label;
+  }
   switch (o.t) {
     case 'have': return `Have ${o.n} ${item(o.item)} (${Math.min(o.n, g.player.inv.countSpec(o.item))}/${o.n})`;
     case 'deliver': return `Bring ${o.n} ${item(o.item)} to ${questName(o.to, NPC_BY_ID.get(o.to)?.name ?? '')}`;
@@ -121,7 +143,7 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
     case 'talk': return `Talk to ${questName(o.npc, NPC_BY_ID.get(o.npc)?.name ?? '')}`;
     case 'build': {
       // placed ones count, so show them (not just the ones built since the quest began)
-      const placed = g.ents.all().filter((e) => !e.ghost && e.def.id === o.struct).length;
+      const placed = g.ents.all().filter((e) => !e.ghost && !e.st.rust && e.def.id === o.struct).length;
       return `Build ${o.n > 1 ? o.n + ' ' : 'a '}${STRUCT_BY_ID.get(o.struct)?.name} (${Math.min(Math.max(prog, placed), o.n)}/${o.n})`;
     }
     case 'craft': return `Craft ${o.n > 1 ? o.n + ' ' : 'a '}${item(o.item)}` + (o.fresh ? ` (${Math.min(prog, o.n)}/${o.n})` : '');
@@ -138,6 +160,12 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
     case 'visit': return `Visit the ${o.loc}`;
     case 'friend': return o.npc === '*' ? `4 hearts with 3 villagers (${npcSys(g).list.filter((n) => hearts(n) >= o.hearts).length}/3)` : `${o.hearts} hearts with ${NPC_BY_ID.get(o.npc)?.name}`;
     case 'produce': return `Make ${item(o.item)} with machines`;
+    case 'crate': return `${o.auto ? 'Ship' : 'Put'} ${o.n} ${item(o.item)} ${o.auto ? 'by arm' : 'in the crate'} (${Math.min(prog, o.n)}/${o.n})`;
+    case 'restore': return o.struct ? `Restore the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct}` : 'Restore it';
+    case 'flag': return o.flag;
+    case 'made': return `Make ${o.n} batches in a ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct} (${Math.min(prog, o.n)}/${o.n})`;
+    case 'feeds': return `Feed a ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct} with an arm`;
+    case 'armload': return `An arm feeds the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct} (${Math.min(prog, o.n)}/${o.n})`;
   }
 }
 
@@ -176,7 +204,7 @@ export function poll(g: Game) {
   }
 }
 
-function notify(g: Game, type: string, n: number, extra?: string) {
+function notify(g: Game, type: string, n: number, extra?: string, opts?: { auto?: boolean; other?: boolean }) {
   const q = questSys(g);
   for (const a of q.active) {
     const def = QUEST_BY_ID.get(a.id);
@@ -194,12 +222,49 @@ function notify(g: Game, type: string, n: number, extra?: string) {
         case 'till': case 'plant': case 'water': a.prog[i] += n; break;
         case 'sleep': a.prog[i] = 1; break;
         case 'visit': if (o.loc === extra) a.prog[i] = 1; break;
+        case 'crate':
+          if ((!o.auto || opts?.auto) && extra && (o.item === extra || (o.item[0] === '#' && matchesSpec(ITEM_BY_ID.get(extra)!, o.item)))) a.prog[i] += n;
+          break;
+        case 'made': if (o.struct === extra && (!o.other || opts?.other)) a.prog[i] += n; break;
+        case 'armload': if (o.struct === extra) a.prog[i] += n; break;
         default: break;
       }
     });
   }
   // requests progress is checked on delivery
   if (type !== 'have') poll(g);
+}
+
+export interface NowLine {
+  id: string;
+  title: string;
+  text: string;
+  why: string;
+  /** the objective's index in its quest */
+  index: number;
+}
+
+/**
+ * The Now strip's lines (ROADMAP.md 6.2): the main path's current step first (the Keeper's Line,
+ * then the keystones), then tutorial steps, then story quests; one line per quest, its first
+ * unfinished objective, with its why.
+ */
+export function nowLines(g: Game, max = 1): NowLine[] {
+  const q = questSys(g);
+  const rank = (id: string) => {
+    const d = QUEST_BY_ID.get(id);
+    return d?.main ? 0 : d?.tutorial ? 1 : 2;
+  };
+  const out: NowLine[] = [];
+  for (const a of [...q.active].filter((x) => QUEST_BY_ID.has(x.id)).sort((x, y) => rank(x.id) - rank(y.id))) {
+    const def = QUEST_BY_ID.get(a.id)!;
+    const i = def.objectives.findIndex((o, j) => !objDone(g, o, a.prog[j]));
+    if (i < 0) continue;
+    const o = def.objectives[i];
+    out.push({ id: a.id, title: def.title, text: objText(g, o, a.prog[i]), why: o.why ?? def.why ?? '', index: i });
+    if (out.length >= max) break;
+  }
+  return out;
 }
 
 function tracker(g: Game) {
@@ -246,6 +311,24 @@ export function acceptRequest(g: Game, i: number) {
 
 function tryDeliver(g: Game, npcId: string, k: number): boolean {
   const q = questSys(g);
+  for (const a of q.active) {
+    const def = QUEST_BY_ID.get(a.id);
+    const i = def?.objectives.findIndex((o, j) => o.t === 'deliver' && o.to === npcId && a.prog[j] < o.n && matchesSpec(kDef(k), o.item)) ?? -1;
+    if (!def || i < 0) continue;
+    const o = def.objectives[i] as { item: string; n: number };
+    const have = g.player.inv.countSpec(o.item);
+    const name = questName(npcId, NPC_BY_ID.get(npcId)!.name);
+    if (have < o.n) {
+      g.toast(`${name} needs ${o.n} of them. You have ${have}.`);
+      return true;
+    }
+    g.player.inv.removeSpec(o.item, o.n);
+    a.prog[i] = o.n;
+    g.emit({ t: 'sfx', id: 'quest' });
+    g.emit({ t: 'fx', kind: 'coins', x: g.player.x, y: g.player.y - 1 });
+    poll(g);
+    return true;
+  }
   const r = q.current >= 0 ? q.requests[q.current] : null;
   if (!r || r.done || r.npc !== npcId) return false;
   const d = kDef(k);

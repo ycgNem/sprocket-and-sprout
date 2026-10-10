@@ -159,7 +159,7 @@ export function updatePower(g: Game, dt: number) {
     }
     const n = ps.nets.get(e.net);
     if (!n) continue;
-    if (e.off) continue;
+    if (e.off || e.st.rust) continue;
     n.demand += (e.working ? e.def.powerUse ?? 0 : e.def.powerIdle ?? 0) * powerMul;
   }
   for (const e of g.ents.gens) {

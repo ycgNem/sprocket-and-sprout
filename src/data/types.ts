@@ -302,7 +302,17 @@ export interface FestivalDef {
   prizes: { score: number; items: Stack[]; money: number }[];
 }
 
-export type ObjectiveDef =
+/** every objective may name itself for the Now strip and say why it matters (ROADMAP.md 6.2) */
+export interface ObjectiveBase {
+  /** the Now strip's wording ("Pick the keeper's cogbeans"); the progress count is added */
+  label?: string;
+  /** overrides the quest's why line while this objective is the current one */
+  why?: string;
+  /** where to go for it while it's the current step: a villager's id or a map location */
+  goto?: string;
+}
+
+export type ObjectiveDef = ObjectiveBase & (
   | { t: 'have'; item: string; n: number }
   | { t: 'deliver'; item: string; n: number; to: string }
   | { t: 'ship'; item: string; n: number }
@@ -324,7 +334,20 @@ export type ObjectiveDef =
   | { t: 'sleep' }
   | { t: 'visit'; loc: LocationId }
   | { t: 'friend'; npc: string; hearts: number }
-  | { t: 'produce'; item: string; perMin: number };
+  | { t: 'produce'; item: string; perMin: number }
+  /** goods put into the shipping crate (deposit time, not the post's); `auto`: only by arm or belt,
+   *  and a hand load of a machine starts the count again (the line must run by itself) */
+  | { t: 'crate'; item: string; n: number; auto?: boolean }
+  /** a rusted structure brought back: the one at a tile, or every rusted one of a kind */
+  | { t: 'restore'; struct?: string; at?: [number, number] }
+  /** a flag the sim or the UI sets when something happens (read the diagnosis, a bean rode a belt) */
+  | { t: 'flag'; flag: string }
+  /** batches finished by machines of a kind; `other`: not the keeper's own (st.keeper) */
+  | { t: 'made'; struct: string; n: number; other?: boolean }
+  /** a machine of a kind with an arm or belt aimed at it; `other`: not the keeper's own */
+  | { t: 'feeds'; struct: string; other?: boolean }
+  /** items an arm has put into a machine of a kind (B3: the arm, not the hands, fed the jar) */
+  | { t: 'armload'; struct: string; n: number });
 
 export interface QuestDef {
   id: string;
@@ -343,6 +366,10 @@ export interface QuestDef {
   firstDayFrom?: number;
   tutorial?: boolean;
   hint?: string;
+  /** the one line under the title in the Now strip and the Notebook: what this step is for */
+  why?: string;
+  /** on the main path (the Keeper's Line and the keystones): the Now strip shows it first */
+  main?: boolean;
 }
 
 export interface ProjectDef {

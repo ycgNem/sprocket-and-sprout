@@ -5,6 +5,8 @@ import type { Game } from '../Game';
 import { ArmState, DX, DY, Ent } from '../ents';
 import { ItemKey, kDef, kStack } from '../inventory';
 import { isBusy, MState, offText, setHarvestWait, setQueued, setRefused, setState } from '../mstate';
+import { rustTick } from '../rust';
+import { lesson } from '../lessons';
 import { FIELD_KINDS, fieldSource, harvestWaitText } from '../lines';
 import { portAccept, portInsert, portPeek, portTake, portUses } from '../ports';
 
@@ -40,6 +42,7 @@ export function isWindable(e: Ent): boolean {
 export function windArm(g: Game, e: Ent): boolean {
   if (!isWindable(e)) return false;
   e.st.wind = WIND_TIME;
+  lesson(g, 'wind');
   g.emit({ t: 'sfx', id: 'ratchet', x: e.x, y: e.y });
   g.emit({ t: 'fx', kind: 'wind', x: e.x + 0.5, y: e.y + 0.3 });
   g.count('arms_wound');
@@ -56,6 +59,7 @@ export function updateArms(g: Game, dt: number) {
   for (let i = 0; i < ents.arms.length; i++) {
     const e = ents.arms[i];
     const a = e.arm!;
+    if (rustTick(e, now)) continue;
     let mul = 1;
     if (a.powered) {
       if (e.off) {
@@ -158,8 +162,14 @@ export function updateArms(g: Game, dt: number) {
         }
         const n = portInsert(g, dst, a.held.k, a.held.n, e.rot);
         // goods an arm drops in the shipping crate show what they'll fetch: automation = coins
-        if (n > 0 && dst.def.kind === 'shipbin') g.emit({ t: 'crated', k: a.held.k, n, x: dst.x + 0.5, y: dst.y - 0.1, ent: dst.id });
-        if (n > 0) g.stats.states.moved(e, n);
+        if (n > 0 && dst.def.kind === 'shipbin') {
+          g.emit({ t: 'crated', k: a.held.k, n, x: dst.x + 0.5, y: dst.y - 0.1, ent: dst.id });
+          g.sys.quests?.notify?.(g, 'crate', n, kDef(a.held.k).id, { auto: true });
+        } else if (n > 0 && dst.mach) g.sys.quests?.notify?.(g, 'armload', n, dst.def.id);
+        if (n > 0) {
+          g.stats.states.moved(e, n);
+          lesson(g, 'arm');
+        }
         a.held.n -= n;
         if (a.held.n <= 0) {
           a.held = null;

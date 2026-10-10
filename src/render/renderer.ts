@@ -36,8 +36,11 @@ import { drawPlanks, planksUnder } from './planks';
 import { blendVertex, needsBlend } from './blend';
 import { drawDryDrops, drawRail, pushGantry } from './fieldworks';
 import { MState } from '../sim/mstate';
+import { rusty } from './rust';
 
 const CH = TileMap.CHUNK;
+/** seconds the rust takes to lift off a restored machine */
+const RESTORE_FADE = 0.6;
 /** flat objects baked into the ground that get a shadow, and its width */
 const SHADOWED_OBJ = new Map<O, number>([
   [O.ROCK, 12], [O.BOULDER, 14], [O.STUMP, 12], [O.LOG, 14], [O.BUSH, 14], [O.ORE_ROCK, 12], [O.GEM_ROCK, 12], [O.BARREL, 12],
@@ -87,6 +90,8 @@ export class Renderer {
   W = 0;
   H = 0;
   time = 0;
+  /** structures restored from rust and when (this.time): the rust lifts over RESTORE_FADE s */
+  restored = new Map<number, number>();
   drawables: Drawable[] = [];
   /** art overhaul: draw the procedural (1.0) player beside the player, same frame (debug panel) */
   compareArt = false;
@@ -789,7 +794,7 @@ export class Renderer {
           // tread phase: 16 one-pixel steps with imported belts (locked to item speed), else 4
           const fine = hasImage(`belt:${tier}:0:0:15`);
           // a Blocked belt stops its chevrons (a queue in front of a busy machine keeps rolling)
-          const bf = e.state === MState.Blocked ? 0 : fine ? Math.floor(this.time * b.speed * 16) % 16 : Math.floor(this.time * b.speed * 4) % 4;
+          const bf = e.state === MState.Blocked || e.st.rust ? 0 : fine ? Math.floor(this.time * b.speed * 16) % 16 : Math.floor(this.time * b.speed * 4) % 4;
           const uf = fine && !hasImage(`ug:${tier}:0:0:15`) ? bf >> 2 : bf;
           if (d.kind === 'splitter') {
             if (!e.parent) {
@@ -831,8 +836,9 @@ export class Renderer {
             const sp = sprite(`ug:${tier}:${e.rot}:${b.kind === BeltKind.UnderIn ? 1 : 0}:${uf}`);
             drawSprite(ctx, sp, e.x * TILE, e.y * TILE);
           } else {
-            const sp = sprite(`belt:${tier}:${e.rot}:${b.curve}:${bf}`);
-            drawSprite(ctx, sp, e.x * TILE, e.y * TILE);
+            const name = `belt:${tier}:${e.rot}:${b.curve}:${bf}`;
+            drawSprite(ctx, sprite(e.st.rust ? rusty(name) : name), e.x * TILE, e.y * TILE);
+            this.drawRustFade(e, name, e.x * TILE, e.y * TILE);
           }
           this.collectBeltItems(e, beltItems, pos);
           continue;
@@ -874,7 +880,8 @@ export class Renderer {
           d.kind === 'lamp' || d.kind === 'hive' || d.kind === 'sprinkler' || d.kind === 'lab');
         // on a short grid machines animate slower (ROADMAP.md 4.7)
         const f = d.id === 'waterwheel' ? Math.floor(this.time * 6) % 4 : animated ? (d.powerUse && e.sat < 0.99 ? Math.floor(this.time * 8 * Math.max(0.15, e.sat) + e.id) % 4 : frame) : 0;
-        const s = sprite(`st:${d.id}:${f}:${on ? 1 : 0}:${season}`);
+        const sname = e.st.rust ? `st:${d.id}:0:0:${season}` : `st:${d.id}:${f}:${on ? 1 : 0}:${season}`;
+        const s = sprite(e.st.rust ? rusty(sname) : sname);
         if (d.kind === 'fence' || d.kind === 'gate') {
           D.push({ y: e.y + 0.7, f: () => drawSprite(ctx, s, e.x * TILE, e.y * TILE) });
           continue;
@@ -884,6 +891,8 @@ export class Renderer {
         D.push({ y: e.y + e.h - 0.02, f: () => {
           drawSprite(ctx, sprite(`shadow:${shadowW}`), e.x * TILE + e.w * 8, (e.y + e.h) * TILE - 2);
           drawSprite(ctx, s, e.x * TILE + (hit && this.shakeOn ? wobbleOffset(hit, this.time) : 0), e.y * TILE + this.juice.hopOf(e.id));
+          this.drawRustFade(e, sname, e.x * TILE, e.y * TILE + this.juice.hopOf(e.id));
+          if (e.st.rust) this.drawRustBadge(e);
           // imported windmill art animates its own sails
           if (d.id === 'windmill' && !hasImage(`st:windmill:${f}:${on ? 1 : 0}:${season}`)) this.drawWindmillBlades(g, e);
           if (d.kind === 'drill') this.drawDrillArrow(e);
@@ -952,8 +961,11 @@ export class Renderer {
   drawArm(g: Game, e: Ent) {
     const ctx = this.ctx;
     const a = e.arm!;
-    const base = sprite(`armb:${e.def.id}`);
+    const rust = !!e.st.rust;
+    const base = sprite(rust ? rusty(`armb:${e.def.id}`) : `armb:${e.def.id}`);
     drawSprite(ctx, base, e.x * TILE, e.y * TILE);
+    this.drawRustFade(e, `armb:${e.def.id}`, e.x * TILE, e.y * TILE);
+    if (rust) this.drawRustBadge(e);
     // a wound spring arm spins its key (the winding verb, ROADMAP.md 4.4)
     if (e.st.wind > 0) {
       const kx = e.x * TILE + 12, ky = e.y * TILE + 11;
@@ -965,24 +977,25 @@ export class Renderer {
       ctx.fillStyle = PALETTE[C.butter];
       ctx.fillRect(kx, ky, 1, 1);
     }
-    // swing from pick side (t=0) to drop side (t=1) over the top
+    // swing from pick side (t=0) to drop side (t=1) over the top; a rusted arm froze mid-swing
+    const t = rust ? 0.38 : a.t;
     const cx = e.x * TILE + 8, cy = e.y * TILE + 7;
     const reach = a.reach * 13;
     const ang0 = Math.atan2(-DY[e.rot], -DX[e.rot]);
-    const ang = ang0 + a.t * Math.PI * (e.rot % 2 === 0 ? 1 : -1);
-    const lift = Math.sin(a.t * Math.PI) * 4;
-    const hx = cx + Math.cos(ang) * reach * (0.35 + 0.65 * Math.abs(Math.cos(a.t * Math.PI))), hy = cy + Math.sin(ang) * reach * (0.35 + 0.65 * Math.abs(Math.cos(a.t * Math.PI))) - lift;
-    const col = e.def.id === 'arm_basic' ? C.oak : e.def.id === 'arm_fast' ? C.brass : e.def.id === 'arm_long' ? C.rose : e.def.id === 'arm_filter' ? C.lavender : C.sky;
+    const ang = ang0 + t * Math.PI * (e.rot % 2 === 0 ? 1 : -1);
+    const lift = Math.sin(t * Math.PI) * 4;
+    const hx = cx + Math.cos(ang) * reach * (0.35 + 0.65 * Math.abs(Math.cos(t * Math.PI))), hy = cy + Math.sin(ang) * reach * (0.35 + 0.65 * Math.abs(Math.cos(t * Math.PI))) - lift;
+    const col = rust ? C.rust : e.def.id === 'arm_basic' ? C.oak : e.def.id === 'arm_fast' ? C.brass : e.def.id === 'arm_long' ? C.rose : e.def.id === 'arm_filter' ? C.lavender : C.sky;
     const ex = (cx + hx) / 2 + Math.cos(ang + Math.PI / 2) * 2, ey = (cy + hy) / 2 - 5 - lift;
     pxLine(ctx, cx, cy - 1, ex, ey, C.ink, 3);
     pxLine(ctx, ex, ey, hx, hy, C.ink, 3);
     pxLine(ctx, cx, cy - 1, ex, ey, col, 1);
     pxLine(ctx, ex, ey, hx, hy, col, 1);
-    ctx.fillStyle = PALETTE[C.brass];
+    ctx.fillStyle = PALETTE[rust ? C.walnut : C.brass];
     ctx.fillRect(Math.round(ex) - 1, Math.round(ey) - 1, 2, 2);
     // the claw: imported armh:<id>:<0 open|1 closed> centered on the hand, else a slate block
     const claw = `armh:${e.def.id}:${a.held ? 1 : 0}`;
-    if (hasImage(claw)) drawSprite(ctx, sprite(claw), Math.round(hx), Math.round(hy));
+    if (hasImage(claw)) drawSprite(ctx, sprite(rust ? rusty(claw) : claw), Math.round(hx), Math.round(hy));
     else {
       ctx.fillStyle = PALETTE[C.slate];
       ctx.fillRect(Math.round(hx) - 2, Math.round(hy) - 1, 4, 2);
@@ -990,6 +1003,37 @@ export class Renderer {
     if (a.held) {
       drawItemIcon(ctx, itemIdCache(a.held.k), Math.round(hx - 5), Math.round(hy - 7), 10);
     }
+  }
+
+  /** a rusted machine wears a small broken cog at its top corner: it needs restoring (F) */
+  private drawRustBadge(e: Ent) {
+    const ctx = this.ctx;
+    const x = (e.x + e.w) * TILE - 7, y = e.y * TILE - 2;
+    const cog = ['.X.X.', 'XXXXX', 'XX.XX', 'XXXXX', '.X.X.'];
+    ctx.fillStyle = PALETTE[C.ink];
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) if (cog[r][c] === 'X') ctx.fillRect(x + c - 1, y + r, 3, 1), ctx.fillRect(x + c, y + r - 1, 1, 3);
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) if (cog[r][c] === 'X') {
+      ctx.fillStyle = PALETTE[(r + c) % 4 === 0 ? C.copper : C.rust];
+      ctx.fillRect(x + c, y + r, 1, 1);
+    }
+    // the crack
+    ctx.fillStyle = PALETTE[C.ink];
+    ctx.fillRect(x + 3, y + 1, 1, 1);
+    ctx.fillRect(x + 1, y + 3, 1, 1);
+  }
+
+  /** just restored: the rusted sprite fades off the working one over RESTORE_FADE seconds */
+  private drawRustFade(e: Ent, name: string, x: number, y: number) {
+    const t0 = this.restored.get(e.id);
+    if (t0 === undefined) return;
+    const k = (this.time - t0) / RESTORE_FADE;
+    if (k >= 1 || k < 0) {
+      this.restored.delete(e.id);
+      return;
+    }
+    this.ctx.globalAlpha = 1 - k;
+    drawSprite(this.ctx, sprite(rusty(name)), x, y);
+    this.ctx.globalAlpha = 1;
   }
 
   private drawNoPower(e: Ent) {

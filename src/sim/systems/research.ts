@@ -4,6 +4,7 @@ import { RECIPES } from '../../data/recipes';
 import { ITEM_BY_ID } from '../../data/items';
 import { Game, registerSystem } from '../Game';
 import { MState, setState } from '../mstate';
+import { rustTick } from '../rust';
 import type { Ent } from '../ents';
 import { key, kDef, kId } from '../inventory';
 import { PORT_HANDLERS } from '../ports';
@@ -24,6 +25,8 @@ export function canResearch(g: Game, id: string): boolean {
 export function setResearch(g: Game, id: string | null) {
   if (id && !canResearch(g, id)) return;
   g.research.current = id;
+  // the Keeper's Line's B5 checks that Conveyance was picked at the desk
+  if (id) g.flags.add('study:' + id);
 }
 
 /** Recipes and structures a node unlocks (for the tree UI). */
@@ -76,7 +79,7 @@ function labAccept(g: Game, e: Ent, k: number): number {
 function updateLabs(g: Game, dt: number) {
   const cur = g.research.current;
   if (!cur) {
-    for (const e of g.ents.others) if (e.def.kind === 'lab') {
+    for (const e of g.ents.others) if (e.def.kind === 'lab' && !rustTick(e, g.simTime)) {
       e.working = false;
       setState(e, MState.Idle, 'No topic chosen: open the research tree (T)', g.simTime);
     }
@@ -85,7 +88,7 @@ function updateLabs(g: Game, dt: number) {
   const r = RESEARCH_BY_ID.get(cur)!;
   const units = researchUnits(cur, g);
   for (const e of g.ents.others) {
-    if (e.def.kind !== 'lab' || e.ghost) continue;
+    if (e.def.kind !== 'lab' || e.ghost || rustTick(e, g.simTime)) continue;
     const inv = e.inv!;
     if (!e.st.unit) {
       // need one of each bundle type

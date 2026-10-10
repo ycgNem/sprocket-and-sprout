@@ -8,7 +8,7 @@ import { C, PALETTE, rgba } from '../data/palette';
 import { STRUCT_BY_ID } from '../data/structures';
 import { NPC_BY_ID } from '../data/npcs';
 import { ICON } from '../ui/font';
-import { ITEM_BY_ID } from '../data/items';
+import { ITEM_BY_ID, matchesSpec } from '../data/items';
 import type { NPCLook } from '../data/types';
 import { SEC_PER_MIN, type Game, type GameEvent } from '../sim/Game';
 import { DX, DY, Dir, Ent } from '../sim/ents';
@@ -21,6 +21,8 @@ import { drawSprite, sprite } from '../render/atlas';
 import { TILE } from '../render/art/terrain';
 import { structSize } from '../render/art/structs';
 import { drawHud, HudState, toastLife } from '../ui/hud';
+import { drawLessonCard, queueLesson, type LessonQueue } from '../ui/lessoncard';
+import { lesson } from '../sim/lessons';
 import { WINDOWS, WinState } from '../ui/windows';
 import '../ui/windows/all';
 import { Blueprint, copyBlueprint, pasteBlueprint, rotateBlueprint, blueprintCost } from '../sim/blueprint';
@@ -49,6 +51,8 @@ import { textWidth } from '../ui/font';
 export interface Toast { text: string; t: number; icon?: string; color?: number }
 
 const KONAMI = 'ArrowUp,ArrowUp,ArrowDown,ArrowDown,ArrowLeft,ArrowRight,ArrowLeft,ArrowRight,KeyB,KeyA';
+/** how long a placement can be taken back with Ctrl+Z (real seconds) */
+const UNDO_SECS = 10;
 
 export class PlayScreen implements Screen {
   app: App;
@@ -81,6 +85,10 @@ export class PlayScreen implements Screen {
   pulseFocus: { kind: 'ok' | 'starved' | 'blocked' | 'power'; t: number } | null = null;
   /** the works seen from here: inspector, state sounds, fix ping, chest fill bars */
   works = new WorksView();
+  /** lesson cards waiting to show (src/ui/lessoncard.ts) */
+  lessons: LessonQueue = { q: [] };
+  /** your last placements (one drag each), taken back with Ctrl+Z within UNDO_SECS (ROADMAP.md 6.5) */
+  private undoStack: { ids: number[]; t: number }[] = [];
   private lastWhere = '';
   tipT = 0;
   /** money last frame: a rise while you play becomes a coin shower into the odometer */
@@ -325,8 +333,10 @@ export class PlayScreen implements Screen {
     ui.begin(r.ctx, input, app.uiScale, dt);
     // a modal window owns the screen: the HUD would only peek out around its edges
     if (!this.modalOpen) drawHud(ui, this, dt);
+    drawLessonCard(ui, this, dt);
     this.drawPrompt(ui, dt);
     if (!this.modalOpen) this.works.labels(this, ui, this.hoverEnt());
+    if (!this.modalOpen && !ui.overUI) this.noticeLooked(this.hoverEnt());
     this.drawPostTimer(ui);
     this.drawCompass(ui);
     this.worldHover(ui);
@@ -461,6 +471,7 @@ export class PlayScreen implements Screen {
     const rise = this.promptT < 0.12 ? (below ? -2 : 2) : 0;
     const y = (below ? belowY : aboveY) + rise;
     const tailX = Math.max(x + 3, Math.min(x + w - 4, Math.round(at.x)));
+    this.hud.occupied?.push({ x, y: y - 2, w, h: h + 4 });
     ui.ctx.globalAlpha = Math.min(1, this.promptT / 0.12);
     // bubble with a tail pointing at the thing
     ui.fill(x, y, w, h, C.ink);
@@ -627,6 +638,10 @@ export class PlayScreen implements Screen {
         this.app.audio.sfx('insert');
       } else this.toast(g.player.where === 'house' && !g.sys.house?.pantry ? 'No root cellar to stack into.' : 'Nothing to stack: nearby chests hold none of your bag items.');
     }
+    if (input.ctrl && input.pressed.has('KeyZ')) {
+      input.consume('drop');
+      this.undo();
+    }
     if (input.wasPressed('pipette')) this.pipette();
     if (input.wasPressed('deconstruct')) {
       this.mode = this.mode === 'decon' ? 'normal' : 'decon';
@@ -750,25 +765,23 @@ export class PlayScreen implements Screen {
     const placeable = this.heldPlaceable();
     if (placeable) {
       const def = STRUCT_BY_ID.get(placeable)!;
-      // the opening's first arm snaps onto its marked tile when you aim near it
+      // the Keeper's Line's arms snap onto their marked tile when you aim near it, and turn themselves
       const snap = this.armSnap(t);
       const tt = snap ? { ...t, x: snap.x, y: snap.y } : t;
-      // the opening's arms: over the marked tile they turn themselves to face their target
-      const slot = def.kind === 'arm' ? this.armSlot() : null;
-      if (slot && tt.x === slot.x && tt.y === slot.y)
-        for (let d = 0; d < 4; d++) if (g.ents.rootAt(tt.x + DX[d], tt.y + DY[d]) === slot.to) this.rot = d as Dir;
+      if (snap && snap.rot !== null && def.kind === 'arm') this.rot = snap.rot;
       if (input.mouse.pressed[0]) this.drag = { x: tt.x, y: tt.y };
       if (input.mouse.released[0] && this.drag) {
         const line = this.dragLine(placeable, this.drag.x, this.drag.y, tt.x, tt.y);
         let placed = 0;
+        const ids: number[] = [];
         for (const L of line) {
           const st = p.inv.slots[p.sel];
           if (!st || kDef(st.k).places !== placeable) break;
           if (!this.reachOk(L.x, L.y, buildReach)) continue;
           if (!canPlace(g, placeable, L.x, L.y, L.rot).ok) continue;
           p.inv.remove(st.k, 1);
-          place(g, placeable, L.x, L.y, L.rot);
-        this.works.changed(g, L.x, L.y);
+          ids.push(place(g, placeable, L.x, L.y, L.rot).id);
+          this.works.changed(g, L.x, L.y);
           placed++;
           if (def.kind === 'belt') this.rot = L.rot;
         }
@@ -780,6 +793,12 @@ export class PlayScreen implements Screen {
           } else if (!this.reachOk(tt.x, tt.y, buildReach)) this.toast('Too far away.');
         }
         g.sys.quests?.notify?.(g, 'build', placed, placeable);
+        if (ids.length) {
+          this.undoStack.push({ ids, t: this.playtime });
+          if (this.undoStack.length > 5) this.undoStack.shift();
+          // the first thing you place by hand: undo exists
+          lesson(g, 'undo');
+        }
         this.drag = null;
       }
       if (input.mouse.pressed[2]) {
@@ -849,23 +868,52 @@ export class PlayScreen implements Screen {
   }
 
   /** during "A Helping Hand", an arm held within a tile of the marked spot snaps onto it */
-  armSnap(t: { x: number; y: number }): { x: number; y: number } | null {
-    const held = this.heldPlaceable();
-    if (!held || STRUCT_BY_ID.get(held)?.kind !== 'arm') return null;
-    const slot = this.armSlot();
-    if (!slot || Math.max(Math.abs(t.x - slot.x), Math.abs(t.y - slot.y)) > 1) return null;
-    return { x: slot.x, y: slot.y };
+  /** Ctrl+Z: pick up your last placement (one drag) if it was within UNDO_SECS, with a full refund */
+  private undo() {
+    const g = this.g;
+    while (this.undoStack.length && this.playtime - this.undoStack[this.undoStack.length - 1].t > UNDO_SECS) this.undoStack.pop();
+    const last = this.undoStack.pop();
+    if (!last) {
+      this.toast(`Nothing to undo (Ctrl+Z takes back a placement within ${UNDO_SECS} seconds).`);
+      return;
+    }
+    let n = 0, name = '';
+    for (const id of last.ids) {
+      const e = g.ents.get(id);
+      if (!e || e.ghost) continue;
+      name = e.def.name;
+      if (deconstruct(g, e)) n++;
+    }
+    if (n) {
+      this.toast(`Undone: picked up ${n > 1 ? n + ' ' : 'the '}${n > 1 ? name.toLowerCase() + 's' : name.toLowerCase()}.`);
+      this.app.audio.sfx('pickup');
+    }
   }
 
-  /** the opening's next arm: jar -> crate ("A Helping Hand"), then bean chest -> jar ("Hands Free") */
-  armSlot(): { x: number; y: number; to: Ent } | null {
+  /** a held arm within a tile of a marked arm tile snaps onto it (B3's also turns itself) */
+  armSnap(t: { x: number; y: number }): { x: number; y: number; rot: Dir | null } | null {
+    const held = this.heldPlaceable();
+    if (!held || STRUCT_BY_ID.get(held)?.kind !== 'arm') return null;
+    let best: { x: number; y: number; rot: Dir | null } | null = null, bd = 2;
+    for (const s of this.armSlots()) {
+      const d = Math.max(Math.abs(t.x - s.x), Math.abs(t.y - s.y));
+      if (d < bd) [best, bd] = [s, d];
+    }
+    return best;
+  }
+
+  /**
+   * The Keeper's Line's empty arm tiles: B3's chest -> jar turns itself (the first arm you place);
+   * B6's (its chest -> the second jar, and its out-arm) only snap, so facing gets practised (R).
+   */
+  armSlots(): { x: number; y: number; rot: Dir | null }[] {
     const g = this.g;
     const q = g.sys.quests?.active as { id: string }[] | undefined;
-    const jar = g.ents.at(OPENING.jar[0], OPENING.jar[1]);
-    const bin = g.ents.get(g.shipBinId);
-    if (q?.some((a) => a.id === 't_arm') && bin && !g.ents.at(OPENING.armTile[0], OPENING.armTile[1])) return { x: OPENING.armTile[0], y: OPENING.armTile[1], to: bin };
-    if (q?.some((a) => a.id === 't_feed') && jar && !g.ents.at(OPENING.feedArm[0], OPENING.feedArm[1])) return { x: OPENING.feedArm[0], y: OPENING.feedArm[1], to: jar };
-    return null;
+    const has = (id: string) => !!q?.some((a) => a.id === id);
+    const out: { x: number; y: number; rot: Dir | null }[] = [];
+    if (has('k3_hands')) out.push({ x: OPENING.feedArm[0], y: OPENING.feedArm[1], rot: 0 });
+    if (has('k6_bottleneck')) out.push({ x: OPENING.jar2Feed[0], y: OPENING.jar2Feed[1], rot: null }, { x: OPENING.jar2Out[0], y: OPENING.jar2Out[1], rot: null });
+    return out.filter((s) => !g.ents.at(s.x, s.y));
   }
 
   /** ghost preview, target highlight, area selection rectangles */
@@ -978,21 +1026,75 @@ export class PlayScreen implements Screen {
       const bob = Math.round(Math.sin(this.playtime * 5) * 2);
       if (!near) drawFx(ctx, 'fx:arrow', Math.floor(this.playtime * 8), ax * TILE, y * TILE - 3 + bob);
     };
-    if (has('t_welcome')) {
-      // beans until the 8 are picked (some plants give two, so ripe ones may remain), then the jar
-      const B = OPENING.beans;
-      const picked = (q as { id: string; prog?: number[] }[]).find((a) => a.id === 't_welcome')?.prog?.[0] ?? 0;
-      if (picked < 8 && [...g.soil.values()].some((s) => s.crop?.id === 'cogbean' && s.crop.ready)) mark(B.x, B.y, B.w, B.h);
-      else mark(OPENING.jar[0], OPENING.jar[1]);
+    // the Keeper's Line marks where its current step happens (ROADMAP.md 6)
+    const now = (g.sys.quests?.now?.(g, 1) ?? [])[0] as { id: string; index: number } | undefined;
+    const at = (xy: [number, number]) => mark(xy[0], xy[1]);
+    const free = (xy: [number, number]) => !g.ents.at(xy[0], xy[1]);
+    const rusted = (xy: [number, number]) => !!g.ents.at(xy[0], xy[1])?.st.rust;
+    const soilAt = (xy: [number, number]) => g.soil.get(g.map.idx(xy[0], xy[1]));
+    switch (now ? `${now.id}:${now.index}` : '') {
+      case 'k1_line:0': {
+        const B = OPENING.beans;
+        let ripe = false;
+        for (let y = B.y; y < B.y + B.h; y++) for (let x = B.x; x < B.x + B.w; x++) if (g.soil.get(g.map.idx(x, y))?.crop?.ready) ripe = true;
+        if (ripe) mark(B.x, B.y, B.w, B.h);
+        else at(OPENING.jar);
+        break;
+      }
+      case 'k1_line:1':
+        at(OPENING.jar);
+        break;
+      case 'k1_line:2': {
+        // pickles in the bag go to the crate; otherwise take them from the jar
+        const bin = g.ents.get(g.shipBinId);
+        const carrying = g.player.inv.slots.some((s) => s && matchesSpec(kDef(s.k), '#preserve'));
+        if (carrying && bin) mark(bin.x, bin.y);
+        else at(OPENING.jar);
+        break;
+      }
+      case 'k2_springs:1':
+        if (rusted(OPENING.armTile)) at(OPENING.armTile);
+        break;
+      case 'k3_hands:0':
+        if (free(OPENING.feedArm)) at(OPENING.feedArm);
+        break;
+      case 'k4_grow:0':
+        for (const xy of OPENING.bed) if (!soilAt(xy)) at(xy);
+        break;
+      case 'k4_grow:1':
+        for (const xy of OPENING.bed) if (soilAt(xy) && !soilAt(xy)!.crop) at(xy);
+        break;
+      case 'k4_grow:2':
+        for (const xy of OPENING.bed) if (soilAt(xy)?.crop && !soilAt(xy)!.water) at(xy);
+        break;
+      case 'k4_grow:3':
+        if (rusted(OPENING.gleaner)) at(OPENING.gleaner);
+        break;
+      case 'k5_desk:0':
+      case 'k5_desk:2':
+        mark(OPENING.desk[0], OPENING.desk[1], 2, 2);
+        break;
+      case 'k5_desk:3':
+        mark(OPENING.belts[0][0], OPENING.belts[0][1], OPENING.belts.length, 1);
+        break;
+      case 'k5_desk:4':
+        for (const xy of OPENING.belts) if (rusted(xy)) at(xy);
+        break;
+      case 'k5_desk:5':
+        if (rusted(OPENING.gleanArm)) at(OPENING.gleanArm);
+        break;
+      case 'k6_bottleneck:0':
+        if (g.player.inv.countId('jar') > 0 && free(OPENING.jar2)) at(OPENING.jar2);
+        break;
+      case 'k6_bottleneck:1':
+        if (free(OPENING.jar2Chest)) at(OPENING.jar2Chest);
+        if (free(OPENING.jar2Feed)) at(OPENING.jar2Feed);
+        break;
+      case 'k6_bottleneck:4':
+        if (free(OPENING.jar2Out)) at(OPENING.jar2Out);
+        for (const [x, y] of OPENING.jar2Belts) if (free([x, y])) mark(x, y);
+        break;
     }
-    if (has('t_arm') && !g.ents.at(OPENING.armTile[0], OPENING.armTile[1])) mark(OPENING.armTile[0], OPENING.armTile[1]);
-    if (has('t_feed') && !g.ents.at(OPENING.feedArm[0], OPENING.feedArm[1])) mark(OPENING.feedArm[0], OPENING.feedArm[1]);
-    // the first planting: the bare plot beside the beans, until it's tilled, planted and watered
-    const P = OPENING.plot;
-    const plotTiles: number[] = [];
-    for (let y = P.y; y < P.y + P.h; y++) for (let x = P.x; x < P.x + P.w; x++) plotTiles.push(g.map.idx(x, y));
-    const plotTodo = (has('t_plant') && plotTiles.some((i) => !g.soil.get(i)?.crop)) || (has('t_water') && plotTiles.some((i) => g.soil.get(i)?.crop && !g.soil.get(i)!.water));
-    if (plotTodo) mark(P.x, P.y, P.w, P.h);
     // a villager or place the quest wants you to reach, when it's on screen
     const tg = questTarget(g);
     if (tg && this.onScreenUI(this.toUI(tg.x, tg.y), this.app.ui)) {
@@ -1057,7 +1159,7 @@ export class PlayScreen implements Screen {
     if (!this.onScreenUI(this.toUI(bin.x + 0.5, bin.y + 0.5), ui, 0)) return;
     const waiting = !!bin.inv && !bin.inv.isEmpty();
     const q = g.sys.quests?.active as { id: string }[] | undefined;
-    if (!waiting && !q?.some((a) => a.id === 't_post')) return;
+    if (!waiting && !q?.some((a) => a.id === 'k1_line' || a.id === 'k2_springs')) return;
     const next = POST_TIMES.find((t) => t > g.time.min);
     const left = next === undefined ? -1 : next - g.time.min;
     const label = left < 0 ? 'Post tonight' : left < 1 ? 'Post any second!' : `Post in ${left >= 60 ? Math.floor(left / 60) + 'h ' : ''}${Math.floor(left % 60)}m`;
@@ -1184,6 +1286,13 @@ export class PlayScreen implements Screen {
     return e && !e.ghost ? e : null;
   }
 
+  /** the Keeper's Line notices what you look at: the rusted belt run (B5), a stopped machine (B6) */
+  private noticeLooked(e: Ent | null) {
+    if (!e || !this.g.flags.has('keepers_line')) return;
+    if (e.st.rust) this.g.flags.add('observed:' + e.def.id);
+    if (e.state === MState.Starved || e.state === MState.Blocked) this.g.flags.add('read:starved');
+  }
+
   /** world tile coordinates -> UI px */
   toUI(tx: number, ty: number): Pt {
     const s = this.app.renderer.tileToScreen(tx, ty);
@@ -1221,6 +1330,20 @@ export class PlayScreen implements Screen {
             P.text(e.x * TILE, e.y * TILE - 16, 'Bonus!', C.butter);
             a.sfx('chime', 0.8);
           }
+          break;
+        }
+        case 'lesson':
+          queueLesson(this, e.id);
+          a.sfx('chime', 0.4, 1.5);
+          break;
+        case 'restored': {
+          // the rust lifts (src/render/renderer.ts drawRustFade), a dust puff and a sparkle
+          r.restored.set(e.ent, r.time);
+          P.burst(e.x * TILE, e.y * TILE, 14, [C.rust, C.walnut, C.tan], { speed: 40, up: 30, life: 0.6, size: 1 });
+          J.fx('fx:glint', e.x * TILE, e.y * TILE - 8, { fps: 12 });
+          J.ring(e.x * TILE, e.y * TILE, C.butter, 18);
+          J.hop(e.ent);
+          P.text(e.x * TILE, e.y * TILE - 14, 'Restored!', C.butter);
           break;
         }
         case 'made': {

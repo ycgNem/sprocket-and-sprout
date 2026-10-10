@@ -93,9 +93,14 @@ const SC = {
     await ev(S);
   },
   'first-morning': async () => ev(`(() => { S.play.closeWindow(); })()`),
+  // the Keeper's Line: a lesson card under the Now strip (the first restore raises "The keeper's works")
+  'lesson-card': async () => {
+    await ev(`(() => { S.g.flags.add('lesson:rust'); S.g.emit({ t: 'lesson', id: 'rust' }); })()`);
+    await wait(400);
+  },
   // ---- Phase 3 overlays (the ribbon and streak are drawn through the UI kit, so audited) ----
   // facing down at a ripe bean: the key bubble hangs below it, clear of the player
-  'prompt-harvest': async () => ev(`(() => { for (const t of ${JSON.stringify(ALL_TIPS)}) S.g.flags.add(t); S.play.hud.toasts = []; const g = S.g; g.player.x = 43.5; g.player.y = 25.9; g.player.dir = 2; })()`),
+  'prompt-harvest': async () => ev(`(() => { for (const t of ${JSON.stringify(ALL_TIPS)}) S.g.flags.add(t); S.play.hud.toasts = []; S.play.lessons.q = []; const g = S.g; g.player.x = 57.5; g.player.y = 25.9; g.player.dir = 2; })()`),
   // zoomed in, a quest ribbon and a running harvest streak at the same time
   'streak-ribbon': async () => {
     await ev(`(() => { const r = S.play.app.renderer; window.__z = r.cam.targetZoom; r.cam.zoom = r.cam.targetZoom = 4; S.g.emit({ t: 'quest', title: 'Things That Move Themselves', money: 300, items: [] }); })()`);
@@ -112,6 +117,9 @@ const SC = {
   inventory: async () => ev(`(() => { S.play.closeWindow(); for (const t of ${JSON.stringify(ALL_TIPS)}) S.g.flags.add(t); S.g.player.inv.add(S.key('wood'), 120); S.g.player.inv.add(S.key('strawberry', 2), 7); S.g.player.inv.add(S.key('copper_ore'), 33); S.play.openWindow('menu', 'inventory'); })()`),
   crafting: async () => ev(`(() => { S.g.player.inv.add(S.key('stone'), 100); S.play.openWindow('menu', 'crafting'); S.play.win.data.sel = 'hand:chest_wood'; })()`),
   skills: async () => ev(`(() => { S.g.player.skills.farming = 3; S.g.player.xp.farming = 900; S.play.openWindow('menu', 'skills'); })()`),
+  // the Keeper's Notebook: lessons seen so far, the Journal's first tab
+  notebook: async () => ev(`(() => { for (const l of ['rust', 'arm', 'line', 'post', 'field', 'belt', 'starved']) S.g.flags.add('lesson:' + l); S.play.closeWindow(); S.play.openWindow('journal', 'notebook'); })()`),
+  'notebook-machines': async () => ev(`(() => { S.play.win.data.page = 'machines'; })()`),
   // ---- structures ----
   machine: async () => ev(`(() => { const g = S.g; (${clearArea})(50, 26, 56, 30); g.research.done.add('r_brewing'); const e = window.__build.place(g, 'keg', 52, 27, 0); e.mach.inBuf.set(S.key('strawberry'), 2); g.player.x = 52.5; g.player.y = 29.5; S.play.openWindow('struct', e.id); })()`),
   oven: async () => ev(`(() => { const g = S.g; (${clearArea})(50, 26, 56, 30); g.research.done.add('r_cooking'); const e = window.__build.place(g, 'oven', 52, 27, 0); g.player.x = 52.5; g.player.y = 29.5; S.play.openWindow('struct', e.id); })()`),

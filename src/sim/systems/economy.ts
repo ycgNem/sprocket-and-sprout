@@ -8,6 +8,7 @@ import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { BUILDING_KITS, SHOP_BY_ID, TOOL_UPGRADE_COST } from '../../data/shops';
 import type { ItemCategory, ShopEntry } from '../../data/types';
 import { Game, registerSystem } from '../Game';
+import { lesson } from '../lessons';
 import { Inventory, key, kDef, kIdx, QUALITY_MULT, Stack } from '../inventory';
 import { TIER_NAMES } from '../../data/items';
 
@@ -321,6 +322,7 @@ export const POST_TIMES = [12 * 60, 18 * 60];
 function postCollect(g: Game, label: string) {
   const res = shipAll(g);
   if (!res.total) return;
+  lesson(g, 'post');
   g.player.money += res.total;
   g.earned += res.total;
   const day = (g.sys.postDay ??= { sold: [], total: 0 });

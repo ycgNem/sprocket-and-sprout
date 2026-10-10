@@ -24,4 +24,5 @@ import './systems/founders';
 import './systems/festivals';
 import './systems/bots';
 import './systems/achievements';
+import './systems/keeper';
 import './systems/modes';

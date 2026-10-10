@@ -200,9 +200,26 @@
   square bridges, mine lifts past shafts, the map with names, heads and hovers. DECISIONS #70.
 - The owner's direction for everything after: factory first, un-Stardew at a glance (ROADMAP.md
   3.2, DECISIONS #68); no Builderment-style arm-free lines (#69).
+## 1.2 "The Works", Phase 2 session 1: the Keeper's Line (October 9, 2026, on `works`)
+- The opening re-spec'd against "factory first" (ROADMAP.md 6.0) and the critic's quick read
+  (approve with changes) folded in. The owner cut the "Plan the works" direction card: one path
+  for everyone (DECISIONS #72).
+- A new game opens on the keeper's rusted works: the jar running from the first second, a rusted
+  arm, belt run, gleaner and study desk, a clear yard. Rust and Restore: F brings a piece back
+  (arms take a mainspring). DECISIONS #73-75.
+- The chain B1-B8 replaces both old tutorial chains: B1 the broken line, B2 the Professor's visit
+  with two mainsprings, B3 the whole line, B4 the gleaner's bed, B5 the desk and Conveyance's
+  three stages, B6 the second jar starving on its own chest, B7 Rowan's pickles (by hand for now),
+  B8 copper and Water Power (to be reworked).
+- The Now strip (one step and its why), 21 lesson cards, the Keeper's Notebook tab, undo (Ctrl+Z),
+  F collects and loads in one press, toasts that keep clear of the left column.
+- Tests: 141 (new `tests/keeper.test.ts`: the chain by the bot, the 150-seed B6 starve, wreck the
+  yard, rust rules, old saves); smoke 0 errors. Pacing: Story 35.5k, Rush 33.9k (28 days, 8 seeds).
+
 ## Next
-- ROADMAP.md Phase 2 on `works` (the prompt is in HANDOFF.md, "What's next"): the Keeper's Line,
-  re-spec'd first against 3.2.
+- Phase 2 session 2 (the prompt is in HANDOFF.md, "What's next"): the Orders board and
+  consignment for B7, B8's rework, the Skills cards, crafting labels, the day-5 shot, the bot
+  through B8, the critic's full review.
 - Older ideas: more interior variety (decor items placeable indoors), farmhouse expansion tiers;
   more depth for mid-game automation goals and late-game megaprojects.
 

@@ -238,3 +238,33 @@ recommendations are the decisions.
     at all (`portUses`); an arm or belt stopped by one is Blocked "The jar can't use stone"
     (`e.refused`), the diagnosis has `wrong:arm` / `wrong:belt`, and the factory pulse counts
     root causes (what carries a glyph) rather than machines, so the lamps and the map agree.
+72. **One path, no "pick a direction" card (the owner, 2026-10-09).** The roadmap's "Plan the works"
+    card (B8 and the end of each era: three directions, each starting a story thread) is cut. The
+    owner: those directions were ideas for where to take the game, not a choice to hand the player;
+    the path must be the same for everyone and part of the game. Progression is one authored order
+    (the Keeper's Line, then the Mill, the Waterworks, Lamplighting, the Tram, the Clock); lines,
+    the Deepworks and orders are all steps on it. Side content stays optional, but the main path
+    never branches.
+73. **The Keeper's Line opens on rusted works (Phase 2, ROADMAP.md 6.0).** A new game starts beside
+    the keeper's jar, still running on its last beans (so the factory pulse reads "1 working" from
+    the first second), with the rest of the old works rusted: the arm between the jar and the
+    crate, a belt run, a gleaner on a half-planted bed, the study desk. One new verb, **Restore**:
+    F at a rusted piece brings it back (rust lifts, a chime); arms need a mainspring, which the
+    Professor brings in B2. Rusted pieces do nothing, can't be picked up or broken, and draw in a
+    rust ramp of their own sprite with a small broken-cog badge. Only new games have rust; saves
+    from 1.x keep their quests and get the desk flag. Both old tutorial chains are gone (19 quests).
+74. **One step at a time, with its reason (Phase 2).** The Now strip replaces the 3-quest tracker:
+    one line ("Now: feed the jar") with the step's why under it and a ? to the Keeper's Notebook
+    (a new Journal tab: lessons, machines, lines, controls). Lesson cards (src/data/lessons.ts,
+    21 of them) show the first time a situation happens, never modal, kept in the Notebook.
+    Ctrl+Z takes back the last placement (one drag) within 10 s with a full refund. F at a
+    machine collects its goods and loads it from the bag in one press.
+75. **The critic's quick read of the opening (approve with changes)** shaped the numbers: B1 is
+    short (pick 4, feed, carry 2) so the Professor arrives at about 1:30; the keeper's jar runs at
+    4x until the line is whole (B3) and the cellar starts with 24 beans; B3 checks that the arm fed
+    the jar; B6's second jar starves on its own empty chest (the cellar's daily dozen keeps the
+    first jar running through day 4) and its arms snap but don't turn themselves (facing is
+    practised); a lost mainspring or seed comes again. B8 (copper, the furnace, Water Power) is
+    to be reworked when it's built: Bram's bars from an order, the Deepworks after B8, the keeper's
+    grain for the mill, a 40-spark wheel so the brownout is real. The keystone after it is the Town
+    Mill.

@@ -72,8 +72,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'animalpets', name: 'Petting Zoo', desc: 'Pet your animals 100 times.', cat: 'farm', tier: 1, icon: 'wool', ...num('animal_pets', 100) },
 
   // ---------------- Factory ----------------
-  { id: 'belt1', name: 'Conveyance', desc: 'Place your first conveyor belt.', cat: 'factory', tier: 1, icon: 'belt_1', test: (g) => g.ents.belts.length >= 1 },
-  { id: 'arm1', name: 'A Helping Hand', desc: 'Place your first clockwork arm.', cat: 'factory', tier: 1, icon: 'arm_basic', test: (g) => g.ents.arms.length >= 1 },
+  { id: 'belt1', name: 'Conveyance', desc: 'Place your first conveyor belt.', cat: 'factory', tier: 1, icon: 'belt_1', test: (g) => g.ents.belts.some((e) => !e.st.rust) },
+  { id: 'arm1', name: 'A Helping Hand', desc: 'Place your first clockwork arm.', cat: 'factory', tier: 1, icon: 'arm_basic', test: (g) => g.ents.arms.some((e) => !e.st.rust) },
   { id: 'belts100', name: 'Conveyor Fan', desc: 'Have 100 belts placed.', cat: 'factory', tier: 1, icon: 'belt_2', test: (g) => g.ents.belts.length >= 100, prog: (g) => [g.ents.belts.length, 100] },
   { id: 'belts1000', name: 'Belt Baron', desc: 'Have 1,000 belts placed.', cat: 'factory', tier: 3, icon: 'belt_3', test: (g) => g.ents.belts.length >= 1000, prog: (g) => [g.ents.belts.length, 1000] },
   { id: 'arms50', name: 'Many Hands', desc: 'Have 50 arms placed.', cat: 'factory', tier: 2, icon: 'arm_fast', test: (g) => g.ents.arms.length >= 50, prog: (g) => [g.ents.arms.length, 50] },

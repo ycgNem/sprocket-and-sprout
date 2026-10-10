@@ -9,6 +9,7 @@ import type { Game } from './Game';
 import { kDef } from './inventory';
 import { cartHere } from './systems/cart';
 import { canTill } from './systems/farming';
+import { machAccept } from './systems/machines';
 import { wouldGift } from './systems/npcs';
 import { petAt } from './systems/pet';
 import { shopOpen } from './systems/town';
@@ -75,12 +76,16 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   if (e && !e.ghost) {
     const d = e.def;
     const at = (verb: string): Prompt => ({ verb, x: e.x + e.w / 2, y: e.y - 0.2 });
+    if (e.st.rust) return at('Restore');
     if (d.kind === 'scarecrow') return at('Chat');
     if (e.mach?.outBuf.length) return at('Collect');
     const held = p.inv.slots[p.sel];
     if (d.kind === 'shipbin') return held && kDef(held.k).price > 0 && !kDef(held.k).tool ? at('Ship ' + kDef(held.k).name) : at('Open crate');
     if (d.kind === 'depot') return at(held ? 'Deliver' : 'Open');
-    if (e.mach && d.kind !== 'beehouse') return at(e.mach.crafting ? 'Open' : 'Load');
+    if (e.mach && d.kind !== 'beehouse') {
+      const loadable = p.inv.slots.some((sl) => sl && !kDef(sl.k).tool && !kDef(sl.k).weapon && !kDef(sl.k).fuel && machAccept(g, e, sl.k, true) > 0);
+      return at(loadable || !e.mach.crafting ? 'Load' : 'Open');
+    }
     if ((d.kind === 'tapper' || d.kind === 'fishtrap' || d.kind === 'harvester' || d.kind === 'drill') && e.inv && !e.inv.isEmpty()) return at('Collect');
     if (d.kind === 'belt' || d.kind === 'underground' || d.kind === 'splitter' || d.kind === 'path' || d.kind === 'fence' || d.kind === 'rail') return null;
     return at('Open');
@@ -145,11 +150,23 @@ export function questTarget(g: Game): { x: number; y: number; label: string; npc
   const consider = (x: number, y: number, label: string, score: number, npc?: string) => {
     if (!best || score < best.score) best = { x, y, label, score, npc };
   };
+  // the Now strip's current step may say where to go for it (a villager or a place)
+  const now = (q.now?.(g, 1) ?? [])[0] as { id: string; index: number } | undefined;
+  const go = now ? QUEST_BY_ID.get(now.id)?.objectives[now.index]?.goto : undefined;
   for (const a of shown) {
     const def = QUEST_BY_ID.get(a.id);
     if (!def) continue;
-    def.objectives.forEach((o, i) => {
-      if (a.prog[i] >= 1) return;
+    def.objectives.forEach((o0, i) => {
+      let o = o0;
+      const goHere = !!go && a.id === now!.id && i === now!.index;
+      if (goHere && !g.sys.npcs?.byId?.get(go)) {
+        const l = g.map.locs.get(go!);
+        if (l) consider(l[0] + 0.5, l[1] - 0.5, go![0].toUpperCase() + go!.slice(1), Math.hypot(l[0] - p.x, l[1] - p.y) + 2);
+        return;
+      }
+      // a step that sends you to a villager (to buy, to deliver) points at them like a talk
+      if (goHere) o = { t: 'talk', npc: go! };
+      else if (a.prog[i] >= 1) return;
       if (o.t === 'talk') {
         const n = g.sys.npcs?.byId?.get(o.npc);
         if (!n || (o.met && n.met)) return;

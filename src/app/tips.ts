@@ -20,10 +20,11 @@ export const TIPS: Tip[] = [
   {
     // the professor greets you in three short lines; the key bubbles teach the rest as you go
     id: 'welcome', big: true, title: 'Welcome to Thistlewick!',
-    when: (p) => p.g.dayIndex === 0 && p.playtime > 1.2,
-    text: 'Welcome to Thistlewick, {name}! I\'m Professor Cogwhistle. The old keeper left you this farm, and their clockwork still ticks!\n\nTheir cogbeans are ripe, right beside the house. Walk over with WASD and press F to pick them. Follow the bouncing arrow!\n\nThen feed them to the preserves jar by the shipping crate. Beans make pickles, pickles make coins, coins make machines. Esc shows every control. Off you go!',
+    // a moment in, so the first thing you see is the keeper's works running
+    when: (p) => p.g.dayIndex === 0 && p.playtime > 2.5,
+    text: 'Welcome to Thistlewick, {name}! The old keeper\'s works are yours. Most of it rusted while the farm stood empty, but the preserves jar still runs.\n\nKeep it fed: WASD to walk, F to pick the ripe cogbeans and to load the jar. The line at the top left always says what\'s next, and the arrow shows where.\n\nI\'ll be over with something for that seized arm. Esc shows every control. - Prof. Cogwhistle',
   },
-  { id: 'hoe', when: (p) => held(p)?.tool?.kind === 'hoe' && !p.g.sys.quests?.active?.some((a: { id: string }) => a.id === 't_welcome'), title: '', text: 'Click grass or dirt near you to till it. Bare farm soil is the easiest to work.' },
+  { id: 'hoe', when: (p) => held(p)?.tool?.kind === 'hoe' && !p.g.sys.quests?.active?.some((a: { id: string }) => a.id === 'k1_line'), title: '', text: 'Click grass or dirt near you to till it. Bare farm soil is the easiest to work.' },
   { id: 'seeds', when: (p) => held(p)?.cat === 'seed', title: '', text: 'Click tilled soil to plant. Seeds only grow in their season; the tooltip tells you which.' },
   { id: 'can', when: (p) => held(p)?.tool?.kind === 'can', title: '', text: 'Water each planted tile every day (rain does it for you). Click the farm pond to refill.' },
   { id: 'energy', when: (p) => p.g.player.energy < 60, title: '', text: 'Energy is getting low. Eat something (H) or head to bed. Pass out at 2am and you sleep in until 10.' },
@@ -37,18 +38,19 @@ export const TIPS: Tip[] = [
   { id: 'place', when: (p) => !!held(p)?.places, title: '', text: 'Building: click to place, R rotates, drag to place a line. Right-click picks a structure back up.' },
   {
     id: 'lab', big: true, title: 'The Study Desk',
-    when: (p) => p.g.ents.others.some((e) => e.def.kind === 'lab'),
+    // the Keeper's Line teaches the desk with its lesson cards; this is for saves from before it
+    when: (p) => !p.g.flags.has('keepers_line') && p.g.ents.others.some((e) => e.def.kind === 'lab' && !e.st.rust),
     text: 'Research turns farm goods into know-how. Put Sprout Bundles (1 fiber + 1 crop, or 3 crops) in the desk, then pick a topic in the research tree (T).',
   },
   {
     id: 'belts', big: true, title: 'Belts and Arms',
-    when: (p) => p.g.ents.belts.length > 0,
+    when: (p) => !p.g.flags.has('keepers_line') && p.g.ents.belts.some((e) => !e.st.rust),
     text: 'Belts carry items on two lanes. Drag to place long lines; they curve on their own.\n\nA Clockwork Arm picks up from the tile behind it (green) and drops on the tile in front (gold). Chest -> arm -> machine -> arm -> belt is the basic recipe of every factory.\n\nHover a structure to see what it is doing. P opens production stats.',
   },
-  { id: 'machine', when: (p) => p.g.ents.machines.length > 0, title: '', text: 'Press F (or right-click) at a machine to load it: it takes what you hold, or a matching ingredient from your bag. Finished goods wait inside.' },
+  { id: 'machine', when: (p) => !p.g.flags.has('keepers_line') && p.g.ents.machines.length > 0, title: '', text: 'Press F (or right-click) at a machine to load it: it takes what you hold, or a matching ingredient from your bag. Finished goods wait inside.' },
   {
     id: 'power', big: true, title: 'Power',
-    when: (p) => p.g.ents.gens.length > 0,
+    when: (p) => p.g.ents.gens.some((e) => !e.st.rust),
     text: 'Generators need poles to reach machines. Each pole powers the shaded square around it and wires itself to nearby poles.\n\nIf demand outgrows supply, every machine on that grid slows down. Open a pole to see the grid graph.',
   },
   { id: 'mine', when: (p) => p.g.player.where === 'mine', title: '', text: 'Break rocks to find ore and the ladder down. Every fifth floor has a lift. Watch your health (red bar)!' },

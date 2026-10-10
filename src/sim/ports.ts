@@ -21,7 +21,7 @@ export const PORT_HANDLERS: Record<string, PortHandler> = {};
 
 /** How many of k can `e` accept from an arm facing `dir` (towards e). */
 export function portAccept(g: Game, e: Ent, k: ItemKey, dir: Dir): number {
-  if (e.ghost) return 0;
+  if (e.ghost || e.st.rust) return 0;
   const h = PORT_HANDLERS[e.def.kind];
   if (h?.accept) return h.accept(g, e, k);
   if (e.belt) return beltCanInsertFromSide(e, dir) ? 1 : 0;
@@ -72,7 +72,7 @@ export function portInsert(g: Game, e: Ent, k: ItemKey, n: number, dir: Dir): nu
 }
 
 function portInsertRaw(g: Game, e: Ent, k: ItemKey, n: number, dir: Dir): number {
-  if (e.ghost || n <= 0) return 0;
+  if (e.ghost || e.st.rust || n <= 0) return 0;
   const h = PORT_HANDLERS[e.def.kind];
   if (h?.insert) return h.insert(g, e, k, n);
   if (e.belt) return beltInsertFromSide(e, k, dir) ? 1 : 0;
@@ -104,7 +104,7 @@ function portInsertRaw(g: Game, e: Ent, k: ItemKey, n: number, dir: Dir): number
 }
 
 export function portTake(g: Game, e: Ent, pred: Pred, max: MaxFn): Stack | null {
-  if (e.ghost) return null;
+  if (e.ghost || e.st.rust) return null;
   const h = PORT_HANDLERS[e.def.kind];
   if (h?.take) return h.take(g, e, pred, max);
   if (e.belt) {
