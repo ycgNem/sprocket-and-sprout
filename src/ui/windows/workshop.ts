@@ -7,7 +7,7 @@ import { ITEMS } from '../../data/items';
 import { SEASON_NAMES } from '../../data/types';
 import { keyLabel } from '../../engine/input';
 import type { Blueprint } from '../../sim/blueprint';
-import { addBlueprint, cloneBlueprint, drafting, fits, LIB_MAX } from '../../sim/drafting';
+import { addBlueprint, cloneBlueprint, drafting, fits, libMax } from '../../sim/drafting';
 import { kDef, key } from '../../sim/inventory';
 import { BED } from '../../sim/testbed';
 import { satFactor } from '../../sim/systems/economy';
@@ -156,8 +156,9 @@ function drawDrafting(ui: UI, play: PlayScreen, st: WinState): boolean {
     }
     st.data.name ??= `Line ${lib.length + 1}`;
     st.data.name = ui.textField('bpname', fx, y + 26, 110, st.data.name, 18);
-    const full = lib.length >= LIB_MAX;
-    if (ui.button('bpsave', fx + 114, y + 26, 44, 16, 'Save', { style: 'green', disabled: full || !st.data.name.trim(), tip: full ? `The library holds ${LIB_MAX}: delete one first` : 'Save it in the library' })) {
+    const max = libMax(g);
+    const full = lib.length >= max;
+    if (ui.button('bpsave', fx + 114, y + 26, 44, 16, 'Save', { style: 'green', disabled: full || !st.data.name.trim(), tip: full ? `The library holds ${max}: delete one first` : 'Save it in the library' })) {
       if (addBlueprint(g, st.data.name, bp)) {
         play.toast(`Saved "${lib[lib.length - 1].name}" in the library.`);
         ui.sfx('place');
@@ -166,14 +167,14 @@ function drawDrafting(ui: UI, play: PlayScreen, st: WinState): boolean {
         ui.focus = null;
       }
     }
-    if (full) ui.text(`The library is full (${LIB_MAX}).`, fx, y + 45, C.brick);
+    if (full) ui.text(`The library is full (${max}).`, fx, y + 45, C.brick);
   } else {
     ui.para(`The blueprint tool is empty. Outside, ${copyKey} and a drag copy a line; come back to save it here.`, x + 16, y + 26, W - 32, C.walnut);
   }
   // the library (left) and the chosen line, drawn (right)
   const pw = 112, px = x + W - 10 - pw;
   const lx = x + 10, lw = px - 8 - lx;
-  ui.text(`The library (${lib.length}/${LIB_MAX})`, lx + 2, y + 66, C.amber);
+  ui.text(`The library (${lib.length}/${libMax(g)})`, lx + 2, y + 66, C.amber);
   const ly = y + 78, lh = H - 78 - 22;
   ui.panel(lx, ly - 2, lw, lh + 4, 'inset', false);
   if (!lib.length) ui.para('Saved lines are listed here, to load back into the blueprint tool and paste, to bench-test, or to bring to the Sprocket Fair.', lx + 6, ly + 4, lw - 12, C.walnut);

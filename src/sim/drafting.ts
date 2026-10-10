@@ -38,7 +38,7 @@ export const cloneBlueprint = (bp: Blueprint): Blueprint => JSON.parse(JSON.stri
 
 /**
  * Add a blueprint to the library under a name (a second one of the same name gets a number).
- * Returns false when the library is full (LIB_MAX) and nothing was added.
+ * Returns false when the library is full (`libMax`) and nothing was added.
  */
 export function addBlueprint(g: Game, name: string, bp: Blueprint, from = ''): boolean {
   const d = drafting(g);
