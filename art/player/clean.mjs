@@ -14,7 +14,12 @@
 //         (inclusive, raw-frame px) every non-outline pixel becomes the tool color nearest in lightness;
 //         for a held object PixelLab painted in skin / shirt / hair colors (a watering can). A fifth
 //         entry names another part ([x0, y0, x1, y1, "metal"]): then only pixels the look would recolor
-//         (skin, hair, shirt, pants, accent or unclaimed) move to that part, e.g. a steel blade in pants blue
+//         (skin, hair, shirt, pants, accent or unclaimed) move to that part, e.g. a steel blade in pants blue.
+//         A sixth entry "all" ([x0, y0, x1, y1, "metal", "all"]) moves every non-outline pixel to that part
+//         whatever it matched (an iron pick head PixelLab lit with cream highlights the tool part claims),
+//         except pixels this pass already tagged boots or wood (a handle running through the box).
+//         [x0, y0, x1, y1, "clear"] makes the box transparent: a generator stray, e.g. a tool tip one row
+//         below the feet that would lift the whole frame (art-import aligns each frame's lowest pixel)
 // A recipe lists its inputs as clean/<raw path>; this script writes them from <raw path>.
 //
 // Usage: node art/player/clean.mjs art/player/recipe.json [more recipes…]
@@ -41,6 +46,7 @@ for (const recipeFile of process.argv.slice(2)) {
   };
   const [bootDark, bootLight] = R.parts.boots.from;
   const wood = R.parts.wood?.from;
+  const TAGS = new Set([...R.parts.boots.from, ...(wood ?? [])].map((c) => c.toLowerCase())); // colors this pass writes
   const isHair = (h) => partOf(h) === 'hair';
   const GROW = R.meta?.cleanGrow ?? 1;
   const raws = [...new Set(Object.values(R.input).flat().filter((p) => p && p.startsWith('clean/')))].map((p) => p.slice(6));
@@ -104,7 +110,11 @@ for (const recipeFile of process.argv.slice(2)) {
         }
     }
     // ---- hand-marked tool areas (meta.cleanTool) ----
-    for (const [x0, y0, x1, y1, part] of R.meta?.cleanTool?.[raw] ?? []) {
+    for (const [x0, y0, x1, y1, part, how] of R.meta?.cleanTool?.[raw] ?? []) {
+      if (part === 'clear') {
+        for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) img.data.fill(0, (y * W + x) * 4, (y * W + x) * 4 + 4);
+        continue;
+      }
       const into = part ? partFrom(part) : toolFrom;
       for (let y = y0; y <= y1; y++)
         for (let x = x0; x <= x1; x++) {
@@ -112,7 +122,8 @@ for (const recipeFile of process.argv.slice(2)) {
           const o = (y * W + x) * 4;
           const L = luma([...orig.subarray(o, o + 3)]);
           if (L < 50) continue; // outline stays
-          if (part && !LOOK_PARTS.has(partOf(hex(orig, o)))) continue; // a named part only takes look-colored pixels
+          if (part && how === 'all') { if (TAGS.has(hex(img.data, o))) continue; } // boots / wood tagged above stay
+          else if (part && !LOOK_PARTS.has(partOf(hex(orig, o)))) continue; // a named part only takes look-colored pixels
           let best = into[0];
           for (const t of into) if (Math.abs(t.L - L) < Math.abs(best.L - L)) best = t;
           img.data.set(best.rgb, o);
