@@ -958,51 +958,137 @@ export class Renderer {
     ctx.fillRect(e.x * TILE, e.y * TILE, e.w * TILE, e.h * TILE);
   }
 
+  /**
+   * A clockwork arm (ROADMAP.md 4.11: at rest a wound spring, not a question mark). The parts are
+   * art/factory/gen/arms.mjs: the turntable `armb:<id>` (its top the mainspring barrel, the arbor at
+   * (8, 8)), the claw `armh:<id>:<0 open|1 closed>:<0 N|1 E|2 S|3 W>`, the spring arm's winding key
+   * `armh:key:<f>[:<1|3>]` and the powered arms' motor coil `armh:coil:<f>`, both on the shoulder
+   * turret away from the claw, so the arm never hides them (kd below). The two segments are drawn
+   * here: chunky capsules with a plum rim, lit from the upper left.
+   * Pose, in tile pixels on the ground plane (gx, gy) with height z, drawn at (gx, gy - z): the
+   * claw sits folded low on the base's pick-side rim at t 0 (the rest pose), lifts and swings round
+   * the swing side, and sets down on the drop-side rim at t 1. The Reaching Arm lies out over the
+   * tile between instead.
+   */
   drawArm(g: Game, e: Ent) {
     const ctx = this.ctx;
     const a = e.arm!;
+    const id = e.def.id;
     const rust = !!e.st.rust;
-    const base = sprite(rust ? rusty(`armb:${e.def.id}`) : `armb:${e.def.id}`);
-    drawSprite(ctx, base, e.x * TILE, e.y * TILE);
-    this.drawRustFade(e, `armb:${e.def.id}`, e.x * TILE, e.y * TILE);
-    if (rust) this.drawRustBadge(e);
-    // a wound spring arm spins its key (the winding verb, ROADMAP.md 4.4)
-    if (e.st.wind > 0) {
-      const kx = e.x * TILE + 12, ky = e.y * TILE + 11;
+    const rs = (n: string) => (rust ? rusty(n) : n);
+    const x0 = e.x * TILE, y0 = e.y * TILE;
+    const art = hasImage(`armh:${id}:0:1`);
+    // a seized arm slumped a moment into its swing: askew, its claw down on the ground
+    const t = rust ? 0.2 : a.t;
+    const k = t - Math.sin(2 * Math.PI * t) / (2 * Math.PI);
+    const lift = rust ? 0 : Math.sin(Math.PI * t);
+    const ang = Math.atan2(-DY[e.rot], -DX[e.rot]) + (e.rot % 2 === 0 ? 1 : -1) * Math.PI * k;
+    const ca = Math.cos(ang), sa = Math.sin(ang);
+    const rEnd = a.reach > 1 ? a.reach * TILE - 10.5 : 9, rMid = a.reach > 1 ? 6 : 4.5;
+    const r = rEnd + (rMid - rEnd) * lift;
+    const ZS = 3, ZE = 1.5;
+    const zh = rust ? 0.5 : ZE + 7 * lift;
+    const wgx = 8 + ca * r, wgy = 8 + sa * r;
+    const sx = x0 + 8, sy = y0 + 8 - ZS;
+    const wx = x0 + wgx, wy = y0 + wgy - zh;
+    // the elbow halfway out, raised as two rigid segments would when the claw comes in (the
+    // Reaching Arm telescopes past 4 px rather than folding up over its own claw)
+    const half = Math.hypot(rEnd, ZS - ZE) / 2, d = Math.hypot(r, zh - ZS) / 2;
+    const ez = ZS + (zh - ZS) / 2 + 1.5 + Math.min(4, Math.sqrt(Math.max(0, half * half - d * d)));
+    const ex = x0 + 8 + ca * r * 0.5, ey = y0 + 8 + sa * r * 0.5 - ez;
+    const dir = (((Math.round(ang / (Math.PI / 2)) + 1) % 4) + 4) % 4;
+    // segment ramps (dark, base, light; Resurrect 64 indices): light oak, brass, rose, purple, blue
+    const segRamp: Record<string, number[]> = {
+      arm_basic: [21, 22, 23], arm_fast: [21, 17, 18], arm_long: [55, 56, 57], arm_filter: [50, 51, 52], arm_bulk: [46, 47, 48],
+    };
+    const ramp = rust ? [19, 20, 3] : segRamp[id] ?? segRamp.arm_basic;
+    /** a capsule from (x1,y1) to (x2,y2): plum rim, then a 3-tone body lit from the upper left */
+    const seg = (x1: number, y1: number, x2: number, y2: number, w: number) => {
+      const rr = w / 2, dx = x2 - x1, dy = y2 - y1, l2 = dx * dx + dy * dy || 1e-6, l = Math.sqrt(l2);
+      let nx = -dy / l, ny = dx / l;
+      if (nx + ny < 0) { nx = -nx; ny = -ny; }
+      const bx0 = Math.floor(Math.min(x1, x2) - rr - 1.5), bx1 = Math.ceil(Math.max(x1, x2) + rr + 1.5);
+      const by0 = Math.floor(Math.min(y1, y2) - rr - 1.5), by1 = Math.ceil(Math.max(y1, y2) + rr + 1.5);
+      const tone: number[][] = [[], [], [], []];
+      for (let y = by0; y <= by1; y++) for (let x = bx0; x <= bx1; x++) {
+        const px = x + 0.5, py = y + 0.5;
+        const u = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / l2));
+        const qx = px - (x1 + dx * u), qy = py - (y1 + dy * u);
+        const dd = Math.hypot(qx, qy);
+        if (dd > rr + 1) continue;
+        const side = qx * nx + qy * ny;
+        tone[dd > rr ? 0 : side < -rr / 3 ? 3 : side > rr / 3 ? 1 : 2].push(x, y);
+      }
+      const cols = [C.ink, ramp[0], ramp[1], ramp[2]];
+      for (let i = 0; i < 4; i++) {
+        ctx.fillStyle = PALETTE[cols[i]];
+        const L = tone[i];
+        for (let j = 0; j < L.length; j += 2) ctx.fillRect(L[j], L[j + 1], 1, 1);
+      }
+    };
+    /** a 2x2 brass pin, lit top-left */
+    const pin = (px: number, py: number) => {
+      const x = Math.round(px) - 1, y = Math.round(py) - 1;
+      const c = rust ? [21, 20, 20, 19] : [28, 18, 17, 21];
       ctx.fillStyle = PALETTE[C.ink];
-      ctx.fillRect(kx - 2, ky - 2, 5, 5);
-      ctx.fillStyle = PALETTE[C.brass];
-      if (Math.floor(this.time * 12) % 2) ctx.fillRect(kx - 1, ky, 3, 1);
-      else ctx.fillRect(kx, ky - 1, 1, 3);
-      ctx.fillStyle = PALETTE[C.butter];
-      ctx.fillRect(kx, ky, 1, 1);
-    }
-    // swing from pick side (t=0) to drop side (t=1) over the top; a rusted arm froze mid-swing
-    const t = rust ? 0.38 : a.t;
-    const cx = e.x * TILE + 8, cy = e.y * TILE + 7;
-    const reach = a.reach * 13;
-    const ang0 = Math.atan2(-DY[e.rot], -DX[e.rot]);
-    const ang = ang0 + t * Math.PI * (e.rot % 2 === 0 ? 1 : -1);
-    const lift = Math.sin(t * Math.PI) * 4;
-    const hx = cx + Math.cos(ang) * reach * (0.35 + 0.65 * Math.abs(Math.cos(t * Math.PI))), hy = cy + Math.sin(ang) * reach * (0.35 + 0.65 * Math.abs(Math.cos(t * Math.PI))) - lift;
-    const col = rust ? C.rust : e.def.id === 'arm_basic' ? C.oak : e.def.id === 'arm_fast' ? C.brass : e.def.id === 'arm_long' ? C.rose : e.def.id === 'arm_filter' ? C.lavender : C.sky;
-    const ex = (cx + hx) / 2 + Math.cos(ang + Math.PI / 2) * 2, ey = (cy + hy) / 2 - 5 - lift;
-    pxLine(ctx, cx, cy - 1, ex, ey, C.ink, 3);
-    pxLine(ctx, ex, ey, hx, hy, C.ink, 3);
-    pxLine(ctx, cx, cy - 1, ex, ey, col, 1);
-    pxLine(ctx, ex, ey, hx, hy, col, 1);
-    ctx.fillStyle = PALETTE[rust ? C.walnut : C.brass];
-    ctx.fillRect(Math.round(ex) - 1, Math.round(ey) - 1, 2, 2);
-    // the claw: imported armh:<id>:<0 open|1 closed> centered on the hand, else a slate block
-    const claw = `armh:${e.def.id}:${a.held ? 1 : 0}`;
-    if (hasImage(claw)) drawSprite(ctx, sprite(rust ? rusty(claw) : claw), Math.round(hx), Math.round(hy));
-    else {
-      ctx.fillStyle = PALETTE[C.slate];
-      ctx.fillRect(Math.round(hx) - 2, Math.round(hy) - 1, 4, 2);
-    }
-    if (a.held) {
-      drawItemIcon(ctx, itemIdCache(a.held.k), Math.round(hx - 5), Math.round(hy - 7), 10);
-    }
+      ctx.fillRect(x - 1, y, 4, 2);
+      ctx.fillRect(x, y - 1, 2, 4);
+      [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(([i, j], n) => { ctx.fillStyle = PALETTE[c[n]]; ctx.fillRect(x + i, y + j, 1, 1); });
+    };
+    // the winding key (spring arms) or the motor coil (powered arms), always clear of the arm: a
+    // north/south arm keeps it on the side away from its swing; an east/west arm carries it round
+    // on the turret's back (side-on, face-on mid-swing, the other side). kd: 0 N, 1 E, 2 S, 3 W
+    const kd = e.rot % 2 === 0 ? (e.rot === 0 ? 1 : 3) : (dir + 2) % 4;
+    const keyBehind = kd === 0;
+    const drawKey = () => {
+      const kx = x0 + [8, 9, 8, 7][kd], ky = y0 + [5.5, 8, 10.5, 8][kd] - ZS - 1;
+      if (!art) {
+        // procedural fallback: the old tiny key
+        ctx.fillStyle = PALETTE[C.ink];
+        ctx.fillRect(kx - 2, ky - 4, 5, 5);
+        ctx.fillStyle = PALETTE[C.brass];
+        if (e.st.wind > 0 && Math.floor(this.time * 12) % 2) ctx.fillRect(kx - 1, ky - 2, 3, 1);
+        else ctx.fillRect(kx, ky - 3, 1, 3);
+        return;
+      }
+      if (!a.powered) {
+        // turning while wound (the winding verb, ROADMAP.md 4.4); a seized arm's key hangs askew
+        const f = rust ? 1 : e.st.wind > 0 ? Math.floor(this.time * 8) % 4 : 0;
+        drawSprite(ctx, sprite(rs(kd % 2 ? `armh:key:${f}:${kd}` : `armh:key:${f}`)), kx, Math.round(ky));
+      } else {
+        const on = !rust && !e.off && e.working && e.sat > 0.001;
+        drawSprite(ctx, sprite(rs(`armh:coil:${on ? 1 + (Math.floor(this.time * 10) % 3) : 0}`)), kx + (kd === 1 ? 3 : kd === 3 ? -3 : 0), Math.round(ky));
+      }
+    };
+    const drawFore = () => {
+      seg(ex, ey, wx, wy, 2);
+      pin(ex, ey);
+      const claw = `armh:${id}:${a.held ? 1 : 0}:${dir}`;
+      if (art) drawSprite(ctx, sprite(rs(claw)), Math.round(wx), Math.round(wy));
+      else {
+        ctx.fillStyle = PALETTE[C.slate];
+        ctx.fillRect(Math.round(wx) - 2, Math.round(wy) - 1, 4, 2);
+      }
+      if (a.held) {
+        // the goods between the jaws
+        const o = [[0, -3], [3, 0], [0, 3], [-3, 0]][dir];
+        drawItemIcon(ctx, itemIdCache(a.held.k), Math.round(wx + o[0]) - 5, Math.round(wy + o[1]) - 6, 10);
+      }
+    };
+    // ground shadows: under the turntable, and under the claw while it is up
+    drawSprite(ctx, sprite('shadow:13'), x0 + 8, y0 + 14);
+    if (zh > 3.5) drawSprite(ctx, sprite('shadow:6'), Math.round(x0 + wgx), Math.round(y0 + wgy));
+    drawSprite(ctx, sprite(rs(`armb:${id}`)), x0, y0);
+    this.drawRustFade(e, `armb:${id}`, x0, y0);
+    // back to front: what sits north of the arbor first
+    const clawBehind = wgy < 8;
+    if (keyBehind) drawKey();
+    if (clawBehind) drawFore();
+    seg(sx, sy, ex, ey, 3);
+    pin(sx, sy);
+    if (!keyBehind) drawKey();
+    if (!clawBehind) drawFore();
+    if (rust) this.drawRustBadge(e);
   }
 
   /** a rusted machine wears a small broken cog at its top corner: it needs restoring (F) */

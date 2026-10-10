@@ -8,11 +8,11 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const rects = JSON.parse(fs.readFileSync(path.resolve(HERE, '../belts/belts.json'), 'utf8'));
 // claws are drawn centered on the hand point
 const origins = JSON.parse(fs.readFileSync(path.resolve(HERE, '../belts/origins.json'), 'utf8'));
-const sprites = Object.entries(rects).map(([match, r]) => ({ match, rect: r, frame: [r[2], r[3]], ...(match.startsWith('armh:') ? { origin: [4, 4] } : origins[match] ? { origin: origins[match] } : {}) }));
+const sprites = Object.entries(rects).map(([match, r]) => ({ match, rect: r, frame: [r[2], r[3]], ...(origins[match] ? { origin: origins[match] } : match.startsWith('armh:') ? { origin: [4, 4] } : {}) }));
 const recipe = {
   name: 'factory-belts',
   kind: 'sprites',
-  meta: { note: 'Belts, undergrounds, splitters, arm bases. Drawn by art/factory/gen/belts.mjs (pixel-exact lanes and treads).' },
+  meta: { note: 'Belts, undergrounds, splitters and the clockwork arm parts. Drawn by art/factory/gen/belts.mjs (pixel-exact lanes and treads) and gen/arms.mjs (arm bases, claws, the winding key, the motor coil).' },
   defaults: { file: 'belts/belts.png', place: 'none', keepStrays: true, origin: [0, 0] },
   sprites,
 };

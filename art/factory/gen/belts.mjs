@@ -5,7 +5,7 @@
 //   belt:<tier>:<rot>:<curve>:<frame>  16x16, frames 0-15, local frame heading north, rot = quarter turns cw
 //   ug:<tier>:<rot>:<in>:<frame>       16x16, frames 0-15, hood over the tunnel end
 //   split:<tier>:<frame>               32x16, flow north (the renderer rotates it)
-//   armb:<id>                          16x16, turntable base, pivot at (8, 7)
+//   armb:<id>, armh:*                  the clockwork arm parts, drawn by gen/arms.mjs (see there)
 //
 // Treads move 1 px per frame over 16 frames, so they glide with the items (the renderer advances
 // belt frames at speed*16 per second; items travel speed*16 px per second). Pattern period 16 = one tile.
@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { encodePNG, upscale } from '../../../scripts/lib/png.mjs';
+import { ARM, drawArmBase, drawClaw, drawKey, drawSideKey, drawCoil, KEY_ORIGIN, SIDE_KEY_ORIGIN, COIL_ORIGIN } from './arms.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(HERE, '../belts');
@@ -228,41 +229,6 @@ function drawSplitter(t, frame) {
   return outline(im);
 }
 
-const ARM = {
-  arm_basic: { base: ['#7a3045', '#9e4539', '#cd683d', '#e6904e'], ring: ['#694f62', '#966c6c', '#ab947a'] },
-  arm_fast: { base: ['#9e4539', '#cd683d', '#f79617', '#f9c22b'], ring: ['#cd683d', '#f79617', '#fbff86'] },
-  arm_long: { base: ['#9e4539', '#cd683d', '#f79617', '#f9c22b'], ring: ['#a24b6f', '#cf657f', '#ed8099'] },
-  arm_filter: { base: ['#9e4539', '#cd683d', '#f79617', '#f9c22b'], ring: ['#6b3e75', '#905ea9', '#a884f3'] },
-  arm_bulk: { base: ['#9e4539', '#cd683d', '#f79617', '#f9c22b'], ring: ['#4d65b4', '#4d9be6', '#8fd3ff'] },
-};
-function drawArmBase(id) {
-  const A = ARM[id];
-  const im = img(16, 16);
-  // puck: top ellipse around (8, 7.5), 2 px of front face below it
-  const inTop = (x, y) => ((x + 0.5 - 8) / 6.4) ** 2 + ((y + 0.5 - 7.5) / 4.6) ** 2 <= 1;
-  const inBody = (x, y) => inTop(x, y) || inTop(x, y - 1) || inTop(x, y - 2);
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-    if (!inBody(x, y)) continue;
-    if (!inTop(x, y)) { put(im, x, y, (x + 0.5) < 6 ? A.base[1] : A.base[0]); continue; }
-    put(im, x, y, A.base[2]);
-  }
-  // rim light on the top-left of the top face, shade bottom-right
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-    if (!inTop(x, y)) continue;
-    if (!inTop(x, y - 1) || !inTop(x - 1, y)) put(im, x, y, (x < 9 && y < 8) ? A.base[3] : A.base[2]);
-    else if (!inTop(x + 1, y) || !inTop(x, y + 1)) put(im, x, y, A.base[1]);
-  }
-  // colored ring (arm type) and the brass pivot cap at (8, 7)
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-    const e = ((x + 0.5 - 8) / 3.6) ** 2 + ((y + 0.5 - 7.5) / 2.7) ** 2;
-    if (e <= 1 && e > 0.36) put(im, x, y, (x < 8 && y < 7) ? A.ring[2] : (x > 8 || y > 8) ? A.ring[0] : A.ring[1]);
-  }
-  put(im, 7, 7, '#f9c22b'); put(im, 8, 7, '#f79617'); put(im, 7, 8, '#cd683d'); put(im, 8, 8, '#9e4539');
-  // bolts on the front face
-  for (const x of [4, 8, 12]) if (get(im, x, 12)) put(im, x, 12, A.base[3]);
-  return outline(im);
-}
-
 // ---------- pack ----------
 const cells = []; // { name, im }
 for (const t of [1, 2, 3]) {
@@ -271,24 +237,6 @@ for (const t of [1, 2, 3]) {
 }
 for (const id of Object.keys(ARM)) cells.push({ name: `armb:${id}`, im: drawArmBase(id) });
 
-/**
- * Arm claw armh:<id>:<0 open|1 closed>, 9x9, drawn centered on the hand point (origin 4,4).
- * Hub in the arm's ring color with a brass pivot, two pincers below (brass, iron on the
- * filter and bulk arms), lit from the upper left.
- */
-const CLAW = {
-  0: ['...OOO...', '..ORRSO..', '.OOSBsOO.', 'OAaOOOCcO', 'OAO...OcO', 'OAO...OcO', 'OAaO.OCcO', '.OO...OO.', '.........'],
-  1: ['...OOO...', '..ORRSO..', '..OSBsO..', '.OAOOOcO.', '.OAO.OcO.', '..OAOcO..', '..OaacO..', '...OOO...', '.........'],
-};
-function drawClaw(id, closed) {
-  const A = ARM[id];
-  const iron = id === 'arm_filter' || id === 'arm_bulk';
-  const P = iron ? ['#625565', '#7f708a', '#9babb2'] : ['#9e4539', '#cd683d', '#f9c22b'];
-  const col = { O: INK, R: A.ring[2], S: A.ring[1], s: A.ring[0], B: '#f9c22b', A: P[2], a: P[1], C: P[1], c: P[0] };
-  const im = img(9, 9);
-  CLAW[closed].forEach((row, y) => [...row].forEach((ch, x) => { if (col[ch]) put(im, x, y, col[ch]); }));
-  return im;
-}
 /** fx:nopower: 9x9 brass badge with a plum lightning bolt (the renderer blinks it), origin top-left */
 function drawNoPower() {
   const im = img(9, 9);
@@ -314,14 +262,36 @@ const fxs = [
   { name: 'fx:pipframe', im: drawPipFrame(), origin: [1, 0] },
   { name: 'fx:pipfill', im: (() => { const im = img(1, 1); put(im, 0, 0, '#cddf6c'); return im; })(), origin: [0, 0] },
 ];
+// the arm's small parts (gen/arms.mjs): claws in 4 directions (+ the old dir-less names, pointing
+// down), the winding key and the motor coil
 const claws = [];
-for (const id of Object.keys(ARM)) for (const s of [0, 1]) claws.push({ name: `armh:${id}:${s}`, im: drawClaw(id, s) });
+for (const id of Object.keys(ARM)) for (const st of [0, 1]) {
+  for (let d = 0; d < 4; d++) claws.push({ name: `armh:${id}:${st}:${d}`, im: drawClaw(id, st, d), origin: [4, 4] });
+  claws.push({ name: `armh:${id}:${st}`, im: drawClaw(id, st, 2), origin: [4, 4] });
+}
+for (let f = 0; f < 4; f++) claws.push({ name: `armh:key:${f}`, im: drawKey(f), origin: KEY_ORIGIN });
+for (const side of [1, 3]) for (let f = 0; f < 4; f++) claws.push({ name: `armh:key:${f}:${side}`, im: drawSideKey(f, side), origin: SIDE_KEY_ORIGIN[side] });
+for (let f = 0; f < 4; f++) claws.push({ name: `armh:coil:${f}`, im: drawCoil(f), origin: COIL_ORIGIN });
 const wide = [];
 for (const t of [1, 2, 3]) for (let f = 0; f < 4; f++) wide.push({ name: `split:${t}:${f}`, im: drawSplitter(t, f) });
 
 const COLS = 16;
 const rows16 = Math.ceil(cells.length / COLS);
-const W = COLS * 16, H = rows16 * 16 + Math.ceil(wide.length / 8) * 16 + 10;
+const W = COLS * 16;
+// small sprites (claws, keys, coils, fx) go on shelves below the 16 px cells and the splitters
+const smalls = [...claws, ...fxs];
+const shelfY0 = rows16 * 16 + Math.ceil(wide.length / 8) * 16;
+const smallAt = [];
+{
+  let x = 0, y = shelfY0, rowH = 0;
+  for (const c of smalls) {
+    if (x + c.im.w > W) { x = 0; y += rowH + 1; rowH = 0; }
+    smallAt.push([x, y]);
+    x += c.im.w + 1;
+    rowH = Math.max(rowH, c.im.h);
+  }
+  var H = y + rowH + 1;
+}
 const sheet = new Uint8Array(W * H * 4);
 const rects = {};
 function blitTo(im, ox, oy) {
@@ -334,10 +304,8 @@ function blitTo(im, ox, oy) {
 }
 cells.forEach((c, i) => { const x = (i % COLS) * 16, y = Math.floor(i / COLS) * 16; blitTo(c.im, x, y); rects[c.name] = [x, y, 16, 16]; });
 wide.forEach((c, i) => { const x = (i % 8) * 32, y = rows16 * 16 + Math.floor(i / 8) * 16; blitTo(c.im, x, y); rects[c.name] = [x, y, 32, 16]; });
-claws.forEach((c, i) => { const x = i * 10, y = H - 10; blitTo(c.im, x, y); rects[c.name] = [x, y, 9, 9]; });
-let fxX = claws.length * 10;
 const origins = {};
-for (const c of fxs) { blitTo(c.im, fxX, H - 10); rects[c.name] = [fxX, H - 10, c.im.w, c.im.h]; origins[c.name] = c.origin; fxX += c.im.w + 1; }
+smalls.forEach((c, i) => { const [x, y] = smallAt[i]; blitTo(c.im, x, y); rects[c.name] = [x, y, c.im.w, c.im.h]; origins[c.name] = c.origin; });
 fs.writeFileSync(path.join(OUT, 'origins.json'), JSON.stringify(origins));
 fs.writeFileSync(path.join(OUT, 'belts.png'), encodePNG(W, H, sheet));
 fs.writeFileSync(path.join(OUT, 'belts.json'), JSON.stringify(rects, null, 0));

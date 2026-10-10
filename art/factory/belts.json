@@ -2,7 +2,7 @@
  "name": "factory-belts",
  "kind": "sprites",
  "meta": {
-  "note": "Belts, undergrounds, splitters, arm bases. Drawn by art/factory/gen/belts.mjs (pixel-exact lanes and treads)."
+  "note": "Belts, undergrounds, splitters and the clockwork arm parts. Drawn by art/factory/gen/belts.mjs (pixel-exact lanes and treads) and gen/arms.mjs (arm bases, claws, the winding key, the motor coil)."
  },
  "defaults": {
   "file": "belts/belts.png",
@@ -12716,7 +12716,7 @@
    ]
   },
   {
-   "match": "armh:arm_basic:0",
+   "match": "armh:arm_basic:0:0",
    "rect": [
     0,
     1008,
@@ -12733,7 +12733,7 @@
    ]
   },
   {
-   "match": "armh:arm_basic:1",
+   "match": "armh:arm_basic:0:1",
    "rect": [
     10,
     1008,
@@ -12750,7 +12750,7 @@
    ]
   },
   {
-   "match": "armh:arm_fast:0",
+   "match": "armh:arm_basic:0:2",
    "rect": [
     20,
     1008,
@@ -12767,7 +12767,7 @@
    ]
   },
   {
-   "match": "armh:arm_fast:1",
+   "match": "armh:arm_basic:0:3",
    "rect": [
     30,
     1008,
@@ -12784,7 +12784,7 @@
    ]
   },
   {
-   "match": "armh:arm_long:0",
+   "match": "armh:arm_basic:0",
    "rect": [
     40,
     1008,
@@ -12801,7 +12801,7 @@
    ]
   },
   {
-   "match": "armh:arm_long:1",
+   "match": "armh:arm_basic:1:0",
    "rect": [
     50,
     1008,
@@ -12818,7 +12818,7 @@
    ]
   },
   {
-   "match": "armh:arm_filter:0",
+   "match": "armh:arm_basic:1:1",
    "rect": [
     60,
     1008,
@@ -12835,7 +12835,7 @@
    ]
   },
   {
-   "match": "armh:arm_filter:1",
+   "match": "armh:arm_basic:1:2",
    "rect": [
     70,
     1008,
@@ -12852,7 +12852,7 @@
    ]
   },
   {
-   "match": "armh:arm_bulk:0",
+   "match": "armh:arm_basic:1:3",
    "rect": [
     80,
     1008,
@@ -12869,7 +12869,7 @@
    ]
   },
   {
-   "match": "armh:arm_bulk:1",
+   "match": "armh:arm_basic:1",
    "rect": [
     90,
     1008,
@@ -12886,10 +12886,962 @@
    ]
   },
   {
-   "match": "fx:nopower",
+   "match": "armh:arm_fast:0:0",
    "rect": [
     100,
     1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_fast:0:1",
+   "rect": [
+    110,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_fast:0:2",
+   "rect": [
+    120,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_fast:0:3",
+   "rect": [
+    130,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_fast:0",
+   "rect": [
+    140,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_fast:1:0",
+   "rect": [
+    150,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_fast:1:1",
+   "rect": [
+    160,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_fast:1:2",
+   "rect": [
+    170,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_fast:1:3",
+   "rect": [
+    180,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_fast:1",
+   "rect": [
+    190,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_long:0:0",
+   "rect": [
+    200,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_long:0:1",
+   "rect": [
+    210,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_long:0:2",
+   "rect": [
+    220,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_long:0:3",
+   "rect": [
+    230,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_long:0",
+   "rect": [
+    240,
+    1008,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_long:1:0",
+   "rect": [
+    0,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_long:1:1",
+   "rect": [
+    10,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_long:1:2",
+   "rect": [
+    20,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_long:1:3",
+   "rect": [
+    30,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_long:1",
+   "rect": [
+    40,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_filter:0:0",
+   "rect": [
+    50,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_filter:0:1",
+   "rect": [
+    60,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_filter:0:2",
+   "rect": [
+    70,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_filter:0:3",
+   "rect": [
+    80,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_filter:0",
+   "rect": [
+    90,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_filter:1:0",
+   "rect": [
+    100,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_filter:1:1",
+   "rect": [
+    110,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_filter:1:2",
+   "rect": [
+    120,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_filter:1:3",
+   "rect": [
+    130,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_filter:1",
+   "rect": [
+    140,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_bulk:0:0",
+   "rect": [
+    150,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_bulk:0:1",
+   "rect": [
+    160,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_bulk:0:2",
+   "rect": [
+    170,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_bulk:0:3",
+   "rect": [
+    180,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_bulk:0",
+   "rect": [
+    190,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_bulk:1:0",
+   "rect": [
+    200,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_bulk:1:1",
+   "rect": [
+    210,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_bulk:1:2",
+   "rect": [
+    220,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_bulk:1:3",
+   "rect": [
+    230,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:arm_bulk:1",
+   "rect": [
+    240,
+    1018,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    4,
+    4
+   ]
+  },
+  {
+   "match": "armh:key:0",
+   "rect": [
+    0,
+    1028,
+    7,
+    7
+   ],
+   "frame": [
+    7,
+    7
+   ],
+   "origin": [
+    3,
+    6
+   ]
+  },
+  {
+   "match": "armh:key:1",
+   "rect": [
+    8,
+    1028,
+    7,
+    7
+   ],
+   "frame": [
+    7,
+    7
+   ],
+   "origin": [
+    3,
+    6
+   ]
+  },
+  {
+   "match": "armh:key:2",
+   "rect": [
+    16,
+    1028,
+    7,
+    7
+   ],
+   "frame": [
+    7,
+    7
+   ],
+   "origin": [
+    3,
+    6
+   ]
+  },
+  {
+   "match": "armh:key:3",
+   "rect": [
+    24,
+    1028,
+    7,
+    7
+   ],
+   "frame": [
+    7,
+    7
+   ],
+   "origin": [
+    3,
+    6
+   ]
+  },
+  {
+   "match": "armh:key:0:1",
+   "rect": [
+    32,
+    1028,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    0,
+    4
+   ]
+  },
+  {
+   "match": "armh:key:1:1",
+   "rect": [
+    42,
+    1028,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    0,
+    4
+   ]
+  },
+  {
+   "match": "armh:key:2:1",
+   "rect": [
+    52,
+    1028,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    0,
+    4
+   ]
+  },
+  {
+   "match": "armh:key:3:1",
+   "rect": [
+    62,
+    1028,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    0,
+    4
+   ]
+  },
+  {
+   "match": "armh:key:0:3",
+   "rect": [
+    72,
+    1028,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    8,
+    4
+   ]
+  },
+  {
+   "match": "armh:key:1:3",
+   "rect": [
+    82,
+    1028,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    8,
+    4
+   ]
+  },
+  {
+   "match": "armh:key:2:3",
+   "rect": [
+    92,
+    1028,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    8,
+    4
+   ]
+  },
+  {
+   "match": "armh:key:3:3",
+   "rect": [
+    102,
+    1028,
+    9,
+    9
+   ],
+   "frame": [
+    9,
+    9
+   ],
+   "origin": [
+    8,
+    4
+   ]
+  },
+  {
+   "match": "armh:coil:0",
+   "rect": [
+    112,
+    1028,
+    7,
+    6
+   ],
+   "frame": [
+    7,
+    6
+   ],
+   "origin": [
+    3,
+    5
+   ]
+  },
+  {
+   "match": "armh:coil:1",
+   "rect": [
+    120,
+    1028,
+    7,
+    6
+   ],
+   "frame": [
+    7,
+    6
+   ],
+   "origin": [
+    3,
+    5
+   ]
+  },
+  {
+   "match": "armh:coil:2",
+   "rect": [
+    128,
+    1028,
+    7,
+    6
+   ],
+   "frame": [
+    7,
+    6
+   ],
+   "origin": [
+    3,
+    5
+   ]
+  },
+  {
+   "match": "armh:coil:3",
+   "rect": [
+    136,
+    1028,
+    7,
+    6
+   ],
+   "frame": [
+    7,
+    6
+   ],
+   "origin": [
+    3,
+    5
+   ]
+  },
+  {
+   "match": "fx:nopower",
+   "rect": [
+    144,
+    1028,
     9,
     9
    ],
@@ -12905,8 +13857,8 @@
   {
    "match": "fx:pipframe",
    "rect": [
-    110,
-    1008,
+    154,
+    1028,
     14,
     3
    ],
@@ -12922,8 +13874,8 @@
   {
    "match": "fx:pipfill",
    "rect": [
-    125,
-    1008,
+    169,
+    1028,
     1,
     1
    ],
