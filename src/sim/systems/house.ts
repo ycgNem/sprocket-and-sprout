@@ -12,6 +12,7 @@ import type { RecipeDef } from '../../data/types';
 import { Inventory, key } from '../inventory';
 import { almanacRecipe } from './cookbook';
 import { FURN_BY_ID, FurnDef } from '../../data/furniture';
+import { loadLib, saveLib } from '../drafting';
 
 export const HOUSE_W = 14, HOUSE_H = 11;
 export const HOUSE_DOOR: [number, number] = [7, 10];
@@ -347,12 +348,14 @@ registerSystem({
   name: 'house',
   save(g) {
     const p = g.sys.house?.pantry as Inventory | undefined;
-    return { pantry: p ? p.toJSON() : undefined, decor: g.sys.house?.decor ?? [] };
+    return { pantry: p ? p.toJSON() : undefined, decor: g.sys.house?.decor ?? [], lib: saveLib(g) };
   },
   load(g, d) {
     houseMap(g);
     if (d?.pantry) g.sys.house.pantry = Inventory.fromJSON(d.pantry, 36);
     g.sys.house.decor = (d?.decor ?? []).filter((x: Decor) => FURN_BY_ID.has(x.id));
+    // the drafting table's blueprint library (src/sim/drafting.ts)
+    loadLib(g, d?.lib);
   },
   tick(g) {
     if (g.player.where !== 'house') return;

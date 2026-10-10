@@ -1242,6 +1242,129 @@ ore you left in its bin at the quarry and sells them at a 30% premium; a cart sp
 - Done when: `e2e/roxy.mjs`-style real-input passes for two re-roled villagers and both new
   events; `e2e/house.mjs` with indoor structures; the critic's full review.
 
+#### Phase 5: the build spec (written 2026-10-10, before the build)
+
+The owner asked for Phase 5 in one run, with subagents where they help. Three parts are built in
+parallel, as in Phases 3-4, each on its own branch in a worktree outside the repo: **people** (7.6,
+`works-people` in `../sns-people`), **fairs and freight** (7.7 and 7.9, `works-fairs` in
+`../sns-fairs`), and **the workshop** (7.8 and the critic's leftovers, on `works`). They meet in one
+interface written first: `src/sim/drafting.ts`, the drafting table's blueprint library
+(`drafting(g).lib`, `addBlueprint(g, name, bp, from)`; saved by house.ts). The decisions below fill
+the gaps in 7.6-7.9; they go into DECISIONS.md (#100 on) as they land.
+
+**Villagers as specialists (7.6).**
+- Six re-roles, pronouns kept (Juniper, Sable and Pip are *they*, Bram and Thorne *he*, Hazel *she*):
+  - **Juniper Oakroot, the millwright** (Oakroot Joinery): builds wheels, mills and machine frames.
+    The Joinery sells the wooden machines (water wheel, windmill, hand loom, gleaner, sawmill,
+    thresher), which leave the Workshop's list; Juniper fits the workshop upgrades and gives k10
+    "The Town Mill" (was the Mayor).
+  - **Bram Coalby, the foundry master** (The Anvil & Ember): smelting orders, alloys, the blast
+    furnace (sold at Purveyor rank). Keeps k8, k9 More Power and k12 Steam Power.
+  - **Sable Moss, the archivist** (the library keeps the old works' records). Sable *lends* records:
+    a works chamber you saw before its keystone's quest asked (its `card:<kind>` flag without its
+    `observed:<kind>`, DECISIONS #94/#98 made you go back down) can be borrowed from Sable's archive
+    once the quest asks, and it counts as the look. Telling Sable about a new discovery (an
+    observation, a chamber, a keystone) files it in the archive: Trust.
+  - **Old Thorne, the last engineer of the old works**: lives in the forest among the works'
+    wrecks; knows where the old machines are and how the Tram ran. Gives k11 "Down to the Boiler"
+    and k16 "The Tram" (were Bram and Juniper). His old works drawings go into the drafting table's
+    library (`addBlueprint(g, name, bp, 'thorne')`): one with his 2-Trust event, more as eras pass.
+  - **Hazel Quill, the draughtswoman**: draws blueprints, mixes pigments; her Today asks want
+    pigment and paste; she designs the drafting table (Juniper builds it).
+  - **Pip Kettle, the apprentice**: follows your lines and asks the lessons back (Pip's echoes).
+- Each re-roled villager gets a new `job`, `personality`, `bio` and `intro`; about 40 dialogue lines
+  written for the role (keeping the season, weather, time, weekday, festival and Trust spread);
+  gift tastes that lean to works goods; rewritten 2- and 4-Trust events (12 events). Their 6- and
+  8-Trust events stay, edited only where they contradict the role. Everyone else keeps their role
+  and is a customer (7.4).
+- **Trust** is the UI's word for hearts. Points and `hearts()` stay under the hood (250 a level, 10
+  levels, events at 2/4/6/8). The dialogue box, the journal's villager list, the villager hover line
+  and the level-up toast say Trust ("Bram trusts you more: Trust 3"), drawn as small cog pips, not
+  hearts. Romance (frozen, D3) keeps its hearts (the locket, the partner).
+- Trust is built mostly by orders and discoveries: gifts give a third of what they did (love 27,
+  like 15, neutral 7, dislike -7, hate -13; birthdays still x8); a filled Today ask 120 to its
+  villager, a filled standing order 100 to the business's keeper (150 a big one), a main quest 100 to
+  its giver, Sable's filing 60, an echo answered 60 to Pip; the day's first chat 20, as before.
+- **Pip's echoes**: after you've seen a lesson card (Starved, Blocked, Brownout, the night shift, a
+  buffer, saturation, consignment...), the next talk with Pip asks one question about it, with three
+  answers (the event window's choice). Right: Trust and "I wrote it in my notebook!"; wrong: Pip
+  explains and nothing is lost; one a day. From day 5, on fine afternoons Pip may come to your farm
+  (visits.ts) and stand by one of your machines: talked to there, Pip asks about that machine's
+  state now ("Why is this crock stopped?", its real reason among the answers).
+
+**Festivals (7.7).** Four: the Sprocket Fair (spring 13, replaces Kite Day), Lantern Night (summer
+20), the Harvest Haul (fall 16, replaces the Pumpkin Roll), Frostlight Skate (winter 24). The kite
+and pumpkin minigames are deleted.
+- **The Sprocket Fair** (the Professor hosts; 9am-6pm): bring a line. The host's window lists the
+  blueprints that fit the square's 6x6 test bed: the blueprint tool's current copy and the drafting
+  table's library. The line is built on the bed in a throwaway sim (`new Game({ blank })`: nothing in
+  the real world changes) and runs 60 seconds of works time: every chest on the bed starts full (99)
+  of what the machine it feeds needs, fuel burners start with 20 coal, the bed's grid powers
+  everything, and the window draws the bed with its goods moving (sped up to about 15 s). The score
+  is the market value of the goods the line finishes in that minute (in a crate on the bed, or in
+  the output of a machine nothing takes from), shown as a rate ("2,100 coins of goods a minute"),
+  against three entries (the Professor's, Bram's and Juniper's lines), which grow each year. Prizes,
+  once per save, for beating one entry, two, all three, and the top one by half: the four Founder's
+  candle rewards (2,500 coins; the Founder's Lantern; the Founder's Medal, +5% on everything you
+  ship; the Gilded Clock and 20,000 coins), under their old flags, so a 1.x save keeps what it won.
+  Tokens every year, as before.
+- **Founder's Day's evaluation** (the 18-point candle review on spring 1 from year 2) is retired: the
+  Fair's ribbons are the year's review. A pending evaluation on an old save is dropped on load.
+- **The Harvest Haul** (the Mayor hosts; 9am-6pm): the trade fair. Every business's standing order
+  pays double that day (by hand and by the day's posts; the board says so). The auction: one rare lot
+  a year from a rotating list (a Clockwork Assembler, a crate of brass gears and spark coils, an old
+  works blueprint, a starmetal bar...), called by the Mayor; Roxy and Bram bid against you up to
+  hidden limits around the lot's worth; you bid in steps; "going once, going twice". Tokens and the
+  token stall as before.
+- "Festive Spirit" (all four festivals) counts the four there are; a save that went to Kite Day or
+  the Pumpkin Roll counts it as the Fair or the Haul (`fest_seen_f_kite`/`f_pumpkin` map on load).
+
+**Mags, the freight broker (7.9).** The cart keeps its days (Friday and Sunday, 8am-7pm). Stock:
+rare components (brass gears, springs, spark coils, lenses, iron plates, lubricant, now and then a
+clockwork core), two or three off-season seeds (for the greenhouse), a sapling and one curio (a
+cart-only furniture piece or a recipe card); no gems or relics. **The Sunday lot**: one lot by
+auction at the cart on Sundays (the Haul's auction window; two villagers bid). **Shortages**: on
+Mondays, about one week in three from the Town Mill on, one business with a weekly standing order
+runs short: that week its order is twice the size and pays 25% more an item, the board marks it
+"Shortage", and Mags stocks the goods (or their raw input) at a premium.
+
+**Workshop HQ (7.8).**
+- **Structures indoors**: a second entity store, `g.houseEnts`, ticked by the same machine, desk and
+  night-shift code, drawn by the same structure renderer, saved in the house's save. Indoors take
+  chests, the hand-era machines (crock, keg, cheese press, loom, seed sifter, oven, furnace: nothing
+  that draws power), the study desk, lamps and signs; belts and arms need the Basement (2.1 if not
+  reached). F, Shift+F, right-click and the hover line work on them as outside.
+- **The Workshop**: an upgrade (Juniper) that opens the farmhouse's east wall into a stone-floored
+  workshop (the house map grows from 14 to 22 tiles wide): room for machines and the drafting table.
+- **The ledger**: the almanac becomes the Ledger: yesterday's sales by customer (orders by customer,
+  then the market), what's saturated at market and by how much, tomorrow's weather, the week ahead
+  and the recipe of the week.
+- **The drafting table** (an upgrade Hazel designs and Juniper builds): the blueprint library. Save
+  the blueprint tool's copy under a name, load one back to paste outside, rename, delete; up to 12.
+- **Workshop upgrades**: the Joinery's Home tab becomes Workshop: the Kitchen, the Cellar, the
+  Featherbed and the Hearth stay; new: the Workshop and the Drafting Table (the Basement if time).
+
+**The critic's leftovers from Phases 3+4 (on `works`).**
+- Fishing's and combat's professions each get a works answer, so each pair is hands or works:
+  fishing 5 Trap-setter or **Pond Keeper** (ponds grow and lay roe 50% faster; was Fishmonger's
+  +25% price), fishing 10 Fly-tier or **Net Rigger** (traps need no bait; was Steady Hands); combat
+  5 Crab-cracker or **Shorer** (a cracked ceiling takes one plank, a caved-in gallery 10 beams; was
+  Hard Hat), combat 10 Warrior or **Lampwright** (set-down lamps light 10 tiles, not 7; was
+  Scavenger). Ids are kept; Hard Hat's +25 health is taken back from a save that had it.
+- The Works tab's last baskets get works answers: the Kettle's Cellar, Dairy Day and the Bakery
+  Window become **steady supply** works: their goods by the post (or by hand) a full day's worth on
+  each of three days, so a line feeding a tagged crate fills them; not a one-off basket.
+
+**Tock** (stretch, last): a knee-high clockwork automaton from the Professor after the Tram, on the
+pet's steering (src/sim/systems/pet.ts): it follows you and winds the spring arms it passes.
+
+**Done when**: `e2e/people.mjs` (real input: two re-roled villagers' intros, chat, a gift, their new
+2-Trust events; one of Pip's echoes answered), `e2e/fairs.mjs` (real input: a line run and scored
+at the Sprocket Fair; a bid won at the Harvest Haul), `e2e/house.mjs` with indoor structures (a
+chest and a crock placed indoors, fed, saved and reloaded), the checks, the sweep at 1280x720,
+1366x620 and 960x600, then the critic's full review (it also covers the fixes made after its
+Phase 3+4 confirmation pass, `928a07c`..`72ff71b`).
+
 ### Phase 6 — The art direction pass (3-4 sessions, after Nov 9)
 - Section 9, one `art-director` agent per group in parallel (the Phase 2 pattern from 1.1,
   `art/README.md`); `STYLE.md` "Machines" section; the seam audit at 0; `coverage.mjs` 100%;
