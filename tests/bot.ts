@@ -294,6 +294,7 @@ export class Bot {
         g.player.x = x + 0.5;
         g.player.y = y + 1.5;
         this.wait(0.6);
+        if (g.player.where !== 'mine') break;
         for (let k = 0; k < 4 && mm.o(x, y) !== O.NONE && mm.o(x, y) !== O.LADDER && mm.o(x, y) !== O.SHAFT; k++) {
           this.sel(this.toolId('pick')!);
           g.player.busy = 0;

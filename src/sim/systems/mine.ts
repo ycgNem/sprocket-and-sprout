@@ -418,7 +418,9 @@ function rockDrops(g: Game, st: MineState, x: number, y: number, o: O, data: num
 
 function mineTool(g: Game, kind: string, tier: number, tx: number, ty: number) {
   const st = mine(g);
-  const m = st.map!;
+  // a faint (or the day ending) can carry you out between a swing and its hit
+  if (!st.map || g.player.where !== 'mine') return;
+  const m = st.map;
   if (kind === 'pick') {
     const o = m.o(tx, ty);
     if (o === O.ROCK || o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.ICE_ROCK) {
