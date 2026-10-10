@@ -159,6 +159,12 @@ const SC = {
   airfreight: async () => ev(`(() => { S.play.openWindow('shop', 'airfreight'); })()`),
   skyfield: async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.time.min = 8 * 60; g.player.x = 182.5; g.player.y = 60.6; g.player.dir = 1; const n = g.sys.npcs.byId.get('roxy'); n.x = 184.5; n.y = 60.9; n.visible = true; n.path = []; n.dir = 3; })()`),
   'roxy-chat': async () => ev(`(() => { const g = S.g; const n = g.sys.npcs.byId.get('roxy'); n.met = true; n.points = 900; window.__npcs.openDialog(g, n, "Evening, gorgeous. Yes, I mean you. Don't look behind you, there's nobody there.", undefined, 0); })()`),
+  // Pip's echo (ROADMAP.md 7.6): a lesson card asked back, its three answers up
+  'pip-echo': async () => {
+    await ev(`(() => { const g = S.g; S.play.closeWindow(); g.sys.dialogue = null; const sel = g.player.sel; g.player.sel = -1; const n = g.sys.npcs.byId.get('pip'); n.met = true; n.askDay = 0; g.sys.npcs.interact(g, n); g.player.sel = sel; })()`);
+    await wait(300);
+    await ev(`(() => { const w = S.play.win; if (w?.id === 'event') { w.data.i = w.arg.lines.length; w.data.chars = 999; } })()`);
+  },
   map: async () => ev(`(() => { S.play.openWindow('map'); })()`),
   // the Works tab: k10 on, so the Town Mill's order is up and part filled, waiting for Milling
   restoration: async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.paused = false; const q = g.sys.quests; if (!q.active.some((a) => a.id === 'k10_mill')) q.active.push({ id: 'k10_mill', prog: [0, 0, 0, 0, 0], day: g.dayIndex }); for (let i = 0; i < 70; i++) g.tick(); const o = g.sys.orders.open.find((x) => x.def === 'w_town_mill'); if (o) { o.lines[0].have = 24; o.lines[1].have = 40; } S.play.openWindow('restoration'); })()`),

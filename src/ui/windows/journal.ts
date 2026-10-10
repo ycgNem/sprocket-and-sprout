@@ -17,7 +17,7 @@ import { registerWindow, WinState } from './index';
 import { sprite, drawFit } from '../../render/atlas';
 import { ICON, textWidth, ellipsize } from '../font';
 import { itemTooltip } from '../tooltips';
-import { portrait, heartsRow } from './town';
+import { portrait, trustRow } from './town';
 import { shopFor, shopStatus } from '../../sim/systems/town';
 import type { NPCState } from '../../sim/systems/npcs';
 import { charArtHeight } from '../../render/art/sheets';
@@ -33,7 +33,8 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
   st.data.tab = st.data.tab ?? st.arg ?? 'quests';
   // (achievements have their own window, U: their tab overflowed its button and pushed Mail under the
   // close button, the sweep found)
-  const tabs = [['notebook', 'Notebook'], ['quests', 'Quests'], ['orders', 'Orders'], ['friends', 'Friends'], ['collect', 'Collections'], ['mail', 'Mail']];
+  // (the villagers' tab reads "Town": who they are and how far they trust you)
+  const tabs = [['notebook', 'Notebook'], ['quests', 'Quests'], ['orders', 'Orders'], ['friends', 'Town'], ['collect', 'Collections'], ['mail', 'Mail']];
   let jump = false;
   const tw = Math.min(70, Math.floor((w - 44) / tabs.length));
   tabs.forEach(([id, label], i) => {
@@ -113,13 +114,16 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
       if (g.flags.has('partner:' + n.id)) ui.text(ICON.heart + ' partner', bx + 34 + textWidth(d.name) + 6, ry + 3, C.rose);
       // the job shares a row with the birthday column at +230
       ui.text(ellipsize(n.met ? d.job : 'You haven\'t met yet', 230 - 34 - 6), bx + 34, ry + 13, C.oak);
-      heartsRow(ui, hearts(n), bx + 230, ry + 3);
+      // Trust (hearts under the hood) as cog pips
+      trustRow(ui, hearts(n), bx + 230, ry + 3);
       ui.text(`Birthday: ${SEASON_NAMES[d.birthday.season]} ${d.birthday.day}`, bx + 230, ry + 13, C.walnut);
       if (n.talked) ui.text('talked', bx + bw - 8, ry + 3, C.moss, { align: 'right' });
       if (n.giftedToday) ui.text('gift', bx + bw - 8, ry + 13, C.rose, { align: 'right' });
       if (ui.hover(bx, ry, bw, rowH - 2) && n.met) {
         // known gift tastes: love items you have gifted
-        const lines = [{ text: d.name, color: C.amber }, { text: d.personality }, { text: `Friendship ${n.points}/${2500}`, color: C.pebble }];
+        const h = hearts(n);
+        const trust = h >= 10 ? 'Trust 10: as high as it goes' : `Trust ${h}: ${Math.round(((n.points % 250) / 250) * 100)}% of the way to ${h + 1}`;
+        const lines = [{ text: d.name, color: C.amber }, { text: d.personality }, { text: trust, color: C.pebble }];
         const held = g.player.inv.slots[g.player.sel];
         if (held) lines.push({ text: `Would think of your ${ITEMS[held.k >> 2].name}: ${giftTaste(d, ITEMS[held.k >> 2].id)}`, color: C.lime });
         ui.tip(lines, 220);

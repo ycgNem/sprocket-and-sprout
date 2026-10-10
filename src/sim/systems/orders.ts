@@ -428,7 +428,7 @@ function complete(g: Game, o: Order, via: 'hand' | 'post' | 'board', money = 0) 
   const ns = npc ? npcSys(g).byId.get(npc) : undefined;
   switch (o.kind) {
     case 'today':
-      if (ns) addPoints(g, ns, 150);
+      if (ns) addPoints(g, ns, 120);
       g.count('requests');
       if (via === 'post') g.toast(`${custName(o.cust)}'s ask filled by the post: ${o.pay} coins.`, 'i:' + o.lines[0].spec, C.lime);
       break;
@@ -439,7 +439,7 @@ function complete(g: Game, o: Order, via: 'hand' | 'post' | 'board', money = 0) 
         g.player.money += def.reward.money;
         g.earned += def.reward.money;
       }
-      if (ns) addPoints(g, ns, 60);
+      if (ns) addPoints(g, ns, def.big ? 150 : 100);
       g.count('orders');
       g.toast(`${custName(o.cust)}'s order filled${via === 'post' ? ' by the post' : ''}! Reputation ${repOf(g, o.cust)}${def.reward ? '. ' + def.reward.text : ''}`, 'i:' + def.spec, C.lime);
       break;

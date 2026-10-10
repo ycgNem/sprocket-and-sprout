@@ -52,7 +52,8 @@ await wait(200);
 const before = await ev(() => window.__game.sys.npcs.byId.get('roxy').points);
 await page.keyboard.press('KeyF'); await wait(500);
 const s5 = await ev(() => ({ pts: window.__game.sys.npcs.byId.get('roxy').points, text: window.__play.win?.arg?.pages?.join(' ') }));
-check(s5.pts > before + 60, `ruby is a loved gift: ${before} -> ${s5.pts} "${s5.text}"`);
+// a loved gift is 27 Trust points (ROADMAP.md 7.6: orders and discoveries build Trust, gifts a little)
+check(s5.pts === before + 27, `ruby is a loved gift: ${before} -> ${s5.pts} "${s5.text}"`);
 await page.screenshot({ path: 'e2e/out/roxy-play-3-gift.png' });
 for (let i = 0; i < 6; i++) { await page.keyboard.press('Enter'); await wait(200); }
 // 3) at 2 hearts, a morning at Skyhook Field starts "Engine Trouble"

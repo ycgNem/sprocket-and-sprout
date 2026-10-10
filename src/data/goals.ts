@@ -116,9 +116,9 @@ export const QUESTS: QuestDef[] = [
     reward: { money: 800 } },
   // the Water era's town keystone (ROADMAP.md 7.3, Phase 3): the town's own mill, end to end. Its
   // stages count from when the quest starts (the mill you walked past on day 2 isn't the look)
-  { id: 'k10_mill', title: 'The Town Mill', giver: 'tobias', tutorial: true, main: true, after: ['k9_power'], needFlag: 'keepers_line', keystone: 'r_milling',
+  { id: 'k10_mill', title: 'The Town Mill', giver: 'juniper', tutorial: true, main: true, after: ['k9_power'], needFlag: 'keepers_line', keystone: 'r_milling',
     why: "A keystone is the town's: look at it, try it small, keep it running, study it, then build it.",
-    desc: "The town's old mill stands silent on the river at the west end of Main Street. Mayor Thistle would give a great deal to hear it turn again: the Kettle has had no flour of its own in thirty years. Milling is the keystone: your mill is the town's in miniature. The Town Mill's order is already up on the Works tab (40 meal, 40 planks, 8 copper gears), so start a store of meal now.",
+    desc: "The town's old mill stands silent on the river at the west end of Main Street. Juniper, the millwright, has waited thirty years to mend its wheel: the Kettle has had no flour of its own in all that time. Milling is the keystone: your mill is the town's in miniature. The Town Mill's order is already up on the Works tab (40 meal, 40 planks, 8 copper gears), so start a store of meal now.",
     hint: 'Milling is studied with copper bundles. A mill on full power grinds 15 a minute: two dozen barley tipped into its bin at once keep it at 3 a minute for 2 minutes. The Works tab is on the Orders board (the square, or the clocktower door). A seed sower (Seed Sowers) plants a 7x7 field of barley for you, and gleaners or a crane pick it.',
     objectives: [
       { t: 'stage', id: 'r_milling', stage: 'observe', label: "Look at the town's silent mill", why: 'The town has had no flour of its own in thirty years. On the river at the west end of Main Street (stage 1 of 4: look).', goto: 'town_mill' },
@@ -130,9 +130,9 @@ export const QUESTS: QuestDef[] = [
     reward: { money: 1500, items: [{ item: 'bundle_copper', n: 10 }] } },
   // ---------------- The Steam era (ROADMAP.md 7.5, 8): the Waterworks, then Lamplighting ----------------
   // Each era ends by handing the player the next town keystone (DECISIONS #72: one path for everyone).
-  { id: 'k11_boiler', title: 'Down to the Boiler', giver: 'bram', tutorial: true, main: true, after: ['k10_mill'], needFlag: 'keepers_line', keystone: 'r_steam',
+  { id: 'k11_boiler', title: 'Down to the Boiler', giver: 'thorne', tutorial: true, main: true, after: ['k10_mill'], needFlag: 'keepers_line', keystone: 'r_steam',
     why: 'Pumps want steam, and the old works left a boiler down below.',
-    desc: "The Mayor's next wish is the Waterworks: the pump house by the square, its pumps seized since the old works closed. Its order is already up on the Works tab, so its brass, coils, oil, plates and paste can go in as you make them. Pumps want steam. Bram says the old works left a boiler on level 10 of the Deepworks, past a gallery that caved in on level 6. Steam Power is the keystone, and the boiler is its look.",
+    desc: "The Mayor's next wish is the Waterworks: the pump house by the square, its pumps seized since the old works closed. Its order is already up on the Works tab, so its brass, coils, oil, plates and paste can go in as you make them. Pumps want steam. Old Thorne, the old works' last engineer, says they left a boiler on level 10 of the Deepworks, the one he fed, past a gallery that caved in on level 6. Steam Power is the keystone, and the boiler is its look.",
     hint: "Sawmilling builds a sawmill: hardwood in, two beams out (the Joinery sells hardwood). 20 beams shore up the gallery on level 6: F at the collapse. Mend the old lift on level 5 and it rides to every works chamber you've reached.",
     objectives: [
       { t: 'visit', loc: 'pump_house', label: 'Look at the shuttered pump house by the square', why: "The town's next keystone, the Waterworks: its order is on the Works tab, and its pumps want steam.", goto: 'pump_house' },
@@ -186,9 +186,9 @@ export const QUESTS: QuestDef[] = [
     ],
     reward: { money: 2500 } },
   // ---------------- The Clockwork era: the Tram; then the Clock ----------------
-  { id: 'k16_tram', title: 'The Tram', giver: 'juniper', tutorial: true, main: true, after: ['k15_lamps'], needFlag: 'keepers_line', keystone: 'r_assembly2',
+  { id: 'k16_tram', title: 'The Tram', giver: 'thorne', tutorial: true, main: true, after: ['k15_lamps'], needFlag: 'keepers_line', keystone: 'r_assembly2',
     why: 'A cart on rails, quarry to town, every morning.',
-    desc: "The old works ran ore up to town on a rail cart. It still stands in the Crystal galleries on level 25, beside the engineers' lockers. Mend the cart, study Clockwork Assembly from their blueprints, and the Tram can run again.",
+    desc: "Old Thorne ran the old works' rail cart, ore up to town every morning at six. It still stands in the Crystal galleries on level 25, beside the engineers' lockers, where he left it. Mend the cart, study Clockwork Assembly from their blueprints, and the Tram can run again.",
     hint: 'The Crystal galleries are dark: carry lamps and set them down. The rail cart takes 20 planks, 10 iron bars and 4 brass gears. An assembler finishes jobs by itself once it is fed.',
     objectives: [
       { t: 'stage', id: 'r_assembly2', stage: 'observe', label: "Open the old works' lockers on level 25", why: "The engineers who built the Tram left their blueprints: read them.", goto: 'mine_entrance' },
@@ -241,7 +241,7 @@ export const QUESTS: QuestDef[] = [
     objectives: [{ t: 'research', id: 'r_grandworks' }, { t: 'build', struct: 'construction_site', n: 1 }],
     reward: { money: 10000 } },
   { id: 's_friends', title: 'Part of the Town', giver: 'marigold', after: ['k9_bed'],
-    desc: 'Reach 4 hearts with three different villagers.',
+    desc: 'Reach Trust 4 with three different villagers.',
     objectives: [{ t: 'friend', npc: '*', hearts: 4 }],
     reward: { money: 1000, items: [{ item: 'cake', n: 2 }] } },
   { id: 's_rich', title: 'A Prosperous Farm', giver: 'tobias', after: ['k9_power'],
@@ -277,8 +277,10 @@ export const REQUEST_POOL: { npc: string; item: string; n: number; seasons?: num
   { npc: 'clem', item: 'wheat', n: 15, seasons: [1, 2], text: 'Wheat for the horses. Fifteen?' },
   { npc: 'pip', item: 'amethyst', n: 1, text: 'I need a purple rock for my collection! A REAL one!' },
   { npc: 'pip', item: 'strawberry', n: 3, seasons: [0], text: 'Strawberries! For science! (eating)' },
-  { npc: 'hazel', item: 'sunflower', n: 3, seasons: [1, 2], text: 'I\'m painting sunflowers. I need models.' },
-  { npc: 'hazel', item: 'oil', n: 2, text: 'I\'m out of oil for my paints.' },
+  // the draughtswoman's inks and mounts (ROADMAP.md 7.6): paste and pigment from a crock (Dyes & Pastes).
+  // As many asks a season as her old two, in their places, so the day's dice pick the same villagers
+  { npc: 'hazel', item: 'starch_paste', n: 2, seasons: [1, 2], text: 'Two pots of starch paste. My drawings keep curling off the board.' },
+  { npc: 'hazel', item: 'pigment', n: 3, text: "I'm out of blue halfway through a blueprint. Three pots of pigment?" },
   { npc: 'sable', item: 'quartz', n: 3, text: 'Quartz for the school science lesson.' },
   { npc: 'sable', item: 'pale_ale', n: 1, text: 'Book club tonight. One hop ale, quietly.' },
   { npc: 'tobias', item: 'wine_grape', n: 1, text: 'A bottle of grape wine for a visiting dignitary.' },

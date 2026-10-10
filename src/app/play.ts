@@ -636,8 +636,9 @@ export class PlayScreen implements Screen {
     const n = g.sys.npcs?.at?.(g, t.fx, t.fy + 0.3);
     if (n) {
       const d = NPC_BY_ID.get(n.id)!;
+      // Trust, as cog pips (hearts under the hood, ROADMAP.md 7.6)
       const h = Math.min(10, Math.floor(n.points / 250));
-      ui.tip([{ text: d.name, color: C.amber }, { text: d.job, color: C.pebble }, { text: ICON.heart.repeat(Math.max(0, h)) + (h < 10 ? ' ' + Math.round(((n.points % 250) / 250) * 100) + '% to next heart' : ''), color: C.rose }, { text: n.talked ? 'You talked today' : 'F or right-click to chat (or give your held item)', color: C.pebble }]);
+      ui.tip([{ text: d.name, color: C.amber }, { text: d.job, color: C.pebble }, { text: `Trust ${h} ` + ICON.cog.repeat(Math.max(0, h)) + (h < 10 ? `  ${Math.round(((n.points % 250) / 250) * 100)}% to ${h + 1}` : ''), color: C.brass }, { text: n.talked ? 'You talked today' : 'F or right-click to chat (or give your held item)', color: C.pebble }]);
       return;
     }
     const a = g.sys.animals?.at?.(g, t.fx, t.fy + 0.3);

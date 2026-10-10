@@ -1,12 +1,19 @@
 // Farm visits: on fine weekend afternoons a villager who likes you strolls over to see the farm.
-// Talking to them there gives a farm-aware line and a little extra friendship.
+// Talking to them there gives a farm-aware line and a little extra Trust. On a fine afternoon with
+// no other visitor, Pip may come after school and stand by one of your machines to ask about it
+// (ROADMAP.md 7.6; the question is src/sim/people.ts).
 import { NPC_BY_ID } from '../../data/npcs';
 import { SHOPS } from '../../data/shops';
 import { shortName } from '../../data/cookbook';
 import { Game, registerSystem } from '../Game';
+import { dayHash, pipMachines, standBy } from '../people';
 import { hearts, npcSys, NPCState } from './npcs';
 
 const ARRIVE = 13 * 60, LEAVE = 16 * 60 + 30;
+/** Pip, after school (school lets out at 3pm), home before dark */
+const PIP_ARRIVE = 15 * 60, PIP_LEAVE = 18 * 60;
+/** the chance of Pip's visit on a fine day with no other visitor */
+export const PIP_VISIT_CHANCE = 0.4;
 
 function visitSpot(g: Game): [number, number] {
   const [hx, hy] = g.map.loc('farmhouse');
@@ -28,8 +35,24 @@ function keepsShopToday(g: Game, id: string): boolean {
   return !!s && !s.closedDays?.includes(g.weekday);
 }
 
+/** Pip by one of your machines, once the question's been asked (people.ts asks it first) */
+function pipVisitLine(g: Game, n: NPCState): string | null {
+  const v = g.sys.visits;
+  const spot = g.map.locs.get('pip_visit');
+  if (!spot || g.time.min < PIP_ARRIVE || g.time.min > PIP_LEAVE + 60 || Math.hypot(n.x - spot[0], n.y - spot[1]) > 6) return null;
+  const name = g.ents.get(v.ent)?.def.name.toLowerCase() ?? 'machine';
+  const lines = [
+    `I'm gonna watch your ${name} till the lamps come on. Then I'll go home. Probably.`,
+    `I drew your ${name} in my notebook. From the side, from the top and from underneath. Underneath was hard.`,
+    `Your works never stop, {player}. Not even when you go inside. That's the best bit.`,
+    `I timed your ${name} with my counting. It's very regular. I'm going to be that regular one day.`,
+  ];
+  return lines[(g.dayIndex + (v.talked ? 1 : 0)) % lines.length];
+}
+
 export function visitLine(g: Game, n: NPCState): string | null {
   const v = g.sys.visits;
+  if (v?.npc === n.id && v.ent !== undefined) return pipVisitLine(g, n);
   if (!v || v.npc !== n.id || g.time.min < ARRIVE || g.time.min > LEAVE + 60) return null;
   const [sx, sy] = g.map.loc('farm_visit') ?? [0, 0];
   if (Math.hypot(n.x - sx, n.y - sy) > 10) return null;
@@ -67,11 +90,12 @@ registerSystem({
     const pid = [...g.flags].find((f) => f.startsWith('partner:'))?.slice(8);
     const partner = pid ? npcSys(g).byId.get(pid) : undefined;
     let n: NPCState | undefined;
+    // (the rolls here are the same as before Pip's visits: they never roll g.rng themselves)
     if (partner && partner.schedule && !keepsShopToday(g, partner.id) && g.rng.next() < 0.7) n = partner;
     else {
-      if (g.weekday !== 5 && g.weekday !== 6) return;
+      if (g.weekday !== 5 && g.weekday !== 6) return pipVisit(g);
       const cands = npcSys(g).list.filter((x) => x.met && hearts(x) >= 3 && !keepsShopToday(g, x.id) && x.schedule && x !== partner);
-      if (!cands.length || g.rng.next() > 0.6) return;
+      if (!cands.length || g.rng.next() > 0.6) return pipVisit(g);
       n = g.rng.pick(cands);
     }
     if (!g.map.locs.has('farm_visit')) g.map.locs.set('farm_visit', visitSpot(g));
@@ -83,3 +107,28 @@ registerSystem({
     g.toast(`${shortName(NPC_BY_ID.get(n.id)!.name)} might drop by the farm this afternoon.`);
   },
 });
+
+/**
+ * Pip's afternoon at your works: a fine day with no other visitor, a met Pip and a machine to watch.
+ * Pip stands beside it from 3pm and asks about it when you talk (src/sim/people.ts). Its dice are the
+ * day's hash, never g.rng, so a save's other rolls don't move.
+ */
+function pipVisit(g: Game) {
+  const pip = npcSys(g).byId.get('pip');
+  if (!pip?.met || !pip.schedule) return;
+  const h = dayHash(g, 0x9f1);
+  if ((h % 1000) / 1000 >= PIP_VISIT_CHANCE) return;
+  const ms = pipMachines(g);
+  if (!ms.length) return;
+  // the machine Pip watches: a different one most days
+  const e = ms[(h >>> 10) % ms.length];
+  const spot = standBy(g, e);
+  if (!spot) return;
+  g.map.locs.set('pip_visit', spot);
+  const at = pip.schedule.at as [number, string][];
+  const back = locAt(at, PIP_LEAVE);
+  const plan: [number, string][] = [...at.filter(([t]) => t < PIP_ARRIVE), [PIP_ARRIVE, 'pip_visit'], [PIP_LEAVE, back], ...at.filter(([t]) => t > PIP_LEAVE)];
+  pip.schedule = { ...pip.schedule, at: plan };
+  g.sys.visits = { npc: 'pip', talked: false, ent: e.id, asked: false };
+  g.toast(`Pip might come by after school to watch your ${e.def.name.toLowerCase()}.`);
+}

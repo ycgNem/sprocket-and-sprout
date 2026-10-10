@@ -180,6 +180,10 @@ export interface DialogueLine {
   festival?: boolean;
   /** only after this year */
   year?: number;
+  /** only once this flag is set (a town keystone done: 'town_mill', 'waterworks', 'tram'...) */
+  flag?: string;
+  /** only while this flag isn't set (the Town Mill still silent) */
+  noFlag?: string;
 }
 
 export interface ScheduleDef {

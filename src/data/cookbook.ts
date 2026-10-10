@@ -18,7 +18,7 @@ export const RECIPE_TEACHERS: Record<string, RecipeTeacher> = {
   stuffed_peppers: { npc: 'hazel', hearts: 3, note: 'Ember peppers! Spicy, bright, a little dangerous. Like good art.' },
   roast_yam: { npc: 'ines', hearts: 2, note: 'A simple, nourishing dish. Doctor\'s orders: eat your vegetables.' },
   pumpkin_pie: { npc: 'tobias', hearts: 4, note: 'The official pumpkin pie of the Thistlewick Harvest. Mayor-approved.' },
-  honey_bun: { npc: 'pip', hearts: 2, note: 'Honey buns!!! Mom says I can share the recipe. Don\'t eat them all at once (I did).' },
+  honey_bun: { npc: 'pip', hearts: 2, note: 'Honey buns!!! Dad says I can share the recipe. Don\'t eat them all at once (I did).' },
 };
 
 export const recipeFlag = (out: string) => 'recipe_' + out;

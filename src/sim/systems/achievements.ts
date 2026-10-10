@@ -120,8 +120,8 @@ export const ACHIEVEMENTS: Achievement[] = [
 
   // ---------------- Village ----------------
   { id: 'talkall', name: 'Social Butterfly', desc: 'Talk to every villager.', cat: 'village', tier: 1, icon: 'tea', test: (g) => npcs(g).length > 0 && npcs(g).every((n) => c(g, 'talk_' + n.id) > 0), prog: (g) => [npcs(g).filter((n) => c(g, 'talk_' + n.id) > 0).length, npcs(g).length || 13] },
-  { id: 'friends5', name: 'Neighborly', desc: 'Reach 4 hearts with 5 villagers.', cat: 'village', tier: 2, icon: 'cookies', test: (g) => npcs(g).filter((n) => hearts(n) >= 4).length >= 5, prog: (g) => [npcs(g).filter((n) => hearts(n) >= 4).length, 5] },
-  { id: 'friend10', name: 'Kindred Spirit', desc: 'Reach 10 hearts with anyone.', cat: 'village', tier: 3, icon: 'cake', test: (g) => npcs(g).some((n) => hearts(n) >= 10) },
+  { id: 'friends5', name: 'Neighborly', desc: 'Reach Trust 4 with 5 villagers.', cat: 'village', tier: 2, icon: 'cookies', test: (g) => npcs(g).filter((n) => hearts(n) >= 4).length >= 5, prog: (g) => [npcs(g).filter((n) => hearts(n) >= 4).length, 5] },
+  { id: 'friend10', name: 'Kindred Spirit', desc: 'Reach Trust 10 with anyone.', cat: 'village', tier: 3, icon: 'cake', test: (g) => npcs(g).some((n) => hearts(n) >= 10) },
   { id: 'gifts', name: 'Thoughtful', desc: 'Give 50 gifts.', cat: 'village', tier: 1, icon: 'tulip', ...num('gifts', 50) },
   { id: 'heartevents', name: 'Open Book', desc: 'See 8 heart events.', cat: 'village', tier: 2, icon: 'f_paint_meadow', ...num('heart_events', 8) },
   { id: 'partner', name: 'The Brass Locket', desc: 'Find a partner to share your farm with.', cat: 'village', tier: 3, icon: 'heart_charm', ...num('partner', 1) },

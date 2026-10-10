@@ -107,11 +107,12 @@ const G: Record<string, string> = {
   '\u0007': '.....|..#..|..#..|#####|.###.|..#..|.....', // arrow down
   '\u0008': '.....|.#...|.##..|.###.|.##..|.#...|.....', // play / right arrow
   '\u000e': '.....|...#.|..##.|.###.|..##.|...#.|.....', // left arrow
+  '\u000f': '.....|#.#.#|.###.|##.##|.###.|#.#.#|.....', // cog (a Trust pip; hearts stay for romance)
 };
 
 export const ICON = {
   heart: '\u0001', coin: '\u0002', bolt: '\u0003', star: '\u0004', clock: '\u0005',
-  up: '\u0006', down: '\u0007', right: '\u0008', left: '\u000e',
+  up: '\u0006', down: '\u0007', right: '\u0008', left: '\u000e', cog: '\u000f',
 };
 
 export const FONT_H = 9; // cell height incl. descenders
