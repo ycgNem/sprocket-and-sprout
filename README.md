@@ -71,8 +71,9 @@ See `HANDOFF.md` for details.
 |---|---|
 | Move | WASD / arrows (hold Shift to walk slowly) |
 | Use tool / place / attack | Left mouse (hold to repeat; hold the hoe or can to charge an area) |
-| Talk / harvest / open / collect; at a machine: collect and load | Right mouse or F |
-| Open a machine's window (pick its recipe) | Shift+F |
+| Talk / harvest / open / collect; at a machine: collect and load (with nothing it takes in hand, it asks what to load) | Right mouse or F |
+| Open a machine's window (pick its recipe); your pet: stay or come along; the hamster's ball | Shift+F |
+| Pick up farmhouse furniture (the hamster's cage too) | Shift + right mouse |
 | Take back your last placement (within 10 s) | Ctrl+Z |
 | Wind a spring arm or gleaner (2x speed for 30 s) | Right mouse on it |
 | Inspect a line (hold): the line lights up, its rate per day and why it stops | I |
@@ -139,10 +140,16 @@ Fair's day, or a Brass Locket.
   featherbed and a grand hearth.
 - Cooking: 22 dishes. Villagers teach you their recipes as friendships grow. Cooked food gives
   timed buffs (speed, stamina, fishing, mining, luck, defense, farming).
-- Furniture: armchairs, lamps, rugs, a fish tank, plants, a pet bed, cart-only curios, and
-  paintings from Hazel. Rugs stack under furniture and paintings hang on the wall.
-- A farm pet: a stray cat or dog adopts you on day 3. Name it, pet it and fill its water bowl,
-  and it will follow you around, nap in its bed and leave gifts by the door.
+- Furniture: armchairs, lamps, rugs, a fish tank, plants, a pet bed, a hamster cage, cart-only
+  curios, and paintings from Hazel. Rugs stack under furniture and paintings hang on the wall.
+- A farm pet: a stray cat or dog adopts you on day 3. Name it, pet it, fill its water bowl and
+  give it a fish now and then, and it will follow you around (Shift+F: stay home or come along),
+  nap in its bed, leave gifts by the door and, once it trusts you, keep the crows off the crops by
+  the house. A cat rides your belts; both curl up by a warm furnace on cold days.
+- A hamster: the Mercantile's cage comes with one (name it, pick its coat). A seed a day for its
+  supper and a scratch; it sleeps by day and runs its wheel at night, and a happy, fed hamster's
+  wheel winds the spring arms beside its cage. Shift+F lets it out in its ball to roll about the
+  farmhouse.
 
 **Town**
 - 14 villagers with schedules, A*-pathing, 37+ lines of dialogue each (by season, weather, time,
@@ -157,7 +164,9 @@ Fair's day, or a Brass Locket.
 - Romance: give the Brass Locket to a villager you love. Your partner makes breakfast, helps
   with chores and spends evenings by your hearth.
 - 10 shops plus Mags' freight cart (Fridays and Sundays, and the Tuesday of a shortage week) with
-  rare parts, off-season seeds, recipe cards and furniture, and a Sunday lot at auction.
+  rare parts, off-season seeds, recipe cards and furniture, and a Sunday lot at auction. A shop's
+  counter lets you chat with its keeper and anyone in with them, give them what you hold, and hand
+  over what their asks and orders want straight from your bag.
 - 4 festivals and a token stall: the Sprocket Fair (your line on the Professor's test bed against
   three villagers' entries), Lantern Night, the Harvest Haul (standing orders pay double, and the
   Mayor's auction) and Frostlight Skate.

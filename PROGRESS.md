@@ -311,10 +311,40 @@
     queue; toasts stack above the hotbar on narrow screens; the compass points at the desk for a
     research step; project descriptions wrap; perk cards have their own pictures.
 
+## 1.2 "The Works", Phase 5: people, the Fair, Workshop HQ, the owner's playtest (October 10, 2026)
+- Six villagers are the works' specialists (Juniper the millwright, Hazel the draughtswoman, Pip,
+  Bram, Sable the archivist, Old Thorne), with rewritten heart events and talks; Trust is the UI's
+  word for hearts (cog pips); Pip's echoes, Sable's records, Thorne's drawings. DECISIONS #104-#108.
+- The Sprocket Fair (spring 13): a 6x6 test bed on the square that runs your blueprint in a
+  throwaway world and scores the value it adds over five works-minutes, against the Professor's,
+  Bram's and Juniper's lines; the Founder's candles as its prizes. The Harvest Haul (fall 15): double
+  pay on standing orders and the Mayor's auction. Founder's Day, Kite Day and the Pumpkin Roll
+  retired. DECISIONS #109-#111, #114, #122-#123.
+- Workshop HQ: structures indoors in a second entity store, the Workshop wing, the drafting table's
+  blueprint library, the ledger; spring arms work indoors. Mags the freight broker (Fridays and
+  Sundays, a Sunday lot), weekly shortages, Tock the clockwork helper. DECISIONS #100-#103,
+  #112-#113, #118.
+- The critic's full review: PASS WITH FIXES. Fixed: Trust buys works things, Pip's watch and his
+  question card beside the play, signs to the phase's hooks, asks that wait for their know-how,
+  Mags on a shortage's Tuesday (DECISIONS #115-#121), and the Fair's scoring and its place on the
+  square (an agent in a worktree, merged; DECISIONS #122-#123).
+- The owner's playtest: watering costs a quarter less and hand-loading is about ten minutes' work;
+  machines ask what to load ("Load which?") instead of taking from the bag; the pet stays or comes
+  along (Shift+F), takes a fish as a treat, guards the crops by the house, rides belts and naps by
+  warm machines; a hamster in a cage (its art by an agent in a worktree) whose wheel winds the spring
+  arms by it at night; villagers at work indoors can be chatted with, given things and handed their
+  asks; coconuts and Deepworks chests can't be farmed. DECISIONS #124-#129. A letter typed in a name
+  field no longer doubles as a hotkey.
+- Checks: tests 331 and the year-long run; the bot reaches the Mill by day 20 on 8 of 8 seeds (day
+  17); pacing (28 days, 8 seeds) Story 66.0k (65.0k before the playtest), Rush 65.6k (66.5k);
+  e2e house, people, fairs, pet, hamster (the cage, its ball and the counter), works, townworks and
+  smoke pass with no console errors; the sweep is clean at 1280x720, 1366x620 and 960x600.
+
 ## Next
-- Phase 5 (people, events, HQ) of ROADMAP.md; see HANDOFF.md "What's next".
-- Older ideas: more interior variety (decor items placeable indoors), farmhouse expansion tiers;
-  more depth for mid-game automation goals and late-game megaprojects.
+- Phase 6 of ROADMAP.md (after Nov 9): the art direction pass, one art-director per group; see
+  HANDOFF.md "What's next".
+- Older ideas: more interior variety, farmhouse expansion tiers; more depth for mid-game automation
+  goals and late-game megaprojects.
 
 ## Known issues
 - Bumblebots in flight during a manual mid-day save return to their hive on load.

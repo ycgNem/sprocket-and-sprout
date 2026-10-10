@@ -1234,7 +1234,7 @@ at night on your power (they draw 12 sparks after dark; unpowered they stay dark
 brass gears and 20 pigment): every morning the cart runs the quarry road to town with 20 of the
 ore you left in its bin at the quarry and sells them at a 30% premium; a cart sprite runs the road.
 
-### Phase 5 — People, events, HQ (2-3 sessions)
+### Phase 5 — People, events, HQ (2-3 sessions) — BUILT 2026-10-10 on `works`; the critic's full review PASSED WITH FIXES and those are in (DECISIONS #115-#123), with the owner's playtest after it (DECISIONS #124-#129: watering, hand-loading, the load chooser, the pet, a hamster, the counter, coconuts and chests) and the bridges and fences pass; not merged
 - 7.6 the six re-roles with 12 rewritten heart events and ~40 lines each; Trust in the UI;
   Pip's echo questions; 7.7 the Sprocket Fair and the Harvest Haul (Kite Day and Pumpkin Roll
   retired; their achievements remapped); 7.8 Workshop HQ with indoor structures and the
@@ -1293,7 +1293,7 @@ the gaps in 7.6-7.9; they go into DECISIONS.md (#100 on) as they land.
   state now ("Why is this crock stopped?", its real reason among the answers).
 
 **Festivals (7.7).** Four: the Sprocket Fair (spring 13, replaces Kite Day), Lantern Night (summer
-20), the Harvest Haul (fall 16, replaces the Pumpkin Roll), Frostlight Skate (winter 24). The kite
+20), the Harvest Haul (fall 15, replaces the Pumpkin Roll), Frostlight Skate (winter 24). The kite
 and pumpkin minigames are deleted.
 - **The Sprocket Fair** (the Professor hosts; 9am-6pm): bring a line. The host's window lists the
   blueprints that fit the square's 6x6 test bed: the blueprint tool's current copy and the drafting

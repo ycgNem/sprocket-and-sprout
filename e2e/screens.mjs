@@ -333,6 +333,31 @@ const SC = {
     await page.mouse.move(p.s.x / p.d, p.s.y / p.d);
     await wait(300);
   },
+  // ---- the owner's playtest (Phase 5) ----
+  // Pip's question at the keeper's crock: the card under the lessons, the crock outlined
+  'pip-ask': async () => ev(`(async () => { const g = S.g; S.play.closeWindow(); S.play.mode = 'normal'; S.play.rectStart = null; S.play.hud.toasts = []; const P = await import('/src/sim/people.ts');
+    g.player.where = 'world'; g.time.min = 14 * 60; const e = g.ents.at(54, 23); g.player.x = 54.5; g.player.y = 25.6; g.player.dir = 0;
+    const m = P.machineQuestion(g, e); g.sys.pipAsk = { ent: e.id, lead: "Psst, Wren! I've been watching your preserving crock all afternoon.", q: m.q, answers: m.answers, right: m.right };
+    const r = window.__app.renderer; r.cam.zoom = r.cam.targetZoom = 2; r.cam.x = g.player.x; r.cam.y = g.player.y - 0.6; })()`),
+  // F at the crock with nothing it takes in hand: "Load which?"
+  loadpick: async () => ev(`(() => { const g = S.g; g.sys.pipAsk = null; const e = g.ents.at(54, 23); e.mach.inBuf.clear(); g.player.sel = 9; g.player.inv.slots[9] = null;
+    g.player.inv.add(S.key('cogbean'), 7); g.player.inv.add(S.key('radish'), 12); g.player.inv.add(S.key('blueberry'), 30); S.play.openWindow('loadpick', e.id); })()`),
+  // the counter: the Mercantile with Hazel in, a standing order the bag can answer
+  counter: async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.time.min = 11 * 60; const ns = g.sys.npcs;
+    for (const id of ['marigold', 'hazel', 'pip']) { const n = ns.byId.get(id); n.target = 'store_in'; n.visible = false; n.path = []; n.met = true; }
+    const o = { uid: 99001, kind: 'today', def: 'req:marigold:radish', cust: 'marigold', lines: [{ spec: 'radish', n: 5, have: 0 }], day: g.dayIndex, due: g.dayIndex, pay: 150, rep: 1 };
+    g.sys.orders.open.push(o); g.player.sel = 2; S.play.openWindow('shop', 'general'); })()`),
+  // the library's museum with Sable at work: her counter row
+  'museum-sable': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); const n = g.sys.npcs.byId.get('sable'); n.target = 'library_in'; n.visible = false; n.path = []; n.met = true; S.play.openWindow('museum'); })()`),
+  // the hamster's cage: placed, the naming window
+  'hamster-name': async () => ev(`(async () => { const g = S.g; S.play.closeWindow(); g.sys.house.enter(g); g.time.min = 19 * 60; g.player.inv.add(S.key('f_hamster_cage'), 1);
+    window.__house.placeDecor(g, 'f_hamster_cage', 2, 5); g.player.x = 4.5; g.player.y = 7.4; g.player.dir = 0; S.play.openWindow('hamster'); })()`),
+  // named, fed, on its wheel at night; the farmhouse's other cage-side life
+  'hamster-wheel': async () => ev(`(async () => { const g = S.g; S.play.closeWindow(); S.play.hud.toasts = []; const H = await import('/src/sim/systems/hamster.ts');
+    H.nameHamster(g, 'Pocket', 0); const h = H.hamsterSys(g); h.points = 420; h.fedDay = g.dayIndex; h.mode = 'wheel'; h.cx = H.WHEEL_X; h.t = 60; S.play.hud.toasts = [];
+    const r = window.__app.renderer; r.cam.zoom = r.cam.targetZoom = 3; })()`),
+  // out in its ball, rolling about the farmhouse floor
+  'hamster-ball': async () => ev(`(async () => { const g = S.g; S.play.hud.toasts = []; const H = await import('/src/sim/systems/hamster.ts'); H.toggleBall(g); const h = H.hamsterSys(g); h.x = 6.5; h.y = 6.6; h.rolling = false; h.t = 30; S.play.hud.toasts = []; })()`),
 };
 
 for (const [name, fn] of Object.entries(SC)) {

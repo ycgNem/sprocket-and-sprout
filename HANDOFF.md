@@ -4,37 +4,34 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 10, 2026, late night): Phases 1-4 of 2.0 "The Works" are built on `works`;
-nothing is merged.** Phase 2 (the Keeper's Line) was finished first: its must-fix list, the
-re-check's supply for days 8-12 and the acceptance check (DECISIONS #83). Phases 3 and 4 were built
-in one run, as the owner asked, and checked together: one Orders board, research eras with keystone
-stages and era rewards, crop numbers and intermediates, the Town Mill end to end, save v5, the
-Deepworks (30 levels, 6 strata) and the town keystones in the world (DECISIONS #84-92). The
-indie-critic's end review of Phases 3+4 FAILED narrowly: the one path ended at k10 (the Now strip
-fell back to side quests). Its fixes are in (DECISIONS #93-98): main quests k11-k17 hand over each
-era's keystone (Steam, the Waterworks, Spark Coils, Lamplighting, the Tram, the Clock); a
-keystone's stages count from its quest; keystone orders go up with their quest; the Town Mill asks
-40 meal and its payoff is a camera pan to the wheel; the Works tab lost Stardew's Community Center
-baskets; goods only a line makes; the Deepworks' vents, set-down lamps and chamber cards.
-The critic's re-check PASSED WITH FIXES (no Criticals): three Majors (after the Mill the next town
-keystone stayed hidden for two quests; every loaded save replayed its first morning's toasts; the
-Waterworks' oil waited for summer) and the Stardew test failed the professions ("only the names
-changed"). Its confirmation pass of the fixes also PASSED WITH FIXES: the Stardew test 3 pass, 1
-half (the mine), 0 fail; two new Majors (a crate tagged for the Council was re-tagged to the Kettle
-when the Mill finished; each early profession pair had a dead option). Everything from both is
-fixed (DECISIONS #99): the Waterworks' order goes up with k11 and the Now strip names its quest,
-any oil counts, Tinkering comes first and levels from machine output, the professions run
-machines (Governor, Field Hand, Long Reach, Crock Master, Sawyer, Drill Rigger, Furnace Hand)
-instead of raising prices, and the Earth stratum's cracked ceilings take plank props.
-**Where it stopped:** the user's request (Phase 2's remainder, then all of Phases 3 and 4) is done
-and committed on `works` (the last code commit is `72ff71b`). The fixes made after the critic's confirmation pass (`928a07c`..
-`72ff71b`: the Council crate's tag, the profession pairs, the plank props, the 960x600 layout) are
-tested (every check below) but the critic hasn't seen them yet; Phase 5's full review covers them.
-Next is Phase 5 ("What's next" below).
+**Status (October 10, 2026, evening): Phases 1-5 of 2.0 "The Works" are built on `works`;
+nothing is merged.** Phase 5 (people, events, HQ) was built in one run with agents in worktrees:
+the six specialists and Trust, Pip's echoes, the Sprocket Fair's test bed and the Harvest Haul,
+Workshop HQ (structures indoors, the Workshop wing, the drafting table, the ledger), Mags the
+freight broker and shortages, and Tock (DECISIONS #100-#114). The indie-critic's full review was
+PASS WITH FIXES and its fixes are in (#115-#123): Trust buys works things, Pip's watch and his
+question card, spring arms indoors, signs to the phase's hooks, asks that wait for their know-how,
+Mags on a shortage's Tuesday, and the Fair scored on the value a line adds over five minutes, on the
+square, told ahead, with the Haul on fall 15. Then the owner playtested and asked for changes, all in
+(#124-#129): watering costs a quarter less, hand-loading is about ten minutes' work, machines ask
+what to load, the pet stays or comes along (and treats, the crow guard, belt rides, naps), a hamster
+in a cage, a counter for villagers at work indoors, and coconuts and Deepworks chests can no longer
+be farmed. The bridges and fences pass the owner asked for is the last open piece.
+**Where it stopped:** Phase 5 and the owner's playtest are committed on `works` (to `778fb65` and
+the docs after it). An art-director agent was making the bridges seamless and the fences connect in
+`../sns-bridges` (branch `works-bridges`); merge it when it reports, then the critic's confirmation
+pass. Next is Phase 6 ("What's next" below).
 **The owner deferred the 2.0 beta merge**; don't merge to `main` or push unless the owner says so.
 The owner's rules since Phase 1: hand farming stays, but the factory is the face (ROADMAP.md 3.2,
 DECISIONS #68); one path for every player, no "pick a direction" card (#72); the Preserves Jar is
 the Preserving Crock (#76). ROADMAP.md is the 2.0 plan; ROADMAP-1.1.md the finished 1.1 overhaul.
+- **Phase 5 on `works`** (the build, the critic's fixes and the Fair agent's merge `e7333dc`; the
+  owner's playtest `8814e42`..`778fb65`): the done-when checks: `e2e/people.mjs` (real input with
+  Pip, Sable and Thorne, Pip's farm question), `e2e/fairs.mjs` (the Fair on the square, the bench
+  test, the Haul's auction on a slept-into fall 15), `e2e/house.mjs` (indoor structures, the load
+  chooser, a spring arm indoors), `e2e/pet.mjs` and `e2e/hamster.mjs` (the cage, its ball, the
+  counter) pass; the critic's full review PASSED WITH FIXES and they're in. The bot still reaches
+  the Mill by day 20 on 8 of 8 seeds (day 17). Pacing (28 days, 8 seeds): Story 66.0k, Rush 65.6k.
 - **Phases 3-4 on `works`** (`8f24f3d` Phase 2's must-fix list, `876dc2f`..`7d4c159` Phases 3-4 with the three agents' merges, the critic's fixes to `426cb2b`, the re-checks' fixes `16d10cd`..`72ff71b`): the
   done-when checks: the bot reaches the Mill by day 20 on 8 of 8 seeds (days 15-18 after the fixes,
   `npx vite-node scripts/mill20.ts`); `data.test.ts` validates every order and keystone;
@@ -177,14 +174,14 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 233 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5, the Keeper's Line, orders, eras and the k11-k17 chain, the critic's re-checks, professions, the Deepworks, the town keystones, save v5)
+npm test                                   # 331 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5, the Keeper's Line, orders, eras and the k11-k17 chain, professions, the Deepworks, the town keystones, save v5, the specialists and Trust, the Fair and the Haul, Workshop HQ, the pet, the hamster, the counter, palms)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
 npx vite-node scripts/pace.ts story rush   # economy: the bot's 28-day earnings on 8 seeds (a few minutes)
 npx vite-node scripts/accept.ts            # the critic's Phase 2 acceptance: crocks working on days 5-7, day-6 income, the mill
 npx vite-node scripts/mill20.ts            # Phase 3's done-when: the day each main quest finished, per seed (the Mill by day 20)
 npm run build                              # production build, about 1.2 MB JS (386 KB gzipped) + ~520 KB of PNG sheets
 node e2e/smoke.mjs http://localhost:5173/  # real UI smoke, 0 console errors expected
-npm run screens                            # 71-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 or VIEW=960x600 (the web embed) for other sizes
+npm run screens                            # 94-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 or VIEW=960x600 (the web embed) for other sizes
 node e2e/coverage.mjs                      # every sprite name vs imported art (6415/6415 = 100% expected)
 node e2e/sprites.mjs <name> ...            # imported vs procedural sprites side by side
 BASE=http://localhost:5173/ node e2e/flow.mjs  # real input: two-step new game, farm, house, bed, reload
@@ -197,17 +194,24 @@ node e2e/seams.mjs                         # Wang-set seam audit -> e2e/out/seam
 BASE=http://localhost:5173/ node e2e/perf.mjs      # 1,300 belts / 260 machines: < 1 ms a tick, the night shift < 3 s
 BASE=http://localhost:5173/ node e2e/minex.mjs     # the Deepworks: a level of every stratum, vents, set-down lamps, a chamber card, the lift
 BASE=http://localhost:5173/ node e2e/townworks.mjs # the town keystones on screen: the mill, the lamps on your power, the fountain, the tram
+BASE=http://localhost:5173/ node e2e/people.mjs    # Phase 5: Pip, Sable, Thorne with real input; Pip's farm question card
+BASE=http://localhost:5173/ node e2e/fairs.mjs     # Phase 5: the Fair on the square, the bench test, the Haul's auction
+BASE=http://localhost:5173/ node e2e/hamster.mjs   # the hamster (cage, name, feed, wheel, ball, pick up) and the counter's Chat
+npx vite-node scripts/systems-order.ts     # the systems in tick order (check after adding a system or an import)
 ```
 
-Last results (October 10, 2026, late night, after the re-checks' fixes): typecheck, 233 tests,
-the year-long run (earned 202k), `mill20` 8/8 (days 15-18), `minex`, `townworks`, `smoke`, `flow`, `roxy` and
-`windows` pass with 0 console errors; the sweep is 71 shots / 0 issues at 1280x720, 1366x620 and
-960x600. (From before Phase 3, not re-run:) `e2e/shift.mjs` 185/185; `e2e/perf.mjs` 0.32 ms a tick, the night shift
+Last results (October 10, 2026, evening, after Phase 5, the critic's fixes and the owner's
+playtest): typecheck, 331 tests, the year-long run, `mill20` 8/8 (day 17); `house`, `people`,
+`fairs`, `pet`, `hamster`, `works`, `townworks` and `smoke` pass with 0 console errors; the sweep is
+clean (0 issues) at 1280x720, 1366x620 and 960x600. (From the Phase 3-4 round, not re-run: `flow`,
+`roxy`, `windows`, `minex`.) (From before Phase 3, not re-run:) `e2e/shift.mjs` 185/185; `e2e/perf.mjs` 0.32 ms a tick, the night shift
 1.5 s. `e2e/qa.mjs` logs "missing sprite i:hoe_0" warnings: its contact sheet asks tools for an
 icon name they don't use (harmless).
 
-Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 10, late night, branch `works`):
-- Story: average 65.9k coins (62.3k to 68.8k); Clockwork Rush 66.3k (63.5k to 69.0k). The Rush
+Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 10, evening, branch `works`):
+- Story: average 66.0k coins (63.7k to 68.1k); Clockwork Rush 65.6k (63.2k to 67.9k); day 1 about
+  2.7k (Story), 4.5k (Rush). Before the owner's playtest: Story 65.0k, Rush 66.5k; after Phases 3-4:
+  Story 65.9k, Rush 66.3k. The Rush
   medals are 40k / 75k / 110k (DECISIONS #97). Phase 2's numbers, for history:
 - Story: average 42.2k coins (39.6k to 45.4k). Before Phase 2: 20.9k; 1.1: 10.7k.
 - Clockwork Rush: average 39.9k (38.1k to 43.4k). Before Phase 2: 23.1k; 1.1: 13.0k.
@@ -241,7 +245,13 @@ src/sim/systems/  one file per system, registered with registerSystem({tick, day
               init, save, load, afterLoad, realtime}). Import order lives in src/sim/index.ts.
               New: modes.ts (start kits, the clockwork opening, Rush scoring), achievements.ts,
               keeper.ts (the Keeper's Line: the Professor's visit, safety nets), orders.ts (the
-              Orders board, reputation, consignment); rust.ts and lessons.ts sit in src/sim
+              Orders board, reputation, consignment); rust.ts and lessons.ts sit in src/sim.
+              Phase 5: trust.ts (Trust rewards, Pip's watch), tock.ts, pet.ts (stay, treats, the
+              crow guard, belt rides), hamster.ts (the cage, the wheel, the ball), festivals.ts (the
+              Fair and the Haul), cart.ts (Mags), house.ts (the farmhouse, its furniture and
+              DECOR_USE). In src/sim: people.ts (the specialists' talks and Pip's question),
+              testbed.ts (the Fair's plate), fair.ts (entries and prizes), auction.ts, drafting.ts
+              (the blueprint library), indoors.ts (structures in the farmhouse: g.houseEnts)
 src/render/   juice.ts (Phase 3 reward layer: sprite effects, confetti, rings, hops, item/coin flights
               into the HUD, streak counter, ribbons, big pop numbers, the post courier; drawFx with
               code fallbacks), renderer (dual-grid terrain bake, y-sorted sprites), lighting, weather, particles, ambient,
@@ -255,7 +265,9 @@ src/ui/       immediate-mode canvas UI kit (ui.ts; records draws for the audit w
               hud.ts (layout), hudparts.ts (chronometer, odometer,
               gear hotbar, gauges, build bar, Rush tracker), pulse.ts (factory lamps),
               cursor.ts (CSS pixel cursor), tooltips, windows/* (achievements, modes = Rush result,
-              palette = Sandbox build palette, plus the older ones)
+              palette = Sandbox build palette, plus the older ones; Phase 5: fair, auction, workshop
+              = the drafting table and bench test, loadpick = "Load which?", home = the hamster's
+              name, town = the shops' counter), askcard.ts (Pip's question beside the play)
 src/app/      App/title/new game (two steps: character, then mode + map with a live preview),
               PlayScreen (input, build mode, guide markers, events -> UI), tips, profile.ts
               (cross-save achievement/Rush profile in localStorage), perf
@@ -330,26 +342,23 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
-Phase 5 of ROADMAP.md (2.0 "The Works"), on branch `works`:
+First, if it hasn't happened: merge the bridges and fences agent's branch (`works-bridges` in
+`../sns-bridges`; remove its node_modules junction before `git worktree remove`), run the checks and
+the sweep, and ask the indie-critic for a confirmation pass of the owner's playtest changes
+(DECISIONS #124-#129) and that art. Then Phase 6 of ROADMAP.md (2.0 "The Works"), after Nov 9 when
+the PixelLab budget resets:
 
-> Read HANDOFF.md, DECISIONS.md #83-99 (what Phases 3-4 built and changed after the critic), then
-> ROADMAP.md sections 7.6-7.9 and Phase 5. Left from the critic's reviews of Phases 3-4: fishing's
-> and combat's professions keep Stardew-like effects, and the Works tab's projects (the Kettle's
-> Cellar, Dairy Day, the Bakery Window) are still bundles in all but name; give them works answers
-> where they fit the re-roles. Then, on `works`: the six re-roles (Juniper the
-> millwright, Bram the foundry master, Sable the archivist, Thorne the old works' last engineer,
-> Hazel the draughtswoman, Pip the apprentice) with twelve rewritten heart events and about 40
-> lines each; Trust in the UI (hearts under the hood, gift points / 3); Pip's echo questions; the
-> Sprocket Fair (bring a 6x6 line, scored on throughput) and the Harvest Haul (an auction, every
-> standing order pays double), retiring Kite Day and the Pumpkin Roll with their achievements
-> remapped; Workshop HQ (structures indoors through a second entity store, the drafting table's
-> blueprint library, the ledger); Mags as the freight broker (rare parts, a Sunday lot, shortage
-> events). The re-roles should hand the main path's quests where they fit (Juniper already gives
-> k16 "The Tram"; Thorne knows the old works). Tock if there is time. Keep the owner's rules (below).
-> Done when `e2e/roxy.mjs`-style real-input passes for two re-roled villagers and both new events,
-> `e2e/house.mjs` with indoor structures, the checks and the sweep pass, and the critic's full
-> review passes (it also covers the fixes made after its Phase 3+4 confirmation pass, `928a07c`..
-> `72ff71b`). Commit on `works` as you go; don't merge to `main` or push unless the owner says so.
+> Read HANDOFF.md, DECISIONS.md #100-#129 (what Phase 5 and the owner's playtest built), then
+> ROADMAP.md section 9 and Phase 6, and STYLE.md. On `works`: the art direction pass, one
+> art-director agent per group in parallel, each in its own worktree (the Phase 2 pattern from 1.1,
+> `art/README.md`); STYLE.md's "Machines" section; the seam audit (`node e2e/seams.mjs`) at 0;
+> `node e2e/coverage.mjs` at 100%, then delete the procedural generators in `src/render/art/` and
+> `?art=old`. Run qa-screens after each group. Done when the screenshot test (ROADMAP.md 3) passes
+> by the owner's eye, the sweep has 0 issues at 1280x720 and 1366x620, and qa-screens finds no
+> regressions. Commit on `works` as you go; don't merge to `main` or push unless the owner says so.
+
+Left over for Phase 6 or 7: the pace bot still stops at the Town Mill (k11 on is covered by
+`tests/eras.test.ts`); fishing's and combat's professions keep Stardew-like effects.
 
 Owner rules to keep in mind (all in DECISIONS.md): cut old systems freely, but hand farming
 (till, plant, water, harvest) stays (#61); the factory must be apparent and un-Stardew-like at a
@@ -362,6 +371,27 @@ are one game minute.
 The "deferred critic list" below is now covered by ROADMAP.md (crop numbers 7.1, re-roles 7.6,
 the Exhibition 7.7, Tock Phase 5, the Post Tube is dropped in favour of consignment 7.4,
 crafting labels Phase 2, the cut list D3-D5).
+
+Patterns from 1.2 Phase 5 (people, the Fair, Workshop HQ, the owner's playtest):
+- A second entity store, `g.houseEnts` (ids from `HOUSE_IDS`, 1,000,000): `storeOf(g, e)` and
+  `entById` find any structure's store, `hereEnts(g)` is the one where the player is, and the port
+  graph is cached per store. The farmhouse's machines and spring arms tick by day and on the night
+  shift (`updateArms(g, dt, g.houseEnts)`). Indoor rules: `src/sim/indoors.ts`.
+- The specialists' talks add no system: `TALK_HOOKS` / `EVENT_HOOKS` in npcs.ts, filled by
+  `src/sim/people.ts`. Pip's farm question is `g.sys.pipAsk`, drawn by `src/ui/askcard.ts`.
+- The Fair's plate is a throwaway `new Game({ blank })` (`src/sim/testbed.ts`): pure, scored by
+  `bedScore`, tested on sample lines in `tests/fairs.test.ts`; change a price or a recipe and
+  re-check the sample numbers there.
+- Something with its own whims draws its own dice (`petRng`, `hamRng`, the vents' and Mags' rngs);
+  only a stray pet still draws the world's (the bot never adopts it). A new system registers in
+  `src/sim/index.ts` at its place; `scripts/systems-order.ts` prints the real order (a module that
+  imports a system registers it first).
+- Furniture with a use of its own fills `DECOR_USE` (house.ts) with `use`, `hover`, `prompt`,
+  `placed` and `lifted`; F and right-click use it, Shift+right-click picks it up.
+- A villager at work indoors is `insideAt(g, loc)`; `talkTo(g, n, shopAfter, chat)` comes back to
+  the shop; `counterAsks` and `handIn` (quests.ts) answer their asks from the bag.
+- Machines by hand: `handBatches(r)` (about 600 s of batches); with nothing they take in hand,
+  `loadChoices` / `loadChosen` (actions.ts) drive "Load which?".
 
 Patterns from 1.2 Phases 3-4 (Orders, eras, the Town Mill, the Deepworks):
 - One Orders board: `src/sim/systems/orders.ts` owns every ask (Today, Standing, the Guild, Works).

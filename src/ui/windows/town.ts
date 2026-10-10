@@ -204,8 +204,8 @@ export function counter(ui: UI, play: PlayScreen, st: WinState, n: NPCState, her
   const held = g.player.inv.slots[g.player.sel];
   const hd = held ? kDef(held.k) : null;
   const asks = counterAsks(g, n.id);
-  if (hd && n.met && (giftable(hd) || asks.length)) {
-    const wanted = asks.some((a) => a.k !== null && kDef(a.k).id === hd.id);
+  const wanted = !!hd && asks.some((a) => a.k !== null && kDef(a.k).id === hd.id);
+  if (hd && n.met && (giftable(hd) || wanted)) {
     const ok = wanted || wouldGift(g, n, hd);
     const tip = wanted ? `Hand ${name} your ${hd.name}: they asked for it` : ok ? `Give ${name} your ${hd.name} (a gift)` : n.giftedToday ? `${name} has had a gift today` : `${name} has had two gifts this week`;
     if (ui.button('ct_give', bx, by, bw, 14, 'Give', { style: 'flat', disabled: !ok, tip })) talkTo(g, n, after);

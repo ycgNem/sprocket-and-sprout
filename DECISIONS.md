@@ -627,7 +627,7 @@ recommendations are the decisions.
     two for the Lantern, three for the Medal (+5%), all three and the top one by half for the Gilded
     Clock and 20,000. Every year a prize by the best tier (2 tokens for trying; 5 and 300, 10 and
     800, 20 and 1,500), a better run later that year paying the difference.
-111. **The Harvest Haul (fall 16, the Pumpkin Roll's place).** Every standing order pays double all
+111. **The Harvest Haul (fall 16, the Pumpkin Roll's place; fall 15 since decision 123).** Every standing order pays double all
     day, by hand and by the noon, 6pm and night posts (`payFor(g, o, k, n)`); Today asks, contracts
     and works don't. The Mayor's auction: one lot a year in turn (a Clockwork Assembler, brass gears
     and spark coils, starmetal bars, Gilded Express Belts), opening at half its worth and stepping by
@@ -698,3 +698,70 @@ recommendations are the decisions.
     shortage is rolled on Monday and due on Friday, and Mags' stock for it could only be bought on the
     due day. In a shortage week her cart also stands on the square on Tuesday, 8am to 7pm, with the
     same stock; the toast says the order is due Friday and Mags brings the goods tomorrow.
+122. **The Fair scores the value a line adds (the critic's Phase 5 review; revises decisions 109 and
+    110).** Sixty seconds rewarded fast machines on cheap stock and goods that only passed through.
+    The plate now runs five minutes of works time (`BED_MINUTES`) and scores what the line adds at
+    base price by quality, with no market saturation, drift or hot goods: what it made, less the
+    stocked inputs it used up (the chests' 99s, the coal, the baskets' crops), a batch cooking at the
+    bell counted by how far along it is, reported as coins a minute. A chest is stocked only with
+    what your farm has (bag, chest, crate, machine, field, or ever shipped or found) and only if it's
+    worth something. A gleaner or harvest crane picks from a basket of the crop it last picked at
+    home. A machine whose goods go nowhere is left off. A line that turns good crops into cheaper
+    goods scores below zero, and seed is worth nothing on the plate (six cranberry sifters won the
+    Gilded Clock). The entries, tuned on the pacing bot's spring-13 farms and sample lines (tests/
+    fairs.test.ts), are the Professor's 50, Bram's 250 and Juniper's 2,000 coins a minute in year 1,
+    x1.25 a year to year 6 (`FAIR_GROWTH`, `FAIR_TOP_YEAR`). The Gilded Clock (the fourth candle:
+    the top entry beaten by half) waits for year 2 (`CLOCK_YEAR`). A line that adds no value wins
+    nothing, not even the tokens for trying.
+123. **The Fair on the square, told ahead; the Haul on a Monday (revises decisions 109 and 111).** On
+    Fair day the Professor's 6x6 plate lies in the plaza's middle with the three entries running
+    beside it (src/sim/world/fairground.ts, src/render/fairground.ts), and the first F at her opens
+    the Fair. She writes from spring 9 with the year's entries, and the Orders board pins a notice from
+    then. The Harvest Haul moves to fall 15, the Monday the week's standing orders go up, so every one
+    of them pays double that day, with its notice from fall 12. The Professor's window plays a run's
+    first minute at a watchable pace and the rest fast, with the value so far, what was made and used,
+    what was left off and what the farm doesn't have. The drafting table previews each saved line
+    with its sprites and has a Bench test (the plate at home, no prizes). The copy box shows its size
+    by the cursor, green when it fits the plate. The auction's bidders get a column each.
+124. **Watering costs a quarter less, and hand-loading is about ten minutes' work (the owner's
+    playtest).** The watering can's energy is x0.75 (`CAN_COST`). By hand a machine takes enough for
+    about 600 seconds of batches, 10 to 50 (`handBatches`), so a furnace takes 150 ore and a crock
+    10 beans. An arm still stocks 2 batches, so the line is still the way to keep a machine running.
+    Arms already carry ore and coal from a chest into a furnace (tests/automation.test.ts).
+125. **Machines ask before they take from the bag (the owner's playtest: "what if I don't want to add
+    them?").** F or right-click at a machine with something it takes in hand loads that, as before.
+    With nothing it takes in hand, it takes its finished goods and opens "Load which?"
+    (src/ui/windows/loadpick.ts): a line for each bag item it takes, the one it last ran on first,
+    fuel for a burner on its own line. A click, 1-6, or F or Enter for the first loads it, and Open
+    shows the machine's window. With finished goods and nothing it takes in the bag, F just collects.
+126. **The pet after the playtest.** Shift+F at an adopted pet (or the Journal's button) tells it to
+    stay around the farmhouse, and again to come along. F at a tile with a crop, a machine, a door and
+    so on is that thing's, and the pet's only when nothing else is there. A fish in hand is its treat,
+    once a day (+30). From two hearts it keeps the crows off the crops within 14 tiles of its bowl
+    (farming.ts draws the same dice either way). A cat rides belts, and either pet naps by a working
+    furnace, oven or kiln on cold days and evenings. An adopted pet's whims use its own dice
+    (`petRng`); a stray's still use the world's.
+127. **A hamster (the owner's playtest).** A Hamster Cage from the Mercantile (1,000, 2x1 tiles) comes
+    with one: placing it asks for a name and one of four coats. A seed in hand and F is its supper,
+    once a day (+25); otherwise F gives a scratch (+10). Hearts work as the pet's. It sleeps by day
+    and runs its wheel from 6pm. Once it has a heart and has been fed that day, the wheel keeps the
+    spring arms within four tiles of the cage wound while it runs, through the evening and the night
+    shift. That's its share of the works, and the Workshop wing's answer to Tock. From three hearts it
+    sometimes leaves a few of yesterday's seeds by the cage. Shift+F at the cage lets it out in its
+    ball to roll about the farmhouse; Shift+F puts it back, and every morning it's home. F or
+    right-click at the cage is the hamster's; Shift+right-click picks up any furniture. Furniture can
+    have a use of its own (`DECOR_USE` in house.ts), so the farmhouse needn't import the hamster. It
+    has its own dice and registers after the pet; it leaves the bot's world untouched
+    (scripts/systems-order.ts prints the tick order). The pet sometimes sits by the cage to watch it.
+128. **Villagers at work indoors can be talked to (the owner's playtest: "so you can complete
+    quests").** A shop's window is a counter: the keeper at work and anyone in with them (`insideAt`),
+    with Chat (talk without handing over what you hold), Give (what you hold: a gift, or what they
+    asked for) and Hand in (their Today asks and standing orders, and any quest delivery, from the
+    bag). The talk brings the shop back. The library's museum has the same row for Sable. Homes still
+    answer through the door.
+129. **Coconuts and Deepworks chests can't be farmed (the owner's playtest).** A wild tree tries for
+    its seed once a day per shake, not every press (`TreeState.shook`, saved), since a palm's seed is
+    a coconut. A palm holds one coconut and sets the next every other summer day (`PALM_FRUIT`). A
+    planted palm needs a fruit tree's open space, and no palm fruits in the greenhouse. A Deepworks
+    level is the same all day, so what you take from it (its small chest, the bottom's starstone) is
+    remembered for the day (`MineState.looted`, saved) and stays taken when you come back.
