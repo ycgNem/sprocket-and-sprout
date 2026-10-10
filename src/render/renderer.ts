@@ -37,6 +37,9 @@ import { blendVertex, needsBlend } from './blend';
 import { drawDryDrops, drawRail, pushGantry } from './fieldworks';
 import { MState } from '../sim/mstate';
 import { rusty } from './rust';
+import { STRATA, CHAMBER_BY_KIND } from '../data/deepworks';
+import { deepFrames } from './art/deep';
+import type { MineState } from '../sim/systems/mine';
 
 const CH = TileMap.CHUNK;
 /** seconds the rust takes to lift off a restored machine */
@@ -52,7 +55,7 @@ const TREE_SHADOW = [0, 8, 12, 20, 28];
 const FLAT_OBJ = new Set([
   O.ROCK, O.WEED, O.TWIG, O.STUMP, O.LOG, O.TALLGRASS, O.BUSH, O.FLOWER, O.ORE_ROCK, O.ARTIFACT, O.FENCE, O.BENCH,
   O.BARREL, O.GEM_ROCK, O.LADDER, O.SHAFT, O.REEDS, O.LILYPAD, O.MUSHROOM, O.SIGNPOST, O.WELL, O.MAILBOX, O.FLOWERBED,
-  O.HEDGE, O.CRATE, O.ELEVATOR, O.MINE_EXIT, O.ICE_ROCK, O.STALAGMITE, O.CRYSTAL, O.BOULDER, O.TREASURE,
+  O.HEDGE, O.CRATE, O.ELEVATOR, O.MINE_EXIT, O.ICE_ROCK, O.STALAGMITE, O.CRYSTAL, O.BOULDER, O.TREASURE, O.GALLERY,
 ]);
 
 interface Chunk { c: HTMLCanvasElement; ver: number; season: number; theme: number; soilSig: number }
@@ -352,7 +355,7 @@ export class Renderer {
         const px = lx * TILE, py = ly * TILE;
         const o = m.obj[i] as O;
         if (o && FLAT_OBJ.has(o)) {
-          const s2 = sprite(`o:${o}:${o === O.FLOWER || o === O.FLOWERBED ? m.objData[i] % 6 : o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.TREASURE ? m.objData[i] : v % 3}:${season}`);
+          const s2 = sprite(`o:${o}:${o === O.FLOWER || o === O.FLOWERBED ? m.objData[i] % 6 : o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.TREASURE || o === O.GALLERY ? m.objData[i] : v % 3}:${season}`);
           // a soft shadow under things that stand on the ground (STYLE.md)
           const sw = SHADOWED_OBJ.get(o);
           if (sw) drawSprite(ctx, sprite(`shadow:${sw}`), px + 8, py + 14);
@@ -437,7 +440,7 @@ export class Renderer {
         }
         const o = m.obj[i] as O;
         if (o && FLAT_OBJ.has(o)) {
-          const s2 = sprite(`o:${o}:${o === O.FLOWER || o === O.FLOWERBED ? m.objData[i] % 6 : o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.TREASURE ? m.objData[i] : v % 3}:${season}`);
+          const s2 = sprite(`o:${o}:${o === O.FLOWER || o === O.FLOWERBED ? m.objData[i] % 6 : o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.TREASURE || o === O.GALLERY ? m.objData[i] : v % 3}:${season}`);
           ctx.drawImage(s2.img, s2.x, s2.y, 16, 16, px, py, 16, 16);
         } else if (o === O.FORAGE) {
           const id = m.forage.get(i);
@@ -458,7 +461,8 @@ export class Renderer {
       this.lastMap = m;
     }
     const season = g.player.where === 'mine' ? 0 : g.time.season;
-    const theme = g.sys.mine?.theme ?? 0;
+    // the Deepworks' stratum picks its terrain art class (minefloor<art>, minewall<art>)
+    const theme = g.player.where === 'mine' ? STRATA[g.sys.mine?.theme ?? 0]?.art ?? 0 : 0;
     const cam = this.cam;
     const z = cam.zoom;
     const sh = this.shakeOn ? camShakeOffset(cam.shake, Math.random()) : 0;
@@ -514,6 +518,8 @@ export class Renderer {
           ctx.fillRect(sx, sy, t < 0.3 ? 2 : 3, 1);
         }
       }
+    // the Deepworks' hazards on the floor: cracks under a loose ceiling, a star-shard's mark
+    if (g.player.where === 'mine') this.drawHazards(g, false);
 
     const D: Drawable[] = (this.drawables = []);
     // soil + crops
@@ -570,6 +576,8 @@ export class Renderer {
     D.sort((a, b) => a.y - b.y);
     for (const d of D) d.f();
     this.drawCount = D.length;
+    // over the actors: firedamp haze, a star-shard coming down
+    if (g.player.where === 'mine') this.drawHazards(g, true);
 
     this.ambient.update(dt, g, this);
     this.ambient.draw(ctx, this.time);
@@ -1234,6 +1242,77 @@ export class Renderer {
     ctx.fillRect(x0, y0 + h, w, 1);
   }
 
+  /**
+   * The Deepworks' hazards (src/sim/systems/mine.ts). Under the actors: the cracks of a loose
+   * ceiling (grit trickles once it rumbles) and the glowing marks where star-shards land. Over them:
+   * firedamp haze and a shard on its way down.
+   */
+  private drawHazards(g: Game, over: boolean) {
+    const st = g.sys.mine as MineState | undefined;
+    if (!st?.map || !st.hazards.length) return;
+    const ctx = this.ctx, t = this.time, v = this.view;
+    const px1 = (c: number, x: number, y: number) => { ctx.fillStyle = PALETTE[c]; ctx.fillRect(x, y, 1, 1); };
+    for (const h of st.hazards) {
+      const px = h.x * TILE, py = h.y * TILE;
+      if (px < v.x0 - 32 || px > v.x1 + 32 || py < v.y0 - 80 || py > v.y1 + 32) continue;
+      const hh = hash2(h.x, h.y, 61);
+      if (h.kind === 'crack' && !over) {
+        // a jagged crack across the floor and a branch off it, the shadow of the loose slab above
+        ctx.fillStyle = rgba(C.ink, 0.18);
+        ctx.fillRect(px + 1, py + 1, 14, 14);
+        let x = 3 + Math.floor(hh * 9);
+        for (let y = 1; y < 15; y++) {
+          px1(C.ink, px + x, py + y);
+          if (y === 7) for (let k = 1; k < 5; k++) px1(C.ink, px + Math.min(14, x + k), py + y + (k >> 1));
+          x = Math.max(1, Math.min(14, x + Math.floor(hash2(h.x * 16 + y, h.y, 62) * 3) - 1));
+        }
+        px1(C.slate, px + 2 + Math.floor(hh * 11), py + 12);
+        if (h.state === 1) {
+          // grit trickling down before the slab goes
+          for (let k = 0; k < 3; k++) {
+            const f = (t * 2.2 + k * 0.37 + hh) % 1;
+            ctx.fillStyle = PALETTE[k % 2 ? C.stone : C.pebble];
+            ctx.fillRect(px + 3 + k * 5, Math.round(py - 22 + f * 30), k === 1 ? 2 : 1, k === 1 ? 2 : 1);
+          }
+        }
+      } else if (h.kind === 'shard') {
+        const cx = px + 8, cy = py + 9;
+        if (!over) {
+          // a star-shaped scorch that glows; brighter while a shard is coming
+          const hot = h.state === 1;
+          const pulse = hot ? Math.floor(t * 12) % 2 : Math.sin(t * 3 + hh * 6) > 0.2 ? 1 : 0;
+          const r = hot ? 5 : 3 + pulse;
+          ctx.fillStyle = PALETTE[C.bark];
+          ctx.fillRect(cx - 3, cy - 1, 7, 3);
+          ctx.fillRect(cx - 1, cy - 3, 3, 7);
+          ctx.fillStyle = PALETTE[hot ? C.gold : C.amber];
+          ctx.fillRect(cx - r, cy, r * 2 + 1, 1);
+          ctx.fillRect(cx, cy - r + 1, 1, r * 2 - 1);
+          if (hot || pulse) px1(C.cream, cx, cy);
+        } else if (h.state === 1) {
+          // the shard streaks down onto its mark
+          const p = Math.max(0, Math.min(1, 1 - h.t / 1.2));
+          const sy = Math.round(cy - (1 - p * p) * 72);
+          ctx.fillStyle = rgba(C.gold, 0.5);
+          ctx.fillRect(cx - 1, sy - 12, 1, 10);
+          ctx.fillStyle = PALETTE[C.cream];
+          ctx.fillRect(cx - 1, sy - 3, 3, 4);
+          ctx.fillStyle = PALETTE[C.gold];
+          ctx.fillRect(cx, sy - 4, 1, 6);
+        }
+      } else if (h.kind === 'gas' && over) {
+        // firedamp: a slow yellow-green haze drifting over its pocket
+        for (let k = 0; k < 3; k++) {
+          const ox = Math.round(Math.sin(t * 0.7 + k * 2.1 + h.x) * 3), oy = Math.round(Math.cos(t * 0.5 + k * 1.7 + h.y) * 2);
+          ctx.fillStyle = rgba(k === 1 ? C.leaf : C.lime, 0.26);
+          const bx = px + 1 + k * 4 + ox, by = py + 2 + (k % 2) * 5 + oy;
+          ctx.fillRect(bx + 1, by, 6, 6);
+          ctx.fillRect(bx, by + 1, 8, 4);
+        }
+      }
+    }
+  }
+
   private drawActors(g: Game, m: TileMap, D: Drawable[]) {
     const ctx = this.ctx;
     const v = this.view;
@@ -1343,22 +1422,32 @@ export class Renderer {
       const [bx, by] = pet.bowl;
       D.push({ y: by + 0.3, f: () => drawSprite(ctx, sprite(`bowl:${pet.bowlFull ? 1 : 0}`), bx * TILE, by * TILE) });
     }
-    // monsters
-    const mons: any[] = g.player.where === 'mine' ? g.sys.mine?.monsters ?? [] : [];
-    for (const mo of mons) {
+    // the Deepworks: a works chamber's machines (src/render/art/deep.ts until the art pass)
+    const mst = g.player.where === 'mine' ? (g.sys.mine as MineState | undefined) : undefined;
+    for (const c of mst?.chambers ?? []) {
+      if (!onScreen(c.x + c.w / 2, c.y) && !onScreen(c.x + c.w / 2, c.y - 2)) continue;
+      const d = CHAMBER_BY_KIND.get(c.kind);
+      const on = !!d?.restore && g.flags.has(d.restore.flag);
+      const n = deepFrames(c.kind, on);
+      const s = sprite(`deep:${c.kind}:${on ? 1 : 0}:${n > 1 ? Math.floor(this.time * (c.kind === 'star' ? 2 : 3)) % n : 0}`);
+      D.push({ y: c.y + 0.95, f: () => drawSprite(ctx, s, c.x * TILE, (c.y + 1) * TILE) });
+    }
+    // the Deepworks' pests
+    for (const mo of mst?.monsters ?? []) {
       if (!onScreen(mo.x, mo.y)) continue;
-      // a burrowed mole or a crab posing as a pebble shows its hidden frame (imported art)
-      const hidden = (mo.def.behavior === 'burrow' && mo.state === 0) || (mo.def.behavior === 'chase' && mo.state === 1);
-      const f = hidden && hasImage(`mon:${mo.id}:4`) ? 4 : Math.floor(this.time * 6 + mo.phase) % 4;
+      // a clatter-crab sits tucked into its shell (the imported crab's hidden frame) until it's hit
+      const sitting = mo.def.behavior === 'block' && mo.state === 0 && mo.hp === mo.maxHp;
+      const f = sitting && hasImage(`mon:${mo.id}:4`) ? 4 : Math.floor(this.time * (mo.state === 2 ? 12 : 6) + mo.phase) % 4;
       D.push({ y: mo.y, f: () => {
         drawSprite(ctx, sprite('shadow:10'), mo.x * TILE, mo.y * TILE);
-        if (mo.hurt > 0) ctx.globalAlpha = 0.5 + Math.sin(this.time * 40) * 0.5;
-        drawSprite(ctx, sprite(`mon:${mo.id}:${f}`), mo.x * TILE, mo.y * TILE - (mo.z ?? 0), 1, mo.vx < 0);
+        if (mo.def.behavior === 'block' && mo.state === 2) ctx.globalAlpha = Math.max(0, Math.min(1, mo.cool));
+        else if (mo.hurt > 0) ctx.globalAlpha = 0.5 + Math.sin(this.time * 40) * 0.5;
+        drawSprite(ctx, sprite(`mon:${mo.id}:${f}`), mo.x * TILE, mo.y * TILE - (mo.z ?? 0), 1, mo.face < 0);
         ctx.globalAlpha = 1;
-        if (mo.hp < mo.maxHp) {
+        if (mo.hp < mo.maxHp && mo.hp > 0) {
           ctx.fillStyle = PALETTE[C.ink];
           ctx.fillRect(mo.x * TILE - 7, mo.y * TILE - 22, 14, 3);
-          ctx.fillStyle = PALETTE[C.rose];
+          ctx.fillStyle = PALETTE[C.amber];
           ctx.fillRect(mo.x * TILE - 6, mo.y * TILE - 21, Math.round(12 * Math.max(0, mo.hp / mo.maxHp)), 1);
         }
       } });
@@ -1389,23 +1478,6 @@ export class Renderer {
         } else drawItemIcon(ctx, 'bumblebot', Math.round(b.x * TILE - 8), Math.round(b.y * TILE - 24 + bob), 16);
         if (b.carry) drawItemIcon(ctx, itemIdCache(b.carry.k), Math.round(b.x * TILE - 5), Math.round(b.y * TILE - 12 + bob), 10);
       } });
-    }
-    // fireballs in the mine
-    if (g.player.where === 'mine') {
-      for (const b of g.sys.mine?.bolts ?? []) {
-        if (!onScreen(b.x, b.y)) continue;
-        D.push({ y: b.y + 0.5, f: () => {
-          const fl = Math.floor(this.time * 20) % 2;
-          if (hasImage('fx:fireball:0')) {
-            drawSprite(ctx, sprite(`fx:fireball:${fl}`), Math.round(b.x * TILE), Math.round(b.y * TILE) - 4);
-            return;
-          }
-          ctx.fillStyle = PALETTE[C.terracotta];
-          ctx.fillRect(Math.round(b.x * TILE) - 3, Math.round(b.y * TILE) - 10, 6, 6);
-          ctx.fillStyle = PALETTE[fl ? C.amber : C.butter];
-          ctx.fillRect(Math.round(b.x * TILE) - 2, Math.round(b.y * TILE) - 9, 4, 4);
-        } });
-      }
     }
     // fishing line + bobber
     const fish = g.sys.fishing;

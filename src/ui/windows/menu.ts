@@ -106,7 +106,7 @@ const SKILL_INFO: Record<string, { icon: string; raise: string; gives: string }>
   foraging: { icon: 'wild_garlic', raise: 'Forage, chop trees', gives: 'Better-quality forage, cheaper axe swings' },
   mining: { icon: 'copper_ore', raise: 'Break rocks and ore', gives: 'More ore per rock, cheaper pickaxe swings' },
   fishing: { icon: 'silver_dart', raise: 'Catch fish', gives: 'A wider catch zone, cheaper casts' },
-  combat: { icon: 'sword_1', raise: 'Fight in the mine', gives: 'More damage dealt, less taken' },
+  combat: { icon: 'sword_1', raise: 'Clear pests in the Deepworks', gives: 'Falling rock and star-shards hurt you less' },
   tinkering: { icon: 'copper_gear', raise: 'Collect from machines, craft', gives: 'Its perks speed up machines and arms' },
 };
 

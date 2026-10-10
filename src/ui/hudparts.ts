@@ -112,7 +112,7 @@ function skyWindow(ui: UI, play: PlayScreen, x: number, y: number, w: number, h:
     disc(ui, lx, ly + 2, 5, C.wine);
     disc(ui, lx, ly + 2, 3, C.amber);
     ui.fill(lx - 1, ly + 1, 2, 2, C.butter);
-    ui.text(`Floor ${g.sys.mine?.floor ?? 1}`, x + w - 4, y + 3, C.amber, { align: 'right' });
+    ui.text(`Level ${g.sys.mine?.floor ?? 1}`, x + w - 4, y + 3, C.amber, { align: 'right' });
     return;
   }
   const [top, mid, low] = skyCols(hr, g.time.season);

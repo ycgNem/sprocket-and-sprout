@@ -9,6 +9,7 @@ import { registerLivingSprites } from './living';
 import { registerHomeSprites } from './home';
 import { registerSheetSprites } from './sheets';
 import { registerFieldWorksSprites } from '../fieldworks';
+import { registerDeepSprites } from './deep';
 import { NPCS } from '../../data/npcs';
 import { C } from '../../data/palette';
 import type { TileMap } from '../../sim/world/tilemap';
@@ -26,6 +27,7 @@ export function registerAllArt() {
   registerLivingSprites();
   registerHomeSprites();
   registerFieldWorksSprites();
+  registerDeepSprites();
   registerSheetSprites();
   for (const n of NPCS) registerLook(n.id, n.look);
   // Mags the peddler, who drives the traveling cart

@@ -28,6 +28,21 @@ export function grassPal(season: number, town = false): GrassPal {
 
 const ORE_SPECK = [C.copper, C.pebble, C.stone, C.brass, C.ink, C.lavender, C.pebble, C.terracotta];
 
+/** Resurrect 64's teal ramp (no 1.0 names) for the Crystal stratum */
+const TEAL_DK = 39, TEAL = 40, TEAL_LT = 43;
+/**
+ * Deepworks floors and walls by terrain art class (the stratum's `art` in src/data/deepworks.ts:
+ * 0 Earth, 1 Frost, 2 Ember as in 1.1, then 3 Clayworks, 4 Crystal, 5 Starfall): [base, alt, speck]
+ * and [base, lit ledge]. The imported sheet recolors its own tiles the same way (`derive`).
+ */
+const MINE_FLOOR: [number, number, number][] = [
+  [C.walnut, C.bark, C.pebble], [C.slate, C.stone, C.frost], [C.wine, C.plum, C.blush],
+  [C.tan, C.oak, C.apricot], [TEAL_DK, TEAL, TEAL_LT], [C.bark, C.plum, C.violet],
+];
+const MINE_WALL: [number, number][] = [
+  [C.bark, C.walnut], [C.slate, C.stone], [C.plum, C.wine], [C.berry, C.rust], [C.deepsea, C.dusk], [C.violet, C.lavender],
+];
+
 /** Draw a terrain tile into a pixbuf at (ox, oy). */
 export function paintTerrain(pb: PixBuf, t: T, season: number, v: number, ox = 0, oy = 0, extra = 0, gx = 0, gy = 0) {
   const seed = v * 97 + t * 13 + season * 7;
@@ -200,19 +215,20 @@ export function paintTerrain(pb: PixBuf, t: T, season: number, v: number, ox = 0
     case T.ROCK:
     case T.ORE_VEIN:
     case T.MINEFLOOR: {
-      const theme = t === T.MINEFLOOR ? extra : -1;
-      const base = theme === 1 ? C.slate : theme === 2 ? C.wine : theme === 0 ? C.walnut : C.stone;
-      const alt = theme === 1 ? C.stone : theme === 2 ? C.plum : theme === 0 ? C.bark : C.slate;
+      const [base, alt, speck] = t === T.MINEFLOOR ? MINE_FLOOR[extra] ?? MINE_FLOOR[0] : [C.stone, C.slate, C.pebble];
       for (let y = 0; y < S; y++)
         for (let x = 0; x < S; x++) {
           const b = blob(x, y, 10, 21 + t);
           const h = W2(x, y);
           let c = base;
           if (b < 0.35 && h < 0.55) c = alt;
-          else if (W(x, y) > 0.992) c = theme === 1 ? C.frost : theme === 2 ? C.blush : C.pebble;
+          else if (W(x, y) > 0.992) c = speck;
           else if (t === T.MINEFLOOR && W(x + 3, y) > 0.985) c = alt;
           pb.set(ox + x, oy + y, c);
         }
+      // the Clayworks' floor is old brick paving; Starfall's glitters
+      if (t === T.MINEFLOOR && extra === 3) for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) if ((gy + y) % 8 === 7 || ((gx + x + ((gy + y) >> 3) * 4) % 8 === 0)) pb.set(ox + x, oy + y, alt);
+      if (t === T.MINEFLOOR && extra === 5) for (let i = 0; i < 3; i++) pb.set(ox + Math.floor(W(i, 77) * 16), oy + Math.floor(W(77, i) * 16), W(i, i) > 0.5 ? C.gold : C.amber);
       if (t === T.ORE_VEIN) {
         const sc = ORE_SPECK[extra] ?? C.copper;
         for (let i = 0; i < 9; i++) {
@@ -249,8 +265,7 @@ export function paintTerrain(pb: PixBuf, t: T, season: number, v: number, ox = 0
     }
     case T.MINEWALL: {
       // dark rock with layered ledges, like the cliffs but deeper in shadow
-      const base = extra === 1 ? C.slate : extra === 2 ? C.plum : C.bark;
-      const lit = extra === 1 ? C.stone : extra === 2 ? C.wine : C.walnut;
+      const [base, lit] = MINE_WALL[extra] ?? MINE_WALL[0];
       for (let y = 0; y < S; y++) {
         const wy = gy + y;
         const band = Math.floor(wy / 6);

@@ -16,6 +16,10 @@ export enum O {
   BED, STOVE, TABLE, FIREPLACE, SHELF, RUG, HOUSEPLANT, WINDOW, ALMANAC, CHAIR, DOORMAT, DRESSER, CLOCK,
   // mine treasure chest (objData: 0 small, 1 grand, 2 opened)
   TREASURE,
+  // the Deepworks (src/sim/systems/mine.ts): a works chamber's machine (objData: its CHAMBERS
+  // index, every footprint tile), and a way down blocked by a works problem (objData: 0 level 6's
+  // collapsed gallery, 1 shored, 2 level 10's flooded stair, 3 drained)
+  CHAMBER, GALLERY,
 }
 
 export const WATER_TERRAIN = new Set([T.RIVER, T.DEEP, T.LAKE, T.POND, T.OCEAN, T.MINEWATER, T.LAVA]);
@@ -25,6 +29,7 @@ export const SOLID_OBJ = new Set([
   O.TREE, O.STUMP, O.LOG, O.ROCK, O.BOULDER, O.BUSH, O.ORE_ROCK, O.FENCE, O.BUILDING, O.LAMPPOST,
   O.BENCH, O.BARREL, O.GEM_ROCK, O.SIGNPOST, O.WELL, O.NOTICEBOARD, O.MAILBOX, O.HEDGE, O.CRATE, O.STALAGMITE, O.ICE_ROCK, O.CRYSTAL,
   O.BED, O.STOVE, O.TABLE, O.FIREPLACE, O.SHELF, O.HOUSEPLANT, O.ALMANAC, O.DRESSER, O.CLOCK, O.TREASURE,
+  O.CHAMBER,
 ]);
 
 /** Ore types stored in objData for ORE_ROCK / ORE_VEIN tiles. */

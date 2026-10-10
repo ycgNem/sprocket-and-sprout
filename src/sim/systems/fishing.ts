@@ -123,7 +123,9 @@ function pickFish(g: Game, w: string): FishDef | null {
   const pool = FISH.filter((f) => !f.trap && f.where.includes(w as any) && f.seasons.includes(g.time.season) && h >= f.hours[0] && h < f.hours[1]
     && (!f.weather || (f.weather === 'rain' ? g.isRaining() : !g.isRaining()))
     && (!f.legendary || !(g.counters['caught_' + f.id] > 0))
-    && (w !== 'mine' || (f.id === 'blindfish' ? floor < 30 : f.id === 'glimmer_guppy' ? floor >= 20 : floor >= 40)));
+    // the Deepworks' pools (src/sim/systems/mine.ts): every fish still bites above the flood at
+    // level 10, so draining the deeper pools (the old pump) never takes one away
+    && (w !== 'mine' || (f.id === 'blindfish' ? floor <= 15 : f.id === 'glimmer_guppy' ? floor >= 7 : floor >= 10)));
   if (!pool.length) return null;
   const lvl = g.player.skills.fishing ?? 0;
   return g.rng.weighted(pool, (f) => (f.legendary ? 0.15 + lvl * 0.03 : 1 + (100 - f.difficulty) / 60));

@@ -15,6 +15,7 @@ import { petAt } from './systems/pet';
 import { shopOpen } from './systems/town';
 import { SHOPS } from '../data/shops';
 import { curMap } from './systems/player';
+import { minePrompt } from './systems/mine';
 import { O } from './world/tilemap';
 
 export interface Prompt {
@@ -46,14 +47,7 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   if (!m.inb(tx, ty)) return null;
   const o = m.o(tx, ty);
   const top = (verb: string, lift = 0.1): Prompt => ({ verb, x: tx + 0.5, y: ty - lift });
-  if (p.where === 'mine') {
-    if (o === O.LADDER) return top('Climb down');
-    if (o === O.SHAFT) return top('Jump down');
-    if (o === O.MINE_EXIT) return top('Leave the mine');
-    if (o === O.TREASURE) return top('Open');
-    if (o === O.ELEVATOR) return top('Ride the lift');
-    return null;
-  }
+  if (p.where === 'mine') return minePrompt(g, tx, ty);
   const pet = petAt(g, tx + 0.5, ty + 0.5);
   if (pet) return pet.stage === 'stray' ? { verb: 'Say hello', x: pet.x, y: pet.y - 1 } : pet.petted ? null : { verb: 'Pet ' + pet.name, x: pet.x, y: pet.y - 1 };
   if (p.where === 'house') {
@@ -81,7 +75,7 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
   if (cp && cartHere(g) && tx >= cp[0] - 1 && tx <= cp[0] + 3 && ty >= cp[1] - 1 && ty <= cp[1] + 2) return { verb: "Mags' cart", x: cp[0] + 1.5, y: cp[1] - 0.5 };
   const b = m.buildingAtTile(tx, ty) ?? m.buildingAtTile(tx, ty - 1);
   if (b && (ty === b.y + b.h - 1 || ty === b.y + b.h) && Math.abs(tx - b.door[0]) <= 1) {
-    const verb = b.kind === 'farmhouse' ? 'Enter' : b.kind === 'mine' ? 'Enter the mine' : b.kind === 'tower' ? 'Clocktower' : b.kind === 'greenhouse' ? (g.flags.has('greenhouse_fixed') ? '' : 'Old greenhouse') : 'Enter the ' + b.name.split(' ').pop();
+    const verb = b.kind === 'farmhouse' ? 'Enter' : b.kind === 'mine' ? 'Enter the Deepworks' : b.kind === 'tower' ? 'Clocktower' : b.kind === 'greenhouse' ? (g.flags.has('greenhouse_fixed') ? '' : 'Old greenhouse') : 'Enter the ' + b.name.split(' ').pop();
     if (verb) return { verb, x: b.door[0] + 0.5, y: b.y + b.h - 1.2 };
   }
   if (b && b.id === 'greenhouse') return null;
@@ -153,7 +147,7 @@ const clock = (min: number) => `${((Math.floor(min / 60) + 11) % 12) + 1}${min %
  * a place you still need to visit. Null when nothing needs walking to.
  */
 /** what the guide arrow and the compass call a quest's places */
-const LOC_LABEL: Record<string, string> = { board: 'Orders board', river_works: "The keeper's wheel", mine_entrance: 'The mine' };
+const LOC_LABEL: Record<string, string> = { board: 'Orders board', river_works: "The keeper's wheel", mine_entrance: 'The Deepworks' };
 
 export function questTarget(g: Game): { x: number; y: number; label: string; npc?: string } | null {
   if (g.player.where !== 'world') return null;

@@ -6,6 +6,7 @@ import { ITEMS, ITEM_INDEX } from '../../data/items';
 import { FISH } from '../../data/fish';
 import { RESEARCH } from '../../data/research';
 import { CROPS } from '../../data/crops';
+import { OBSERVATIONS } from '../../data/deepworks';
 import { Game, registerSystem, SKILLS } from '../Game';
 import { hearts } from './npcs';
 
@@ -93,12 +94,18 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'mega', name: 'Grand Works', desc: 'Complete a megaproject.', cat: 'factory', tier: 3, icon: 'construction_site', test: (g) => (g.sys.goals?.mega?.length ?? 0) >= 1 },
 
   // ---------------- Explorer ----------------
-  { id: 'floor20', name: 'Spelunker', desc: 'Reach floor 20 of the mine.', cat: 'explore', tier: 1, icon: 'pick_1', test: (g) => (g.sys.mine?.deepest ?? 0) >= 20, prog: (g) => [g.sys.mine?.deepest ?? 0, 20] },
-  { id: 'floor40', name: 'Deep Diver', desc: 'Reach floor 40 of the mine.', cat: 'explore', tier: 2, icon: 'pick_2', test: (g) => (g.sys.mine?.deepest ?? 0) >= 40, prog: (g) => [g.sys.mine?.deepest ?? 0, 40] },
-  { id: 'floor60', name: 'Rock Bottom', desc: 'Reach the bottom of the mine.', cat: 'explore', tier: 3, icon: 'pick_3', test: (g) => (g.sys.mine?.deepest ?? 0) >= 60, prog: (g) => [g.sys.mine?.deepest ?? 0, 60] },
-  { id: 'monsters100', name: 'Pest Control', desc: 'Defeat 100 monsters.', cat: 'explore', tier: 2, icon: 'sword_1', ...num('monsters', 100) },
-  { id: 'monsters1000', name: 'Exterminator', desc: 'Defeat 1,000 monsters.', cat: 'explore', tier: 3, icon: 'sword_3', ...num('monsters', 1000) },
-  { id: 'treasure10', name: 'Treasure Hunter', desc: 'Open 10 mine treasure chests.', cat: 'explore', tier: 2, icon: 'gold_bar', ...num('treasures', 10) },
+  // (the ids keep the Old Mine's floors 20/40/60: the Deepworks has 30 levels, and old saves' depth halved)
+  { id: 'floor20', name: 'Spelunker', desc: 'Reach level 10 of the Deepworks.', cat: 'explore', tier: 1, icon: 'pick_1', test: (g) => (g.sys.mine?.deepest ?? 0) >= 10, prog: (g) => [g.sys.mine?.deepest ?? 0, 10] },
+  { id: 'floor40', name: 'Deep Diver', desc: 'Reach level 20 of the Deepworks.', cat: 'explore', tier: 2, icon: 'pick_2', test: (g) => (g.sys.mine?.deepest ?? 0) >= 20, prog: (g) => [g.sys.mine?.deepest ?? 0, 20] },
+  { id: 'floor60', name: 'Rock Bottom', desc: 'Reach the bottom of the Deepworks, level 30.', cat: 'explore', tier: 3, icon: 'pick_3', test: (g) => (g.sys.mine?.deepest ?? 0) >= 30, prog: (g) => [g.sys.mine?.deepest ?? 0, 30] },
+  { id: 'deep_lift', name: 'Going Up', desc: 'Restore the old lift on level 5 of the Deepworks.', cat: 'explore', tier: 1, icon: 'rope', test: (g) => g.flags.has('chamber:lift') },
+  { id: 'deep_shored', name: 'Shored Up', desc: 'Shore up the collapsed gallery on level 6 with hardwood beams.', cat: 'explore', tier: 2, icon: 'beam', test: (g) => g.flags.has('gallery_shored') },
+  { id: 'deep_pump', name: 'Pumped Dry', desc: 'Restore the old pump on level 15 of the Deepworks.', cat: 'explore', tier: 2, icon: 'iron_plate', test: (g) => g.flags.has('chamber:pump') },
+  { id: 'deep_cart', name: 'All Aboard', desc: 'Restore the rail cart on level 25 of the Deepworks.', cat: 'explore', tier: 3, icon: 'brass_gear', test: (g) => g.flags.has('chamber:cart') },
+  { id: 'deep_chambers', name: 'Industrial Archaeologist', desc: 'Study the machine in every works chamber of the Deepworks.', cat: 'explore', tier: 3, icon: 'old_cog', test: (g) => OBSERVATIONS.every((f) => g.flags.has(f)), prog: (g) => [OBSERVATIONS.filter((f) => g.flags.has(f)).length, OBSERVATIONS.length] },
+  { id: 'monsters100', name: 'Pest Control', desc: 'Clear 100 pests out of the Deepworks.', cat: 'explore', tier: 2, icon: 'sword_1', ...num('monsters', 100) },
+  { id: 'monsters1000', name: 'Exterminator', desc: 'Clear 1,000 pests out of the Deepworks.', cat: 'explore', tier: 3, icon: 'sword_3', ...num('monsters', 1000) },
+  { id: 'treasure10', name: 'Treasure Hunter', desc: 'Open 10 treasure chests in the Deepworks.', cat: 'explore', tier: 2, icon: 'gold_bar', ...num('treasures', 10) },
   { id: 'fish1', name: 'Bite!', desc: 'Catch your first fish.', cat: 'explore', tier: 1, icon: 'bluegill', ...num('fish_caught', 1) },
   { id: 'fish25', name: 'Angler', desc: 'Catch 25 fish.', cat: 'explore', tier: 1, icon: 'rod_1', ...num('fish_caught', 25) },
   { id: 'fish_all', name: 'Master Angler', desc: 'Catch every ordinary fish in the valley.', cat: 'explore', tier: 3, icon: 'rod_3', test: (g) => NON_LEGEND_FISH.every((f) => c(g, 'caught_' + f) > 0), prog: (g) => [NON_LEGEND_FISH.filter((f) => c(g, 'caught_' + f) > 0).length, NON_LEGEND_FISH.length] },
@@ -182,12 +189,12 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'birdseye', name: 'Bird\'s Eye View', desc: 'Zoomed all the way out and all the way in.', cat: 'secret', tier: 1, icon: 'lens', secret: true, hint: 'Look at the farm from every distance.' },
   { id: 'butterfingers', name: 'Butterfingers', desc: 'Dropped 50 items on the ground.', cat: 'secret', tier: 1, icon: 'tin_can', secret: true, hint: 'Oops. Oops. Oops.', ...num('dropped', 50) },
   { id: 'tide', name: 'Offering to the Tide', desc: 'Dropped something into the sea. It seemed like the right thing to do.', cat: 'secret', tier: 1, icon: 'sea_glass', secret: true, hint: 'The ocean accepts gifts.' },
-  { id: 'floor13', name: 'Unlucky Thirteen', desc: 'Went down to mine floor 13 on a Friday.', cat: 'secret', tier: 1, icon: 'moth_dust', secret: true, hint: 'Some floors are worse on certain days.', test: (g) => g.player.where === 'mine' && g.sys.mine?.floor === 13 && g.weekday === 4 },
+  { id: 'floor13', name: 'Unlucky Thirteen', desc: 'Went down to level 13 of the Deepworks on a Friday.', cat: 'secret', tier: 1, icon: 'moth_dust', secret: true, hint: 'Some levels are worse on certain days.', test: (g) => g.player.where === 'mine' && g.sys.mine?.floor === 13 && g.weekday === 4 },
   { id: 'highnoon', name: 'High Noon', desc: 'Stood by the restored clocktower as it struck twelve.', cat: 'secret', tier: 2, icon: 'f_gilded_clock', secret: true, hint: 'Hear the old clock strike midday.', test: (g) => { if (!g.flags.has('clock_fixed') || g.player.where !== 'world' || g.time.min < 720 || g.time.min >= 735) return false; const [cx, cy] = g.map.loc('clocktower'); return Math.hypot(g.player.x - cx, g.player.y - cy) < 4; } },
   { id: 'mascot', name: 'Brand Loyalty', desc: 'Named your pet Sprocket or Sprout.', cat: 'secret', tier: 1, icon: 'f_petbed', secret: true, hint: 'A pet deserves a name with a ring to it.', test: (g) => /sprocket|sprout/i.test(g.sys.pet?.stage !== 'none' ? g.sys.pet?.name ?? '' : '') },
   { id: 'regift', name: 'Regifter', desc: 'Gave someone a Waterlogged Boot. They were thrilled. (They were not.)', cat: 'secret', tier: 1, icon: 'old_boot', secret: true, hint: 'One person\'s trash is... still trash.' },
   { id: 'sentimental', name: 'Sentimental', desc: 'Still carried the Rusty Hoe in your second year.', cat: 'secret', tier: 1, icon: 'hoe_0', secret: true, hint: 'Never forget where you came from.', test: (g) => g.time.year >= 2 && g.player.inv.countId('hoe_0') > 0 },
-  { id: 'club', name: 'Club to a Knife Fight', desc: 'Felled a monster on floor 50 or deeper with the Driftwood Club.', cat: 'secret', tier: 3, icon: 'sword_0', secret: true, hint: 'Your very first weapon has one more fight in it.' },
+  { id: 'club', name: 'Club to a Knife Fight', desc: 'Cleared a pest on level 25 of the Deepworks or deeper with the Driftwood Club.', cat: 'secret', tier: 3, icon: 'sword_0', secret: true, hint: 'Your very first weapon has one more fight in it.' },
   { id: 'graveyard', name: 'Graveyard Shift', desc: 'Caught a fish after 1am in a thunderstorm.', cat: 'secret', tier: 2, icon: 'moon_squid', secret: true, hint: 'The fish bite strangest in the worst weather.' },
   { id: 'spin', name: 'You Spin Me Round', desc: 'Rotated one structure 20 times in a row.', cat: 'secret', tier: 1, icon: 'arm_fast', secret: true, hint: 'R is a very satisfying key.' },
   { id: 'trashpanda', name: 'Trash Panda', desc: 'Reeled in every kind of junk.', cat: 'secret', tier: 1, icon: 'tangled_line', secret: true, hint: 'Not everything on the end of the line is a fish.', test: (g) => ['old_boot', 'tin_can', 'driftwood', 'tangled_line', 'kelp'].every((t) => (g.counters['trash_' + t] ?? 0) > 0) },

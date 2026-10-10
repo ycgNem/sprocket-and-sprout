@@ -13,9 +13,12 @@
 //   tiles        { class: [file | {file, rect}] }  per-tile classes (cliff, planks, woodfloor …)
 //   decals       { class | "class@season": [file | {file, rect}] }  small overlays, trimmed to the art
 //   seasons      { "2": { "#from": "#to" }, "3": { … } }  recolor of every terrain tile per season
+//   derive       { class: { from, recolor } }  a per-tile class drawn as a recolor of another's tiles
+//                until it has art of its own (art/terrain/derive.json: the Deepworks' strata 3-5)
 //
 // Classes the renderer knows: grass dirt path sand water deep soil wet (Wang) and planks cliff
-// cliff_top cliff_base rock ore0-7 minefloor0-2 minewall0-2 lava woodfloor wall wall_upper wall_top.
+// cliff_top cliff_base rock ore0-7 minefloor0-5 minewall0-5 lava woodfloor wall wall_upper wall_top
+// (the Deepworks' art classes: 0 Earth, 1 Frost, 2 Ember, 3 Clayworks, 4 Crystal, 5 Starfall).
 // Preview: e2e/out/art/<name>.preview.png (every tile) and <name>.demo.png (a made-up map drawn
 // with the game's dual-grid rule, in all four seasons).
 import fs from 'node:fs';
@@ -109,6 +112,10 @@ for (const [cls, list] of Object.entries(R.tiles ?? {})) list.forEach((src, i) =
 for (const [cls, list] of Object.entries(R.decals ?? {})) list.forEach((src, i) => { const img = cut(src, { trim: true, tag: `decals.${cls}[${i}]` }); if (img) { if (img.w > TS || img.h > TS) problems.push(`decals.${cls}[${i}]: ${img.w}x${img.h} is bigger than a tile`); else addTo(decals, cls, tileOf(img)); } });
 for (const [s, map] of Object.entries(R.seasons ?? {}))
   for (const [a, b] of Object.entries(map)) if (!PAL.includes(a.toLowerCase()) || !PAL.includes(b.toLowerCase())) problems.push(`seasons.${s}: ${a} -> ${b} is not palette -> palette`);
+for (const [c, d] of Object.entries(R.derive ?? {})) {
+  if (!perTile[d.from]?.length) problems.push(`derive.${c}: from "${d.from}", which has no tiles`);
+  for (const [a, b] of Object.entries(d.recolor ?? {})) if (!PAL.includes(a.toLowerCase()) || !PAL.includes(b.toLowerCase())) problems.push(`derive.${c}: ${a} -> ${b} is not palette -> palette`);
+}
 
 // coverage report
 const WANG = ['grass', 'dirt', 'path', 'sand', 'water', 'deep', 'soil', 'wet'];
@@ -136,6 +143,7 @@ const manifest = {
   tiles: Object.fromEntries(Object.entries(perTile).map(([k, v]) => [k, v.map(xy)])),
   decals: Object.fromEntries(Object.entries(decals).map(([k, v]) => [k, v.map((t) => [t.x, t.y, t.img.w, t.img.h])])),
   seasons: R.seasons ?? {},
+  ...(R.derive ? { derive: R.derive } : {}),
 };
 const outDir = path.resolve(ROOT, R.out ?? 'src/art');
 fs.mkdirSync(outDir, { recursive: true });

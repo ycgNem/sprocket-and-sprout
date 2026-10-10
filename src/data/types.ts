@@ -274,16 +274,20 @@ export interface AnimalDef {
   desc: string;
 }
 
+/** A Deepworks pest (src/sim/systems/mine.ts). Pests never hurt you: they get in the way. */
 export interface MonsterDef {
   id: string;
   name: string;
+  /** hits it takes (a pickaxe or a sword: one hit each) */
   hp: number;
   dmg: number;
   speed: number;
+  /** the levels it lives on */
   floors: [number, number];
-  behavior: 'hop' | 'fly' | 'chase' | 'shoot' | 'burrow';
+  /** a mite eats ore left on the floor, a crab sits in a gallery until hit, a wisp hides the ladder until hit */
+  behavior: 'mite' | 'block' | 'guard';
   drops: { item: string; chance: number; n?: [number, number] }[];
-  look: { body: number; body2: number; eye: number; kind: 'blob' | 'moth' | 'crab' | 'wisp' | 'mole' | 'golem' };
+  look: { body: number; body2: number; eye: number; kind: 'blob' | 'moth' | 'crab' | 'wisp' | 'mole' | 'golem' | 'mite' };
   xp: number;
 }
 
