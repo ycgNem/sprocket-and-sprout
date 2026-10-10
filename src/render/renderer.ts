@@ -41,6 +41,7 @@ import { STRATA, CHAMBER_BY_KIND, VENT_ON, VENT_TELL } from '../data/deepworks';
 import { deepFrames } from './art/deep';
 import type { MineState } from '../sim/systems/mine';
 import { pushTownworks } from './townworks';
+import { drawFairPlate, pushFairground } from './fairground';
 import { LANDMARK, SQUARE_LAMP } from '../sim/world/townworks';
 
 const CH = TileMap.CHUNK;
@@ -524,6 +525,8 @@ export class Renderer {
       }
     // the Deepworks' hazards on the floor: cracks under a loose ceiling, a star-shard's mark
     if (g.player.where === 'mine') this.drawHazards(g, false);
+    // the Sprocket Fair's plate on the square while it's on (src/render/fairground.ts)
+    if (m === g.map) drawFairPlate(ctx, g);
 
     const D: Drawable[] = (this.drawables = []);
     // soil + crops
@@ -580,6 +583,7 @@ export class Renderer {
     }
     // the town keystones: the Town Mill, the Waterworks, the square's lamps, the tram (src/render/townworks.ts)
     if (m === g.map) pushTownworks(g, this, D);
+    if (m === g.map) pushFairground(g, this, D);
     // actors
     this.drawActors(g, m, D);
     // sort + draw

@@ -13,6 +13,7 @@ import {
   bagHelps, boardHandIn, custName, custNpc, daysLeftInWeek, dueText, fits, guildRank, haulToday, keystoneWait, lineLeft, orderFull, orderTitle, orders, payWorks, rank, repOf, shareIn, steadyOf,
   specLabel, villagerName, type Order,
 } from '../../sim/systems/orders';
+import { festivalNotice } from '../../sim/systems/festivals';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { ICON, ellipsize, textWidth, wrapText } from '../font';
@@ -258,7 +259,18 @@ export function drawOrders(ui: UI, play: PlayScreen, x: number, y: number, w: nu
   TABS.forEach(([id, label], i) => {
     if (ui.button('otab' + id, x + 4 + i * tw, y + 2, tw - 4, 14, `${label} (${counts[id]})`, { active: data.otab === id })) data.otab = id;
   });
-  const ly = y + 20, lh = h - 20;
+  // the Sprocket Fair from spring 9, the Harvest Haul from fall 12: a notice pinned over the list
+  const notice = festivalNotice(g);
+  let top = y + 20;
+  if (notice) {
+    const lines = wrapText(notice, w - 24);
+    const nh = lines.length * 9 + 6;
+    ui.panel(x + 4, top, w - 8, nh, 'paper', false);
+    ui.fill(x + 4, top, 3, nh, C.amber);
+    lines.forEach((l, i) => ui.text(l, x + 12, top + 4 + i * 9, C.ink));
+    top += nh + 2;
+  }
+  const ly = top, lh = h - (top - y);
   const est = data.otab === 'today' ? 14 + Math.max(1, counts.today) * 43 + 40
     : data.otab === 'standing' ? 14 + os.open.filter((o) => o.kind !== 'today' && o.kind !== 'works').length * 47 + 16 * 12 + 60
     : 14 + counts.works * 57 + 6 * 12 + 30;
