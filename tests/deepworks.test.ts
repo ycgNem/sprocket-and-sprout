@@ -5,12 +5,16 @@ import { Game } from '../src/sim/Game';
 import { key } from '../src/sim/inventory';
 import { O, ORE_TYPES, T, type TileMap } from '../src/sim/world/tilemap';
 import {
-  BEAMS_TO_SHORE, CRACK_FUSE, DEEP_FLAGS, FLOOD_TEXT, MAX_FLOOR, generateFloor, liftLevels, mine, themeOf, type MineState, type Monster,
+  BEAMS_TO_SHORE, CRACK_FUSE, DEEP_FLAGS, FLOOD_TEXT, LAMP_LIGHT, MAX_FLOOR, VENT_HURT, generateFloor, liftLevels, mine, minePrompt, partsText, themeOf,
+  type Hazard, type MineState, type Monster,
 } from '../src/sim/systems/mine';
-import { CHAMBERS, CHAMBER_BY_KIND, OBSERVATIONS, STRATA, type ChamberKind } from '../src/data/deepworks';
+import { CHAMBERS, CHAMBER_BY_KIND, OBSERVATIONS, STRATA, VENT_CYCLE, VENT_ON, VENT_TELL, type ChamberKind } from '../src/data/deepworks';
 import { MONSTERS } from '../src/data/creatures';
 import { ITEM_BY_ID } from '../src/data/items';
+import { RESEARCH_BY_ID } from '../src/data/research';
 import { C } from '../src/data/palette';
+import { useHeld } from '../src/sim/actions';
+import { serialize, deserialize } from '../src/sim/save';
 import { dropsState, spawnDrop } from '../src/sim/systems/drops';
 
 const SEEDS = [1, 7, 23, 404, 9001];
@@ -18,6 +22,9 @@ const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const run = (g: Game, sec: number) => { for (let i = 0; i < Math.round(sec * 60); i++) g.tick(); };
 const toasts = (g: Game) => g.events.filter((e) => e.t === 'toast').map((e) => (e as { text: string }).text);
 const opened = (g: Game, win: string) => g.events.filter((e) => e.t === 'ui' && (e as { open: string }).open === win) as { arg?: unknown }[];
+/** the message cards opened (a chamber's study card) */
+const cards = (g: Game) => opened(g, 'message').map((e) => e.arg as { title: string; text: string; icon?: string });
+const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 /** stand on a tile (the player's feet are a little below its middle) */
 const stand = (g: Game, x: number, y: number) => { g.player.x = x + 0.5; g.player.y = y + 0.7; g.player.invuln = 0; };
 const isRock = (o: number) => o === O.ROCK || o === O.ORE_ROCK || o === O.GEM_ROCK || o === O.ICE_ROCK;
@@ -68,6 +75,26 @@ function levelWith(behavior: Monster['def']['behavior'], levels: number[]): { g:
     }
   throw new Error('no level with a ' + behavior);
 }
+
+/** a gas pocket on level 17 with a clear floor tile beside it to walk in from */
+function pocketLevel(perk?: string) {
+  const g = new Game({ seed: 8 }), st = mine(g);
+  if (perk) g.player.perks.push(perk);
+  st.enter(g, 17);
+  const m = st.map!, gas = st.hazards.filter((h) => h.kind === 'gas');
+  const isGas = (x: number, y: number) => gas.some((h) => h.x === x && h.y === y);
+  for (const h of gas)
+    for (const [dx, dy] of N4) {
+      const x = h.x + dx, y = h.y + dy;
+      if (m.g(x, y) === T.MINEFLOOR && m.o(x, y) === O.NONE && !isGas(x, y) && !st.solid(g, x, y)) {
+        const group = gas.filter((k) => k.group === h.group);
+        const set = (state: number, t: number) => { for (const k of group) { k.state = state; k.t = t; } };
+        return { g, st, pocket: h as Hazard, from: [x, y] as [number, number], group, set, isGas };
+      }
+    }
+  throw new Error('no gas pocket with a clear side');
+}
+const tileOf = (g: Game) => [Math.floor(g.player.x), Math.floor(g.player.y - 0.2)];
 
 describe('the Deepworks: thirty levels in six strata', () => {
   it('every level 1-30, on several seeds, keeps its floor, its way down, its chambers and its hazards in reach of the ladder up', () => {
@@ -275,24 +302,84 @@ describe('the Deepworks: hazards', () => {
     for (const h of group) if (h !== crack) expect(st.map!.o(h.x, h.y)).toBe(O.ROCK);
   });
 
-  it('Ember: gas pockets puff you back up a level, unless Spark Coils burn them off', () => {
-    const g = new Game({ seed: 8 }), st = mine(g);
-    st.enter(g, 17);
-    const gas = st.hazards.find((h) => h.kind === 'gas')!;
-    expect(gas).toBeTruthy();
-    stand(g, gas.x, gas.y);
+  it('Ember: each gas pocket vents on its own 7-9 s clock, and the pockets start apart', () => {
+    for (const seed of SEEDS)
+      for (const f of [16, 18, 20]) {
+        const g = new Game({ seed }), st = mine(g), at = `seed ${seed} level ${f}`;
+        st.enter(g, f);
+        const gas = st.hazards.filter((h) => h.kind === 'gas');
+        expect(gas.length, at).toBeGreaterThan(0);
+        const groups = [...new Set(gas.map((h) => h.group))];
+        for (const gi of groups) {
+          const tiles = gas.filter((h) => h.group === gi);
+          // a pocket's tiles share one clock; everyone starts quiet
+          expect(new Set(tiles.map((h) => `${h.period}:${h.t}:${h.state}`)).size, at).toBe(1);
+          expect(tiles[0].state, at).toBe(0);
+          expect(tiles[0].period!, at).toBeGreaterThanOrEqual(VENT_CYCLE[0]);
+          expect(tiles[0].period!, at).toBeLessThanOrEqual(VENT_CYCLE[1]);
+          expect(tiles[0].period! - VENT_TELL - VENT_ON, at + ': the quiet spell').toBeGreaterThanOrEqual(3);
+        }
+        expect(new Set(groups.map((gi) => gas.find((h) => h.group === gi)!.t)).size, at).toBe(groups.length);
+      }
+  });
+
+  it('Ember: a quiet pocket is safe, its tell hisses, its vent costs health once and shoves you back out, never up a level', () => {
+    const { g, st, pocket, from, group, set, isGas } = pocketLevel();
+    const ventLight = () => st.lights.some((l) => l.dyn && l.c === C.lime && l.x === group[0].x + 0.5 && l.r >= 2.5);
+    // walk in from the side while it's quiet: nothing happens
+    set(0, 3);
+    stand(g, from[0], from[1]);
+    run(g, 0.1);
+    stand(g, pocket.x, pocket.y);
+    const hp = g.player.hp;
     g.events.length = 0;
-    run(g, 0.1);
-    expect(st.floor).toBe(16);
+    run(g, 1);
+    expect(g.player.hp).toBe(hp);
+    expect(ventLight()).toBe(false);
+    // the tell: a hiss and building puffs, still harmless
+    set(0, 0.05);
+    run(g, 0.6);
+    expect(pocket.state).toBe(1);
+    expect(g.events.some((e) => e.t === 'sfx' && (e as { id: string }).id === 'hiss')).toBe(true);
+    expect(g.player.hp).toBe(hp);
+    // it vents: one blow, a shove back out the way you came, and you're still on level 17
+    run(g, VENT_TELL);
+    expect(pocket.state).toBe(3);
+    expect(ventLight()).toBe(true);
+    expect(hp - g.player.hp).toBe(VENT_HURT);
     expect(toasts(g).some((t) => t.startsWith('Firedamp'))).toBe(true);
-    // with the spark-coil lantern the pocket burns off and you stay
+    run(g, 0.6);
+    const [tx, ty] = tileOf(g);
+    expect(isGas(tx, ty), `pushed out to ${tx},${ty}`).toBe(false);
+    expect(Math.abs(tx - from[0]) + Math.abs(ty - from[1])).toBeLessThanOrEqual(1);
+    expect([st.floor, g.player.where]).toEqual([17, 'mine']);
+    // once a vent: back in the plume, it doesn't hurt again
+    const after = g.player.hp;
+    stand(g, pocket.x, pocket.y);
+    run(g, 0.3);
+    expect(pocket.state).toBe(3);
+    expect(g.player.hp).toBe(after);
+    // the vent dies down and the pocket is quiet again; its next vent costs you again
+    run(g, VENT_ON);
+    expect(pocket.state).toBe(0);
+    expect(pocket.hit).toBe(false);
+    stand(g, pocket.x, pocket.y);
+    run(g, pocket.t + VENT_TELL + 0.1);
+    expect(pocket.state).toBe(3);
+    expect(g.player.hp).toBeLessThan(after);
+    expect([st.floor, g.player.where]).toEqual([17, 'mine']);
+  });
+
+  it('Ember: a spark-coil lantern burns a pocket off for good, at any point in its cycle', () => {
+    const { g, st, pocket, set } = pocketLevel();
     g.research.done.add('r_spark');
-    st.enter(g, 17);
-    const gas2 = st.hazards.find((h) => h.kind === 'gas')!;
-    stand(g, gas2.x, gas2.y);
+    set(3, 2);
+    stand(g, pocket.x, pocket.y);
+    const hp = g.player.hp;
     run(g, 0.1);
+    expect(g.player.hp).toBe(hp);
     expect(st.floor).toBe(17);
-    expect(st.hazards.some((h) => h.kind === 'gas' && h.group === gas2.group)).toBe(false);
+    expect(st.hazards.some((h) => h.kind === 'gas' && h.group === pocket.group)).toBe(false);
     expect(st.hazards.some((h) => h.kind === 'gas')).toBe(true);
   });
 
@@ -400,6 +487,17 @@ describe('the Deepworks: pests, not monsters', () => {
     const plain = hurt(false), warrior = hurt(true);
     expect(warrior).toBeGreaterThan(0);
     expect(warrior).toBeLessThan(plain);
+    // and off a vent of firedamp
+    const vent = (perk: boolean) => {
+      const { g: g3, pocket, set } = pocketLevel(perk ? 'warrior' : undefined);
+      set(3, 2);
+      stand(g3, pocket.x, pocket.y);
+      const hp = g3.player.hp;
+      run(g3, 0.1);
+      return hp - g3.player.hp;
+    };
+    expect(vent(false)).toBe(VENT_HURT);
+    expect(vent(true)).toBe(Math.round(VENT_HURT * 0.75));
   });
 
   it('a wisp hides the ladder: no rock turns it up, one hit shows it', () => {
@@ -423,11 +521,15 @@ describe('the Deepworks: pests, not monsters', () => {
 });
 
 describe('the Deepworks: works chambers', () => {
-  it('walking up to a chamber records what its machine teaches', () => {
+  /** the research each chamber's study card names */
+  const TEACHES: Partial<Record<ChamberKind, string>> = { boiler: 'Steam Power', lampworks: 'Spark Coils', lockers: 'Clockwork Assembly', star: 'Grand Works' };
+
+  it('walking up to a chamber records what its machine teaches and opens its study card, once a kind; F opens it again', () => {
     const g = new Game({ seed: 2 }), st = mine(g);
     for (const f of [5, 10, 15, 20, 25, 30]) {
       st.enter(g, f);
       for (const c of st.chambers) {
+        const d = CHAMBER_BY_KIND.get(c.kind)!;
         // the entry is too far to see from
         expect(g.flags.has('observed:' + c.kind), `${c.kind} from the entry`).toBe(false);
         g.player.x = c.x + c.w / 2;
@@ -435,10 +537,39 @@ describe('the Deepworks: works chambers', () => {
         g.events.length = 0;
         run(g, 0.05);
         expect(g.flags.has('observed:' + c.kind), c.kind).toBe(true);
-        expect(toasts(g)).toContain(CHAMBER_BY_KIND.get(c.kind)!.learned);
+        // the card: the machine's name, what it is, the research it teaches, the parts it takes
+        expect(cards(g).length, c.kind).toBe(1);
+        const [card] = cards(g);
+        expect(card.title).toBe(cap(d.name));
+        expect(card.text.toLowerCase()).toContain(d.learned.replace(/^[^:]*:\s*/, '').toLowerCase());
+        expect(ITEM_BY_ID.has(card.icon!), c.kind + ' icon').toBe(true);
+        if (TEACHES[c.kind]) {
+          expect(card.text, c.kind).toContain(TEACHES[c.kind]);
+          // (the keystone that reads this chamber's look is the one the card names)
+          expect(RESEARCH_BY_ID.get(d.teaches!)?.name).toBe(TEACHES[c.kind]);
+          expect(RESEARCH_BY_ID.get(d.teaches!)?.keystone?.observe?.flag).toBe('observed:' + c.kind);
+        } else expect(d.teaches, c.kind).toBeUndefined();
+        if (d.restore) expect(card.text).toContain(`Restoring it takes ${partsText(c.kind)}.`);
+        // once a kind on its own; F at the machine opens it every time
+        g.events.length = 0;
+        run(g, 0.5);
+        expect(cards(g).length, c.kind + ' again').toBe(0);
+        st.interact(g, c.x, c.y);
+        expect(cards(g).map((x) => x.title), c.kind + ' on F').toEqual([cap(d.name)]);
+        expect(toasts(g).length).toBe(0);
       }
     }
     expect(OBSERVATIONS.every((f) => g.flags.has(f))).toBe(true);
+    expect(g.counters.chambers_observed).toBe(7);
+    // tomorrow's walk-up doesn't open them again
+    g.time.day++;
+    st.enter(g, 10);
+    const boiler = st.chambers[0];
+    g.player.x = boiler.x + boiler.w / 2;
+    g.player.y = boiler.y + 3.2;
+    g.events.length = 0;
+    run(g, 0.1);
+    expect(cards(g).length).toBe(0);
   });
 
   const RESTORES: [ChamberKind, string][] = [['lift', DEEP_FLAGS.lift], ['pump', DEEP_FLAGS.pump], ['cart', DEEP_FLAGS.cart]];
@@ -454,15 +585,26 @@ describe('the Deepworks: works chambers', () => {
     expect(st.interact(g, c.x, c.y)).toBe(true);
     expect(g.flags.has(flag)).toBe(false);
     for (const [id, n] of parts) expect(inv.countId(id), id).toBe(Math.floor(n / 2));
-    expect(toasts(g).some((t) => t.includes('needs'))).toBe(true);
+    // the study card says what it takes and what's still to find
+    expect(cards(g).length).toBe(1);
+    expect(cards(g)[0].text).toContain(`Restoring it takes ${partsText(kind)}.`);
+    expect(cards(g)[0].text).toContain('Still to find: ');
+    expect(minePrompt(g, c.x, c.y)?.verb).not.toMatch(/^Restore/);
     expect(g.flags.has('observed:' + kind)).toBe(true);
     for (const [id, n] of parts) inv.add(key(id), n - Math.floor(n / 2) + 1);
+    // every part in the bag: F restores it
+    expect(minePrompt(g, c.x, c.y)?.verb).toBe('Restore ' + d.name);
+    g.events.length = 0;
     st.interact(g, c.x, c.y);
     expect(g.flags.has(flag)).toBe(true);
+    expect(toasts(g)).toContain(d.restore!.done);
     for (const [id] of parts) expect(inv.countId(id), id).toBe(1);
-    // running: F again takes nothing more
+    // running: F again takes nothing more (the lift rides; the others show their card)
+    g.events.length = 0;
     st.interact(g, c.x, c.y);
     for (const [id] of parts) expect(inv.countId(id), id).toBe(1);
+    if (kind === 'lift') expect(opened(g, 'elevator').length).toBe(1);
+    else expect(cards(g)[0].text).toContain(d.restore!.running);
     expect(st.restore(g, kind)).toBe('already');
   });
 
@@ -524,5 +666,127 @@ describe('the Deepworks: works chambers', () => {
     st.enterPrompt(g);
     expect(g.player.where).toBe('world');
     expect(opened(g, 'elevator').map((e) => e.arg)).toEqual([[1, 5, 10, 15, 20]]);
+  });
+});
+
+describe('the Deepworks: lamps light the dark', () => {
+  /** hold the bag's lamps */
+  const holdLamps = (g: Game, n: number) => {
+    g.player.inv.add(key('lamp'), n);
+    g.player.sel = g.player.inv.slots.findIndex((s) => s?.k === key('lamp'));
+  };
+  /** the floor tiles round the player where F would set a lamp down (the key prompt points at them) */
+  const lampSpots = (g: Game) => {
+    const out: [number, number][] = [];
+    const px = Math.floor(g.player.x), py = Math.floor(g.player.y);
+    for (let y = py - 2; y <= py + 2; y++)
+      for (let x = px - 2; x <= px + 2; x++) {
+        const pr = minePrompt(g, x, y);
+        if (pr?.verb !== 'Set lamp') continue;
+        const at: [number, number] = [Math.floor(pr.x), Math.round(pr.y + 0.1)];
+        if (!out.some(([a, b]) => a === at[0] && b === at[1])) out.push(at);
+      }
+    return out;
+  };
+  /** a tile of the level where `pred` holds */
+  const tileWhere = (m: TileMap, pred: (i: number) => boolean): [number, number] => {
+    const i = m.obj.findIndex((_, j) => pred(j));
+    expect(i).toBeGreaterThanOrEqual(0);
+    return [i % m.w, Math.floor(i / m.w)];
+  };
+
+  it('a lamp set down on a Crystal floor lights a wide pool, F picks it up, and leaving the level brings the lamps back', () => {
+    expect(STRATA[4].intro).toContain('lamps');
+    const g = new Game({ seed: 3 }), st = mine(g), inv = g.player.inv;
+    st.enter(g, 22);
+    holdLamps(g, 3);
+    const spots = lampSpots(g);
+    expect(spots.length).toBeGreaterThan(1);
+    const [a, b] = spots;
+    // F on the floor: one lamp from the bag, a light far wider than your lantern down here
+    expect(st.interact(g, a[0], a[1])).toBe(true);
+    expect(st.lamps).toEqual([a]);
+    expect(inv.countId('lamp')).toBe(2);
+    expect(st.lights.find((l) => !l.dyn && l.x === a[0] + 0.5 && l.y === a[1] - 0.4)?.r).toBe(LAMP_LIGHT);
+    expect(LAMP_LIGHT).toBeGreaterThan(st.lantern * 2);
+    expect(st.solid(g, a[0], a[1])).toBe(true);
+    expect(minePrompt(g, a[0], a[1])?.verb).toBe('Pick up');
+    // a click with one in hand sets another down
+    expect(useHeld(g, b[0], b[1])).toBe(true);
+    expect(st.lamps).toEqual([a, b]);
+    expect(inv.countId('lamp')).toBe(1);
+    // never on a wall, a pool, the ladder up, a rock or another lamp (and nothing leaves the bag)
+    const m = st.map!;
+    const wall = tileWhere(m, (i) => m.ground[i] === T.MINEWALL), pool = tileWhere(m, (i) => m.ground[i] === T.MINEWATER);
+    const exit = tileWhere(m, (i) => m.obj[i] === O.MINE_EXIT), rock = tileWhere(m, (i) => m.obj[i] === O.ROCK);
+    for (const [x, y] of [wall, pool, exit, rock, a]) {
+      expect(st.setLamp(g, x, y), `${x},${y}`).toBe(false);
+      expect(minePrompt(g, x, y)?.verb, `${x},${y}`).not.toBe('Set lamp');
+    }
+    expect(inv.countId('lamp')).toBe(1);
+    // F on a lamp picks it up again, and its light goes
+    expect(st.interact(g, a[0], a[1])).toBe(true);
+    expect(st.lamps).toEqual([b]);
+    expect(inv.countId('lamp')).toBe(2);
+    expect(st.lights.some((l) => l.x === a[0] + 0.5 && l.y === a[1] - 0.4)).toBe(false);
+    // down a level: the lamps left behind come back to the bag, however far off they stand
+    g.player.x += 8;
+    st.enter(g, 23);
+    expect(st.lamps).toEqual([]);
+    expect(inv.countId('lamp')).toBe(3);
+    // and out of the Deepworks
+    const c = lampSpots(g)[0];
+    st.interact(g, c[0], c[1]);
+    expect(inv.countId('lamp')).toBe(2);
+    st.leave(g);
+    expect(st.lamps).toEqual([]);
+    expect(inv.countId('lamp')).toBe(3);
+  });
+
+  it('facing down from the top of a tile (still under your feet), F sets the lamp on the next one on', () => {
+    const g = new Game({ seed: 3 }), st = mine(g), inv = g.player.inv;
+    st.enter(g, 22);
+    holdLamps(g, 1);
+    const m = st.map!;
+    const open = (x: number, y: number) => m.g(x, y) === T.MINEFLOOR && m.o(x, y) === O.NONE && !st.hazards.some((h) => h.x === x && h.y === y);
+    const i = m.obj.findIndex((_, j) => open(j % m.w, Math.floor(j / m.w)) && open(j % m.w, Math.floor(j / m.w) + 1) && !st.monsters.some((mo) => Math.floor(mo.x) === j % m.w));
+    const x = i % m.w, y = Math.floor(i / m.w);
+    g.player.x = x + 0.5;
+    g.player.y = y + 0.3;
+    g.player.dir = 2;
+    // (the tile you face is your own: src/sim/systems/player.ts facingTile)
+    expect(Math.floor(g.player.y - 0.2 + 0.75)).toBe(y);
+    expect(minePrompt(g, x, y)).toMatchObject({ verb: 'Set lamp', x: x + 0.5 });
+    expect(st.interact(g, x, y)).toBe(true);
+    expect(st.lamps).toEqual([[x, y + 1]]);
+    expect(inv.countId('lamp')).toBe(0);
+    // and F there picks it back up
+    expect(minePrompt(g, x, y)?.verb).toBe('Pick up');
+    st.interact(g, x, y);
+    expect(st.lamps).toEqual([]);
+    expect(inv.countId('lamp')).toBe(1);
+  });
+
+  it('never on a chamber or a gallery; a lamp left out overnight or in a save comes home', () => {
+    const g = new Game({ seed: 3 }), st = mine(g), inv = g.player.inv;
+    holdLamps(g, 2);
+    st.enter(g, 25);
+    const chamber = tileWhere(st.map!, (i) => st.map!.obj[i] === O.CHAMBER);
+    expect(st.setLamp(g, chamber[0], chamber[1])).toBe(false);
+    st.enter(g, 6);
+    expect(st.setLamp(g, st.gallery![0], st.gallery![1])).toBe(false);
+    expect(inv.countId('lamp')).toBe(2);
+    // a save underground puts you at the entrance: the lamp set down counts as in the bag
+    const [x, y] = lampSpots(g)[0];
+    st.interact(g, x, y);
+    expect(inv.countId('lamp')).toBe(1);
+    const look = { skin: 1, hair: 2, hairStyle: 'short' as const, shirt: 3, pants: 4 };
+    const g2 = deserialize(JSON.parse(JSON.stringify(serialize(g, look)))).game;
+    expect(g2.player.inv.countId('lamp')).toBe(2);
+    // passing out in the Deepworks: you wake at home, and so do your lamps
+    g.endDay(true);
+    expect(g.player.where).not.toBe('mine');
+    expect(st.lamps).toEqual([]);
+    expect(inv.countId('lamp')).toBe(2);
   });
 });

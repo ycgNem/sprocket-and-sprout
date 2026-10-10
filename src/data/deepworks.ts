@@ -58,13 +58,13 @@ export const STRATA: StratumDef[] = [
     id: 'ember', name: 'Ember', levels: [16, 20], ores: [[3, 5], [4, 4]], rock: 0.19, ore: 0.06, gem: 0.008, ice: 0,
     extra: [['coal', 0.1]], decor: 'stalagmite', decorP: 0.01, ladder: [0.04, 0.012], art: 2,
     dark: 0.6, lantern: 6, tint: C.wine,
-    intro: 'The Ember (levels 16-20): gold and coal. Firedamp hangs in pockets: a spark-coil lantern burns it off.',
+    intro: 'The Ember (levels 16-20): gold and coal. Firedamp pockets vent every few seconds: cross while they are quiet, or a spark-coil lantern burns them off.',
   },
   {
     id: 'crystal', name: 'Crystal', levels: [21, 25], ores: [], rock: 0.2, ore: 0, gem: 0.05, ice: 0,
     extra: [['quartz', 0.25]], decor: 'crystal', decorP: 0.03, ladder: [0.04, 0.012], art: 4,
     dark: 0.84, lantern: 3.2, tint: C.deepsea,
-    intro: 'The Crystal (levels 21-25): gems and quartz in dark galleries, lit only by the crystals. Wisps hide the ladders.',
+    intro: 'The Crystal (levels 21-25): gems and quartz in galleries too dark for your lantern. Set lamps down on the floor to light them. Wisps hide the ladders.',
   },
   {
     id: 'starfall', name: 'Starfall', levels: [26, 30], ores: [[5, 5]], rock: 0.19, ore: 0.05, gem: 0.02, ice: 0,
@@ -73,6 +73,13 @@ export const STRATA: StratumDef[] = [
     intro: 'Starfall (levels 26-30): starmetal. Shards of the fallen star still drop from the roof: keep off the glowing marks.',
   },
 ];
+
+/**
+ * Firedamp vents on a clock (src/sim/systems/mine.ts): quiet, a hiss of building puffs for
+ * VENT_TELL seconds, then a plume for VENT_ON; each pocket's whole cycle is VENT_CYCLE seconds.
+ */
+export const VENT_TELL = 1, VENT_ON = 2.5;
+export const VENT_CYCLE: [number, number] = [7, 9];
 
 export type ChamberKind = 'lift' | 'boiler' | 'pump' | 'lampworks' | 'lockers' | 'cart' | 'star';
 
@@ -83,28 +90,32 @@ export interface ChamberDef {
   name: string;
   /** footprint in tiles (the art stands taller) */
   w: number;
-  /** what looking at it teaches (a toast); the flag is `observed:<kind>` */
+  /** what looking at it teaches (its study card); the flag is `observed:<kind>` */
   learned: string;
+  /** the research keystone whose observation it is (its id in src/data/research.ts) */
+  teaches?: string;
+  /** the study card's icon (an item id) */
+  icon: string;
   /** restored in place with parts from the bag (F) */
   restore?: { parts: [string, number][]; flag: string; done: string; running: string };
 }
 
 export const CHAMBERS: ChamberDef[] = [
   {
-    kind: 'lift', level: 5, name: 'the old lift', w: 2,
+    kind: 'lift', level: 5, name: 'the old lift', w: 2, icon: 'rope',
     learned: 'The old lift: a cage on a counterweight, wound by a hand winch. Restored, it would ride to every works chamber you reach.',
     restore: {
       parts: [['plank', 4], ['copper_gear', 2], ['rope', 1]], flag: 'chamber:lift',
       done: 'The old lift runs again! Ride it from the Deepworks entrance to any works chamber you have reached.',
-      running: '',
+      running: 'The old lift runs: ride it from the entrance to any works chamber you have reached.',
     },
   },
   {
-    kind: 'boiler', level: 10, name: 'the seized boiler', w: 3,
+    kind: 'boiler', level: 10, name: 'the seized boiler', w: 3, teaches: 'r_steam', icon: 'steam_engine',
     learned: 'The seized boiler: coal heats water, steam pushes a piston, the piston turns a wheel. That is Steam Power.',
   },
   {
-    kind: 'pump', level: 15, name: 'the old pump', w: 2,
+    kind: 'pump', level: 15, name: 'the old pump', w: 2, icon: 'spring',
     learned: 'The old pump: a beam engine that lifted the galleries\' water to the surface. Two iron plates and a mainspring would set it going.',
     restore: {
       parts: [['iron_plate', 2], ['spring', 1]], flag: 'chamber:pump',
@@ -113,15 +124,15 @@ export const CHAMBERS: ChamberDef[] = [
     },
   },
   {
-    kind: 'lampworks', level: 20, name: 'the lamp works', w: 3,
+    kind: 'lampworks', level: 20, name: 'the lamp works', w: 3, teaches: 'r_spark', icon: 'spark_coil',
     learned: 'The lamp works: sparks sealed in glass coils, wired to a little dynamo. A light that never needs oil: Spark Coils.',
   },
   {
-    kind: 'lockers', level: 25, name: 'the old works\' lockers', w: 3,
+    kind: 'lockers', level: 25, name: 'the old works\' lockers', w: 3, teaches: 'r_assembly2', icon: 'clockwork_core',
     learned: 'The old works\' lockers: the engineers\' blueprints, still legible. Cores, escapements, gear trains: Clockwork Assembly.',
   },
   {
-    kind: 'cart', level: 25, name: 'the rail cart', w: 2,
+    kind: 'cart', level: 25, name: 'the rail cart', w: 2, icon: 'iron_bar',
     learned: 'The old rail cart: it once ran ore from the Deepworks up to town. Its axles have seized and its planking is rotten.',
     restore: {
       parts: [['plank', 20], ['iron_bar', 10], ['brass_gear', 4]], flag: 'chamber:cart',
@@ -130,7 +141,7 @@ export const CHAMBERS: ChamberDef[] = [
     },
   },
   {
-    kind: 'star', level: 30, name: 'the fallen star', w: 2,
+    kind: 'star', level: 30, name: 'the fallen star', w: 2, teaches: 'r_grandworks', icon: 'starstone',
     learned: 'The fallen star: a lump of starmetal still warm after centuries, humming with its own light. The Grand Works begin here.',
   },
 ];

@@ -2,14 +2,17 @@
 // (Earth, Clayworks, Frost, Ember, Crystal, Starfall: src/data/deepworks.ts). Each stratum has its
 // own rock and ores, a hazard and a pest, and its fifth level is a works chamber: an abandoned
 // machine to look at (`observed:<kind>`, which the research keystones read) and, for three of them,
-// to restore in place with parts from the bag (the lift, the pump, the rail cart). Two works
-// problems block the way down: level 6's collapsed gallery (20 beams) and level 10's flooded stair
-// (the town's Waterworks). Pests never hurt you, hazards do. Levels regenerate daily from the seed
-// and the day; `deepest` is saved, the chambers, the shoring and the drained flag are flags.
+// to restore in place with parts from the bag (the lift, the pump, the rail cart). Each stratum has
+// a problem a placed thing solves: level 6's collapsed gallery (20 beams), level 10's flooded stair
+// (the town's Waterworks), the Ember's firedamp (a spark-coil lantern; without one, time the vents)
+// and the Crystal's dark (lamps set down on the floor). Pests never hurt you, hazards do. Levels
+// regenerate daily from the seed and the day; `deepest` is saved, the chambers, the shoring and the
+// drained flag are flags.
 import { C } from '../../data/palette';
 import { ITEM_BY_ID } from '../../data/items';
 import { MONSTERS } from '../../data/creatures';
-import { CHAMBERS, CHAMBER_BY_KIND, STRATA, type ChamberKind, type StratumDef } from '../../data/deepworks';
+import { RESEARCH_BY_ID } from '../../data/research';
+import { CHAMBERS, CHAMBER_BY_KIND, STRATA, VENT_CYCLE, VENT_ON, VENT_TELL, type ChamberKind, type StratumDef } from '../../data/deepworks';
 import type { MonsterDef } from '../../data/types';
 import { Rng } from '../../engine/rng';
 import { Game, registerSystem } from '../Game';
@@ -30,6 +33,10 @@ export const FLOOD_TEXT = "The way down is under water. The town's old pump hous
 export const CRACK_FUSE = 1.5;
 /** how long a star-shard's mark glows before the shard lands */
 const SHARD_WARN = 1.2;
+/** what a vent of firedamp costs you (a falling rock is 6, a star-shard 10) */
+export const VENT_HURT = 8;
+/** a lamp set down on a mine floor: the farm's lantern post, a touch more generous than its 6 */
+export const LAMP_LIGHT = 7;
 
 export interface Monster {
   id: string;
@@ -67,12 +74,17 @@ export interface Hazard {
   kind: HazardKind;
   x: number;
   y: number;
-  /** cracks come down and gas pockets burn off together, by group */
+  /** cracks come down, gas pockets vent and burn off together, by group */
   group: number;
-  /** 0 waiting, 1 going off (a crack rumbling, a shard's mark glowing), 2 spent */
+  /** 0 waiting (a gas pocket: quiet), 1 going off (a crack rumbling, a shard's mark glowing, a pocket
+   * hissing as it builds), 2 spent, 3 a pocket venting */
   state: number;
-  /** seconds left: a crack's fuse, a shard's wait or glow */
+  /** seconds left: a crack's fuse, a shard's wait or glow, a gas pocket's phase */
   t: number;
+  /** a gas pocket's whole cycle, seconds (each group keeps its own clock) */
+  period?: number;
+  /** a gas pocket that has already pushed you out of this vent */
+  hit?: boolean;
 }
 
 export interface MineLight { x: number; y: number; r: number; i: number; c?: number; flicker?: boolean; dyn?: boolean }
@@ -102,6 +114,10 @@ export interface MineState {
   dark: number;
   lantern: number;
   tint: number;
+  /** lamps set down on this level (tiles); they go back in the bag when you leave it */
+  lamps: [number, number][];
+  /** where you last stood clear of the firedamp: a vent pushes you back there */
+  clear: [number, number];
   /** one-off notes already said on this visit */
   told: Set<string>;
   // api
@@ -117,15 +133,17 @@ export interface MineState {
   lifts: (g: Game) => number[];
   chamberAt: (x: number, y: number) => PlacedChamber | null;
   restore: (g: Game, kind: ChamberKind) => 'done' | 'already' | 'missing' | 'none';
+  /** set the held lamp down on a floor tile (a click with it in hand) */
+  setLamp: (g: Game, tx: number, ty: number) => boolean;
 }
 
 export function mine(g: Game): MineState {
   if (!g.sys.mine) {
     const st: MineState = {
       floor: 0, map: null, theme: 0, monsters: [], lights: [], deepest: 0, ladder: null, hidden: -1, wispLadder: null, broken: 0, rockHits: new Map(),
-      chambers: [], hazards: [], gallery: null, dark: 0.62, lantern: 6, tint: C.ink, told: new Set(),
+      chambers: [], hazards: [], gallery: null, dark: 0.62, lantern: 6, tint: C.ink, lamps: [], clear: [0, 0], told: new Set(),
       solid: mineSolid, useTool: mineTool, attack, interact: mineInteract, enterPrompt, enter: enterFloor, leave, debugDescend,
-      lifts: liftLevels, chamberAt: (x, y) => chamberAt(st, x, y), restore: restoreChamber,
+      lifts: liftLevels, chamberAt: (x, y) => chamberAt(st, x, y), restore: restoreChamber, setLamp,
     };
     g.sys.mine = st;
   }
@@ -152,9 +170,14 @@ function mineSolid(g: Game, x: number, y: number): boolean {
   const m = st.map;
   if (!m) return false;
   if (m.o(x, y) === O.GALLERY && galleryShut(m.objData[m.idx(x, y)])) return true;
-  // a clatter-crab sitting in its gallery
+  // a clatter-crab sitting in its gallery, a lamp set down (a post, as on the farm)
   for (const mo of st.monsters) if (mo.def.behavior === 'block' && mo.state !== 2 && mo.home && mo.home[0] === x && mo.home[1] === y) return true;
-  return false;
+  return lampAt(st, x, y) >= 0;
+}
+
+/** the lamp set down on a tile (its index in `lamps`), or -1 */
+function lampAt(st: MineState, x: number, y: number): number {
+  return st.lamps.findIndex(([lx, ly]) => lx === x && ly === y);
 }
 
 // ---------------- generation ----------------
@@ -570,8 +593,18 @@ export function generateFloor(g: Game, floor: number): Gen {
     }
   };
   if (theme === 0) groups(3, 2, 4, 'crack');
-  else if (theme === 3) groups(3 + (rng.next() < 0.5 ? 1 : 0), 3, 5, 'gas');
-  else if (theme === 5) {
+  else if (theme === 3) {
+    groups(3 + (rng.next() < 0.5 ? 1 : 0), 3, 5, 'gas');
+    // each pocket vents on its own clock (7-9 s), the first vents spread over a cycle so there is
+    // always a quiet way through; its own rng, so the level's chests stay where they were
+    const vr = new Rng(g.seed * 37 + floor * 613 + g.dayIndex * 7);
+    const n = hazards.length ? hazards[hazards.length - 1].group + 1 : 0;
+    for (let gi = 0; gi < n; gi++) {
+      const period = VENT_CYCLE[0] + vr.next() * (VENT_CYCLE[1] - VENT_CYCLE[0]);
+      const first = 0.6 + ((gi + vr.next() * 0.8) / n) * (period - 0.6);
+      for (const h of hazards) if (h.group === gi) { h.period = period; h.t = first; }
+    }
+  } else if (theme === 5) {
     const n = 4 + rng.int(0, 2);
     for (let k = 0; k < n; k++) {
       const cs = floors.filter(hzFree);
@@ -621,16 +654,28 @@ function lightsFor(g: Game, st: MineState) {
     else if (c.kind === 'cart') st.lights.push({ x, y: y - 0.6, r: 2.4, i: 0.55, c: C.apricot, flicker: true });
   }
   for (const h of st.hazards) {
-    if (h.kind === 'gas') st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 1.3, i: 0.3, c: C.lime });
-    else if (h.kind === 'shard') st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 1.1, i: 0.45, c: C.butter, flicker: true });
+    // (a quiet pocket's faint haze; venting, dynLights throws a plume of light over it)
+    if (h.kind === 'gas') st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 1.3, i: 0.25, c: C.lime });
+    // (enough glow that a waiting mark's ring reads out in the dark)
+    else if (h.kind === 'shard') st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 1.5, i: 0.6, c: C.butter, flicker: true });
   }
+  for (const [x, y] of st.lamps) st.lights.push({ x: x + 0.5, y: y - 0.4, r: LAMP_LIGHT, i: 1, c: C.amber, flicker: true });
 }
 
-/** lights that move: wisps, a shard's mark about to be hit */
+/** lights that move: wisps, a shard's mark about to be hit, a gas pocket building up and venting */
 function dynLights(st: MineState) {
   st.lights = st.lights.filter((l) => !l.dyn);
   for (const mo of st.monsters) if (mo.def.behavior === 'guard') st.lights.push({ x: mo.x, y: mo.y - 0.7, r: 2.6, i: 0.95, c: C.aqua, flicker: true, dyn: true });
-  for (const h of st.hazards) if (h.kind === 'shard' && h.state === 1) st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 2.4, i: 1, c: C.butter, flicker: true, dyn: true });
+  let group = -1;
+  for (const h of st.hazards) {
+    if (h.kind === 'shard' && h.state === 1) st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 2.4, i: 1, c: C.butter, flicker: true, dyn: true });
+    // one light per pocket, on its first tile (the middle it grew from)
+    if (h.kind !== 'gas' || h.group === group) continue;
+    group = h.group;
+    const p = h.state === 1 ? 1 - h.t / VENT_TELL : 0;
+    if (h.state === 1) st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 1.4 + p, i: 0.3 + 0.3 * p, c: C.lime, dyn: true });
+    else if (h.state === 3) st.lights.push({ x: h.x + 0.5, y: h.y, r: 3, i: 0.85, c: C.lime, flicker: true, dyn: true });
+  }
 }
 
 /**
@@ -655,10 +700,24 @@ function sweepDrops(g: Game) {
   });
 }
 
+/**
+ * The lamps set down on a level come back to the bag when you leave it, however far off they
+ * stand (a full bag leaves the rest at your feet). Called once you stand where you're going.
+ */
+function returnLamps(g: Game, n: number) {
+  if (n <= 0) return;
+  const k = key('lamp'), p = g.player;
+  const left = p.inv.add(k, n);
+  if (left < n) g.emit({ t: 'pickup', k, n: n - left, x: p.x, y: p.y - 1 });
+  if (left > 0) spawnDrop(g, k, left, p.x, p.y, false);
+}
+
 export function enterFloor(g: Game, floor: number) {
   const st = mine(g);
   floor = Math.max(1, Math.min(MAX_FLOOR, Math.floor(floor)));
   sweepDrops(g);
+  const lamps = st.lamps.length;
+  st.lamps = [];
   const gen = generateFloor(g, floor);
   st.floor = floor;
   st.map = gen.map;
@@ -686,6 +745,8 @@ export function enterFloor(g: Game, floor: number) {
   p.y = gen.entry[1] + 1.4;
   p.kx = p.ky = 0;
   if (st.map.g(gen.entry[0], gen.entry[1] + 1) !== T.MINEFLOOR) p.y = gen.entry[1] + 0.9;
+  st.clear = [p.x, p.y];
+  returnLamps(g, lamps);
   if (floor > st.deepest) {
     st.deepest = floor;
     g.sys.quests?.notify?.(g, 'floor', floor);
@@ -713,6 +774,8 @@ export function enterFloor(g: Game, floor: number) {
 function leave(g: Game) {
   const st = mine(g);
   sweepDrops(g);
+  const lamps = st.lamps.length;
+  st.lamps = [];
   st.map = null;
   st.monsters = [];
   st.hazards = [];
@@ -722,6 +785,7 @@ function leave(g: Game) {
   g.player.x = x + 0.5;
   g.player.y = y + 0.9;
   g.player.dir = 2;
+  returnLamps(g, lamps);
   g.emit({ t: 'sfx', id: 'door' });
 }
 
@@ -773,18 +837,46 @@ const andList = (xs: string[]) => (xs.length > 1 ? xs.slice(0, -1).join(', ') + 
 export function partsText(kind: ChamberKind): string {
   return andList((CHAMBER_BY_KIND.get(kind)?.restore?.parts ?? []).map(([id, n]) => partText(id, n)));
 }
+/** the parts a chamber still wants from the bag, in words ("2 more planks", "a rope") */
+function missingParts(g: Game, kind: ChamberKind): string[] {
+  const inv = g.player.inv;
+  return (CHAMBER_BY_KIND.get(kind)?.restore?.parts ?? []).filter(([id, n]) => inv.countId(id) < n).map(([id, n]) => partText(id, n - inv.countId(id), inv.countId(id) > 0));
+}
+
+/**
+ * A chamber's study card (F at its machine, and the first walk-up): what the machine is, the
+ * research keystone it teaches, and for the restorable ones the parts it takes or that it runs.
+ */
+export function chamberCard(g: Game, kind: ChamberKind) {
+  const d = CHAMBER_BY_KIND.get(kind)!;
+  const notes: string[] = [];
+  const r = d.teaches ? RESEARCH_BY_ID.get(d.teaches) : undefined;
+  if (r) notes.push(`It teaches ${r.name}, a research keystone.`);
+  if (d.restore && g.flags.has(d.restore.flag)) notes.push(d.restore.running);
+  else if (d.restore) {
+    const need = missingParts(g, kind), all = need.length === d.restore.parts.length && d.restore.parts.every(([id]) => g.player.inv.countId(id) === 0);
+    notes.push(`Restoring it takes ${partsText(kind)}.`);
+    if (!need.length) notes.push('You have every part: press F to restore it.');
+    else if (!all) notes.push(`Still to find: ${andList(need)}.`);
+  }
+  // (the title names the machine, so the card's text starts after "The seized boiler: ...")
+  const text = cap(d.learned.replace(/^[^:]*:\s*/, '')) + (notes.length ? '\n\n' + notes.join(' ') : '');
+  g.emit({ t: 'ui', open: 'message', arg: { title: cap(d.name), text, icon: d.icon } });
+}
 
 // ---------------- interaction ----------------
 export function chamberAt(st: MineState, x: number, y: number): PlacedChamber | null {
   return st.chambers.find((c) => x >= c.x && x < c.x + c.w && y >= c.y && y < c.y + c.h) ?? null;
 }
 
-/** Looking at a chamber's machine: the observation a research keystone reads. True when it's new. */
+/**
+ * Looking at a chamber's machine: the observation a research keystone reads. True when it's new.
+ * (What it teaches is on its study card, chamberCard.)
+ */
 function observe(g: Game, c: PlacedChamber): boolean {
   const flag = 'observed:' + c.kind;
   if (g.flags.has(flag)) return false;
   g.flags.add(flag);
-  g.toast(CHAMBER_BY_KIND.get(c.kind)!.learned, undefined, C.butter);
   g.emit({ t: 'sfx', id: 'chime', v: 0.7 });
   g.emit({ t: 'fx', kind: 'sparkle', x: c.x + c.w / 2, y: c.y - 0.5 });
   g.count('chambers_observed');
@@ -799,7 +891,7 @@ export function restoreChamber(g: Game, kind: ChamberKind): 'done' | 'already' |
   const inv = g.player.inv;
   const missing = d.restore.parts.filter(([id, n]) => inv.countId(id) < n);
   if (missing.length) {
-    const need = missing.map(([id, n]) => partText(id, n - inv.countId(id), inv.countId(id) > 0));
+    const need = missingParts(g, kind);
     // (the whole list again only when the bag already holds some of it)
     const none = missing.length === d.restore.parts.length && missing.every(([id]) => inv.countId(id) === 0);
     g.toast(`${cap(d.name)} needs ${andList(need)} to run again${none ? '' : ` (in all: ${partsText(kind)})`}.`);
@@ -826,19 +918,20 @@ export function restoreChamber(g: Game, kind: ChamberKind): 'done' | 'already' |
   return 'done';
 }
 
+/** F at a chamber's machine: its study card; the running lift rides, a machine with its parts in the bag restores. */
 function chamberInteract(g: Game, c: PlacedChamber): boolean {
   const d = CHAMBER_BY_KIND.get(c.kind)!;
-  const fresh = observe(g, c);
-  if (!d.restore) {
-    if (!fresh) g.toast(d.learned);
+  observe(g, c);
+  g.flags.add('card:' + c.kind);
+  if (d.restore && c.kind === 'lift' && g.flags.has(d.restore.flag)) {
+    g.emit({ t: 'ui', open: 'elevator', arg: [1, ...liftLevels(g)] });
     return true;
   }
-  if (g.flags.has(d.restore.flag)) {
-    if (c.kind === 'lift') g.emit({ t: 'ui', open: 'elevator', arg: [1, ...liftLevels(g)] });
-    else g.toast(d.restore.running);
+  if (d.restore && !g.flags.has(d.restore.flag) && !missingParts(g, c.kind).length) {
+    restoreChamber(g, c.kind);
     return true;
   }
-  restoreChamber(g, c.kind);
+  chamberCard(g, c.kind);
   return true;
 }
 
@@ -871,10 +964,86 @@ function galleryInteract(g: Game, st: MineState, x: number, y: number): boolean 
   return true;
 }
 
+/** does the player's footprint (0.3 a side, 0.3 up: src/sim/systems/player.ts) cover a tile? */
+function underFoot(g: Game, x: number, y: number) {
+  const p = g.player;
+  return x >= Math.floor(p.x - 0.32) && x <= Math.floor(p.x + 0.32) && y >= Math.floor(p.y - 0.32) && y <= Math.floor(p.y + 0.04);
+}
+
+/**
+ * The tile a lamp aimed at (tx, ty) is about: that one, or the next one on the way you face when
+ * you stand on it (facing down, the tile in front is often still under your feet).
+ */
+function lampTile(g: Game, tx: number, ty: number): [number, number] {
+  if (!underFoot(g, tx, ty)) return [tx, ty];
+  const d = g.player.dir;
+  return [tx + [0, 1, 0, -1][d], ty + [-1, 0, 1, 0][d]];
+}
+
+/**
+ * Why a lamp can't be set down on a tile: null when it can, '' for no reason worth a word (a wall,
+ * a pool, a rock, a ladder, a gallery, a chamber, another lamp). Never on a hazard, a pest or you.
+ */
+function lampBlocked(g: Game, st: MineState, x: number, y: number): string | null {
+  const m = st.map, p = g.player;
+  if (!m || !m.inb(x, y) || m.g(x, y) !== T.MINEFLOOR || m.o(x, y) !== O.NONE || lampAt(st, x, y) >= 0) return '';
+  if (Math.hypot(x + 0.5 - p.x, y + 0.5 - (p.y - 0.3)) > 2.6) return 'Too far away.';
+  const h = st.hazards.find((k) => k.x === x && k.y === y);
+  if (h) return h.kind === 'gas' ? 'Not in the firedamp!' : h.kind === 'crack' ? 'Not under a cracked ceiling.' : "Not on a star-shard's mark.";
+  if (st.monsters.some((mo) => Math.floor(mo.x) === x && Math.floor(mo.y) === y)) return '';
+  if (underFoot(g, x, y)) return 'Step back a little first.';
+  return null;
+}
+
+/** Set the held lamp down on a floor tile in reach: it lights the gallery until you leave the level. */
+function setLamp(g: Game, x: number, y: number): boolean {
+  const st = mine(g), p = g.player;
+  const held = p.inv.slots[p.sel];
+  if (!st.map || p.where !== 'mine' || !held || kDef(held.k).id !== 'lamp') return false;
+  const [tx, ty] = lampTile(g, x, y);
+  const why = lampBlocked(g, st, tx, ty);
+  if (why !== null) {
+    if (why) {
+      g.toast(why);
+      g.emit({ t: 'sfx', id: 'error' });
+    }
+    return false;
+  }
+  p.inv.remove(held.k, 1);
+  st.lamps.push([tx, ty]);
+  lightsFor(g, st);
+  g.emit({ t: 'sfx', id: 'place' });
+  g.emit({ t: 'fx', kind: 'sparkle', x: tx + 0.5, y: ty - 0.3, c: C.amber });
+  g.count('mine_lamps');
+  if (!g.flags.has('deep:lamp')) {
+    g.flags.add('deep:lamp');
+    g.toast('The lamp lights the gallery. F picks it up again, and your lamps come back to the bag when you leave the level.', 'lamp', C.amber);
+  }
+  return true;
+}
+
+/** F (or right-click) on a lamp set down: back in the bag. */
+function takeLamp(g: Game, st: MineState, i: number): boolean {
+  const k = key('lamp');
+  if (g.player.inv.space(k) <= 0) {
+    g.toast('Inventory full!');
+    g.emit({ t: 'sfx', id: 'error' });
+    return true;
+  }
+  st.lamps.splice(i, 1);
+  g.player.inv.add(k, 1);
+  lightsFor(g, st);
+  g.emit({ t: 'pickup', k, n: 1, x: g.player.x, y: g.player.y - 1 });
+  g.emit({ t: 'sfx', id: 'pickup_struct' });
+  return true;
+}
+
 function mineInteract(g: Game, tx: number, ty: number): boolean {
   const st = mine(g);
   const m = st.map;
   if (!m) return false;
+  const li = lampAt(st, ...lampTile(g, tx, ty));
+  if (li >= 0) return takeLamp(g, st, li);
   const o = m.o(tx, ty);
   switch (o) {
     case O.LADDER:
@@ -896,7 +1065,8 @@ function mineInteract(g: Game, tx: number, ty: number): boolean {
       return c ? chamberInteract(g, c) : false;
     }
   }
-  return false;
+  // holding a lamp: set it down on the open floor
+  return setLamp(g, tx, ty);
 }
 
 /** What F does on a Deepworks tile, for the key bubble (src/sim/prompts.ts). */
@@ -905,6 +1075,9 @@ export function minePrompt(g: Game, tx: number, ty: number): { verb: string; x: 
   const m = st.map;
   if (!m || !m.inb(tx, ty)) return null;
   const top = (verb: string, lift = 0.1, hint?: string) => ({ verb, x: tx + 0.5, y: ty - lift, hint });
+  // (a lamp's tile: the one you face, or the next one on when you stand on that)
+  const [lx, ly] = lampTile(g, tx, ty);
+  if (lampAt(st, lx, ly) >= 0) return { verb: 'Pick up', x: lx + 0.5, y: ly - 0.9 };
   switch (m.o(tx, ty)) {
     case O.LADDER: return top('Climb down');
     case O.SHAFT: return top('Jump down');
@@ -922,11 +1095,15 @@ export function minePrompt(g: Game, tx: number, ty: number): { verb: string; x: 
       if (!c) return null;
       const d = CHAMBER_BY_KIND.get(c.kind)!;
       const at = (verb: string, hint?: string) => ({ verb, x: c.x + c.w / 2, y: c.y - 1.6, hint });
-      if (d.restore && !g.flags.has(d.restore.flag)) return at('Restore ' + d.name, 'needs ' + partsText(c.kind));
+      const study = g.flags.has('observed:' + c.kind) ? 'Look' : 'Study';
+      // (F restores once every part is in the bag; until then it opens the study card)
+      if (d.restore && !g.flags.has(d.restore.flag)) return missingParts(g, c.kind).length ? at(study, 'restoring needs ' + partsText(c.kind)) : at('Restore ' + d.name);
       if (c.kind === 'lift') return at('Ride the lift');
-      return at(g.flags.has('observed:' + c.kind) ? 'Look' : 'Study');
+      return at(study);
     }
   }
+  const held = g.player.inv.slots[g.player.sel];
+  if (held && kDef(held.k).id === 'lamp' && lampBlocked(g, st, lx, ly) === null) return { verb: 'Set lamp', x: lx + 0.5, y: ly - 0.1 };
   return null;
 }
 
@@ -1113,6 +1290,13 @@ function revealWispLadder(g: Game, st: MineState) {
   if (!at || !m || st.ladder) return;
   m.setO(at[0], at[1], O.LADDER);
   st.ladder = [at[0], at[1]];
+  // (a lamp set down over the hidden ladder goes back in the bag)
+  const li = lampAt(st, at[0], at[1]);
+  if (li >= 0) {
+    st.lamps.splice(li, 1);
+    returnLamps(g, 1);
+    lightsFor(g, st);
+  }
   // (standing on it already: a moment to see it before you drop)
   g.sys.ladderCool = Math.max(g.sys.ladderCool ?? 0, 1.2);
   g.emit({ t: 'sfx', id: 'chime' });
@@ -1142,7 +1326,7 @@ function pestCanStand(st: MineState, x: number, y: number): boolean {
   const tx = Math.floor(x), ty = Math.floor(y);
   if (m.g(tx, ty) !== T.MINEFLOOR) return false;
   const o = m.o(tx, ty);
-  if (SOLID_OBJ.has(o)) return false;
+  if (SOLID_OBJ.has(o) || lampAt(st, tx, ty) >= 0) return false;
   return !(o === O.GALLERY && galleryShut(m.objData[m.idx(tx, ty)]));
 }
 
@@ -1255,21 +1439,36 @@ function tickPests(g: Game, st: MineState, dt: number) {
 }
 
 // ---------------- hazards ----------------
-function hurtPlayer(g: Game, dmg: number, fromX: number, fromY: number) {
+/** A hazard's blow, knocking you away from (fromX, fromY) at `knock` tiles a second. True when it landed. */
+function hurtPlayer(g: Game, dmg: number, fromX: number, fromY: number, knock = 7): boolean {
   const p = g.player;
-  if (p.invuln > 0) return;
+  if (p.invuln > 0) return false;
   // the combat skill, the Warrior perk and a defense buff soften the blow
   const def = (1 - Math.min(0.5, (p.skills.combat ?? 0) * 0.03)) * (g.hasPerk('warrior') ? 0.75 : 1) * (1 - 0.12 * g.buffLvl('defense'));
   const n = Math.max(1, Math.round(dmg * def));
   p.hp -= n;
   p.invuln = 1;
   const dx = p.x - fromX, dy = p.y - fromY, d = Math.hypot(dx, dy) || 1;
-  p.kx = (dx / d) * 7;
-  p.ky = (dy / d) * 7;
+  p.kx = (dx / d) * knock;
+  p.ky = (dy / d) * knock;
   g.emit({ t: 'sfx', id: 'hurt' });
   g.emit({ t: 'shake', amt: 0.3 });
   g.emit({ t: 'float', text: `-${n}`, x: p.x, y: p.y - 1.8, c: C.rose });
   if (p.hp <= 0) faint(g);
+  return true;
+}
+
+/**
+ * A venting pocket's blow: it costs you, and it shoves you back to where you last stood clear of
+ * the firedamp (knockback dies away over about a sixth of its speed in tiles, so this carries you
+ * just past that spot). True when it landed.
+ */
+function ventHit(g: Game, st: MineState): boolean {
+  const p = g.player;
+  let dx = st.clear[0] - p.x, dy = st.clear[1] - p.y, d = Math.hypot(dx, dy);
+  // (no clear spot to go back to: straight back from the way you face)
+  if (d < 0.05) [dx, dy, d] = [-[0, 1, 0, -1][p.dir], -[-1, 0, 1, 0][p.dir], 1];
+  return hurtPlayer(g, VENT_HURT, p.x - dx / d, p.y - dy / d, Math.min(24, Math.max(7, (d + 0.6) * 6)));
 }
 
 function faint(g: Game) {
@@ -1295,7 +1494,7 @@ function tickHazards(g: Game, st: MineState, dt: number) {
   if (!st.hazards.length) return;
   const m = st.map!, p = g.player;
   const ptx = Math.floor(p.x), pty = Math.floor(p.y - 0.2);
-  let changed = false;
+  let changed = false, inGas = false, lastGas = -1;
   for (const h of st.hazards) {
     if (h.state === 2) continue;
     if (h.kind === 'crack') {
@@ -1321,22 +1520,45 @@ function tickHazards(g: Game, st: MineState, dt: number) {
         } else if (m.obj[m.idx(h.x, h.y)] === O.NONE) m.setO(h.x, h.y, O.ROCK, 0);
       }
     } else if (h.kind === 'gas') {
-      if (h.state !== 0 || ptx !== h.x || pty !== h.y) continue;
+      // a pocket vents on its own clock: quiet (a faint haze), a hiss of building puffs, a plume;
+      // its first tile makes the sounds for the whole pocket
+      const lead = h.group !== lastGas;
+      lastGas = h.group;
+      h.t -= dt;
+      if (h.t <= 0) {
+        if (h.state === 0) {
+          h.state = 1;
+          h.t += VENT_TELL;
+          if (lead) g.emit({ t: 'sfx', id: 'hiss', x: h.x, y: h.y, v: 0.7 });
+        } else if (h.state === 1) {
+          h.state = 3;
+          h.t += VENT_ON;
+          if (lead) g.emit({ t: 'sfx', id: 'vent', x: h.x, y: h.y, v: 0.8 });
+        } else {
+          h.state = 0;
+          h.t += (h.period ?? VENT_CYCLE[0]) - VENT_TELL - VENT_ON;
+          h.hit = false;
+        }
+      }
+      if (ptx !== h.x || pty !== h.y) continue;
+      inGas = true;
       if (g.research.done.has('r_spark')) {
-        // the spark-coil lantern burns the pocket off
+        // the spark-coil lantern burns the pocket off for good
         for (const k of st.hazards) if (k.kind === 'gas' && k.group === h.group) { k.state = 2; g.emit({ t: 'fx', kind: 'sparkle', x: k.x + 0.5, y: k.y + 0.5, c: C.amber }); }
         g.emit({ t: 'sfx', id: 'switch_on', v: 0.6 });
         changed = true;
-        if (!st.told.has('gas')) {
-          st.told.add('gas');
+        if (!st.told.has('gasburn')) {
+          st.told.add('gasburn');
           g.toast('Your spark-coil lantern burns the firedamp off harmlessly.', undefined, C.amber);
         }
-      } else {
-        const up = st.floor - 1;
-        g.toast(`Firedamp! The gas puffs you back up to level ${up}. (A spark-coil lantern burns it off: research Spark Coils.)`, undefined, C.rose);
-        g.emit({ t: 'sfx', id: 'thud' });
-        enterFloor(g, up);
-        return;
+      } else if (h.state === 3 && !h.hit) {
+        // venting: it costs you and shoves you back out, once a vent (never up a level)
+        if (ventHit(g, st)) for (const k of st.hazards) if (k.kind === 'gas' && k.group === h.group) k.hit = true;
+        if (!st.map || g.player.where !== 'mine') return;
+        if (!st.told.has('gas')) {
+          st.told.add('gas');
+          g.toast('Firedamp! The vent shoves you back. Listen for the hiss and cross while it is quiet, or research Spark Coils: their lantern burns it off.', undefined, C.rose);
+        }
       }
     } else if (h.kind === 'shard') {
       h.t -= dt;
@@ -1361,6 +1583,11 @@ function tickHazards(g: Game, st: MineState, dt: number) {
       }
     }
   }
+  // (where a vent would push you back to)
+  if (!inGas) {
+    st.clear[0] = p.x;
+    st.clear[1] = p.y;
+  }
   if (changed) {
     st.hazards = st.hazards.filter((h) => h.state !== 2);
     lightsFor(g, st);
@@ -1372,11 +1599,19 @@ function tickMine(g: Game, dt: number) {
   const m = st.map;
   if (!m) return;
   const p = g.player;
-  // looking at a chamber's machine: walking within 3 tiles of it is enough
+  // looking at a chamber's machine: walking within 3 tiles of it is enough; the first time, its
+  // study card opens (once a kind, `card:<kind>`; one card at a time on the lockers' level)
   for (const c of st.chambers) {
-    if (g.flags.has('observed:' + c.kind)) continue;
+    const looked = g.flags.has('observed:' + c.kind), carded = g.flags.has('card:' + c.kind);
+    if (looked && carded) continue;
     const nx = Math.max(c.x, Math.min(c.x + c.w, p.x));
-    if (Math.hypot(p.x - nx, p.y - (c.y + 0.6)) <= 3) observe(g, c);
+    if (Math.hypot(p.x - nx, p.y - (c.y + 0.6)) > 3) continue;
+    if (!looked) observe(g, c);
+    if (!carded) {
+      g.flags.add('card:' + c.kind);
+      chamberCard(g, c.kind);
+      break;
+    }
   }
   tickPests(g, st, dt);
   tickHazards(g, st, dt);
@@ -1402,6 +1637,9 @@ registerSystem({
   },
   dayStart(g) {
     const st = mine(g);
+    // (the night has already carried you home: the lamps you left on a level come home too)
+    const lamps = st.lamps.length;
+    st.lamps = [];
     if (g.player.where === 'mine') {
       // you always wake up at home
       st.map = null;
@@ -1410,13 +1648,17 @@ registerSystem({
       st.chambers = [];
       g.player.where = 'world';
     }
+    returnLamps(g, lamps);
   },
   save(g) {
-    return { deepest: mine(g).deepest };
+    // (lamps set down where you saved: a save puts you back at the entrance, so they count as in the bag)
+    const st = mine(g);
+    return st.lamps.length ? { deepest: st.deepest, lamps: st.lamps.length } : { deepest: st.deepest };
   },
   load(g, d) {
     // (old saves' 60 floors are halved by the save migration; anything deeper is the bottom)
     mine(g).deepest = Math.min(MAX_FLOOR, d?.deepest ?? 0);
+    if (d?.lamps > 0) returnLamps(g, d.lamps);
   },
 });
 

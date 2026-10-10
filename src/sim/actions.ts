@@ -85,6 +85,8 @@ export function useHeld(g: Game, tx: number, ty: number, charge = 0): boolean {
     return true;
   }
   if (p.where === 'house') return false;
+  // a lamp in the Deepworks is set down on the floor you click (src/sim/systems/mine.ts)
+  if (p.where === 'mine' && d.id === 'lamp') return g.sys.mine?.setLamp?.(g, tx, ty) ?? false;
   if (d.weapon) {
     anim(g, 'sword', tx, ty, 0.28 / d.weapon.speed);
     g.emit({ t: 'sfx', id: 'swing' });

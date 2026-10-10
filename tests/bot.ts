@@ -522,7 +522,7 @@ export class Bot {
         // picked up as it goes, before a rust-mite gets to it
         if (here()) this.collectDrops();
       }
-      if (!here() || m.floor !== floor) continue; // fainted, or puffed up a level by gas
+      if (!here() || m.floor !== floor) continue; // fainted
       if (!wayDown() || floor >= 30) break;
       m.enter(g, floor + 1);
       levels++;
