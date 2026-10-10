@@ -474,3 +474,17 @@ recommendations are the decisions.
     in a 28-day Rush (Story 65.7k) on 8 seeds and reaches the Town Mill on days 16-17. At 65k it took
     silver on every seed, though its works stop growing after day 5 (the critic). Silver now asks
     about 1.15x the bot, gold about 1.65x, bronze about 0.6x.
+98. **The Deepworks' problems are solved by things you place or time (the critic's M6).** The review
+    called the Deepworks Stardew's mine without monsters: break rocks, find the ladder, ride the lift,
+    and gas without Spark Coils threw you up two levels (the only route to Spark Coils' own look). Each
+    stratum's problem now has a fix you place or time: the Clayworks' gallery wants 20 beams (beams
+    come only from a sawmill now, DECISIONS #96), the Frost waits for the Waterworks, the Ember's
+    firedamp vents on a clock (7-9 s a cycle, staggered; quiet, a 1 s hiss, 2.5 s of venting: 8 health,
+    6 for a Warrior, and a push back out, once a vent; never another level; Spark Coils still burn a
+    pocket off for good), and the Crystal's dark galleries are lit by lamps you set down (F or a click
+    with a lamp in hand: a 7-tile light; F picks it up; they come back to the bag when you leave the
+    level, sleep underground or save there). A works chamber is a study card (its name, what it is,
+    the research keystone it teaches, the parts it takes), shown on the first walk-up and on every F;
+    a keystone's chamber seen before its quest asks says to come back then (DECISIONS #94). Starfall's
+    shard marks get a dark-and-butter ring that grows as the shard nears, so they read on its speckled
+    floor. Pests still never hurt (DECISIONS #88), and the lift still stops at the works chambers.

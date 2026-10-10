@@ -1216,8 +1216,8 @@ hazard, a pest and a works chamber on its fifth level:
 | 1-5 | Earth | copper, clay, coal | loose rock (a rumble, rocks fall where a crack shows) | rust-mite (eats ore left on the floor) | **the old lift** (restore: 4 planks, 2 copper gears, 1 rope): rides to any restored chamber |
 | 6-10 | Clayworks | tin, clay | the collapsed gallery: level 6 needs 20 beams to shore up (the sawmill's first job) | rust-mite | the seized boiler (Steam Power's observation) |
 | 11-15 | Frost | iron, frost shards | **flooded** until the Waterworks drains it (level 11's stair is under water) | clatter-crab (blocks a gallery until hit) | **the old pump** (restore: 2 iron plates, 1 spring) |
-| 16-20 | Ember | gold, coal | gas pockets: a lantern (Spark Coils) or the gas puffs you back up a level | clatter-crab | the lamp works (Spark Coils' observation) |
-| 21-25 | Crystal | gems, quartz | dark galleries (light from crystals only) | wisp (hides the ladder; hit it to show it) | the old works' lockers: blueprints (Clockwork Assembly's observation) and **the rail cart** (restore: 20 planks, 10 iron bars, 4 brass gears) |
+| 16-20 | Ember | gold, coal | firedamp vents on a clock (cross while quiet; a vent costs health and pushes you out; DECISIONS #98); a lantern (Spark Coils) burns them off | clatter-crab | the lamp works (Spark Coils' observation) |
+| 21-25 | Crystal | gems, quartz | dark galleries: lamps you set down light them (DECISIONS #98) | wisp (hides the ladder; hit it to show it) | the old works' lockers: blueprints (Clockwork Assembly's observation) and **the rail cart** (restore: 20 planks, 10 iron bars, 4 brass gears) |
 | 26-30 | Starfall | starmetal, gems | falling star-shards | wisp | the fallen star (Grand Works' observation) |
 
 Floors still regenerate daily from the seed and day; `deepest`, restored chambers and the drained
