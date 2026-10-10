@@ -73,22 +73,27 @@ export const SHOPS: ShopDef[] = [
   },
   {
     id: 'smithy', name: 'The Anvil & Ember', owner: 'bram', loc: 'smithy', open: 540, close: 960, closedDays: [6],
-    greeting: 'Mind the sparks. Ore, bars, blades and upgrades.',
+    greeting: 'Mind the sparks. Ore, bars, furnaces and upgrades.',
     stock: [
       { item: 'copper_ore', price: 75 }, { item: 'tin_ore', price: 90 }, { item: 'iron_ore', price: 150 }, { item: 'coal', price: 150 }, { item: 'gold_ore', price: 400 },
       { item: 'sword_1', price: 900 }, { item: 'sword_2', price: 3200 }, { item: 'sword_3', price: 9000 },
       { item: 'furnace', price: 600 },
       { item: 'iron_bar', price: 320, unlock: 'rep:bram:2' }, { item: 'lubricant', price: 420, unlock: 'rep:bram:3' }, { item: 'gold_bar', price: 700, unlock: 'rep:bram:4' }, { item: 'sword_4', price: 24000, unlock: 'rep:bram:5' },
+      // the foundry master's own: smelts fast without fuel (ROADMAP.md 7.6), for a Purveyor
+      { item: 'blast_furnace', price: 6500, unlock: 'rep:bram:3' },
     ],
     buys: ['ore', 'bar', 'gem', 'mineral'],
   },
   {
     id: 'carpenter', name: 'Oakroot Joinery', owner: 'juniper', loc: 'carpenter', open: 540, close: 1020, closedDays: [1],
-    greeting: 'Every good farm starts with good timber. Buildings, lumber, and fine joinery.',
+    greeting: 'Wheels, frames and timber that carries load. If it turns on wood, I build it.',
     stock: [
       { item: 'wood', price: 12 }, { item: 'stone', price: 18 }, { item: 'hardwood', price: 120, daily: 40 }, { item: 'plank', price: 40, daily: 30 }, { item: 'clay', price: 60 },
       { item: 'fence_wood', price: 15 }, { item: 'gate', price: 60 }, { item: 'path_wood', price: 8 }, { item: 'path_stone', price: 10 },
       { item: 'chest_wood', price: 220 }, { item: 'lamp', price: 240 },
+      // the millwright's wooden machines (ROADMAP.md 7.6): sold here, not at the Workshop
+      { item: 'gleaner', price: 750, unlock: 'r_gleaning' }, { item: 'hand_loom', price: 1100, unlock: 'r_weaving' }, { item: 'waterwheel', price: 2600, unlock: 'r_power' },
+      { item: 'windmill', price: 2400, unlock: 'r_wind' }, { item: 'sawmill', price: 3200, unlock: 'r_sawmill' }, { item: 'thresher', price: 3000, unlock: 'r_threshing' },
       { item: 'beam', price: 160, unlock: 'rep:juniper:4' }, { item: 'sand', price: 8, unlock: 'r_glass' }, { item: 'canvas', price: 160, unlock: 'rep:juniper:3' }, { item: 'chest_iron', price: 650, unlock: 'rep:juniper:4' },
       ...FURNITURE.filter((f) => f.shop === 'carpenter').map((f) => ({ item: f.id, price: f.price })),
     ],
@@ -102,8 +107,8 @@ export const SHOPS: ShopDef[] = [
       { item: 'lab', price: 1500, unlock: 'flag:lab' }, { item: 'belt_1', price: 60, unlock: 'r_belts' }, { item: 'arm_basic', price: 350, unlock: 'r_arms' }, { item: 'jar', price: 400, unlock: 'r_preserves' },
       { item: 'pole_wood', price: 90, unlock: 'r_power' }, { item: 'brass_gear', price: 380, daily: 4, unlock: 'r_brass' }, { item: 'glass', price: 120, unlock: 'r_glass' },
       { item: 'spark_coil', price: 900, unlock: 'r_spark' }, { item: 'bumblebot', price: 3000, unlock: 'r_bots' },
-      { item: 'gleaner', price: 750, unlock: 'r_gleaning' }, { item: 'waterwheel', price: 2600, unlock: 'r_power' }, { item: 'mill', price: 2200, unlock: 'r_milling' }, { item: 'sawmill', price: 3200, unlock: 'r_sawmill' },
-      { item: 'assembler', price: 4800, unlock: 'r_assembly' }, { item: 'steam_engine', price: 5200, unlock: 'r_steam' },
+      // machines with brass in them; the wooden ones (wheels, gleaners, sawmills, looms) are the Joinery's
+      { item: 'mill', price: 2200, unlock: 'r_milling' }, { item: 'assembler', price: 4800, unlock: 'r_assembly' }, { item: 'steam_engine', price: 5200, unlock: 'r_steam' },
       { item: 'arm_long', price: 450, unlock: 'rep:ottoline:2' }, { item: 'arm_filter', price: 600, unlock: 'rep:ottoline:3' }, { item: 'lens', price: 380, unlock: 'rep:ottoline:4' }, { item: 'clockwork_core', price: 1900, daily: 2, unlock: 'rep:ottoline:5' },
     ],
     buys: ['component', 'bar', 'research'],
@@ -145,7 +150,7 @@ export const SHOPS: ShopDef[] = [
   },
   {
     id: 'hermit', name: "Thorne's Hollow", owner: 'thorne', loc: 'hermit_hut', open: 600, close: 1080, closedDays: [0, 1, 2, 3, 6],
-    greeting: 'The forest gives. I merely pass it on.',
+    greeting: "Seeds from the old works' glasshouses. I kept them going. Plant them where they'll be looked at.",
     stock: [
       ...CROPS.filter((c) => RARE.includes(c.id)).map((c) => ({ item: c.seed, price: Math.round(c.seedPrice * 1.5), seasons: c.seasons as any, daily: 10 })),
       ...TREES.filter((t) => t.wild).map((t) => ({ item: t.sapling, price: 80, daily: 5 })),
