@@ -177,7 +177,7 @@ function worksRow(ui: UI, play: PlayScreen, o: Order, x: number, y: number, w: n
     ui.text(`${ERA_NAMES[ks?.era ?? 5]} keystone`, x + w - 12, y + 4, C.copper, { align: 'right' });
     ui.para(ks?.desc ?? p?.desc ?? '', x + 12, y + 14, w - 90, C.walnut, 9);
     // its goods can go in now; the works start once its research (or its chamber) is done
-    if (wait) ui.text(ellipsize(`Its goods can go in now. The works start once ${wait}.`, w - 90), x + 12, y + h - 24, C.oak);
+    if (wait) ui.text(ellipsize(`${orderFull(o) ? 'Everything is in' : 'Its goods can go in now'}. The works start once ${wait}.`, w - 90), x + 12, y + h - 24, orderFull(o) ? C.moss : C.oak);
   } else {
     ui.text(orderTitle(o), x + 12, y + 4, C.ink);
     ui.text(ellipsize(p?.desc ?? '', w - 160), x + 12, y + 14, C.walnut);

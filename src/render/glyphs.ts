@@ -127,7 +127,7 @@ function drawValidateRings(ctx: CanvasRenderingContext2D, g: Game, visible: (e: 
       const def = out ? ITEM_BY_ID.get(out) : undefined;
       if (e.ghost || !visible(e) || !def || !matchesSpec(def, v.item)) continue;
       const p = glyphPos(e);
-      const cx = p.x + 4.5, cy = p.y - 3;
+      const cx = p.x + 4.5, cy = p.y + 3;
       ctx.lineWidth = 2;
       ctx.strokeStyle = rgba(C.ink, 0.45);
       ctx.beginPath();
