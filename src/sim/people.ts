@@ -155,8 +155,10 @@ export function machineQuestion(g: Game, e: Ent): { q: string; answers: string[]
   if (why.length > 60) why = why.slice(0, why.lastIndexOf(' ', 57)) + '...';
   const q = s === MState.Working ? `What's this ${name} doing right now?` : isProblem(s) ? `Why is this ${name} stopped?` : `Why is this ${name} just sitting there?`;
   const h = dayHash(g, e.id * 7 + 3);
+  // never a decoy that's nearly the answer: a gleaner waiting for its field isn't "starved", a queue isn't "blocked"
+  const near = e.fieldWait ? MState.Starved : e.queued ? MState.Blocked : -1;
   const others = ([MState.Idle, MState.Working, MState.Starved, MState.Blocked, MState.Unpowered, MState.NeedsFuel] as MState[])
-    .filter((x) => x !== s && STATE_GIST[x] !== why);
+    .filter((x) => x !== s && x !== near && STATE_GIST[x] !== why);
   const a = others[h % others.length];
   const rest = others.filter((x) => x !== a);
   const b = rest[(h >>> 8) % rest.length];

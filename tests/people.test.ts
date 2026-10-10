@@ -407,3 +407,24 @@ describe("Thorne's drawings", () => {
     expect(lib[lib.length - 1].name).toBe('A mill line');
   });
 });
+
+describe('saves', () => {
+  it("keep Pip's next question day, the notebook, the filing and Thorne's drawings", async () => {
+    const { serialize, deserialize } = await import('../src/sim/save');
+    const look = { skin: 1, hair: 2, hairStyle: 'short' as const, shirt: 3, pants: 4 };
+    const g = new Game({ seed: 41 });
+    for (const f of [...g.flags]) if (f.startsWith('lesson:')) g.flags.delete(f);
+    const pip = met(g, 'pip');
+    g.flags.add('lesson:arm');
+    talk(g, 'pip');
+    finishAsk(g, lastEvent(g).ask, 1);
+    met(g, 'thorne');
+    g.flags.add('heart_thorne_2');
+    finishHeartEvent(g, 'thorne', 0);
+    const g2 = deserialize(JSON.parse(JSON.stringify(serialize(g, look)))).game;
+    expect(npcSys(g2).byId.get('pip')!.askDay).toBe(pip.askDay);
+    expect(g2.flags.has('echo:arm')).toBe(true);
+    expect(drafting(g2).lib.map((e) => [e.name, e.from])).toEqual([["The keeper's crock line", 'thorne']]);
+    expect(drawingDue(g2)).toBeNull();
+  });
+});
