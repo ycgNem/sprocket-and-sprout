@@ -25,12 +25,15 @@ import { portInsert } from './ports';
 
 export const TOOL_POWER = [1, 1.6, 2.4, 3.4, 5];
 const BASE_COST: Record<string, number> = { hoe: 2, can: 2, axe: 2, pick: 2, scythe: 0, rod: 3, sword: 0 };
+/** the watering can's energy, against the hoe's */
+export const CAN_COST = 0.75;
 
 export function toolCost(g: Game, kind: string, tier: number): number {
   const skill = kind === 'hoe' || kind === 'can' ? 'farming' : kind === 'axe' ? 'foraging' : kind === 'pick' ? 'mining' : kind === 'rod' ? 'fishing' : 'combat';
   const lvl = g.player.skills[skill] ?? 0;
   const buff = (1 - 0.1 * g.buffLvl('stamina')) * (kind === 'hoe' || kind === 'can' ? 1 - 0.1 * g.buffLvl('farming') : kind === 'pick' ? 1 - 0.08 * g.buffLvl('mining') : 1);
-  return Math.max(0, (BASE_COST[kind] * (1 - 0.12 * tier) - lvl * 0.1) * buff);
+  // watering costs a quarter less than the other tools (the owner's playtest)
+  return Math.max(0, (BASE_COST[kind] * (1 - 0.12 * tier) - lvl * 0.1) * buff * (kind === 'can' ? CAN_COST : 1));
 }
 
 function anim(g: Game, kind: string, tx: number, ty: number, dur = 0.32) {

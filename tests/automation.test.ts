@@ -148,6 +148,42 @@ describe('arms and machines', () => {
     expect(chest.inv!.count(key('copper_ore'))).toBeLessThan(9);
   });
 
+  it('one chest of ore and coal runs a furnace by itself: the arm brings both, the fuel too', () => {
+    const g = blank();
+    const chest = place(g, 'chest_wood', 5, 5, 0);
+    chest.inv!.add(key('copper_ore'), 30);
+    chest.inv!.add(key('coal'), 4);
+    place(g, 'arm_basic', 6, 5, 1);
+    const furnace = place(g, 'furnace', 7, 5, 0);
+    // and a second arm takes the bars on into a chest
+    place(g, 'arm_basic', 8, 5, 1);
+    const out = place(g, 'chest_wood', 9, 5, 0);
+    expect(furnace.mach!.fuel).toBeNull();
+    run(g, 90);
+    expect(chest.inv!.count(key('coal'))).toBeLessThan(4);
+    expect(out.inv!.count(key('copper_bar'))).toBeGreaterThanOrEqual(5);
+  });
+
+  it('by hand a machine takes about ten minutes of work: 150 ore in a furnace, 10 beans in a crock', async () => {
+    const { machAccept, handBatches } = await import('../src/sim/systems/machines');
+    const { RECIPE_BY_ID } = await import('../src/data/recipes');
+    const g = blank();
+    const furnace = place(g, 'furnace', 5, 5, 0);
+    const crock = place(g, 'jar', 7, 5, 0);
+    expect(handBatches(RECIPE_BY_ID.get('smelt:copper')!)).toBe(50);
+    expect(machAccept(g, furnace, key('copper_ore'), true)).toBe(150);
+    expect(machAccept(g, crock, key('cogbean'), true)).toBe(10);
+    // arms still keep two batches queued
+    expect(machAccept(g, furnace, key('copper_ore'))).toBe(6);
+  });
+
+  it('watering costs a quarter less energy than hoeing', async () => {
+    const { toolCost, CAN_COST } = await import('../src/sim/actions');
+    const g = blank();
+    for (const tier of [0, 2, 4]) expect(toolCost(g, 'can', tier)).toBeCloseTo(toolCost(g, 'hoe', tier) * CAN_COST);
+    expect(CAN_COST).toBe(0.75);
+  });
+
   it('arms take finished products out of machines onto belts', () => {
     const g = blank();
     const keg = place(g, 'keg', 5, 5, 0);

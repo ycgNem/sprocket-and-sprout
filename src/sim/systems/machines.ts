@@ -44,6 +44,13 @@ function bufCountSpec(m: MachC, spec: string): number {
   return c;
 }
 
+/**
+ * How many batches of a recipe a machine takes by hand: about ten minutes of its work, from 10 (a
+ * crock's minute-long batches) to 50 (a furnace's 8-second bars: 150 ore, where 10 was gone in 80
+ * seconds; the owner's playtest). Arms keep 2 batches queued.
+ */
+export const handBatches = (r: RecipeDef) => Math.max(10, Math.min(50, Math.ceil(600 / Math.max(1, r.time))));
+
 /** How many of item k this machine will accept (0 = refuse). */
 export function machAccept(g: Game, e: Ent, k: ItemKey, manual = false): number {
   const m = e.mach!;
@@ -63,7 +70,7 @@ export function machAccept(g: Game, e: Ent, k: ItemKey, manual = false): number 
   for (const r of recipes) {
     for (const i of r.in) {
       if (!specMatch(k, i.item)) continue;
-      const cap = i.n * (manual ? 10 : 2);
+      const cap = i.n * (manual ? handBatches(r) : 2);
       const cur = bufCountSpec(m, i.item);
       best = Math.max(best, cap - cur);
     }
