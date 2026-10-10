@@ -395,6 +395,12 @@ export function deserialize(raw: any): { game: Game; look: NPCLook } {
   p.buff = dp.buff ?? null;
   p.perks = dp.perks ?? [];
   g.flags = new Set(d.flags);
+  // Hard Hat (+25 health) is Shorer now (Phase 5): a save that had it gives the health back, once
+  if (p.perks.includes('defender') && !g.flags.has('hardhat_back')) {
+    p.maxHp = Math.max(100, p.maxHp - 25);
+    p.hp = Math.min(p.hp, p.maxHp);
+    g.flags.add('hardhat_back');
+  }
   g.research.done = new Set(d.research.done);
   g.research.current = d.research.current;
   g.research.progress = d.research.progress ?? {};

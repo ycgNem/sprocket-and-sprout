@@ -392,7 +392,7 @@ describe('professions', () => {
     expect(P.pendingPerk(g)).toEqual({ skill: 'combat', level: 5 });
     const hp = g.player.maxHp;
     P.choosePerk(g, 'defender');
-    expect(g.player.maxHp).toBe(hp + 25);
+    expect(g.player.maxHp).toBe(hp); // Shorer (was Hard Hat) works in the Deepworks, not on you
     expect(P.pendingPerk(g)).toEqual({ skill: 'combat', level: 10 });
     expect(P.choosePerk(g, 'warrior')).toBe(true);
     expect(P.perksFor(g, 'combat').map((p) => p.id)).toEqual(['defender', 'warrior']);

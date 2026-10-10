@@ -16,8 +16,8 @@ const PERK_ICON: Record<string, string> = {
   tiller: 'gleaner', rancher: 'harvester', artisan: 'jar', agriculturist: 'cogbean',
   lumberjack: 'wood', gatherer: 'sawmill', botanist: 'wild_garlic', tapper_pro: 'plank',
   miner: 'copper_ore', geologist: 'drill_brass', blacksmith: 'furnace', excavator: 'geode',
-  angler: 'silver_dart', trapper: 'fish_trap', steady: 'rod_2', luremaster: 'bait',
-  brute: 'sword_2', defender: 'iron_plate', warrior: 'sword_1', scavenger: 'amethyst',
+  angler: 'roe', trapper: 'fish_trap', steady: 'rope', luremaster: 'bait',
+  brute: 'sword_2', defender: 'beam', warrior: 'sword_1', scavenger: 'lamp',
 };
 
 function drawPerk(ui: UI, play: PlayScreen, st: WinState): boolean {

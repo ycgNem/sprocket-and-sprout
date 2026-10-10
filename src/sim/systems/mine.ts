@@ -41,6 +41,14 @@ const SHARD_WARN = 1.2;
 export const VENT_HURT = 8;
 /** a lamp set down on a mine floor: the farm's lantern post, a touch more generous than its 6 */
 export const LAMP_LIGHT = 7;
+// combat's works answers (Phase 5): Shorer (level 5) props and shores with less, Lampwright (10)
+// sets down lamps that light further
+/** planks a cracked ceiling takes: one for a Shorer */
+export const propPlanks = (g: Game) => (g.hasPerk('defender') ? 1 : PROP_PLANKS);
+/** hardwood beams the caved-in gallery takes: 10 for a Shorer */
+export const beamsToShore = (g: Game) => (g.hasPerk('defender') ? 10 : BEAMS_TO_SHORE);
+/** how far a set-down lamp lights: 10 tiles for a Lampwright */
+export const lampLight = (g: Game) => (g.hasPerk('scavenger') ? 10 : LAMP_LIGHT);
 
 export interface Monster {
   id: string;
@@ -663,7 +671,7 @@ function lightsFor(g: Game, st: MineState) {
     // (enough glow that a waiting mark's ring reads out in the dark)
     else if (h.kind === 'shard') st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 1.5, i: 0.6, c: C.butter, flicker: true });
   }
-  for (const [x, y] of st.lamps) st.lights.push({ x: x + 0.5, y: y - 0.4, r: LAMP_LIGHT, i: 1, c: C.amber, flicker: true });
+  for (const [x, y] of st.lamps) st.lights.push({ x: x + 0.5, y: y - 0.4, r: lampLight(g), i: 1, c: C.amber, flicker: true });
 }
 
 /** lights that move: wisps, a shard's mark about to be hit, a gas pocket building up and venting */
@@ -769,7 +777,7 @@ export function enterFloor(g: Game, floor: number) {
     g.toast(`Level ${floor}: a works chamber. ${cap(names.join(' and '))} ${names.length > 1 ? 'stand' : 'stands'} in the clearing.${lift}`, undefined, C.butter);
   }
   if (floor === GALLERY_LEVEL && !g.flags.has(DEEP_FLAGS.shored))
-    g.toast(`The gallery down has caved in: there's no way deeper until it's shored up. ${BEAMS_TO_SHORE} hardwood beams would do it for good (F at the collapse).`);
+    g.toast(`The gallery down has caved in: there's no way deeper until it's shored up. ${beamsToShore(g)} hardwood beams would do it for good (F at the collapse).`);
   if (floor === FLOOD_LEVEL && !g.flags.has(DEEP_FLAGS.drained)) g.toast(FLOOD_TEXT);
   g.emit({ t: 'sfx', id: 'door' });
   g.emit({ t: 'ui', open: 'fade' });
@@ -957,16 +965,16 @@ function galleryInteract(g: Game, st: MineState, x: number, y: number): boolean 
     g.emit({ t: 'sfx', id: 'splash' });
     return true;
   }
-  const have = g.player.inv.countId('beam');
-  if (have < BEAMS_TO_SHORE) {
-    g.toast(`The gallery down has caved in. Shoring it up takes ${BEAMS_TO_SHORE} hardwood beams (you have ${have}): the sawmill cuts them from hardwood.`);
+  const have = g.player.inv.countId('beam'), need = beamsToShore(g);
+  if (have < need) {
+    g.toast(`The gallery down has caved in. Shoring it up takes ${need} hardwood beams (you have ${have}): the sawmill cuts them from hardwood.`);
     g.emit({ t: 'sfx', id: 'error' });
     return true;
   }
-  g.player.inv.removeSpec('beam', BEAMS_TO_SHORE);
+  g.player.inv.removeSpec('beam', need);
   g.flags.add(DEEP_FLAGS.shored);
   m.setO(x, y, O.GALLERY, 1);
-  g.toast(`You shore up the gallery with ${BEAMS_TO_SHORE} hardwood beams. The way down is open, for good.`, undefined, C.butter);
+  g.toast(`You shore up the gallery with ${need} hardwood beams. The way down is open, for good.`, undefined, C.butter);
   g.emit({ t: 'restored', ent: -1, x: x + 0.5, y: y + 0.5 });
   g.emit({ t: 'fx', kind: 'dust', x: x + 0.5, y: y + 0.8 });
   g.emit({ t: 'sfx', id: 'place' });
@@ -1053,12 +1061,13 @@ const liveCrack = (st: MineState, x: number, y: number) => st.hazards.find((k) =
 
 /** F at a cracked ceiling: planks prop its slab up for good, the whole crack at once */
 function propCrack(g: Game, st: MineState, h: Hazard): boolean {
-  if (g.player.inv.countId('plank') < PROP_PLANKS) {
-    g.toast(`A cracked ceiling: ${PROP_PLANKS} planks would prop it up.`, 'i:plank');
+  const need = propPlanks(g);
+  if (g.player.inv.countId('plank') < need) {
+    g.toast(`A cracked ceiling: ${need === 1 ? 'a plank' : `${need} planks`} would prop it up.`, 'i:plank');
     g.emit({ t: 'sfx', id: 'error' });
     return true;
   }
-  g.player.inv.removeSpec('plank', PROP_PLANKS);
+  g.player.inv.removeSpec('plank', need);
   for (const k of st.hazards) if (k.kind === 'crack' && k.group === h.group && (k.state === 0 || k.state === 1)) k.state = 4;
   g.count('cracks_propped');
   g.emit({ t: 'fx', kind: 'dust', x: h.x + 0.5, y: h.y + 0.3, n: 6 });
@@ -1112,7 +1121,7 @@ export function minePrompt(g: Game, tx: number, ty: number): { verb: string; x: 
   // (a lamp's tile: the one you face, or the next one on when you stand on that)
   const [lx, ly] = lampTile(g, tx, ty);
   if (lampAt(st, lx, ly) >= 0) return { verb: 'Pick up', x: lx + 0.5, y: ly - 0.9 };
-  if (liveCrack(st, tx, ty)) return top('Prop it up', 0.3, `needs ${PROP_PLANKS} planks`);
+  if (liveCrack(st, tx, ty)) return top('Prop it up', 0.3, propPlanks(g) === 1 ? 'needs a plank' : `needs ${propPlanks(g)} planks`);
   switch (m.o(tx, ty)) {
     case O.LADDER: return top('Climb down');
     case O.SHAFT: return top('Jump down');
@@ -1121,7 +1130,7 @@ export function minePrompt(g: Game, tx: number, ty: number): { verb: string; x: 
     case O.ELEVATOR: return top(g.flags.has(DEEP_FLAGS.lift) ? 'Ride the lift' : 'Lift landing', 0.1, g.flags.has(DEEP_FLAGS.lift) ? undefined : 'dead until the old lift runs');
     case O.GALLERY: {
       const v = m.objData[m.idx(tx, ty)];
-      if (v === 0) return top('Shore up', 0.3, `needs ${BEAMS_TO_SHORE} hardwood beams`);
+      if (v === 0) return top('Shore up', 0.3, `needs ${beamsToShore(g)} hardwood beams`);
       if (v === 2) return top('Flooded', 0.3, 'the town could drain it');
       return top('Climb down', 0.3);
     }
@@ -1292,7 +1301,7 @@ function strike(g: Game, st: MineState, mo: Monster, fx: number, fy: number) {
 }
 
 function defeatPest(g: Game, st: MineState, mo: Monster) {
-  for (const d of mo.def.drops) if (g.rng.next() < d.chance * (g.hasPerk('scavenger') ? 1.5 : 1)) spawnDrop(g, key(d.item), d.n ? g.rng.int(d.n[0], d.n[1]) : 1, mo.x, mo.y);
+  for (const d of mo.def.drops) if (g.rng.next() < d.chance) spawnDrop(g, key(d.item), d.n ? g.rng.int(d.n[0], d.n[1]) : 1, mo.x, mo.y);
   // a squashed mite gives back the ore it ate
   for (const a of mo.ate) spawnDrop(g, a.k, a.n, mo.x, mo.y);
   mo.ate = [];
@@ -1541,7 +1550,7 @@ function tickHazards(g: Game, st: MineState, dt: number) {
         g.emit({ t: 'shake', amt: 0.12 });
         if (!st.told.has('crack')) {
           st.told.add('crack');
-          g.toast(`The cracked ceiling rumbles! Step clear of the cracks, or prop it up: ${PROP_PLANKS} planks, F at a crack.`, undefined, C.apricot);
+          g.toast(`The cracked ceiling rumbles! Step clear of the cracks, or prop it up: ${propPlanks(g) === 1 ? 'a plank' : `${propPlanks(g)} planks`}, F at a crack.`, undefined, C.apricot);
         }
       } else if (h.state === 1) {
         h.t -= dt;

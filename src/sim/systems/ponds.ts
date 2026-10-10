@@ -41,10 +41,13 @@ function pondDay(g: Game, e: Ent) {
   const fish = e.st.fish as string | undefined;
   const pop = e.st.pop ?? 0;
   if (!fish || pop <= 0) return;
+  // Pond Keeper (fishing 5): the school grows and lays roe half again as fast
+  const keeper = g.hasPerk('angler') ? 1.5 : 1;
   // the school grows
-  if (pop < POND_CAP && g.rng.next() < 0.5) e.st.pop = pop + 1;
+  if (pop < POND_CAP && g.rng.next() < 0.5 * keeper) e.st.pop = pop + 1;
   // roe: more fish, more roe
-  const roe = (g.rng.next() < 0.7 ? 1 : 0) + Math.floor(pop / 4);
+  const laid = ((g.rng.next() < 0.7 ? 1 : 0) + Math.floor(pop / 4)) * keeper;
+  const roe = Math.floor(laid) + (g.rng.next() < laid % 1 ? 1 : 0);
   if (roe) e.inv!.add(key('roe'), roe);
   // a crowded pond sometimes spawns a fish you can take out
   if (pop >= 8 && g.rng.next() < 0.2 && ITEM_BY_ID.has(fish)) e.inv!.add(key(fish), 1);

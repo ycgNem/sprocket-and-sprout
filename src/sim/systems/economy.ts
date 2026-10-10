@@ -73,7 +73,6 @@ function perkPrice(g: Game, d: ItemDef): number {
   if (!pk.length) return 1;
   let m = 1;
   if ((d.id === 'plank' || d.id === 'beam' || d.id === 'hardwood' || d.id === 'resin' || d.id === 'syrup') && pk.includes('tapper_pro')) m *= 1.4;
-  if (d.cat === 'fish' && pk.includes('angler')) m *= 1.25;
   return m;
 }
 

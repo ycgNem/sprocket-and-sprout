@@ -3,8 +3,11 @@
 // prices (the critic's Stardew test, Phases 3+4 re-check: "only the names changed"); foraging and
 // mining each have one that runs their machines too (Sawyer, Drill Rigger, Furnace Hand). Each pair
 // is a real trade-off (the critic's confirmation pass: arms are never a line's bottleneck, and a
-// gleaner idles most of the afternoon): speed or brownout tolerance, yield or coverage. Ids are kept
-// from 1.x, so a save keeps its picks (with the new effects).
+// gleaner idles most of the afternoon): speed or brownout tolerance, yield or coverage. Fishing and
+// combat were the last pairs to have no works answer (Phase 5): each is now hands or works, a fishing
+// perk for you or for the ponds and traps, a combat perk for you or for what you build down below.
+// Ids are kept from 1.x, so a save keeps its picks (with the new effects; Hard Hat's +25 health is
+// taken back on load).
 export interface PerkDef { id: string; skill: string; level: 5 | 10; name: string; desc: string }
 
 export const PERKS: PerkDef[] = [
@@ -24,14 +27,14 @@ export const PERKS: PerkDef[] = [
   { id: 'geologist', skill: 'mining', level: 5, name: 'Drill Rigger', desc: 'Drills at the quarry work 25% faster.' },
   { id: 'blacksmith', skill: 'mining', level: 10, name: 'Furnace Hand', desc: 'Furnaces and blast furnaces smelt 25% faster.' },
   { id: 'excavator', skill: 'mining', level: 10, name: 'Delver', desc: 'Geodes and relics turn up twice as often.' },
-  { id: 'angler', skill: 'fishing', level: 5, name: 'Fishmonger', desc: 'Fish sell for 25% more.' },
+  { id: 'angler', skill: 'fishing', level: 5, name: 'Pond Keeper', desc: 'Fish ponds grow their school and lay roe 50% faster.' },
   { id: 'trapper', skill: 'fishing', level: 5, name: 'Trap-setter', desc: 'Fish traps catch one extra shellfish each day.' },
-  { id: 'steady', skill: 'fishing', level: 10, name: 'Steady Hands', desc: 'Your catch zone is 20% wider.' },
+  { id: 'steady', skill: 'fishing', level: 10, name: 'Net Rigger', desc: 'Fish traps catch without bait (bait still adds to the haul).' },
   { id: 'luremaster', skill: 'fishing', level: 10, name: 'Fly-tier', desc: 'Fish bite 40% sooner.' },
   { id: 'brute', skill: 'combat', level: 5, name: 'Crab-cracker', desc: 'Hit pests harder: a clatter-crab gives way in two hits.' },
-  { id: 'defender', skill: 'combat', level: 5, name: 'Hard Hat', desc: '+25 maximum health.' },
+  { id: 'defender', skill: 'combat', level: 5, name: 'Shorer', desc: 'A cracked ceiling takes one plank to prop, a caved-in gallery 10 beams to shore.' },
   { id: 'warrior', skill: 'combat', level: 10, name: 'Warrior', desc: 'Falling rock and star-shards hurt you 25% less.' },
-  { id: 'scavenger', skill: 'combat', level: 10, name: 'Scavenger', desc: 'Pests drop loot 50% more often.' },
+  { id: 'scavenger', skill: 'combat', level: 10, name: 'Lampwright', desc: 'Lamps you set down in the Deepworks light 10 tiles around, not 7.' },
 ];
 
 export const PERK_BY_ID = new Map(PERKS.map((p) => [p.id, p]));

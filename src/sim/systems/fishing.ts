@@ -150,7 +150,6 @@ function hook(g: Game) {
   f.zoneV = 0;
   const tier = Math.max(0, rodTier(g));
   f.zoneW = 0.16 + tier * 0.035 + (g.player.skills.fishing ?? 0) * 0.008 + g.buffLvl('fishing') * 0.025 - fish.difficulty * 0.0006;
-  if (g.hasPerk('steady')) f.zoneW *= 1.2;
   f.progress = 0.3;
   f.perfect = true;
   f.tug = 0;

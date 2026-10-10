@@ -20,10 +20,8 @@ export function choosePerk(g: Game, id: string): boolean {
   if ((g.player.skills[d.skill] ?? 0) < d.level) return false;
   if (perkChoices(d.skill, d.level).some((o) => g.player.perks.includes(o.id))) return false;
   g.player.perks.push(id);
-  if (id === 'defender') {
-    g.player.maxHp += 25;
-    g.player.hp += 25;
-  }
+  // (Shorer was Hard Hat, +25 health: a save from then gives it back on load, src/sim/save.ts)
+  if (id === 'defender') g.flags.add('hardhat_back');
   g.toast(`New profession: ${d.name}! ${d.desc}`, undefined, C.amber);
   g.emit({ t: 'sfx', id: 'levelup' });
   return true;
