@@ -99,7 +99,8 @@ export function buildRiverWorks(g: Game): boolean {
     for (let x = R.x; x < R.x + R.w; x++) {
       const i = g.map.idx(x, y);
       if (g.map.ground[i] === T.RIVER) continue;
-      clearTile(g, x, y);
+      // a path along the top row, off the gate road's end, leads into the works (the critic's Phase 2 Minor)
+      clearTile(g, x, y, y === R.y ? T.PATH : undefined);
       g.soil.delete(i);
     }
   const wheel = g.ents.add('waterwheel', RIVER.wheel[0], RIVER.wheel[1], 0);
