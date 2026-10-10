@@ -1013,7 +1013,7 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
     (`src/data/crops.ts`); the granary tops the grain bin up to 20 barley through day 7
     (`keeper.ts` dayStart); Rowan's Barley Meal order (`rowan_meal`); k9 "A Second Bed"
     (`k9_bed`: Gleaning, a second gleaner, 8 cogbeans) before More Power.
-  - [ ] C1 acceptance (`npx vite-node scripts/accept.ts`): seeds 2024, 7, 99 in Story, crocks
+  - [x] C1 acceptance (`npx vite-node scripts/accept.ts`): seeds 2024, 7, 99 in Story, crocks
     Working >= 50% of awake samples on days 5-7, day-6 income > 0, the mill producing on day 6.
     Now: income ~900-1,000 on day 6 and the mill +20 a day on days 5-7 pass; crocks are Working
     32-33%. Next: `tests/bot.ts` buys cogbean seeds (the Mercantile sells them now; `bestSeed`
@@ -1023,17 +1023,17 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
   - [x] M3 rusted belts don't carry the player (`rideBelt`, `src/sim/systems/player.ts`).
   - [x] M4 k9 More Power: a Metalwork step, the Workshop named for copper gears.
   - [x] M5 the worn wheel: 35 sparks, no rain bonus (`genCapacity`, `RIVER.cap`).
-  - [ ] M1a: a rusted node breaks the chain in `fieldSource` (`src/sim/lines.ts` ~100-116, it never
+  - [x] M1a: a rusted node breaks the chain in `fieldSource` (`src/sim/lines.ts` ~100-116, it never
     checks `st.rust`), so at minute 2 the crock reads Starved, not "Waiting for harvest: rusted".
-  - [ ] M1b: the slow-arm advice (`src/sim/lines.ts` ~385) counts swing time only (Queued time from
+  - [x] M1b: the slow-arm advice (`src/sim/lines.ts` ~385) counts swing time only (Queued time from
     `setQueued` counts as Working today) and stays quiet when an arm has at least twice the
     capacity its machine needs (it said "flat out, 100%" for an arm waiting on a busy crock).
-  - [ ] C1e: a starved crock's advice (`src/data/advice.ts`) says it takes any vegetable or fruit.
-  - [ ] M4 UI: a locked research node shows "Needs: Metalwork" (its missing prerequisites) in red
+  - [x] C1e: a starved crock's advice (`src/data/advice.ts`) says it takes any vegetable or fruit.
+  - [x] M4 UI: a locked research node shows "Needs: Metalwork" (its missing prerequisites) in red
     where "Press 'Research this'" sits (`src/ui/windows/factory.ts`).
-  - [ ] Minor: the four crafting recipes all labelled "Sprout Bundle" name their input
+  - [x] Minor: the four crafting recipes all labelled "Sprout Bundle" name their input
     (`src/ui/windows/menu.ts`).
-  - [ ] Then: typecheck, tests, the sweep (the board now lists three standing orders: check the
+  - [x] Then: typecheck, tests, the sweep (the board now lists three standing orders: check the
     `board` and `journal-orders` shots), smoke, pace; rebuild `../sns-review` and have the critic
     re-check (the bot acceptance and the eight questions, not a full review).
 - **The critic's Minors (the backlog; Phase 3 can take them):** the arm sprite reads as "?" (an
@@ -1197,8 +1197,8 @@ hay or by hand to fiber.
 **The Town Mill keystone, end to end.** The town's old mill stands on the river at the west end of
 Main Street, its wheel still. After More Power the chain's next step is **k10 "The Town Mill"**:
 look at the silent mill (Milling's observation), grind meal on your own grid (experiment), keep a
-mill making 3 a minute for 2 minutes (validate), study Milling, then fill the Works order: 120
-flour or barley meal (`#flour`), 40 planks and 8 copper gears, by hand or by a crate tagged for the
+mill making 3 a minute for 2 minutes (validate), study Milling, then fill the Works order: 80
+flour or barley meal (`#flour`; 120 as first written, DECISIONS #87), 40 planks and 8 copper gears, by hand or by a crate tagged for the
 Town Council. Then the flag `town_mill`: the mill's wheel turns (and the town's bread comes from
 it), the Copper Kettle and the Mercantile sell bread and flour, the Bakery Window project opens,
 Rowan posts a weekly bread order, and the Water era's reward card shows.

@@ -241,14 +241,38 @@
   Rush 39.9k.
 - Not merged: the owner deferred the 2.0 beta and asked for Phase 3 next.
 
+## 1.2 "The Works", Phases 3 and 4: Orders, eras, the Town Mill, the Deepworks (October 10, 2026)
+- Phase 2 finished: the must-fix list, the re-check's supply for days 8-12 (cogbeans every 2 days,
+  two gleaner beds, the cellar's taper, More Power sows barley and grinds at full power); the
+  acceptance check (days 5-12) passes on seeds 2024, 7, 99 (pickles 52-61% of capacity, no
+  zero-income day). DECISIONS #83.
+- Research in five era bands with keystone stages (observe, experiment, validate, apply) and era
+  rewards in place of the 12 flat-buff nodes; the research window redone. DECISIONS #84.
+- One Orders board (Today, Standing, Works), reputation ranks and rank stock, the Guild and the
+  restoration projects folded in; save v5 with real-save fixtures. DECISIONS #85.
+- Crop numbers from one formula (cotton too), rapeseed, the intermediates (canvas, lubricant, grain,
+  straw, starch paste, pigment, spirit) and the thresher. DECISIONS #86.
+- The Town Mill end to end (k10: look, grind, validate, Milling, the Works order of 80 meal); the
+  town's mill turns, bread in the shops, Rowan's bread order. DECISIONS #87.
+- The Deepworks: 30 levels in six strata with hazards, pests and works chambers; the lift restored
+  on level 5. The town keystones in the world: the Town Mill, the Waterworks' pump house and
+  fountain, the square's 12 lamps on your power, the tram. DECISIONS #88, #89.
+- Rush medals 35k / 65k / 100k; the villagers' path cache per world; the critic's Phase 2 Minors
+  (build slow-down, Esc, undo, lesson wrapping, units, the summary's order rows, a path into the
+  river works, B2's empty crock); a 2.0 title demo. DECISIONS #90-92.
+- Built with three parallel agents in worktrees (crops, town keystones, the Deepworks), merged.
+- Checks: the bot reaches the Mill by day 20 on 8 of 8 seeds (days 18-20, `scripts/mill20.ts`);
+  `data.test.ts` validates every order and keystone; `e2e/minex.mjs` walks all six strata (0
+  console errors); the year-long bot restores the lift; the Tram runs on a reloaded game. Tests:
+  204 (and the year-long run). Pacing (28 days, 8 seeds): Story 62.9k, Rush 65.5k.
+
 ## Next
-- Finish Phase 2's must-fix list, then Phase 3 (the prompt is in HANDOFF.md, "What's next"): the
-  full Orders board, research stages and era columns, crop numbers and rapeseed, the thresher, the
-  Town Mill keystone, the Rush medals.
+- The critic's review of Phases 3-4 and the sweep (see HANDOFF.md), then Phase 5 (people, events,
+  HQ) of ROADMAP.md.
 - Older ideas: more interior variety (decor items placeable indoors), farmhouse expansion tiers;
   more depth for mid-game automation goals and late-game megaprojects.
 
 ## Known issues
 - Bumblebots in flight during a manual mid-day save return to their hive on load.
-- Trees and big structures don't block NPC paths that were cached before placement (cache clears periodically).
-- The simple pacing bot stalls its income in week 2 (it hoards crops for bundles); real play earns more.
+- A tree felled or a rock left on a path doesn't re-plan a villager's cached path (placing or removing a structure does).
+- By day 7 the pace bot's farm is field-heavy (about 50 structure tiles to 75-80 tilled): it grows the Town Mill's barley by hand. Rule 5 (3.2) holds on day 5.

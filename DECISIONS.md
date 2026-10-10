@@ -330,3 +330,88 @@ recommendations are the decisions.
     slot the current step marks (B6's out-arm slot took the fix's third arm), rusted belts don't
     carry the player, and a crate tagged for a customer with nothing open follows a new order.
     What's left of the must-fix list, and the acceptance check, are in ROADMAP.md Phase 2.
+83. **The Phase 2 re-check: a supply for days 8-12, and More Power grinds (2026-10-10).** The
+    critic's re-check passed the must-fix list but found a cliff when the crutches end and a second
+    wheel powering a starved mill. Cogbeans regrow every 2 days (was 3); k9 "A Second Bed" asks for
+    16 cogbeans in reach of two new gleaners (two beds and the keeper's patch feed one crock); the
+    cellar tapers (a dozen beans a day through day 7, 8 on days 8-9, 4 on days 10-11, with "the last
+    of the keeper's cellar" toasts) and the granary says when its last sack comes; More Power asks
+    you to sow 10 barley and to grind 5 meal at full power instead of a capacity check. The
+    acceptance check runs days 5-12 (`scripts/accept.ts`): no zero-income day on seeds 2024, 7 and
+    99; pickles at 45-50% of the crocks' capacity.
+84. **Research in five eras, with keystones and era rewards (ROADMAP.md 7.3, 8).** Topics sit in
+    era bands (Spring, Water, Steam, Clockwork, Starlight) whose bundle colours add up (sprout, then
+    copper, rose, brass, star). Eight keystones carry stages, four pips on the node: observe (hover
+    it, hold I over it, walk up to it, or restore it), experiment (quest-kind objectives), validate
+    (an item made at a rate over the last minute, held for some minutes), then apply (the bundles).
+    A desk on a keystone whose stages aren't done waits and takes no bundles. The 12 flat-buff nodes
+    are era rewards, granted in one card by the era's town keystone; their pieces keep the old ids
+    (`research.rewards`), so a 1.x save that had studied one keeps the bonus (save v5 moves it out of
+    `done`). Reaching and Sorting Arms are spring arms in Water; Brass Arms and Brass Sprinklers moved
+    to Steam; new: Threshing (Steam) and Dyes & Pastes (Water). The window: tinted era bands named
+    for their keystone, both axes scroll, Fit, and a locked topic names what it needs.
+85. **One Orders board: Today, Standing, Works (7.4).** The daily requests, the Guild's contracts
+    and the restoration projects moved into `src/sim/systems/orders.ts`. An order has lines, a
+    customer (a business id, which is its keeper's villager id, or the Guild or the Town Council), a
+    kind, a due day, its pay and reputation. Today: three asks a day from k9 on, by hand or by a
+    tagged crate, gone at midnight. Standing: each business's weekly orders, opened by rank (six
+    ranks at 0, 2, 5, 9, 14 and 20 points; +1 an order, +2 a big one), and rank-gated stock in its
+    shop (`unlock: 'rep:<business>:<rank>'`). Works: the 16 restoration projects and the town
+    keystones, delivered at the board or by a crate tagged for the Town Council; the clocktower's
+    door opens the Works tab. Save v5 moves the old state across (`tests/migrate.test.ts` loads three
+    1.1.1 saves and two 2.0 beta saves).
+86. **Crop numbers from one formula, and the intermediates (7.1, 4.10).** Price = (seed + days x 6)
+    x kind / average yield, a regrower's season counted as one plant; seeds still on Stardew's moved
+    first (about 10% under). Cotton was re-derived too (40 to 18): at 40 the year-long bot planted it,
+    it can't go in a crock, and the crocks starved all year. Cogbean, barley and radish keep their
+    roles and numbers. Rapeseed (summer) presses to oil. The intermediates: canvas (belts), lubricant
+    (fitted to a machine with F: 10% faster for good), grain and straw (the thresher, Steam), starch
+    paste and pigment (the crock, Dyes & Pastes), spirit (the keg; burns for twice a coal). Left open:
+    sweet pea, frostmint and tea sell at about twice the formula, and the seed sifter's seeds outsell
+    most regrowers' crops.
+87. **The Town Mill, end to end; it asks 80 meal, not 120 (2026-10-10).** k10 follows More Power:
+    look at the town's silent mill (walking up to it counts), grind 20 meal (a lifetime count: the
+    Keeper's Line has usually done it), keep a mill at 3 a minute for 2 minutes (two dozen barley
+    tipped into its bin at once does it; the hint said a thresher, but threshing is a Steam topic),
+    study Milling (20 sprout and 20 copper bundles), then fill the Works order: 80 flour or barley
+    meal, 40 planks and 8 copper gears. The spec's 120 meant 120 barley plants on top of Rowan's
+    weekly 10 (barley yields one a plant), and the bot got there on days 21-23; at 80 it reaches the
+    Mill by day 20 on 8 of 8 seeds, on days 18-20 (`scripts/mill20.ts`). The flag turns the mill's
+    wheel; the Kettle and the Mercantile sell bread and flour; Rowan posts a weekly bread order; the
+    Bakery Window project opens; the Water era's reward card shows.
+88. **The Deepworks: 30 levels in six strata (7.2, Phase 4).** Earth, Clayworks, Frost, Ember,
+    Crystal and Starfall, each with its own ores, a hazard, a pest and a works chamber on its fifth
+    level (the lift, the boiler, the pump, the lamp works, the lockers and the rail cart, the fallen
+    star). Hazards cost health; pests never do (they eat ore left on the floor, sit in a gallery, or
+    hide the ladder). The lift does nothing until it's restored on level 5 (4 planks, 2 copper gears,
+    a rope); below level 10 is flooded until the Waterworks. Old saves: `deepest` halves, lift flags
+    map to every fifth level and count as a restored lift, and the grand chests of floors 20/40/60 are
+    those of levels 10/20/30. Iron and frost shards now come from the Frost, behind the Waterworks,
+    so "Deeper Down" asks for Clayworks tin at level 10; the mine bundle and glow sorbet wait for the
+    Waterworks (the smithy and the quarry still sell or yield iron, tin and gold). Brute fells a crab
+    in two hits and Warrior takes 25% less from hazards; drops near you go in your bag when you leave
+    a level.
+89. **The town keystones in the world (7.5).** Everything follows from four flags. `town_mill`: the
+    mill on the river at the west end of Main Street (a landmark you look at, not enter) turns, with
+    flour dust and sacks. `waterworks`: the pump house's chimney smokes and the new fountain south of
+    the clocktower runs. `lamps_hung`: the square's twelve lamps replace its four oil lampposts; they
+    light after 6pm while one of your poles reaches the farm gate on a powered grid, drawing 12
+    sparks (the keeper's river works' pole already reaches it, so restored works light them).
+    `tram`: a fixed cart bin appears at the quarry, and each morning the cart sells up to 20 ore from
+    it at 1.3x without saturating the market (a cart runs the road at 6:00 and back at noon).
+90. **Rush medals re-tuned to the 2.0 bot: 35k / 65k / 100k (revises decision 44).** Decision 44 set
+    them at 1.5x / 3x / 5x a bot that scored 12.7k. The 2.0 bot plays the Keeper's Line and reaches
+    the Town Mill and earns 65.5k in a 28-day Rush (Story 62.9k) on 8 seeds; at 1.5x-5x of that no
+    one would medal. They sit at about 0.5x / 1x / 1.5x the bot now: bronze for a decent run, silver
+    for matching a practiced script, gold for beating it by half.
+91. **A world's caches are its own.** The villagers' path cache lived at module level: a path planned
+    on one seed's map was walked on the next game's (a new game after another, a loaded save, the bot
+    running seeds in one process), so the same seed played out differently by what ran before it. It
+    is per world now (keyed on the map) and starts again whenever a structure is placed or removed.
+92. **The critic's Phase 2 Minors (2026-10-10).** The build slow-down ends with a placement and stays
+    off until another placeable is picked up; Esc with a machine in hand puts it away (the nearest
+    tool or empty slot) instead of pausing; undo keeps the last five placements with no time limit; a
+    midnight "bed by 2am" toast; lesson cards wrap their two lines as one text, and tips wait while one
+    is up; the welcome is spoken, without a letter's sign-off; the Lines tab uses one unit per table;
+    the day summary keeps an order's deliveries apart from market sales; the crock is first at the
+    Mercantile; the title screen's demo is the 2.0 works (gleaner beds, belts, crocks, a field gantry).
