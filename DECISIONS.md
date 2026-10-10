@@ -652,3 +652,49 @@ recommendations are the decisions.
     (and the per-year flags), so Festive Spirit counts the same; `best_f_kite`, `best_f_pumpkin` and
     `eval_pending` are dropped. New achievements: Blue Ribbon (beat all three Fair entries) and
     Going, Going, Gone (win a lot).
+115. **Trust buys works things (the critic's Phase 5 review, Major 5; revises decisions 104-105).**
+    The specialists' cooking recipes went to the villagers who cook (Clem's miner's pie, Marigold's
+    chestnut soup, Ines's glow sorbet, Roxy's stuffed peppers, Rowan's honey buns). Their rewards are
+    for the works, each a letter the morning after the level (flag `trust:<id>`, src/data/trust.ts):
+    Juniper's trade price at Trust 3 (the Joinery's six wooden machines 20% off), Hazel's index at 3
+    (the drafting library holds 24 drawings, not 12), Pip's watch at 3, Bram's blast furnace at cost
+    at 4 (4,550, not 6,500) and Sable's catalogue at 4 (studies at a desk 15% faster). Old Thorne's are
+    his drawings, which now wait for his Trust as well as their keystones: 2, 4, 6 and 8 (decision
+    107). The Journal's Town tab hover lists each one, butter once it's yours. The critic offered
+    wooden machine variants, alloys and -20% keystone bundles; a price and a speed need no art or
+    recipes, and the bundles are what the research curve is tuned on, so the desk got faster instead.
+116. **Pip's watch.** From Pip's Trust 3, a machine on the farm or in the farmhouse that has stood
+    starved, blocked, out of fuel or unpowered for a minute of works time brings a toast, `Pip: "Your
+    preserving crock stopped! Output full: ..."`, and a hop on the machine; once a stop (its state's
+    `since`), at most one every 20 seconds, never asleep, on the night shift or down the Deepworks.
+    No dice.
+117. **Pip's farm question is beside the play, and takes a look (the critic's Minor; revises
+    decision 106).** It hangs on a card under the Now strip (src/ui/askcard.ts), not the event
+    window: the farm keeps running, the machine is outlined and wins the hover over Pip standing by
+    it, and I works. The answers are lines that kind of machine shows (its recipes' inputs and goods,
+    a full output, waiting to be fed, fuel for a burner, power for a powered one; a gleaner's field
+    lines), one of them the same sort as the answer when there is one (another input, another good),
+    never two that mean nearly the same. What the machine shows when you answer is right too, since
+    it kept working while you looked. Later puts it away and Pip asks again on the next talk; it goes
+    if you leave the farm or the visit ends. The echoes stay in the event window: they ask about a
+    lesson card, not something in front of you.
+118. **Spring arms work indoors (the critic's taste note; revises decision 100).** The Workshop wing
+    was Stardew's shed: hand-fed machines. The clockwork, reaching and sorting arms (no power) go
+    indoors; belts and the brass and bulk arms stay out, the ghost saying why. The farmhouse's arms
+    tick with its machines, by day and on the night shift, and right-click winds them. The port graph
+    is kept per store, so an indoor crock fed by an arm says what it waits for and the line inspector
+    works indoors.
+119. **Signs to the phase's works hooks (the critic's Major 3).** A chamber card says its record can be
+    borrowed from Sable at the library once its quest begins, and the three look steps' why lines say
+    so; Thorne's drawing without a drafting table says Juniper can build one (the Joinery's Workshop
+    tab); the farmhouse tip names the Workshop Wing and the drafting table, and the renovation is
+    called the Workshop Wing. A held mouse button no longer counts as acting, so toasts raised during
+    a drag or a watering hold keep their place in the queue.
+120. **Asks that wait for their know-how (the critic's Minor).** A Today ask can name `after` (an
+    unlock word) and `before` (what to ask until then). Hazel's starch paste and pigment wait for Dyes
+    & Pastes; before it she asks for 3 sunflowers or 5 clay, so the day's draw still picks the same
+    villagers (decision 108) and every ask can be filled.
+121. **Mags comes on the Tuesday of a shortage week (the critic's Major 4, its shortage half).** A
+    shortage is rolled on Monday and due on Friday, and Mags' stock for it could only be bought on the
+    due day. In a shortage week her cart also stands on the square on Tuesday, 8am to 7pm, with the
+    same stock; the toast says the order is due Friday and Mags brings the goods tomorrow.

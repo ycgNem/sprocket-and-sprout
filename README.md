@@ -96,8 +96,8 @@ See `HANDOFF.md` for details.
 
 The debug panel (backtick) can add money, skip time, unlock all research, give a factory kit
 or resources, warp around the map, and jump straight to the newer systems: a stray pet, the
-Trading Guild with its depot, a fully renovated farmhouse, every furniture piece, Founder's Day,
-or a Brass Locket.
+Trading Guild with its depot, a fully renovated farmhouse, every furniture piece, the Sprocket
+Fair's day, or a Brass Locket.
 
 ## Features
 
@@ -156,10 +156,11 @@ or a Brass Locket.
   greeting animation, and 64 px portraits.
 - Romance: give the Brass Locket to a villager you love. Your partner makes breakfast, helps
   with chores and spends evenings by your hearth.
-- 10 shops plus Mags' Traveling Cart (Fridays and Sundays) with rare seeds, recipe cards and
-  furniture.
-- 4 festivals with minigames (Kite Day, Lantern Night, Pumpkin Roll, Frostlight Skate) and a
-  token stall.
+- 10 shops plus Mags' freight cart (Fridays and Sundays, and the Tuesday of a shortage week) with
+  rare parts, off-season seeds, recipe cards and furniture, and a Sunday lot at auction.
+- 4 festivals and a token stall: the Sprocket Fair (your line on the Professor's test bed against
+  three villagers' entries), Lantern Night, the Harvest Haul (standing orders pay double, and the
+  Mayor's auction) and Frostlight Skate.
 
 **The factory layer**
 - Two-lane conveyor belts in 3 speed tiers, with curves, side-loading/merging, underground
@@ -191,8 +192,8 @@ or a Brass Locket.
   restarting the town clock, and more.
 - Three late-game megaprojects (the Great Orrery, Skyship Dock, Starlight Beacon), built by
   feeding a construction site with belts and arms.
-- Founder's Day: every new year the Mayor reviews the farm on 18 criteria and lights up to four
-  candles, each tier unlocking a reward.
+- The Founder's candles: beat one, two or all three of the Sprocket Fair's entries (and the top
+  one by half) for the four rewards, once a save.
 - A dynamic market: flooding one product lowers its price, weekly in-demand goods, and
   daily drift. This nudges you to diversify the factory.
 - Museum donations, a collection log, mail, skills (6) and tool upgrades.
