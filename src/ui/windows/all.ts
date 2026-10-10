@@ -8,6 +8,7 @@ import './activities';
 import './panels';
 import './home';
 import './workshop';
+import './loadpick';
 import './perks';
 import './achievements';
 import './modes';

@@ -129,6 +129,20 @@ await ev(`S.g.runWorks(70)`);
 await wait(500);
 const pick = await ev(`(() => S.g.houseEnts.rootAt(4, 7).mach.outBuf.map((s) => s.n).reduce((a, b) => a + b, 0))()`);
 check(pick >= 1, `the indoor crock made pickles: ${pick}`);
+// 4a) F with nothing it takes in hand asks what to load (the owner's playtest: no taking from the bag
+// unasked): the chooser lists the beans, 1 loads them
+await ev(`(async () => { const I = await import('/src/sim/inventory.ts'); const g = S.g; window.__calm();
+  const e = g.houseEnts.rootAt(4, 7); e.mach.inBuf.clear(); e.mach.outBuf = []; e.mach.crafting = false;
+  g.player.inv.slots[2] = { k: I.key('cogbean'), n: 4 }; g.player.sel = 7; g.player.x = 4.5; g.player.y = 8.5; g.player.dir = 0; })()`);
+await wait(400);
+await page.keyboard.press('KeyF'); await wait(400);
+const asked = await ev(`({ win: window.__play.win?.id, beans: S.g.player.inv.countId('cogbean') })`);
+check(asked.win === 'loadpick' && asked.beans === 4, `F with the beans in the bag (not in hand) asks first, nothing taken: ${JSON.stringify(asked)}`);
+await page.screenshot({ path: `${out}/loadpick.png` });
+await page.keyboard.press('Digit1'); await wait(400);
+const picked = await ev(`(() => { const e = S.g.houseEnts.rootAt(4, 7); let n = 0; for (const [, v] of e.mach.inBuf) n += v; return { win: window.__play.win?.id ?? null, beans: S.g.player.inv.countId('cogbean'), inside: n + (e.mach.crafting ? 1 : 0) }; })()`);
+check(!picked.win && picked.beans === 0 && picked.inside >= 3, `1 in the chooser loads the beans: ${JSON.stringify(picked)}`);
+
 // 4b) a spring arm tends it: a chest at (2, 7), an arm turned east with R at (3, 7), both by mouse
 await ev(`(async () => { const I = await import('/src/sim/inventory.ts'); const g = S.g; window.__calm();
   const sl = g.player.inv.slots; sl[4] = { k: I.key('chest_wood'), n: 1 }; sl[5] = { k: I.key('arm_basic'), n: 1 }; })()`);
@@ -148,7 +162,7 @@ check(arm.feed === 'chest_wood' && arm.arm === 'arm_basic' && arm.rot === 1, `pl
 t = await tileAt(3, 7);
 await page.mouse.click(t.x, t.y, { button: 'right' }); await wait(300);
 check(await ev(`(S.g.houseEnts.rootAt(3, 7).st.wind ?? 0) > 0`), 'right-click winds the spring arm indoors');
-const made0 = await ev(`(async () => { const I = await import('/src/sim/inventory.ts'); S.g.houseEnts.rootAt(2, 7).inv.add(I.key('cogbean'), 4); return S.g.houseEnts.rootAt(4, 7).mach.made; })()`);
+const made0 = await ev(`(async () => { const I = await import('/src/sim/inventory.ts'); const k = S.g.houseEnts.rootAt(4, 7); k.mach.inBuf.clear(); S.g.houseEnts.rootAt(2, 7).inv.add(I.key('cogbean'), 4); return k.mach.made; })()`);
 await ev(`S.g.runWorks(90)`);
 await wait(400);
 const armed = await ev(`(() => { const H = S.g.houseEnts; return { left: H.rootAt(2, 7).inv.countId('cogbean'), made: H.rootAt(4, 7).mach.made }; })()`);

@@ -7,10 +7,10 @@ export const QUESTS: QuestDef[] = [
   { id: 'k1_line', title: 'The Broken Line', giver: 'ottoline', tutorial: true, main: true, startDay: 0, needFlag: 'keepers_line',
     why: "The arm's seized. Until it's mended, you're the arm.",
     desc: "A note in brass-ink from Professor Cogwhistle: \"The old keeper's works are yours. Most of it has rusted, but the preserving crock still runs. Keep it fed and get its pickles to the crate: the post pays at noon.\"",
-    hint: 'Press F at the ripe beans by the crock, then F at the crock. F at the crock again takes its pickles; F at the crate puts them in.',
+    hint: 'Press F at the ripe beans by the crock, then F at the crock and pick the beans (F again). F at the crock later takes its pickles; F at the crate puts them in.',
     objectives: [
       { t: 'harvest', n: 4, item: 'cogbean', label: "Pick the keeper's cogbeans", why: 'The crock is on its last three beans. Keep it fed.' },
-      { t: 'load', struct: 'jar', n: 1, label: 'Feed the crock (F)', why: 'F at the crock takes its pickles and loads your beans.' },
+      { t: 'load', struct: 'jar', n: 1, label: 'Feed the crock (F)', why: 'F at the crock takes its pickles and asks what to load: pick the beans.' },
       { t: 'crate', item: '#preserve', n: 2, label: 'Carry pickles to the crate', why: "The arm's seized. Until it's mended, you're the arm." },
     ],
     reward: { money: 50 } },

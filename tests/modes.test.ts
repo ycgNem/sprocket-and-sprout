@@ -126,12 +126,17 @@ describe('modes', () => {
     expect(Math.abs(fast - slow)).toBeLessThanOrEqual(1);
   });
 
-  it('right-clicking a machine loads its ingredient from anywhere in the bag', async () => {
+  it('right-clicking a machine asks what to load from the bag, and loads what you hold', async () => {
     const { interactStruct } = await import('../src/sim/actions');
     const g = new Game({ seed: 10 });
     const jar = g.ents.machines.find((e) => e.def.id === 'jar')!;
     g.player.inv.slots[30] = { k: key('cogbean'), n: 5 };
     g.player.sel = 0; // holding the hoe
+    g.events.length = 0;
+    expect(interactStruct(g, jar)).toBe(true);
+    expect(g.player.inv.countId('cogbean')).toBe(5);
+    expect(g.events.some((e: any) => e.t === 'ui' && e.open === 'loadpick')).toBe(true);
+    g.player.sel = 30;
     expect(interactStruct(g, jar)).toBe(true);
     expect(g.player.inv.countId('cogbean')).toBe(0);
   });

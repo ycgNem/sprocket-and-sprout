@@ -47,7 +47,7 @@ export const TIPS: Tip[] = [
     when: (p) => !p.g.flags.has('keepers_line') && p.g.ents.belts.some((e) => !e.st.rust),
     text: 'Belts carry items on two lanes. Drag to place long lines; they curve on their own.\n\nA Clockwork Arm picks up from the tile behind it (green) and drops on the tile in front (gold). Chest -> arm -> machine -> arm -> belt is the basic recipe of every factory.\n\nHover a structure to see what it is doing. P opens production stats.',
   },
-  { id: 'machine', when: (p) => !p.g.flags.has('keepers_line') && p.g.ents.machines.length > 0, title: '', text: 'Press F (or right-click) at a machine to load it: it takes what you hold, or a matching ingredient from your bag. Finished goods wait inside.' },
+  { id: 'machine', when: (p) => !p.g.flags.has('keepers_line') && p.g.ents.machines.length > 0, title: '', text: 'Press F (or right-click) at a machine to load what you hold; with nothing it takes in hand, it asks what to load from your bag. Finished goods wait inside.' },
   {
     id: 'power', big: true, title: 'Power',
     when: (p) => p.g.ents.gens.some((e) => !e.st.rust),

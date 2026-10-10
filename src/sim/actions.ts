@@ -11,14 +11,14 @@ import { CROP_BY_ID, CROP_BY_SEED } from '../data/crops';
 import { ITEM_BY_ID } from '../data/items';
 import { TREE_BY_ID } from '../data/trees';
 import type { Game } from './Game';
-import { key, kDef, kId, ItemKey } from './inventory';
+import { key, kDef, kId, kMatches, ItemKey } from './inventory';
 import { O, T, Z } from './world/tilemap';
 import { canTill, fertilize, harvest, harvestStreak, plant, plantSapling, shakeTree, sprinklerTiles, till, waterTile, canPlant } from './systems/farming';
 import { spawnDrop } from './systems/drops';
 import { deconstruct } from './build';
 import { isRusted, restore } from './rust';
 import { lesson } from './lessons';
-import { machAccept, machInsert, setRecipe } from './systems/machines';
+import { availableRecipes, machAccept, machInsert, setRecipe } from './systems/machines';
 import { curMap } from './systems/player';
 import { Ent } from './ents';
 import { portInsert } from './ports';
@@ -637,6 +637,51 @@ export function interact(g: Game, tx: number, ty: number): boolean {
   return false;
 }
 
+/** one line of the "Load which?" chooser: an item in the bag a machine takes, as an ingredient or as fuel */
+export interface LoadChoice {
+  k: ItemKey;
+  /** how many of it the bag holds, and how many the machine takes now */
+  have: number;
+  takes: number;
+  fuel: boolean;
+}
+
+/**
+ * What a machine could take from the bag: each item once, the one it last ran on (or holds) first,
+ * then the most plentiful; fuel for a burner as its own line.
+ */
+export function loadChoices(g: Game, e: Ent): LoadChoice[] {
+  const m = e.mach;
+  if (!m || e.def.kind === 'beehouse') return [];
+  const have = new Map<ItemKey, number>();
+  for (const s of g.player.inv.slots) if (s && !kDef(s.k).tool && !kDef(s.k).weapon) have.set(s.k, (have.get(s.k) ?? 0) + s.n);
+  const out: LoadChoice[] = [];
+  for (const [k, n] of have) {
+    const takes = Math.min(n, machAccept(g, e, k, true));
+    if (takes <= 0) continue;
+    const fuel = !!e.def.fuel && !!kDef(k).fuel && !availableRecipes(g, e).some((r) => r.in.some((i) => kMatches(k, i.item)));
+    out.push({ k, have: n, takes, fuel });
+  }
+  const last = m.recipe?.in.map((i) => i.item) ?? [];
+  const rank = (c: LoadChoice) => (c.fuel ? 2 : m.inBuf.has(c.k) || last.includes(kId(c.k)) ? 0 : 1);
+  return out.sort((a, b) => rank(a) - rank(b) || b.have - a.have).slice(0, 6);
+}
+
+/** Load the chosen item from the bag (every stack of it, up to what the machine takes). Returns how many. */
+export function loadChosen(g: Game, e: Ent, k: ItemKey): number {
+  if (!e.mach) return 0;
+  const p = g.player;
+  const want = Math.min(p.inv.count(k), machAccept(g, e, k, true));
+  const n = want > 0 ? machInsert(g, e, k, want, true) : 0;
+  if (n <= 0) return 0;
+  p.inv.remove(k, n);
+  g.sys.quests?.notify?.(g, 'load', 1, e.def.id);
+  g.emit({ t: 'hop', ent: e.id });
+  g.emit({ t: 'sfx', id: 'insert' });
+  g.emit({ t: 'float', text: `+${n}`, x: e.x + e.w / 2, y: e.y, c: C.cream });
+  return n;
+}
+
 export function interactStruct(g: Game, e: Ent): boolean {
   const p = g.player;
   const held = p.inv.slots[p.sel];
@@ -662,7 +707,7 @@ export function interactStruct(g: Game, e: Ent): boolean {
     if (g.counters.scare_talk >= 3) g.sys.achUnlock?.(g, 'scarecrow');
     return true;
   }
-  // collect machine output first, then (same press) load it from the bag if there's anything it takes
+  // collect machine output first, then (same press) ask what to load if the bag has anything it takes
   let collected = false;
   if (e.mach && e.mach.outBuf.length) {
     let got = 0;
@@ -678,7 +723,8 @@ export function interactStruct(g: Game, e: Ent): boolean {
       collected = true;
     }
   }
-  if (collected && !(e.mach && d.kind !== 'beehouse' && p.inv.slots.some((s) => s && !kDef(s.k).tool && !kDef(s.k).weapon && !kDef(s.k).fuel && machAccept(g, e, s.k, true) > 0))) return true;
+  // collected, and nothing in the bag it takes: that was the press
+  if (collected && !(e.mach && d.kind !== 'beehouse' && loadChoices(g, e).length)) return true;
   // quick insert held item into machines
   if (e.mach && held && d.kind !== 'beehouse') {
     const hd = kDef(held.k);
@@ -694,30 +740,13 @@ export function interactStruct(g: Game, e: Ent): boolean {
       }
     }
   }
-  // nothing loadable in hand: load the first ingredient the machine takes from anywhere in the bag
-  // (fuel stays put: hold it to add fuel on purpose)
-  if (e.mach && d.kind !== 'beehouse') {
-    let loaded = 0, what = '';
-    for (const s of p.inv.slots) {
-      if (!s) continue;
-      const sd = kDef(s.k);
-      if (sd.tool || sd.weapon || sd.fuel || (what && sd.id !== what)) continue;
-      const n = machInsert(g, e, s.k, s.n, true);
-      if (n > 0) {
-        p.inv.remove(s.k, n);
-        loaded += n;
-        what = sd.id;
-      }
-    }
-    if (loaded) {
-      g.sys.quests?.notify?.(g, 'load', 1, d.id);
-      g.emit({ t: 'hop', ent: e.id });
-      g.emit({ t: 'sfx', id: 'insert' });
-      g.emit({ t: 'float', text: `+${loaded}`, x: e.x + e.w / 2, y: e.y, c: C.cream });
-      g.toast(`Loaded ${loaded} ${ITEM_BY_ID.get(what)?.name ?? what} from your bag.`);
-      return true;
-    }
+  // nothing loadable in hand: ask what to load from the bag, never take it unasked (the owner's
+  // playtest: "what if I don't want to add them?"). The chooser is src/ui/windows/loadpick.ts.
+  if (e.mach && d.kind !== 'beehouse' && loadChoices(g, e).length) {
+    g.emit({ t: 'ui', open: 'loadpick', arg: e.id });
+    return true;
   }
+  if (collected) return true;
   // the study desk: F loads research bundles from the bag, then (if no topic is picked) opens
   // the research tree, so the first study is one key away
   if (d.kind === 'lab') {

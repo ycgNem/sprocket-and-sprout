@@ -110,14 +110,20 @@ describe('first session after the replay review', () => {
     expect(g.ents.at(OPENING.feedArm[0], OPENING.feedArm[1])).toBeFalsy();
   });
 
-  it('F at the jar takes its pickles and loads your beans in one press', async () => {
-    const { interactStruct } = await import('../src/sim/actions');
+  it('F at the jar takes its pickles and asks what to load: the beans go in only when picked', async () => {
+    const { interactStruct, loadChoices, loadChosen } = await import('../src/sim/actions');
     const g = new Game({ seed: 6 });
     const jar = g.ents.at(OPENING.jar[0], OPENING.jar[1])!;
     while (!jar.mach!.outBuf.length) g.tick();
     g.player.inv.add(key('cogbean'), 3);
+    g.events.length = 0;
     interactStruct(g, jar);
     expect(g.player.inv.countSpec('#preserve')).toBeGreaterThan(0);
+    // nothing taken unasked (the owner's playtest): the chooser opens, the beans first
+    expect(g.player.inv.countId('cogbean')).toBe(3);
+    expect(g.events.some((e: any) => e.t === 'ui' && e.open === 'loadpick' && e.arg === jar.id)).toBe(true);
+    expect(loadChoices(g, jar)[0].k).toBe(key('cogbean'));
+    expect(loadChosen(g, jar, key('cogbean'))).toBe(3);
     expect(g.player.inv.countId('cogbean')).toBe(0);
   });
 });

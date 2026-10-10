@@ -1160,9 +1160,13 @@ export class Bot {
             }
           break;
         }
-        case 'k1_line:1':
+        case 'k1_line:1': {
+          // hold the beans: F with nothing the crock takes in hand only asks what to load
+          const i = g.player.inv.slots.findIndex((sl) => sl && kDef(sl.k).id === 'cogbean');
+          if (i >= 0) g.player.sel = i;
           this.F(OPENING.jar);
           break;
+        }
         case 'k1_line:2': {
           this.wait(8);
           this.F(OPENING.jar);
