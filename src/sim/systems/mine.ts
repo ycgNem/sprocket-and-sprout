@@ -494,9 +494,10 @@ export function generateFloor(g: Game, floor: number): Gen {
       return dist[i] >= 0 && !clear[i] && (m.obj[i] === O.NONE || isRock(m.obj[i])) && m.g(x, y - 1) === T.MINEWALL && dist[m.idx(x, y + 1)] >= 0 &&
         Math.abs(x - entry[0]) + Math.abs(y - entry[1]) >= 4;
     }).sort((a, b) => dist[b] - dist[a]);
-    // one of the farthest third, unless shutting it would cut part of the level off
+    // one of the farthest third, unless it would cut part of the level off (shut, it's solid; open,
+    // stepping on it takes you down), so the level is the same either way
     for (const i of [...rng.shuffle(cand.slice(0, Math.max(1, Math.ceil(cand.length / 3)))), ...cand]) {
-      if (galleryShut(state) && !keepsReach(i, O.GALLERY, state)) continue;
+      if (!keepsReach(i, O.GALLERY, state)) continue;
       m.obj[i] = O.GALLERY;
       m.objData[i] = state;
       gallery = [i % MW, Math.floor(i / MW)];
@@ -535,7 +536,9 @@ export function generateFloor(g: Game, floor: number): Gen {
       const w = (xx: number, yy: number) => m.g(xx, yy) === T.MINEWALL;
       return (w(x - 1, y) && w(x + 1, y) && !w(x, y - 1) && !w(x, y + 1)) || (w(x, y - 1) && w(x, y + 1) && !w(x - 1, y) && !w(x + 1, y));
     });
-    const list = cuts.length ? cuts.map(([i]) => i) : rng.shuffle(narrow);
+    // (an open cave without a true neck: where the walls close in most)
+    const narrowish = floors.filter((i) => free(i) && dist[i] >= 6 && !narrow.includes(i) && openAround(m, i % MW, Math.floor(i / MW)) <= 4);
+    const list = [...cuts.map(([i]) => i), ...rng.shuffle(narrow), ...rng.shuffle(narrowish)];
     const n = floor % 5 === 0 ? 1 : 1 + (rng.next() < 0.5 ? 1 : 0);
     const taken: number[] = [];
     for (const i of list) {
@@ -613,6 +616,9 @@ function lightsFor(g: Game, st: MineState) {
     else if (c.kind === 'lift' && g.flags.has(DEEP_FLAGS.lift)) st.lights.push({ x, y: y - 1.6, r: 3.2, i: 0.9, c: C.amber, flicker: true });
     else if (c.kind === 'pump' && g.flags.has(DEEP_FLAGS.pump)) st.lights.push({ x, y: y - 1.2, r: 2.6, i: 0.8, c: C.amber, flicker: true });
     else if (c.kind === 'boiler') st.lights.push({ x: c.x + 0.6, y, r: 1.4, i: 0.4, c: C.terracotta, flicker: true });
+    // (a miner's lamp left hanging on the lockers: the Crystal's dark would hide them otherwise)
+    else if (c.kind === 'lockers') st.lights.push({ x, y: y - 1.2, r: 3.4, i: 0.75, c: C.apricot, flicker: true });
+    else if (c.kind === 'cart') st.lights.push({ x, y: y - 0.6, r: 2.4, i: 0.55, c: C.apricot, flicker: true });
   }
   for (const h of st.hazards) {
     if (h.kind === 'gas') st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 1.3, i: 0.3, c: C.lime });
@@ -770,7 +776,9 @@ export function restoreChamber(g: Game, kind: ChamberKind): 'done' | 'already' |
   const missing = d.restore.parts.filter(([id, n]) => inv.countId(id) < n);
   if (missing.length) {
     const need = missing.map(([id, n]) => partText(id, n - inv.countId(id), inv.countId(id) > 0));
-    g.toast(`${cap(d.name)} needs ${andList(need)} to run again (in all: ${partsText(kind)}).`);
+    // (the whole list again only when the bag already holds some of it)
+    const none = missing.length === d.restore.parts.length && missing.every(([id]) => inv.countId(id) === 0);
+    g.toast(`${cap(d.name)} needs ${andList(need)} to run again${none ? '' : ` (in all: ${partsText(kind)})`}.`);
     g.emit({ t: 'sfx', id: 'error' });
     return 'missing';
   }

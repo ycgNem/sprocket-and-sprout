@@ -31,9 +31,10 @@ const SCRIPTS = {
     await page.waitForTimeout(3500);
     await ev(() => { window.__app.loop.speed = 1; });
   },
-  minefloor: async () => { await ev(() => { const g = window.__game; g.sys.mine.enter(g, 12); }); await page.waitForTimeout(900); },
-  minedeep: async () => { await ev(() => { const g = window.__game; g.sys.mine.enter(g, 47); }); await page.waitForTimeout(900); },
-  minefrost: async () => { await ev(() => { const g = window.__game; g.sys.mine.enter(g, 27); }); await page.waitForTimeout(900); },
+  // the Deepworks: Earth (level 3), Starfall (28) and the Frost (12)
+  minefloor: async () => { await ev(() => { const g = window.__game; g.sys.mine.enter(g, 3); }); await page.waitForTimeout(900); },
+  minedeep: async () => { await ev(() => { const g = window.__game; g.sys.mine.enter(g, 28); }); await page.waitForTimeout(900); },
+  minefrost: async () => { await ev(() => { const g = window.__game; g.sys.mine.enter(g, 12); }); await page.waitForTimeout(900); },
   factory: async () => {
     await ev(async () => {
       const g = window.__game;

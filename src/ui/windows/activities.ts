@@ -86,8 +86,10 @@ function drawElevator(ui: UI, play: PlayScreen, st: WinState): boolean {
   intro.forEach((l, i) => ui.text(l, x + 12, y + 12 + i * 10, C.walnut));
   floors.forEach((f, i) => {
     const stratum = STRATA[Math.max(0, Math.min(STRATA.length - 1, Math.floor((f - 1) / 5)))];
-    const tip = [{ text: `Level ${f}: ${stratum.name}`, color: C.amber }];
-    if (ui.button('fl' + f, x + 12 + (i % 5) * 40, y + bodyY + Math.floor(i / 5) * 22, 36, 18, String(f), { style: f === 1 ? 'green' : 'wood', tip })) {
+    // the level you're on is a flat button (you are here); from the surface, level 1 is the default
+    const here = g.player.where === 'mine' && mine(g).floor === f;
+    const tip = [{ text: `Level ${f}: ${stratum.name}${here ? ' (you are here)' : ''}`, color: C.amber }];
+    if (ui.button('fl' + f, x + 12 + (i % 5) * 40, y + bodyY + Math.floor(i / 5) * 22, 36, 18, String(f), { style: here ? 'flat' : f === 1 && g.player.where !== 'mine' ? 'green' : 'wood', tip }) && !here) {
       play.win = null;
       mine(g).enter(g, f);
     }

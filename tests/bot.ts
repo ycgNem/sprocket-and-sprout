@@ -370,52 +370,105 @@ export class Bot {
     this.collectDrops();
   }
 
+  /**
+   * A trip down the Deepworks (ROADMAP.md 7.2): level by level, rocks until the ladder shows (ore
+   * first), a look at every works chamber on the way, the old lift on level 5 restored once the bag
+   * holds its parts (4 planks, 2 copper gears and a rope: made from the bag before setting out, the
+   * gears bought at the Workshop when short), and from then on the lift down to the deepest chamber
+   * reached. It keeps out from under cracked ceilings and out of gas, pops a wisp to find its ladder,
+   * shores level 6's gallery when it has the beams, and turns back at the flood.
+   */
   mineTrip() {
     const g = this.g;
-    if (!this.energyOk(70)) return;
-    this.walkTo(128, 14);
     const m = mine(g);
-    const start = Math.max(1, Math.floor((m.deepest) / 5) * 5);
-    m.enter(g, start);
-    let floors = 0;
-    while (this.energyOk(25) && g.time.min < 22 * 60 && floors < 6) {
-      const mm = m.map!;
-      // break ore rocks first, then normal rocks until a ladder shows
-      const rocks: [number, number, number][] = [];
-      for (let i = 0; i < mm.obj.length; i++) {
-        const o = mm.obj[i];
-        if (o === O.ORE_ROCK || o === O.ROCK || o === O.GEM_ROCK || o === O.ICE_ROCK) rocks.push([i % mm.w, Math.floor(i / mm.w), o === O.ORE_ROCK ? 0 : 1]);
+    const inv = g.player.inv;
+    if (!this.energyOk(70)) return;
+    const lifted = () => g.flags.has('chamber:lift');
+    const LIFT_PARTS: [string, number][] = [['plank', 4], ['rope', 1], ['copper_gear', 2]];
+    const handCraft = (id: string, n: number) => {
+      const r = RECIPES.find((r) => r.station === 'hand' && r.out[0].item === id);
+      for (let made = 0; r && made < n && canCraft(g, r, 1); made += r.out[0].n) craft(g, r, 1);
+    };
+    if (!lifted()) {
+      for (const [id, n] of LIFT_PARTS) if (inv.countId(id) < n) handCraft(id, n - inv.countId(id));
+      const short = 2 - inv.countId('copper_gear');
+      const e = shopStock(g, 'workshop').find((s) => s.item === 'copper_gear');
+      if (short > 0 && e && shopOpen(g, 'workshop').open && g.player.money > entryPrice(g, e) * short + 300) {
+        const [wx, wy] = g.map.loc('workshop');
+        this.walkTo(wx, wy + 1);
+        buy(g, e, short);
       }
+    }
+    const [ex, ey] = g.map.loc('mine_entrance');
+    this.walkTo(ex, ey + 1);
+    // the lift to the deepest chamber reached once it runs (its window's choice); the ladder to level 1 until then
+    const stops = m.lifts(g);
+    if (lifted() && stops.length) m.enter(g, stops[stops.length - 1]);
+    else m.enterPrompt(g);
+    const here = () => g.player.where === 'mine' && !!m.map;
+    const tier = () => { const id = this.toolId('pick'); return id ? kDef(key(id)).tool!.tier : 0; };
+    const swing = (x: number, y: number) => {
+      this.sel(this.toolId('pick')!);
+      g.player.busy = 0;
+      useTool(g, 'pick', tier(), x, y);
+      this.wait(0.4);
+    };
+    const isRock = (o: number) => o === O.ORE_ROCK || o === O.ROCK || o === O.GEM_ROCK || o === O.ICE_ROCK;
+    let levels = 0;
+    while (here() && this.energyOk(20) && g.time.min < 21 * 60 && levels < 8) {
+      const mm = m.map!, floor = m.floor;
+      // a look at every works chamber here (and the old lift restored once the bag has its parts)
+      for (const c of m.chambers) {
+        g.player.x = c.x + c.w / 2;
+        g.player.y = c.y + 2.2;
+        this.wait(0.3);
+        if (c.kind === 'lift' && !lifted() && LIFT_PARTS.every(([id, n]) => inv.countId(id) >= n)) {
+          m.interact(g, c.x, c.y);
+          this.notes.push('restored the old lift');
+        }
+      }
+      // level 6's collapsed gallery: shored up with 20 beams, if the bag (or its hardwood) has them
+      const gallery = m.gallery;
+      const galleryState = () => (gallery ? mm.objData[mm.idx(gallery[0], gallery[1])] : -1);
+      if (gallery && galleryState() === 0) {
+        if (inv.countId('beam') < 20) handCraft('beam', 20 - inv.countId('beam'));
+        if (inv.countId('beam') >= 20) {
+          g.player.x = gallery[0] + 0.5;
+          g.player.y = gallery[1] + 1.5;
+          m.interact(g, gallery[0], gallery[1]);
+        }
+      }
+      // a wisp hides this level's ladder: one hit and it shows
+      for (const mo of [...m.monsters]) {
+        if (mo.def.behavior !== 'guard' || !here()) continue;
+        g.player.x = mo.x;
+        g.player.y = mo.y + 1.2;
+        g.player.dir = 0;
+        swing(Math.floor(mo.x), Math.floor(mo.y - 0.3));
+      }
+      const wayDown = () => !!m.ladder || galleryState() === 1 || galleryState() === 3;
+      // rocks, ore first, never under a cracked ceiling, in a gas pocket or on a star-shard's mark
+      const safe = (x: number, y: number) => !m.hazards.some((h) => h.state !== 2 && (h.kind === 'crack' ? Math.hypot(x - h.x, y + 1 - h.y) < 2.8 : Math.abs(x - h.x) + Math.abs(y + 1 - h.y) <= 1));
+      const rocks: [number, number, number][] = [];
+      for (let i = 0; i < mm.obj.length; i++) if (isRock(mm.obj[i])) rocks.push([i % mm.w, Math.floor(i / mm.w), mm.obj[i] === O.ORE_ROCK ? 0 : 1]);
       rocks.sort((a, b) => a[2] - b[2]);
-      let found = false;
       for (const [x, y] of rocks.slice(0, 40)) {
-        if (!this.energyOk(25)) break;
+        if (wayDown() || !this.energyOk(20) || !here() || m.floor !== floor) break;
+        if (!isRock(mm.o(x, y)) || !safe(x, y)) continue;
         g.player.x = x + 0.5;
         g.player.y = y + 1.5;
-        this.wait(0.6);
-        if (g.player.where !== 'mine') break;
-        for (let k = 0; k < 4 && mm.o(x, y) !== O.NONE && mm.o(x, y) !== O.LADDER && mm.o(x, y) !== O.SHAFT; k++) {
-          this.sel(this.toolId('pick')!);
-          g.player.busy = 0;
-          g.spend(1.6);
-          m.useTool(g, 'pick', kDef(key(this.toolId('pick')!)).tool!.tier, x, y);
-          this.wait(0.4);
-          if (g.player.where !== 'mine') break;
-        }
-        if (g.player.where !== 'mine') break;
-        if (m.ladder) {
-          found = true;
-          break;
-        }
+        this.wait(0.3);
+        for (let k = 0; k < 10 && here() && m.floor === floor && isRock(mm.o(x, y)); k++) swing(x, y);
+        // picked up as it goes, before a rust-mite gets to it
+        if (here()) this.collectDrops();
       }
-      this.collectDrops();
-      if (g.player.where !== 'mine') break;
-      if (!found) break;
-      m.enter(g, m.floor + 1);
-      floors++;
+      if (!here() || m.floor !== floor) continue; // fainted, or puffed up a level by gas
+      if (!wayDown() || floor >= 30) break;
+      m.enter(g, floor + 1);
+      levels++;
     }
     this.collectDrops();
-    if (g.player.where === 'mine') m.leave(g);
+    if (here()) m.leave(g);
   }
 
   crafting() {

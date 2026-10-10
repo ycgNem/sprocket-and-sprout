@@ -1257,16 +1257,20 @@ export class Renderer {
       if (px < v.x0 - 32 || px > v.x1 + 32 || py < v.y0 - 80 || py > v.y1 + 32) continue;
       const hh = hash2(h.x, h.y, 61);
       if (h.kind === 'crack' && !over) {
-        // a jagged crack across the floor and a branch off it, the shadow of the loose slab above
-        ctx.fillStyle = rgba(C.ink, 0.18);
+        // the shadow of the loose slab above, a jagged crack across the floor (lit on its far edge, so
+        // it reads on the veined Earth floor) with a branch off it, and grit already fallen
+        ctx.fillStyle = rgba(C.ink, 0.3);
         ctx.fillRect(px + 1, py + 1, 14, 14);
         let x = 3 + Math.floor(hh * 9);
         for (let y = 1; y < 15; y++) {
           px1(C.ink, px + x, py + y);
-          if (y === 7) for (let k = 1; k < 5; k++) px1(C.ink, px + Math.min(14, x + k), py + y + (k >> 1));
+          if (x < 14) px1(C.tan, px + x + 1, py + y);
+          if (y === 7) for (let k = 1; k < 5; k++) { px1(C.ink, px + Math.min(14, x + k), py + y + (k >> 1)); px1(C.tan, px + Math.min(14, x + k), py + y + 1 + (k >> 1)); }
           x = Math.max(1, Math.min(14, x + Math.floor(hash2(h.x * 16 + y, h.y, 62) * 3) - 1));
         }
-        px1(C.slate, px + 2 + Math.floor(hh * 11), py + 12);
+        px1(C.pebble, px + 2 + Math.floor(hh * 11), py + 12);
+        px1(C.stone, px + 3 + Math.floor(hh * 9), py + 13);
+        px1(C.pebble, px + 12 - Math.floor(hh * 8), py + 3);
         if (h.state === 1) {
           // grit trickling down before the slab goes
           for (let k = 0; k < 3; k++) {
