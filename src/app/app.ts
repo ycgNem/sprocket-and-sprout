@@ -1,4 +1,7 @@
 // Application shell: screens (title, new game, load, settings, play), main loop wiring.
+// the systems register in src/sim/index.ts's order, as the tests and the bot run them (the
+// renderer and the windows import a few systems, which would otherwise register first)
+import '../sim';
 import { C, skin3 } from '../data/palette';
 import { GameLoop } from '../engine/loop';
 import { Input } from '../engine/input';
@@ -8,7 +11,6 @@ import { resetSkin } from '../ui/skin';
 import { registerAllArt, registerMapBuildings, setPlayerLook } from '../render/art';
 import { UI } from '../ui/ui';
 import { Game } from '../sim/Game';
-import '../sim';
 import { loadSettings, saveSettings, Settings } from './settings';
 import { Audio } from '../engine/audio/audio';
 import { PlayScreen } from './play';
