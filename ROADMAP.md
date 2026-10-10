@@ -834,7 +834,7 @@ Estimates are sessions of the usual length. Every phase ends with: typecheck, `n
 `npm run screens` (0 issues), `node e2e/smoke.mjs` (0 console errors), the build, PROGRESS.md,
 a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
 
-### Phase 0 — Hotfix 1.1.1 and the ground rules (1 session)
+### Phase 0 — Hotfix 1.1.1 and the ground rules (1 session) — DONE 2026-10-09 (on `main`, not pushed: the owner's call)
 - Bugs 1, 3 (audit + planks), 4, 7, 8, 9, 10 (quick fix), 11, 12, 13 from section 10, plus the
   1.1 leftovers marked 0 (embed size, jar price, crate pop, palette names), and bug 6's interim
   (the bubble avoids `occ`).
@@ -845,7 +845,7 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
 - Done when: the bug table's checks pass; the release is up; the seam audit exists and its
   offender list is in `e2e/out/seams.md`.
 
-### Phase 1 — The automation core and the Field Works (2-3 sessions; the owner asked for it in one)
+### Phase 1 — The automation core and the Field Works (2-3 sessions; the owner asked for it in one) — DONE 2026-10-09 (on `works`)
 - **1a, the core** (4.0-4.8, 4.14): the contract (`src/data/contract.ts`), the six states,
   "waiting for harvest", time in state (60 s rings plus today's and yesterday's totals), per-day
   rates, root-cause glyphs (placeholder marks), the hover line, four pulse lamps, the structure

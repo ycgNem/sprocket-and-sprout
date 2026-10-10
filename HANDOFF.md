@@ -4,7 +4,20 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 9, 2026, night): 1.1.0 is released.** The visual overhaul (`ROADMAP.md`, Phases
+**Status (October 9, 2026, late night): 1.2 "The Works" Phases 0 and 1 are done.** ROADMAP.md is
+now the 1.2 plan (the identity rebuild around automation); the old 1.1 overhaul is ROADMAP-1.1.md.
+- **Phase 0 = 1.1.1 on `main`** (commits `1c0d50e`..`881284d`, version bumped): the owner's
+  playtest bugs, the overhead pickaxe for all 9 looks, flagstone paths, plank decks, the seam
+  audit, painted ground transitions (the farming glitch), placed paths that change the ground.
+  **Not pushed and not released yet**: pushing `main` deploys the website; the owner decides when.
+  Installers: `Build desktop app.bat` on `main` (or `npm run dist:win`), then
+  `gh release create v1.1.1`.
+- **Phase 1 on branch `works`** (commit `2d070fa`): the automation core and the Field Works, built
+  to ROADMAP.md 3.1 + 4, which the indie-critic approved after two spec reviews.
+- **PixelLab:** about 86 generations spent this session (pick frames 44, terrain 22, Field Works
+  20); about 430 left until Nov 9.
+
+**Earlier status: 1.1.0 is released.** The visual overhaul (`ROADMAP-1.1.md`, Phases
 0-4) is done: imported PixelLab art everywhere, the juice layer, a reworked first session, then a
 code review and a full indie-critic review with their fixes (ROADMAP.md, Phase 4). New in 1.1 at
 the owner's request: **Roxy Vane**, a sky-courier villager with her airship on Skyhook Field
@@ -105,7 +118,7 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 108 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot)
+npm test                                   # 124 Vitest tests (sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
 npx vite-node scripts/pace.ts story rush   # economy: the bot's 28-day earnings on 8 seeds (a few minutes)
 npm run build                              # production build, about 1.2 MB JS (386 KB gzipped) + ~520 KB of PNG sheets
@@ -116,15 +129,22 @@ node e2e/sprites.mjs <name> ...            # imported vs procedural sprites side
 BASE=http://localhost:5173/ node e2e/flow.mjs  # real input: two-step new game, farm, house, bed, reload
 BASE=http://localhost:5173/ node e2e/roxy.mjs  # real input: Roxy's door intro -> shop, chat, gift, 2-heart event
 BASE=... node e2e/windows.mjs | qa.mjs | bot.mjs 7 | house.mjs | pet.mjs | guild.mjs | ...
+BASE=http://localhost:5173/ node e2e/shift.mjs     # 185 real shift/ctrl/double-clicks between bags and structures
+BASE=http://localhost:5173/ node e2e/works.mjs     # the automation core on screen: glyphs, inspector (hold I), Lines tab, pole window
+BASE=http://localhost:5173/ node e2e/terrainshots.mjs   # bridges, a farm plot, the square: painted ground transitions
+node e2e/seams.mjs                         # Wang-set seam audit -> e2e/out/seams.md (165 offenders listed for Phase 6)
+BASE=http://localhost:5173/ node e2e/perf.mjs      # 1,300 belts / 260 machines: < 1 ms a tick, the night shift < 3 s
 ```
 
 Last results (October 9, night): everything above passes with 0 console errors; the sweep is 51
 shots / 0 issues at 1280x720 and clean at 1366x620.
 
-Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds:
-- Story: average 10.7k coins (9.5k to 11.9k). Before this session's changes: 10.9k.
-- Clockwork Rush: average 13.0k (10.4k to 14.2k), so the medals (20k / 40k / 65k) still sit at
-  about 1.5x / 3x / 5x the bot.
+Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 9, late night, branch `works`):
+- Story: average 20.9k coins (19.5k to 22.8k). 1.1 was 10.7k.
+- Clockwork Rush: average 23.1k (21.5k to 24.9k). 1.1 was 13.0k.
+- Why it doubled: the bot now builds a real jar line (L1) on day 6 and a gleaner on day 7 (+~8k);
+  the night shift adds ~2k. The old bot built no factory. **The Rush medals (20k / 40k / 65k) now
+  sit at about 0.9x / 1.7x / 2.8x the bot: re-tune them with the economy in Phase 3.**
 - Day 1 earns about 1.8k.
 - Adding or removing a villager changes how many random rolls happen per tick, so per-seed results
   shift (weather, drops). Judge balance on the 8-seed average, never on one seed. A seed that
@@ -238,18 +258,38 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
-1.1.0 is out. The owner playtested it and asked for a scope change: 1.2 "The Works" rebuilds
-the game's identity around automation (ROADMAP.md). Next session is ROADMAP.md Phase 0:
+Phases 0 and 1 of ROADMAP.md (1.2 "The Works") are done. Waiting on the owner: push `main`
+(1.1.1, deploys the website) and `gh release create v1.1.1` with the installers. Next session is
+ROADMAP.md Phase 2, on branch `works`:
 
-> Read ROADMAP.md (1.2) and HANDOFF.md. Phase 0: fix the playtest bugs in section 10 marked
-> Phase 0, write the owner's D1-D12 answers into DECISIONS.md, build e2e/seams.mjs and list the
-> offenders, regenerate the pickaxe frames and the flagstone/plank sets with the art-director
-> agent (≤ 60 generations). Run the checks. Bump to 1.1.1, build the desktop app, make the
-> GitHub release, then create the `works` branch for everything after.
-
+> Read ROADMAP.md sections 3.1, 5 and 6, and HANDOFF.md. On `works`: replace both tutorial chains
+> with the Keeper's Line (eight beats), the Now strip, the Keeper's Notebook, the lesson cards,
+> undo, the Professor's visit, Rowan's first order (silver pickles, cogbean oil) on a minimal
+> Orders board, the Skills cards. Make tests/bot.ts play B1-B8. Run the checks, then the
+> indie-critic with the eight questions.
 The "deferred critic list" below is now covered by ROADMAP.md (crop numbers 7.1, re-roles 7.6,
 the Exhibition 7.7, Tock Phase 5, the Post Tube is dropped in favour of consignment 7.4,
 crafting labels Phase 2, the cut list D3-D5).
+
+Patterns from 1.2 Phases 0-1:
+- Every structure has `e.state` (`MState`), `e.why` and `e.since`; set them with `setState`
+  (`src/sim/mstate.ts`), never a free string. A full queue in front of a busy taker is
+  `setQueued` (Working); a stage whose supply traces to a field with nothing ripe is
+  `setHarvestWait` (Idle). Glyphs show only at the root cause (`src/render/glyphs.ts`).
+- `src/sim/lines.ts` owns the port graph (cached per `ents.version`), `lineOf`, `fieldSource`,
+  `diagnose` and `worksTally`; advice sentences are data in `src/data/advice.ts` (gap + fix).
+- `g.stats.states` keeps per-structure state samples (60 s) and day totals; it rolls over at 6am
+  in `Game.endDay`. Rates the player sees are per works day (`DAY_SECS`, 1,008 sim s).
+- The night shift is `Game.runWorks(seconds, step)`; systems that are part of the works say
+  `works: true` in `registerSystem`. Poles have `st.sw` (0 on, 1 off, 2 night only).
+- Field machines pick with `pickable(g, crop, dawn)` (noon rule) in `src/sim/systems/fieldworks.ts`.
+- Ground: a vertex with no art set for its classes is painted by `src/render/blend.ts`
+  (`BLEND_OVER_ART` also overrides the tilled-soil sets). Plank decks: `src/render/planks.ts`.
+- PowerShell trap: inside a double-quoted string or `@"..."@`, `${x}` is a PowerShell variable and
+  vanishes. Template literals went missing twice this session; use the Edit tool for TS with `${`.
+- `main` must stay Phase-0-only while `works` diverges: to commit a hotfix to `main` from a mixed
+  working tree, stage a hand-built blob (`git hash-object -w` + `git update-index --cacheinfo`)
+  and typecheck it in the clean worktree `../sns-p0check` (node_modules is a junction).
 
 Patterns from 1.1's last session:
 - A belt that ends at a structure delivers into it through `portInsert` (`Game.beltSink`); full
