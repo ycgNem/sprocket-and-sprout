@@ -15,7 +15,8 @@ import { itemTooltip } from '../tooltips';
 import { linesTab } from './linetab';
 import { gridSentence } from '../../sim/systems/power';
 
-const NODE_W0 = 34, NODE_H0 = 34, GAP_X0 = 62, GAP_Y0 = 64;
+// rows leave room for a keystone's pips and a two-line name under it (the sweep: 64 hid the second line)
+const NODE_W0 = 34, NODE_H0 = 34, GAP_X0 = 62, GAP_Y0 = 72;
 const ERA_TINT = [C.ink, C.leaf, C.river, C.copper, C.brass, C.lavender];
 const ERA_BUNDLE = ['', 'bundle_green', 'bundle_copper', 'bundle_rose', 'bundle_brass', 'bundle_star'];
 
@@ -42,7 +43,9 @@ function treeLayout() {
 function keystonePips(ui: UI, g: PlayScreen['g'], id: string, x: number, y: number, w: number) {
   const s = stages(g, id);
   const done = g.research.done.has(id);
-  const pips = [s.observe, s.experiment, s.validate, done];
+  // a studied keystone lights every stage it had (its stages read null once it's done)
+  const k = RESEARCH_BY_ID.get(id)?.keystone;
+  const pips = done ? [k?.observe ? true : null, k?.experiment?.length ? true : null, k?.validate ? true : null, true] : [s.observe, s.experiment, s.validate, false];
   const n = pips.length, pw = 5, gap = Math.max(1, Math.floor((w - n * pw) / (n - 1)));
   pips.forEach((p, i) => {
     const px = x + i * (pw + gap);
@@ -66,7 +69,7 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   const HEAD = fit ? 14 : 24;
   const NODE_W = fit ? 16 : NODE_W0, NODE_H = fit ? 16 : NODE_H0;
   const GAP_X = fit ? Math.max(NODE_W + 4, Math.min(36, Math.floor((vw - 24) / L.total))) : GAP_X0;
-  const GAP_Y = fit ? Math.max(NODE_H + 3, Math.min(26, Math.floor((vh - HEAD - 16) / L.rows))) : GAP_Y0;
+  const GAP_Y = fit ? Math.max(NODE_H + 6, Math.min(26, Math.floor((vh - HEAD - 16) / L.rows))) : GAP_Y0;
   const BAND_PAD = fit ? 4 : 10;
   const maxX = L.total * GAP_X + 5 * BAND_PAD + 16;
   const maxY = HEAD + L.rows * GAP_Y + (fit ? 8 : 24);
@@ -123,11 +126,13 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   // the tree stops short of the scrollbars, so nothing hides under them
   ui.clip(vx + 1, vy + 1, vw - (spanY ? SB + 4 : 2), vh - (spanX ? SB + 4 : 2));
   // era bands: a tinted column per era with its name, its bundles and its keystone
+  // "(now)" marks one era: the topic being studied, else the earliest era with something to study
+  const nowEra = RESEARCH_BY_ID.get(g.research.current ?? '')?.era ?? Math.min(6, ...RESEARCH.filter((r) => canResearch(g, r.id)).map((r) => r.era));
   for (let era = 1; era <= 5; era++) {
     const bx = bandX(era), bw = L.cols[era] * GAP_X + BAND_PAD - (fit ? 2 : 6);
     ui.fill(bx, vy + 1, bw, vh - 2, ERA_TINT[era], 0.1);
     ui.fill(bx, vy + 1, bw, fit ? 11 : 21, ERA_TINT[era], 0.35);
-    const now = RESEARCH.some((r) => r.era === era && canResearch(g, r.id));
+    const now = era === nowEra;
     if (fit) ui.text(ellipsize(ERA_NAMES[era], bw - 4), bx + 2, vy + 3, C.ink);
     else {
       ui.itemIcon(key(ERA_BUNDLE[era]), bx + 3, vy + 4, 10);
@@ -179,7 +184,10 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     // name under the node (two short lines); Fit shows names on hover only
     if (!fit) {
       const nameY = ny + NODE_H + (r.keystone ? 13 : 4);
-      wrapText(r.name, GAP_X - 4).slice(0, 2).forEach((l, li) => ui.text(l, nx + NODE_W / 2, nameY + li * 9, done ? C.moss : avail ? C.ink : C.stone, { align: 'center' }));
+      // on a backing of the panel's own colour, so the lines between nodes never run through a name
+      const names = wrapText(r.name, GAP_X - 4).slice(0, 2);
+      names.forEach((l, li) => ui.fill(nx + NODE_W / 2 - textWidth(l) / 2 - 1, nameY + li * 9 - 1, textWidth(l) + 2, 9, C.tan, 0.85));
+      names.forEach((l, li) => ui.text(l, nx + NODE_W / 2, nameY + li * 9, done ? C.moss : avail ? C.ink : C.stone, { align: 'center' }));
       if (r.keystone) keystonePips(ui, g, r.id, nx - 2, ny + NODE_H + 7, NODE_W + 4);
     }
     const prog = g.research.progress[r.id] ?? 0;
@@ -215,7 +223,8 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   thumb(barX, spanX, st.data.panX, true, vw, maxX);
   thumb(barY, spanY, st.data.panY, false, vh, maxY);
   // Fit / full size: the overview shows every topic at once
-  if (ui.button('rfit', vx + vw - 52, vy + vh - (spanX ? 22 : 16), 44, 12, fit ? 'Zoom' : 'Fit', { style: 'flat', tip: fit ? 'Back to full size' : 'Show the whole tree' })) {
+  // (above the tree, on the frame, so it never covers a topic: the sweep found it over a node)
+  if (ui.button('rfit', vx + vw - 46, y + 3, 44, 10, fit ? 'Zoom' : 'Fit', { style: 'flat', tip: fit ? 'Back to full size' : 'Show the whole tree' })) {
     st.data.fit = !fit;
     st.data.panX = 0;
     st.data.panY = 0;

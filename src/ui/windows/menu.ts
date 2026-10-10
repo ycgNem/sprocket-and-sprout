@@ -263,7 +263,8 @@ function recipeLabelFit(r: RecipeDef, w: number): string {
   const open = full.indexOf(' (');
   if (open < 0) return ellipsize(full, w);
   const inputs = full.slice(open + 2, -1);
-  const short = `${full.slice(0, open).split(' ').pop()} (${inputs})`;
+  // the output's last word, not its count ("Grain x2" is "Grain", never "x2")
+  const short = `${full.slice(0, open).replace(/ x\d+$/, '').split(' ').pop()} (${inputs})`;
   if (textWidth(short) <= w) return short;
   const bare = inputs.replace(/ \+ /g, '+');
   return textWidth(bare) <= w ? bare : ellipsize(bare, w);
@@ -271,6 +272,7 @@ function recipeLabelFit(r: RecipeDef, w: number): string {
 
 export function specIcon(spec: string): string {
   const t = spec.slice(1);
-  const map: Record<string, string> = { crop: 'radish', fruit: 'strawberry', forage: 'wild_garlic', flower: 'tulip', preserve: 'jam_strawberry', animal: 'egg', gem: 'amethyst', wine: 'wine_grape', fish: 'silver_dart', greens: 'spinach', vegetable: 'potato', egg: 'egg', milk: 'milk', honey: 'honey', mushroom: 'field_mushroom' };
-  return map[t] ?? 'fiber';
+  const map: Record<string, string> = { crop: 'radish', fruit: 'strawberry', forage: 'wild_garlic', flower: 'tulip', preserve: 'jam_strawberry', animal: 'egg', gem: 'amethyst', wine: 'wine_grape', fish: 'silver_dart', greens: 'spinach', vegetable: 'potato', egg: 'egg', milk: 'milk', honey: 'honey', mushroom: 'field_mushroom', flour: 'flour', herb: 'tealeaf', cooking: 'bread', grain: 'barley', brew: 'barley' };
+  // an unknown tag shows a plain chest (any goods), not a plant's fiber (the sweep: the Town Mill's flour read as fiber)
+  return map[t] ?? 'chest_wood';
 }

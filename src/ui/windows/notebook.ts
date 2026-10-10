@@ -69,7 +69,8 @@ export function drawNotebook(ui: UI, play: PlayScreen, st: WinState, bx: number,
       ui.spriteIcon('i:' + d.item, cx, y + 2, 16);
       ui.text(d.name, cx + 22, y + 2, C.ink);
       if (c) {
-        ui.text(ellipsize(`Takes ${io(c.in)}; gives ${io(c.out)}${c.power ? `; ${c.power} sparks` : ''}`, cw - 26), cx + 22, y + 11, C.walnut);
+        const gives = io(c.out);
+        ui.text(ellipsize(`Takes ${io(c.in)}${gives ? `; gives ${gives}` : ''}${c.power ? `; ${c.power} sparks` : ''}`, cw - 26), cx + 22, y + 11, C.walnut);
         ui.text(ellipsize(c.note, cw - 26), cx + 22, y + 20, C.oak);
       }
       y += rowH;

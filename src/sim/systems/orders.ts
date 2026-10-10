@@ -130,8 +130,12 @@ export function orderTitle(o: Order): string {
   return `${o.lines[0].n} ${specLabel(o.lines[0].spec)}`;
 }
 
+/** a tag's words on an order line ("4 honey (any kind)", not "4 any honey") */
+const TAG_LABEL: Record<string, string> = { flour: 'flour or meal', cooking: 'dishes (any)', preserve: 'preserves (any)', animal: 'animal goods (any)' };
 export function specLabel(spec: string): string {
-  return spec[0] === '#' ? 'any ' + spec.slice(1) : ITEM_BY_ID.get(spec)?.name ?? spec;
+  if (spec[0] !== '#') return ITEM_BY_ID.get(spec)?.name ?? spec;
+  const t = spec.slice(1);
+  return TAG_LABEL[t] ?? `${t} (any kind)`;
 }
 
 /** "due Friday", "due tomorrow", "ends at midnight", "no rush" */

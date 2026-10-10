@@ -44,7 +44,7 @@ function repStrip(ui: UI, g: PlayScreen['g'], cust: string, x: number, y: number
   const r = rank(g, cust);
   const next = REP_RANKS[r + 1];
   const label = next ? `${REP_RANKS[r].name}  ${rep}/${next.rep}` : REP_RANKS[r].name;
-  ui.text(label, x + w, y, C.oak, { align: 'right' });
+  ui.text(label, x + w, y, C.walnut, { align: 'right' });
   if (next) ui.bar(x + w - textWidth(label) - 48, y + 2, 40, 3, (rep - REP_RANKS[r].rep) / (next.rep - REP_RANKS[r].rep), C.moss);
 }
 
@@ -107,16 +107,17 @@ function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number)
     for (const o of os.open.filter((x) => x.kind === 'standing' && x.cust === cust)) {
       const def = STANDING_BY_ID.get(o.def)!;
       const npc = custNpc(cust);
-      ui.panel(x + 4, yy, w - 8, 44, 'paper', false);
-      if (npc) portrait(ui, npc, x + 8, yy + 5, 28, 0);
-      const tx = x + 44, tw = w - 52;
+      // the customer's portrait at full size (a 16 px head floated in its frame), the quote on three lines
+      ui.panel(x + 4, yy, w - 8, 52, 'paper', false);
+      if (npc) portrait(ui, npc, x + 8, yy + 4, 32, 0);
+      const tx = x + 54, tw = w - 62;
       const all = wrapText(`"${def.text}"`, tw - 70);
-      all.slice(0, 2).forEach((l, i) => ui.text(i === 1 && all.length > 2 ? ellipsize(l + ' ' + all.slice(2).join(' '), tw - 70) : l, tx, yy + 4 + i * 9, C.walnut));
+      all.slice(0, 3).forEach((l, i) => ui.text(i === 2 && all.length > 3 ? ellipsize(l + ' ' + all.slice(3).join(' '), tw - 70) : l, tx, yy + 4 + i * 9, C.walnut));
       ui.text(dueText(g, o), x + w - 10, yy + 4, C.oak, { align: 'right' });
-      drawLines(ui, o, tx, yy + 31, tw - 120);
+      drawLines(ui, o, tx, yy + 39, tw - 120);
       const pay = def.unit ? `${ICON.coin}${def.unit} each${def.silver ? `, silver ${def.unit * 2}` : ''}` : def.reward?.text ?? '';
-      ui.text(ellipsize(pay, 140), x + w - 10, yy + 31, orderFull(o) ? C.moss : C.oak, { align: 'right' });
-      if (ui.hover(x + 4, yy, w - 8, 44)) {
+      ui.text(ellipsize(pay, 140), x + w - 10, yy + 39, orderFull(o) ? C.moss : C.oak, { align: 'right' });
+      if (ui.hover(x + 4, yy, w - 8, 52)) {
         ui.tip([
           { text: `${custName(cust)}: ${ITEM_BY_ID.get(def.spec)?.name ?? specLabel(def.spec)}`, color: C.amber },
           { text: 'By hand: hold them and press F at ' + (npc ? villagerName(npc) : custName(cust)) + '.' },
@@ -124,7 +125,7 @@ function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number)
           { text: `Reputation +${o.rep} when it's filled: ${REP_RANKS[Math.min(5, rank(g, cust) + 1)].name} opens their next order and new stock.`, color: C.pebble },
         ], 240);
       }
-      yy += 47;
+      yy += 55;
     }
   }
   // the Trading Guild's contracts

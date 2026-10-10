@@ -486,6 +486,11 @@ export class PlayScreen implements Screen {
     const occ: { x: number; y: number; w: number; h: number }[] = this.hud.occupied ?? [];
     const hits = (bx: number, by: number) => occ.find((o) => bx < o.x + o.w + 2 && bx + w + 2 > o.x && by < o.y + o.h + 2 && by + h + 4 > o.y);
     let x = Math.round(at.x - w / 2);
+    // facing sideways, the bubble over the thing hangs out on its far side, clear of the player's head
+    if (!below && (g.player.dir === 1 || g.player.dir === 3)) {
+      const pu = this.toUI(g.player.x, g.player.y);
+      x = g.player.dir === 1 ? Math.max(x, Math.round(pu.x + 8)) : Math.min(x, Math.round(pu.x - 8 - w));
+    }
     const cover = hits(x, below ? belowY : aboveY);
     if (cover) {
       const flipY = below ? aboveY : belowY;

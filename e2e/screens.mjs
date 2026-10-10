@@ -162,7 +162,8 @@ const SC = {
   map: async () => ev(`(() => { S.play.openWindow('map'); })()`),
   restoration: async () => ev(`(() => { S.play.openWindow('restoration'); })()`),
   // the Works tab with the Town Mill's order up (Milling studied)
-  'board-works': async () => ev(`(() => { S.g.research.done.add('r_milling'); for (let i = 0; i < 70; i++) S.g.tick(); S.play.openWindow('board', 'works'); })()`),
+  // today's asks (the restoration shot is the Works tab)
+  'board-today': async () => ev(`(() => { ${ORDERS}; S.play.openWindow('board', 'today'); })()`),
   // the Orders board: two standing orders and today's asks
   board: async () => ev(`(() => { ${ORDERS}; S.play.openWindow('board'); })()`),
   museum: async () => ev(`(() => { S.g.player.inv.add(S.key('amethyst'), 1); S.g.player.inv.add(S.key('old_cog'), 1); S.play.openWindow('museum'); })()`),
@@ -176,8 +177,8 @@ const SC = {
   research: async () => ev(`(() => { S.g.research.done.add('r_belts'); S.g.research.done.add('r_preserves'); S.play.openWindow('research'); S.play.win.data.sel = 'r_arms'; })()`),
   // 1.2 bug 10: every topic reachable (scrolled to the far corners, and the Fit overview)
   // the keystone pips (Milling: observed, experiment done, validate running) and the Starlight band
-  'research-keystone': async () => ev(`(() => { const g = S.g; for (const id of ['r_belts', 'r_arms', 'r_preserves', 'r_metallurgy', 'r_power']) g.research.done.add(id); g.flags.add('observed:town_mill'); g.counters['made:mill'] = 25; S.play.openWindow('research'); S.play.win.data.focus = 'r_milling'; })()`),
-  'research-bots': async () => ev(`(() => { S.play.openWindow('research'); S.play.win.data.focus = 'r_bot_count'; })()`),
+  'research-keystone': async () => ev(`(() => { const g = S.g; for (const id of ['r_belts', 'r_arms', 'r_preserves', 'r_metallurgy', 'r_power']) g.research.done.add(id); g.research.done.delete('r_milling'); g.flags.delete('validated:r_milling'); g.research.valid.r_milling = 75; g.flags.add('observed:town_mill'); g.counters['made:mill'] = 25; g.research.current = null; S.play.openWindow('research'); S.play.win.data.focus = 'r_milling'; })()`),
+  'research-bots': async () => ev(`(() => { S.play.openWindow('research'); S.play.win.data.focus = 'r_bots'; })()`),
   'research-fit': async () => ev(`(() => { S.play.openWindow('research'); S.play.win.data.fit = true; })()`),
   // 1.2 Phase 1: the automation core and the Field Works
   'works-lines': async () => ev(`(async () => { const g = S.g; S.play.closeWindow(); (${clearArea})(38, 26, 60, 36); const B = window.__build;
@@ -188,7 +189,8 @@ const SC = {
   'works-field': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); (${clearArea})(44, 26, 62, 44); const B = window.__build; g.research.done.add('r_gantry');
     B.place(g, 'gleaner', 48, 29, 0); B.place(g, 'arm_basic', 49, 29, 1); B.place(g, 'jar', 50, 29, 0);
     const gan = B.place(g, 'field_gantry', 50, 40, 0); for (let y = 34; y <= 39; y++) { B.place(g, 'rail', 50, y, 0); B.place(g, 'rail', 56, y, 0); } gan.inv.add(S.key('cogbean_seed'), 20);
-    g.player.x = 52; g.player.y = 33; g.time.min = 13 * 60; for (let i = 0; i < 60 * 8; i++) g.tick(); })()`),
+    g.player.x = 52; g.player.y = 33; g.time.min = 13 * 60; for (let i = 0; i < 60 * 8; i++) g.tick();
+    const empty = g.player.inv.slots.findIndex((sl, i) => i < 12 && !sl); if (empty >= 0) g.player.sel = empty; })()`),
   'works-pole': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); (${clearArea})(44, 26, 60, 36); const B = window.__build; g.research.done.add('r_milling');
     B.place(g, 'windmill', 46, 28, 0); const p = B.place(g, 'pole_wood', 49, 29, 0); const m1 = B.place(g, 'mill', 50, 29, 0); m1.mach.inBuf.set(S.key('wheat'), 50); const m2 = B.place(g, 'mill', 50, 31, 0); m2.mach.inBuf.set(S.key('wheat'), 50);
     g.player.x = 48; g.player.y = 33; for (let i = 0; i < 300; i++) g.tick(); S.play.openWindow('struct', p.id); })()`),
@@ -205,18 +207,20 @@ const SC = {
   help: async () => ev(`(() => { S.play.openWindow('pause'); S.play.win.data.help = true; })()`),
   // ---- places, seasons, weather ----
   // farming back under 5 so the profession prompt from the perk shot doesn't cover the farm
-  'farm-summer': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.player.skills.farming = 4; g.time.season = 1; g.weather = 'sun'; g.player.x = 54; g.player.y = 31; g.time.min = 10 * 60; window.__app.renderer.invalidateAll(); })()`),
+  'farm-summer': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.player.skills.farming = 4; g.time.season = 1; g.weather = 'sun'; g.player.x = 54; g.player.y = 31; g.time.min = 10 * 60; window.__app.renderer.invalidateAll(); window.__app.renderer.juice.banners.length = 0; })()`),
   'farm-fall': async () => ev(`(() => { const g = S.g; g.time.season = 2; window.__app.renderer.invalidateAll(); })()`),
   'farm-winter': async () => ev(`(() => { const g = S.g; g.time.season = 3; g.weather = 'snow'; window.__app.renderer.invalidateAll(); })()`),
   'farm-night': async () => ev(`(() => { const g = S.g; g.time.season = 0; g.weather = 'sun'; g.time.min = 22 * 60; window.__app.renderer.invalidateAll(); })()`),
   'town-storm': async () => ev(`(() => { const g = S.g; g.weather = 'storm'; g.player.x = 133; g.player.y = 64; g.time.min = 15 * 60; })()`),
   // the town keystones done (2.0 Phases 3-4): the Town Mill's wheel turning at dusk, the pump house, the lit square
-  'town-mill': async () => ev(`(() => { const g = S.g; g.weather = 'sun'; for (const f of ['town_mill', 'waterworks', 'lamps_hung']) g.flags.add(f); g.player.x = 104.5; g.player.y = 61; g.time.min = 18 * 60 + 40; for (let i = 0; i < 120; i++) g.tick(); })()`),
-  house: async () => ev(`(() => { const g = S.g; g.weather = 'sun'; g.time.min = 19 * 60; window.__house.enterHouse(g); })()`),
-  mine: async () => ev(`(() => { const g = S.g; g.time.min = 11 * 60; window.__mine.enterFloor(g, 3); })()`),
+  // (the keeper's river works restored carry the town line, so the square's lamps light after dark;
+  // the era cards the flags raise are put away)
+  'town-mill': async () => ev(`(async () => { const g = S.g; g.weather = 'sun'; for (let y = 47; y < 53; y++) for (let x = 83; x < 92; x++) { const e = g.ents.rootAt(x, y); if (e) delete e.st.rust; } g.ents.powerDirty = true; for (const f of ['town_mill', 'waterworks', 'lamps_hung']) g.flags.add(f); g.player.where = 'world'; g.player.x = 104.5; g.player.y = 61; g.time.min = 21 * 60 + 30; for (let i = 0; i < 180; i++) g.tick(); for (let k = 0; k < 8; k++) { await new Promise((r) => setTimeout(r, 120)); if (S.play.win) S.play.closeWindow(); } window.__app.renderer.juice.banners.length = 0; })()`),
+  house: async () => ev(`(() => { const g = S.g; g.weather = 'sun'; g.time.min = 19 * 60; window.__house.enterHouse(g); window.__app.renderer.juice.banners.length = 0; })()`),
+  mine: async () => ev(`(() => { const g = S.g; g.time.min = 11 * 60; window.__mine.enterFloor(g, 3); window.__app.renderer.juice.banners.length = 0; })()`),
   // the Deepworks (Phase 4): the Frost's pools and the dark Crystal galleries under the HUD
-  'deep-frost': async () => ev(`(() => { window.__mine.enterFloor(S.g, 12); })()`),
-  'deep-crystal': async () => ev(`(() => { window.__mine.enterFloor(S.g, 23); })()`),
+  'deep-frost': async () => ev(`(() => { window.__mine.enterFloor(S.g, 12); window.__app.renderer.juice.banners.length = 0; })()`),
+  'deep-crystal': async () => ev(`(() => { window.__mine.enterFloor(S.g, 23); window.__app.renderer.juice.banners.length = 0; })()`),
   summary: async () => ev(`(() => { const g = S.g; g.player.where = 'world'; g.player.x = 54; g.player.y = 31; const bin = g.ents.get(g.shipBinId); bin.inv.add(S.key('radish'), 20); bin.inv.add(S.key('strawberry', 2), 5); bin.inv.add(S.key('wine_grape'), 2); g.goToBed(); g.time.min = 1559.99; g.tick(); })()`),
   // the tally once it has counted up
   'summary-end': async () => ev(`(() => { S.play.win.t = 9; })()`),

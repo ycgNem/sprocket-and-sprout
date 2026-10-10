@@ -135,13 +135,15 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
   const a = play.app.audio, J = play.app.renderer.juice;
   const sold: { k: number; n: number; price: number; coins?: number; to?: string }[] = s.sold ?? [];
-  const rows = sold.slice(0, 10);
   const D = st.data as { shown?: number; ticks?: number; done?: boolean; tease?: string[]; stamped?: boolean };
   // the works first: yesterday's bottleneck in numbers and what the night shift made (ROADMAP.md 4.3, 4.14)
   if (!D.tease) D.tease = [...worksLines(s), ...morningTease(play, sold)].slice(0, 4);
   // full 16 px icons in the night tally (the day's reward deserves more than belt-size icons)
   const ROW = 17;
-  const w = 300, h = Math.min(316, 116 + Math.min(10, sold.length) * ROW + D.tease.length * 11 + ((s.quests ?? []).length ? 14 : 0));
+  // as many rows as the screen has room for (at 1366x620 a record day's ten ran off the top)
+  const fixed = 116 + D.tease.length * 11 + ((s.quests ?? []).length ? 14 : 0);
+  const rows = sold.slice(0, Math.max(3, Math.min(10, Math.floor((Math.min(316, ui.h - 24) - fixed) / ROW))));
+  const w = 300, h = Math.min(316, fixed + rows.length * ROW);
   const { x, y } = centered(ui, w, h);
   ui.fill(0, 0, ui.w, ui.h, C.ink, 0.5);
   if (!frame(ui, x, y, w, h, `${SEASON_NAMES[s.season]} ${s.day}, Year ${s.year}`)) return false;
@@ -190,7 +192,7 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
     ui.text(`${ICON.coin}${(it.coins ?? it.price * it.n).toLocaleString()}`, x + w - 20 + dx, yy, C.moss, { align: 'right' });
     yy += ROW;
   });
-  if (sold.length > 10 && shown >= rows.length) ui.text(`...and ${sold.length - 10} more kinds`, x + 38, yy, C.oak);
+  if (sold.length > rows.length && shown >= rows.length) ui.text(`...and ${sold.length - rows.length} more kinds`, x + 38, yy, C.oak);
   // quests finished today, under the sales
   const qs: string[] = s.quests ?? [];
   if (qs.length && shown >= rows.length) {

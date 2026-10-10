@@ -16,7 +16,7 @@ export function buildDemoFactory(g: Game) {
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (m.inb(x, y)) m.setO(x, y, O.NONE);
   };
   // the keeper's yard (north of row 28) keeps its own layout
-  clear(52, 28, 82, 44);
+  clear(52, 28, 82, 47);
   g.research.done = new Set(['r_belts', 'r_arms', 'r_preserves', 'r_gleaning', 'r_metallurgy', 'r_power', 'r_milling', 'r_gantry']);
   // the keeper's works, restored: the yard's line and the river works run
   for (const e of g.ents.all()) {
@@ -60,16 +60,17 @@ export function buildDemoFactory(g: Game) {
   // the pickles' belt west to a chest by the field
   for (let x = 70; x >= 61; x--) place(g, 'belt_1', x, 37, 3);
   place(g, 'chest_wood', 60, 37, 0);
-  // a field gantry over a five-wide strip between its rails, on a windmill and a pole
-  for (let y = 29; y <= 34; y++) {
-    place(g, 'rail', 74, y, 0);
-    place(g, 'rail', 80, y, 0);
-    for (let x = 75; x <= 79; x++) grow(x, y, (x + y) % 2 === 0);
+  // a field gantry over a five-wide strip between its rails (south of the farm pond), on a windmill
+  // and a pole
+  for (let y = 38; y <= 43; y++) {
+    place(g, 'rail', 73, y, 0);
+    place(g, 'rail', 79, y, 0);
+    for (let x = 74; x <= 78; x++) grow(x, y, (x + y) % 2 === 0);
   }
-  const gan = place(g, 'field_gantry', 74, 35, 0);
+  const gan = place(g, 'field_gantry', 73, 44, 0);
   gan.inv?.add(key('cogbean_seed'), 30);
-  place(g, 'windmill', 75, 37, 0);
-  place(g, 'pole_wood', 78, 37, 0);
+  place(g, 'windmill', 75, 45, 0);
+  place(g, 'pole_wood', 78, 45, 0);
   // lamps for the evening the title shows
   place(g, 'lamp', 58, 35, 0);
   place(g, 'lamp', 72, 36, 0);

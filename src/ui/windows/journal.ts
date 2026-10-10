@@ -31,9 +31,11 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
   const { x, y } = centered(ui, w, h);
   if (!frame(ui, x, y, w, h, 'Journal')) return false;
   st.data.tab = st.data.tab ?? st.arg ?? 'quests';
-  const tabs = [['notebook', 'Notebook'], ['quests', 'Quests'], ['orders', 'Orders'], ['friends', 'Friends'], ['collect', 'Collections'], ['feats', 'Achievements'], ['mail', 'Mail']];
+  // (achievements have their own window, U: their tab overflowed its button and pushed Mail under the
+  // close button, the sweep found)
+  const tabs = [['notebook', 'Notebook'], ['quests', 'Quests'], ['orders', 'Orders'], ['friends', 'Friends'], ['collect', 'Collections'], ['mail', 'Mail']];
   let jump = false;
-  const tw = Math.min(70, Math.floor((w - 20) / tabs.length));
+  const tw = Math.min(70, Math.floor((w - 44) / tabs.length));
   tabs.forEach(([id, label], i) => {
     if (ui.button('jt' + id, x + 10 + i * tw, y + 10, tw - 4, 14, label, { active: st.data.tab === id })) {
       if (id === 'feats') jump = true;
