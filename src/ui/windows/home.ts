@@ -13,6 +13,7 @@ import { specIcon } from './menu';
 import { RECIPE_TEACHERS, shortName } from '../../data/cookbook';
 import { NPC_BY_ID } from '../../data/npcs';
 import { adoptPet, declinePet, petSys, PET_COATS } from '../../sim/systems/pet';
+import { DEFAULT_HAMSTER_NAMES, HAMSTER_COATS, hamsterSys, nameHamster } from '../../sim/systems/hamster';
 import { sprite, drawFit } from '../../render/atlas';
 
 const OVEN = recipesForStation('oven');
@@ -103,5 +104,46 @@ function drawAdopt(ui: UI, play: PlayScreen, st: WinState): boolean {
   return true;
 }
 
+/** the hamster's cage, placed: a name and a coat (src/sim/systems/hamster.ts) */
+function drawHamster(ui: UI, play: PlayScreen, st: WinState): boolean {
+  const g = play.g;
+  const h = hamsterSys(g);
+  if (h.named) return false;
+  const W = 300, H = 178;
+  const { x, y } = centered(ui, W, H);
+  if (!frame(ui, x, y, W, H, 'A hamster for the cage')) return false;
+  if (st.data.name === undefined) {
+    st.data.name = h.name;
+    st.data.coat = h.coat;
+    ui.focus = 'hamname';
+  }
+  const coat: number = st.data.coat;
+  // portrait: sitting up with a seed, now and then a look about
+  ui.fill(x + 14, y + 16, 76, 76, C.tan, 0.6);
+  drawFit(ui.ctx, sprite(`pet:hamster:${coat}:${Math.floor(ui.time * 1.5) % 5 === 0 ? 0 : 2}`), x + 19, y + 22, 66, 64);
+  ui.para('A little hamster blinks up at you from the shavings, cheeks full. It needs a name.', x + 100, y + 18, W - 112, C.ink);
+  ui.text('Coat:', x + 100, y + 53, C.walnut);
+  HAMSTER_COATS.forEach((c, i) => {
+    const bx = x + 132 + i * 38;
+    if (ui.button('hamcoat' + i, bx, y + 45, 34, 20, '', { active: coat === i, style: 'flat', tip: c })) {
+      st.data.coat = i;
+      if (DEFAULT_HAMSTER_NAMES.includes(st.data.name)) st.data.name = DEFAULT_HAMSTER_NAMES[i];
+    }
+    drawFit(ui.ctx, sprite(`pet:hamster:${i}:0`), bx + 9, y + 46, 16, 16);
+  });
+  ui.text(HAMSTER_COATS[coat], x + 132, y + 68, C.oak);
+  ui.text('Name:', x + 100, y + 86, C.walnut);
+  st.data.name = ui.textField('hamname', x + 132, y + 82, 120, st.data.name, 14);
+  if (ui.button('hamok', x + 100, y + 112, 120, 20, 'Welcome ' + (st.data.name || ''), { style: 'green', disabled: !st.data.name?.trim() }) || (ui.input.keyPressed('Enter') && st.data.name?.trim())) {
+    ui.focus = null;
+    nameHamster(g, st.data.name, coat);
+    return false;
+  }
+  ui.text('A seed a day for its supper, and a scratch.', x + 14, y + H - 30, C.oak);
+  ui.text('It sleeps by day and runs its wheel at night.', x + 14, y + H - 20, C.oak);
+  return true;
+}
+
 registerWindow('cooking', { draw: drawCooking });
+registerWindow('hamster', { draw: drawHamster, onClose: (play) => (play.app.ui.focus = null) });
 registerWindow('adopt', { draw: drawAdopt, onClose: (play, st) => { play.app.ui.focus = null; if (!st.data.done) declinePet(play.g); } });

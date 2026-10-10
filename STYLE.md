@@ -102,6 +102,8 @@ only changes lightness looks plastic.
   shadow side, the material's darkest shade on the lit top-left edges.
 - Terrain tiles: no outline. Edges come from the autotile transitions.
 - Never `#000000`. Never a light outline.
+- The one exception: clear glass or plastic (the fish tank, the hamster's ball) is outlined in its own
+  pale or blue ramp, so it reads as clear over grass and floorboards.
 
 ## Light and shadow
 

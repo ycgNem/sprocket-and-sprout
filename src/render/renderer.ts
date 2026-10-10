@@ -6,6 +6,7 @@ import { C, PALETTE, rgba } from '../data/palette';
 import { CROP_BY_ID } from '../data/crops';
 import { MEGA_BY_ID } from '../data/goals';
 import { FURN_BY_ID } from '../data/furniture';
+import { CAGE, cageOf, WHEEL_X, type HamsterState } from '../sim/systems/hamster';
 import { TREE_BY_ID } from '../data/trees';
 import { ANIMAL_BY_ID } from '../data/creatures';
 import { hash2 } from '../engine/rng';
@@ -47,6 +48,8 @@ import { LANDMARK, SQUARE_LAMP } from '../sim/world/townworks';
 const CH = TileMap.CHUNK;
 /** seconds the rust takes to lift off a restored machine */
 const RESTORE_FADE = 0.6;
+/** the hamster's feet in its cage: px below the cage's tile row, on the shavings and in the wheel */
+const CAGE_FLOOR = 10, WHEEL_FOOT = 9;
 /** flat objects baked into the ground that get a shadow, and its width */
 const SHADOWED_OBJ = new Map<O, number>([
   [O.ROCK, 12], [O.BOULDER, 14], [O.STUMP, 12], [O.LOG, 14], [O.BUSH, 14], [O.ORE_ROCK, 12], [O.GEM_ROCK, 12], [O.BARREL, 12],
@@ -707,12 +710,18 @@ export class Renderer {
   /** furniture the player placed inside the farmhouse */
   private drawDecor(g: Game, D: Drawable[]) {
     const ctx = this.ctx, t = this.time, season = g.time.season;
+    const ham = g.sys.hamster as HamsterState | undefined;
+    const home = ham?.named ? cageOf(g) : null;
     for (const d of g.sys.house?.decor ?? []) {
       const f = FURN_BY_ID.get(d.id);
       if (!f) continue;
       const s = sprite(`hf:${f.sprite}:${season}`);
       const px = d.x * TILE, py = d.y * TILE;
       const sy = f.flat ? -9 : f.wall ? -4 : d.y + f.h - 0.05;
+      if (d.id === CAGE) {
+        D.push({ y: sy, f: () => this.drawCage(g, d === home ? ham! : null, px, py, season) });
+        continue;
+      }
       D.push({ y: sy, f: () => {
         drawSprite(ctx, s, px, py);
         if (d.id === 'f_tank' && hasImage('hf:fish:0:0')) {
@@ -737,6 +746,31 @@ export class Renderer {
         }
       } });
     }
+  }
+
+  /**
+   * The hamster's cage (src/sim/systems/hamster.ts): its back, the wheel's spokes (turning while it
+   * runs), the hamster where it is, then the front bars over it. Its feet stand CAGE_FLOOR px below
+   * the cage's tile row on the shavings, WHEEL_FOOT in the bottom of the wheel.
+   */
+  private drawCage(g: Game, h: HamsterState | null, px: number, py: number, season: number) {
+    const ctx = this.ctx, t = this.time;
+    drawSprite(ctx, sprite(`hf:hamstercage:0:${season}`), px, py);
+    const running = !!h && !h.ball && h.mode === 'wheel';
+    drawSprite(ctx, sprite(`hf:hamsterwheel:${running ? Math.floor(t * 10) % 4 : 0}:${season}`), px, py);
+    if (h && !h.ball) {
+      // its feet: on the cage floor, or in the bottom of the wheel
+      const fx = px + Math.round(running ? WHEEL_X : h.cx), fy = py + (running ? WHEEL_FOOT : CAGE_FLOOR);
+      const full = hasImage(`pet:hamster:${h.coat}:5`);
+      const run = [0, 1, 4, 5];
+      const pose = running ? run[Math.floor(t * 12) % 4]
+        : h.mode === 'sleep' ? (full && Math.floor(t) % 2 ? 6 : 3)
+        : h.mode === 'nibble' ? 2
+        : h.moving ? run[Math.floor(h.walkT * 4) % 4] : 0;
+      drawSprite(ctx, sprite(`pet:hamster:${h.coat}:${pose}`), fx, fy, 1, !running && h.dir === 3);
+      if (h.emote) this.drawEmote(fx / TILE, fy / TILE - 0.6, h.emote);
+    }
+    drawSprite(ctx, sprite(`hf:hamstercage:1:${season}`), px, py);
   }
 
   private drawSoil(g: Game, tx0: number, ty0: number, tx1: number, ty1: number, D: Drawable[]) {
@@ -1579,6 +1613,16 @@ export class Renderer {
         drawSprite(ctx, sprite('shadow:10'), pet.x * TILE, pet.y * TILE);
         drawSprite(ctx, sprite(`pet:${pet.kind}:${pet.coat}:${pose}`), pet.x * TILE, pet.y * TILE, 1, pet.dir === 3);
         if (pet.emote) this.drawEmote(pet.x, pet.y - (full ? 1.4 : 1.1), pet.emote);
+      } });
+    }
+    // the hamster out in its ball, rolling about the farmhouse (src/sim/systems/hamster.ts)
+    const hb = g.sys.hamster as HamsterState | undefined;
+    if (hb?.named && hb.ball && g.player.where === 'house') {
+      const f = hb.moving ? Math.floor(hb.walkT * 5) % 4 : 0;
+      D.push({ y: hb.y, f: () => {
+        drawSprite(ctx, sprite('shadow:10'), hb.x * TILE, hb.y * TILE);
+        drawSprite(ctx, sprite(`pet:hamsterball:${hb.coat}:${f}`), hb.x * TILE, hb.y * TILE, 1, hb.dir === 3);
+        if (hb.emote) this.drawEmote(hb.x, hb.y - 1.1, hb.emote);
       } });
     }
     // Tock, the Professor's clockwork helper (src/sim/systems/tock.ts): the pets' walk cycle and poses

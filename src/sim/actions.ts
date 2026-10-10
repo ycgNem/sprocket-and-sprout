@@ -6,6 +6,7 @@ import { knowsRecipe, learnRecipe } from './systems/cookbook';
 import { depotInsert } from './systems/orders';
 import { fillBowl, petAt, petInteract } from './systems/pet';
 import { tockAt, tockInteract } from './systems/tock';
+import { hamsterBallAt, hamsterUse } from './systems/hamster';
 import { BUFF_INFO } from '../data/buffs';
 import { CROP_BY_ID, CROP_BY_SEED } from '../data/crops';
 import { ITEM_BY_ID } from '../data/items';
@@ -526,12 +527,17 @@ export function eatHeld(g: Game): boolean {
 export function interact(g: Game, tx: number, ty: number): boolean {
   if (g.sleeping) return false;
   if (g.player.where === 'mine') return g.sys.mine?.interact?.(g, tx, ty) ?? false;
-  if (interactTile(g, tx, ty)) return true;
-  // the pet and Tock answer F only when nothing else at the tile does (the owner's playtest: a cat
-  // underfoot took the F meant for the crock)
+  // the pet, the hamster's ball and Tock answer F only when nothing else at the tile does (the
+  // owner's playtest: a cat underfoot took the F meant for the crock); a rug under them yields
   const pet = petAt(g, tx + 0.5, ty + 0.5);
+  const ball = hamsterBallAt(g, tx + 0.5, ty + 0.5);
+  if (interactTile(g, tx, ty, !!(pet || ball))) return true;
   if (pet) {
     petInteract(g, pet);
+    return true;
+  }
+  if (ball) {
+    hamsterUse(g);
     return true;
   }
   const tock = tockAt(g, tx + 0.5, ty + 0.5);
@@ -543,14 +549,14 @@ export function interact(g: Game, tx: number, ty: number): boolean {
 }
 
 /** F at a tile: a structure, a villager, a crop, a door... (true when something answered) */
-function interactTile(g: Game, tx: number, ty: number): boolean {
+function interactTile(g: Game, tx: number, ty: number, critter = false): boolean {
   const p = g.player;
   const m = curMap(g);
   if (p.where === 'house') {
     // a structure placed indoors works as it does outside (Workshop HQ)
     const he = g.houseEnts.rootAt(tx, ty);
     if (he && !he.ghost) return interactStruct(g, he);
-    return g.sys.house?.interact?.(g, tx, ty) ?? false;
+    return g.sys.house?.interact?.(g, tx, ty, critter) ?? false;
   }
   // NPCs near the target
   const npc = g.sys.npcs?.at?.(g, tx + 0.5, ty + 0.5);

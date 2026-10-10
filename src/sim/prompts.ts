@@ -14,6 +14,9 @@ import { machAccept, stationRecipes } from './systems/machines';
 import { wouldGift } from './systems/npcs';
 import { petAt } from './systems/pet';
 import { tockAt } from './systems/tock';
+import { hamsterBallAt } from './systems/hamster';
+import { DECOR_USE, decorAt } from './systems/house';
+import { FURN_BY_ID } from '../data/furniture';
 import { shopOpen } from './systems/town';
 import { SHOPS } from '../data/shops';
 import { curMap } from './systems/player';
@@ -61,6 +64,13 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
     const hint = pet.stay ? 'Shift+F: come along' : 'Shift+F: stay';
     return fish ? { verb: 'Give a treat', x: pet.x, y: pet.y - 1, hint } : pet.petted ? null : { verb: 'Pet ' + pet.name, x: pet.x, y: pet.y - 1, hint };
   }
+  const ball = hamsterBallAt(g, tx + 0.5, ty + 0.5);
+  if (ball) {
+    const held = p.inv.slots[p.sel];
+    const seed = held && kDef(held.k).cat === 'seed' && ball.fedDay !== g.dayIndex;
+    const hint = 'Shift+F: back in the cage';
+    return seed ? { verb: `Feed ${ball.name}`, x: ball.x, y: ball.y - 1, hint } : ball.pettedDay === g.dayIndex ? null : { verb: `Pet ${ball.name}`, x: ball.x, y: ball.y - 1, hint };
+  }
   const tock = tockAt(g, tx + 0.5, ty + 0.5);
   if (tock) return { verb: 'Tock', x: tock.x, y: tock.y - 1.3 };
   return null;
@@ -75,6 +85,13 @@ function tilePrompt(g: Game, tx: number, ty: number): Prompt | null {
     // a structure placed indoors (Workshop HQ) answers as it does outside
     const he = g.houseEnts.rootAt(tx, ty);
     if (he && !he.ghost) return structPrompt(g, he);
+    // furniture with a use of its own (the hamster's cage) says what F does there
+    const dc = decorAt(g, tx, ty);
+    const use = dc && DECOR_USE.get(dc.id);
+    if (dc && use?.prompt) {
+      const pr = use.prompt(g, dc);
+      return pr && { ...pr, x: dc.x + (FURN_BY_ID.get(dc.id)?.w ?? 1) / 2, y: dc.y - 0.6 };
+    }
     switch (o) {
       case O.BED: return top('Sleep', 0.6);
       case O.STOVE: return top(g.flags.has('home_kitchen') ? 'Cook' : 'Look');

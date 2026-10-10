@@ -225,6 +225,11 @@ export class Audio {
         this.tone(f * 1.45, 'triangle', { a: 0.01, d: 0.22 }, 0.045 * v, B, 0.15, 0.62);
         break;
       }
+      case 'squeak':
+        // the hamster: two quick, high chirps
+        this.tone(2300 + Math.random() * 400, 'sine', { a: 0.004, d: 0.05 }, 0.035 * v, B, 0, 1.2);
+        this.tone(2700 + Math.random() * 300, 'sine', { a: 0.004, d: 0.06 }, 0.03 * v, B, 0.07, 0.9);
+        break;
       case 'bark':
         for (let i = 0; i < (Math.random() < 0.5 ? 1 : 2); i++) {
           this.tone(320 + Math.random() * 60, 'square', { a: 0.005, d: 0.09 }, 0.04 * v, B, i * 0.18, 0.55);

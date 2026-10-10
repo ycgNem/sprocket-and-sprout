@@ -505,6 +505,8 @@ export function furnArt(name: string): Furn | null {
     case 'drafting': return drafting();
     case 'workbench': return workbench();
     case 'toolwall': return toolwall();
+    case 'hamstercage': return hamCage(v);
+    case 'hamsterwheel': return hamWheel(v);
   }
   return null;
 }
@@ -686,12 +688,130 @@ function drawBowl(full: number): PixBuf {
   return pb;
 }
 
+
+// ---------- the hamster (src/sim/systems/hamster.ts): stand-ins until the imported art ----------
+// pet:hamster:<coat>:<pose> (16x16, feet at 8,15; poses as the pets': 0 stand, 1 4 5 run, 2 sitting
+// up with a seed, 3 and 6 curled asleep), pet:hamsterball:<coat>:<frame>, and the cage's layers
+// hf:hamstercage:0 (its back), hf:hamsterwheel:<frame> (the wheel's spokes), hf:hamstercage:1 (front bars)
+const HAM_COATS = [[C.amber, C.terracotta, C.cream], [C.cream, C.frost, C.cream], [C.pebble, C.stone, C.cream], [C.cream, C.slate, C.cream]];
+
+function drawHamsterArt(coat: number, pose: number): PixBuf {
+  const [base, mark, light] = HAM_COATS[coat] ?? HAM_COATS[0];
+  const eye = coat === 1 ? C.berry : C.ink;
+  const pb = new PixBuf(16, 16);
+  if (pose === 3 || pose === 6) {
+    // curled up: a ball of fur, eyes shut
+    const big = pose === 6 ? 0.3 : 0;
+    pb.ellipse(8, 12.5, 4.4 + big, 2.9 + big, base);
+    pb.ellipse(7, 11.6, 3, 1.3, mark);
+    if (coat === 3) pb.rect(7, 10, 2, 6, light);
+    pb.set(11, 10, C.rose);
+    pb.rect(10, 13, 2, 1, C.ink);
+  } else if (pose === 2) {
+    // sitting up, cheeks full, a seed in its paws
+    pb.ellipse(8, 11.5, 3, 3.6, base);
+    pb.ellipse(8, 12.5, 1.8, 2.4, light);
+    pb.disc(8, 6.6, 2.6, coat === 3 ? mark : base);
+    pb.disc(6.3, 7.6, 1.4, light);
+    pb.disc(9.7, 7.6, 1.4, light);
+    pb.set(6, 4, C.rose); pb.set(10, 4, C.rose);
+    pb.set(7, 6, eye); pb.set(9, 6, eye);
+    pb.set(8, 7, C.rose);
+    pb.rect(7, 9, 2, 1, C.butter);
+    pb.set(6, 15, C.blush); pb.set(10, 15, C.blush);
+  } else {
+    // on all fours, facing right; the run cycle moves its feet and bobs it a pixel
+    const bob = pose === 1 || pose === 5 ? 1 : 0;
+    pb.ellipse(7, 11.5 - bob, 4.6, 3, base);
+    pb.ellipse(6, 10.4 - bob, 3.2, 1.4, mark);
+    if (coat === 3) pb.rect(6, 9 - bob, 3, 5, light);
+    pb.ellipse(7.5, 13.3 - bob, 3, 1, light);
+    pb.disc(11.2, 10.8 - bob, 2.4, coat === 3 ? mark : base);
+    pb.disc(12, 12 - bob, 1.3, light);
+    pb.set(10, 8 - bob, C.rose);
+    pb.set(12, 10 - bob, eye);
+    pb.set(14, 11 - bob, C.rose);
+    const feet = pose === 1 ? [3, 9] : pose === 4 ? [4, 10] : pose === 5 ? [5, 8] : [4, 9];
+    for (const x of feet) pb.set(x, 15, C.blush);
+  }
+  pb.outline(C.ink);
+  return pb;
+}
+
+function drawHamBall(coat: number, frame: number): PixBuf {
+  const pb = drawHamsterArt(coat, [0, 1, 4, 5][frame % 4]);
+  const out = new PixBuf(16, 16);
+  // the hamster, a little smaller, inside a clear ball
+  for (let y = 0; y < 16; y++)
+    for (let x = 0; x < 16; x++) {
+      const i = (y * 16 + x) * 4;
+      if (!pb.data[i + 3]) continue;
+      const nx = Math.round(4 + x * 0.55), ny = Math.round(6 + y * 0.55);
+      out.data.set(pb.data.subarray(i, i + 4), (ny * 16 + nx) * 4);
+    }
+  for (let y = 0; y < 16; y++)
+    for (let x = 0; x < 16; x++) {
+      const d = Math.hypot(x + 0.5 - 8, y + 0.5 - 9);
+      if (d <= 6.5 && d > 5.6) out.set(x, y, C.frost, 230);
+    }
+  // its seam and a glint, turning as it rolls
+  const a = (frame % 4) * (Math.PI / 4);
+  out.set(Math.round(8 + Math.cos(a) * 6), Math.round(9 + Math.sin(a) * 6), C.sky);
+  out.set(Math.round(8 - Math.cos(a) * 6), Math.round(9 - Math.sin(a) * 6), C.sky);
+  out.set(5, 5, C.cream); out.set(6, 4, C.cream);
+  return out;
+}
+
+function hamCage(front: number): Furn {
+  const pb = new PixBuf(32, 26);
+  if (front) {
+    // the front bars and the tray's lip, over the hamster
+    for (let x = 3; x < 30; x += 4) pb.rect(x, 5, 1, 15, C.brass);
+    pb.rect(1, 3, 30, 1, C.gold);
+    pb.rect(1, 20, 30, 4, C.walnut);
+    pb.rect(1, 20, 30, 1, C.oak);
+    pb.rect(1, 24, 30, 1, C.bark);
+    return { w: 32, h: 26, ox: 0, oy: 10, pb };
+  }
+  // the tray, the back bars, shavings to sleep in, a dish, a water bottle and the wheel's stand
+  pb.rect(1, 3, 30, 2, C.brass);
+  pb.rect(1, 3, 1, 18, C.brass); pb.rect(30, 3, 1, 18, C.brass);
+  for (let x = 4; x < 30; x += 3) pb.rect(x, 5, 1, 15, C.copper);
+  pb.rect(2, 17, 28, 4, C.tan);
+  pb.noise(2, 17, 12, 4, C.butter, C.tan, 0.4, 7);
+  pb.rect(13, 18, 5, 2, C.slate); pb.rect(14, 18, 3, 1, C.butter);
+  pb.rect(28, 7, 2, 6, C.sky); pb.rect(28, 7, 1, 6, C.frost); pb.set(27, 13, C.stone);
+  pb.line(23, 13, 20, 20, C.stone); pb.line(23, 13, 26, 20, C.stone);
+  for (let y = 0; y < 26; y++)
+    for (let x = 14; x < 32; x++) {
+      const d = Math.hypot(x + 0.5 - 23, y + 0.5 - 13);
+      if (d <= 6.6 && d > 5.6) pb.set(x, y, C.pebble);
+    }
+  pb.rect(1, 20, 30, 5, C.walnut);
+  pb.outline(C.ink);
+  return { w: 32, h: 26, ox: 0, oy: 10, pb };
+}
+
+function hamWheel(frame: number): Furn {
+  const pb = new PixBuf(32, 26);
+  for (let k = 0; k < 4; k++) {
+    const a = (frame % 4) * (Math.PI / 8) + (k * Math.PI) / 2;
+    pb.line(23, 13, Math.round(23 + Math.cos(a) * 5), Math.round(13 + Math.sin(a) * 5), C.stone);
+  }
+  pb.set(23, 13, C.brass);
+  return { w: 32, h: 26, ox: 0, oy: 10, pb };
+}
+
 export function registerHomeSprites() {
   defSpriteFamily('pet:', (name) => {
     const [, kind, cs, ps] = name.split(':');
     if (kind === 'tock') {
       const tb = drawTock(+ps);
       return { w: 22, h: 20, ox: 11, oy: 19, draw: (ctx) => tb.drawTo(ctx) };
+    }
+    if (kind === 'hamster' || kind === 'hamsterball') {
+      const hb = kind === 'hamster' ? drawHamsterArt(+cs, +ps) : drawHamBall(+cs, +ps);
+      return { w: 16, h: 16, ox: 8, oy: 15, draw: (ctx) => hb.drawTo(ctx) };
     }
     const pb = kind === 'dog' ? drawDog(+cs, +ps) : drawCat(+cs, +ps);
     return { w: 16, h: 16, ox: 8, oy: 15, draw: (ctx) => pb.drawTo(ctx) };

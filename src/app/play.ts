@@ -1,7 +1,8 @@
 // The in-game screen: input -> sim commands, camera, build tools, HUD + windows, events -> juice.
 import { quickStack } from '../sim/quickstack';
 import { pendingPerk } from '../sim/perks';
-import { canPlaceDecor, placeDecor } from '../sim/systems/house';
+import { canPlaceDecor, decorAt, pickupDecor, placeDecor } from '../sim/systems/house';
+import { ballToggleAt, hamsterBallAt, hamsterHearts, toggleBall } from '../sim/systems/hamster';
 import { FURN_BY_ID } from '../data/furniture';
 import { petAt, petHearts, togglePetStay } from '../sim/systems/pet';
 import { tockAt } from '../sim/systems/tock';
@@ -631,6 +632,18 @@ export class PlayScreen implements Screen {
       ui.tip([{ text: 'Tock', color: C.amber }, { text: "The Professor's clockwork helper: it turns the key of any spring arm or gleaner it finds run down" }, { text: `${tk.today} key${tk.today === 1 ? '' : 's'} turned today, ${tk.wound} in all`, color: C.pebble }], 200);
       return;
     }
+    const hb = hamsterBallAt(g, t.fx, t.fy + 0.3);
+    if (hb) {
+      const h = hamsterHearts(hb);
+      ui.tip([
+        { text: hb.name, color: C.amber },
+        { text: 'Your hamster, out in its ball  ' + ICON.heart.repeat(h) + '.'.repeat(5 - h), color: C.rose },
+        { text: hb.fedDay === g.dayIndex ? 'Had its seed today' : 'Hold a seed and press F: its supper, once a day', color: C.pebble },
+        { text: hb.pettedDay === g.dayIndex ? 'Petted today' : 'F or right-click for a scratch', color: C.pebble },
+        { text: 'Shift+F: back in the cage', color: C.pebble },
+      ], 200);
+      return;
+    }
     const bowl = g.sys.pet?.stage === 'adopted' && g.player.where === 'world' ? g.sys.pet.bowl : null;
     if (bowl && bowl[0] === t.x && bowl[1] === t.y) {
       ui.tip([{ text: `${g.sys.pet.name}'s water bowl`, color: C.amber }, { text: g.sys.pet.bowlFull ? 'Full of fresh water' : 'Empty. Use your watering can on it.', color: g.sys.pet.bowlFull ? C.aqua : C.pebble }]);
@@ -832,8 +845,11 @@ export class PlayScreen implements Screen {
       const fs = fe && !fe.ghost && !fe.st.rust && (fe.mach || fe.inv || fe.arm || fe.gen || fe.def.kind === 'pole') ? fe : null;
       // Shift+F at your pet: stay around the farmhouse, or come along (the owner's playtest)
       const fp = input.shift && !walking && !fs ? petAt(g, fx + 0.5, fy + 0.5) : null;
+      // Shift+F at the hamster's cage or its ball: out in the ball, or back in the cage
+      const fh = input.shift && !walking && !fs && !fp && ballToggleAt(g, fx, fy);
       if (fs) this.openWindow('struct', fs.id);
       else if (fp?.stage === 'adopted') togglePetStay(g, fp);
+      else if (fh) toggleBall(g);
       else if (!interact(g, fx, fy) && g.player.where === 'world') {
         // the Orders board answers F from any side: it's a post you walk around, not a door
         const px = Math.floor(g.player.x), py = Math.floor(g.player.y);
@@ -1041,6 +1057,8 @@ export class PlayScreen implements Screen {
       // right-click on a spring arm or a gleaner turns its key (the winding verb); F opens its window
       const we = p.where === 'world' ? g.ents.rootAt(ix, iy) : p.where === 'house' ? g.houseEnts.rootAt(ix, iy) : null;
       if (we && !we.ghost && isWindable(we)) windArm(g, we);
+      // Shift+right-click picks up farmhouse furniture, the kind with a use of its own too (the hamster's cage)
+      else if ((input.press.shift || input.shift) && p.where === 'house' && decorAt(g, ix, iy)) pickupDecor(g, ix, iy);
       else if (!interact(g, ix, iy) && d?.edible) eatHeld(g);
     }
   }

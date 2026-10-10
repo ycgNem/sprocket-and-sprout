@@ -1,5 +1,6 @@
 // Journal (notebook, quests, orders, friends, collections, mail), world map, restoration board, museum.
 import { togglePetStay } from '../../sim/systems/pet';
+import { hamsterHearts, type HamsterState } from '../../sim/systems/hamster';
 import { TRUST_REWARDS } from '../../data/trust';
 import { shortName } from '../../data/cookbook';
 import { C, PALETTE } from '../../data/palette';
@@ -92,7 +93,8 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
     const list = npcSys(g).list;
     const rowH = 30;
     const pet = g.sys.pet?.stage === 'adopted' ? g.sys.pet : null;
-    const first = pet ? 1 : 0;
+    const ham = (g.sys.hamster as HamsterState | undefined)?.named ? (g.sys.hamster as HamsterState) : null;
+    const first = (pet ? 1 : 0) + (ham ? 1 : 0);
     const off = ui.scrollOffset('jf', bx, by, bw, bh, (list.length + first) * rowH + 4);
     ui.clip(bx, by, bw, bh);
     if (pet) {
@@ -108,6 +110,19 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
       if (pet.petted) ui.text('petted', bx + bw - 8, ry + 3, C.moss, { align: 'right' });
       // stay around the farmhouse, or come along (Shift+F at the pet does the same)
       if (ui.button('petstay', bx + bw - 76, ry + 12, 68, 12, pet.stay ? 'Stays home' : 'Follows you', { style: 'flat', tip: pet.stay ? `${pet.name} stays around the farmhouse. Click to have them come along.` : `${pet.name} follows you about the farm. Click to have them stay home.` })) togglePetStay(g, pet);
+    }
+    if (ham) {
+      // the hamster in its cage (src/sim/systems/hamster.ts)
+      const ry = by + 2 + (pet ? rowH : 0) - off;
+      ui.fill(bx + 4, ry, 22, 22, C.tan, 0.5);
+      drawFit(ui.ctx, sprite(`pet:hamster:${ham.coat}:2`), bx + 4, ry + 1, 22, 22);
+      ui.text(ham.name, bx + 34, ry + 3, C.ink);
+      ui.text('Your hamster', bx + 34, ry + 13, C.oak);
+      const hh = hamsterHearts(ham);
+      ui.text(ICON.heart.repeat(hh) + '.'.repeat(5 - hh), bx + 230, ry + 3, C.rose);
+      const fed = ham.fedDay === g.dayIndex;
+      ui.text(fed ? 'Had its seed' : 'No seed yet today', bx + 230, ry + 13, fed ? C.moss : C.walnut);
+      if (ham.pettedDay === g.dayIndex) ui.text('petted', bx + bw - 8, ry + 3, C.moss, { align: 'right' });
     }
     list.forEach((n, i0) => {
       const i = i0 + first;

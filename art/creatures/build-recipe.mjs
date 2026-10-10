@@ -20,6 +20,10 @@ for (const k of COOP) for (let f = 0; f < 4; f++) for (const b of [0, 1]) add(`a
 // pet:<kind>:<coat>:<pose>  (0 stand, 1 walk, 2 sit, 3 sleep; extras: 4-5 finish a 4-frame walk, 6 sleep breathing in)
 // tock = the clockwork companion (one coat): 2 sits winding down, 3 and 6 rest with the lens dark / glowing faintly
 for (const k of ['cat', 'dog', 'tock']) for (let c = 0; c < 4; c++) for (let p = 0; p < 7; p++) if (has(`pet_${k}_${c}_${p}`)) add(`pet:${k}:${c}:${p}`, `pet_${k}_${c}_${p}`, [22, 20], [11, 19]);
+// the hamster (hamster.mjs): a smaller 16x16 frame, feet at [8, 15]; coats 0 Golden, 1 Snow, 2 Silver, 3 Panda;
+// the same poses (walk 0 1 4 5, 2 sits with a seed, 3/6 sleep breathing). Its exercise ball: frames 0-3 roll.
+for (let c = 0; c < 4; c++) for (let p = 0; p < 7; p++) add(`pet:hamster:${c}:${p}`, `pet_hamster_${c}_${p}`, [16, 16], [8, 15]);
+for (let c = 0; c < 4; c++) for (let f = 0; f < 4; f++) add(`pet:hamsterball:${c}:${f}`, `pet_hamsterball_${c}_${f}`, [16, 16], [8, 15]);
 
 // bowl:<full>  (drawn at the tile's top-left corner)
 for (const b of [0, 1]) if (has(`bowl_${b}`)) add(`bowl:${b}`, `bowl_${b}`, [16, 16], [0, 0]);

@@ -163,6 +163,8 @@ export function houseHover(g: Game, tx: number, ty: number): { text: string; col
   }
   const dc = decorAt(g, tx, ty);
   if (dc) {
+    const use = DECOR_USE.get(dc.id);
+    if (use) return use.hover(g, dc);
     const f = FURN_BY_ID.get(dc.id)!;
     return [{ text: f.name, color: C.amber }, { text: 'Right-click to pick up', color: C.pebble }];
   }
@@ -175,6 +177,20 @@ export function houseHover(g: Game, tx: number, ty: number): { text: string; col
 
 // ---------------- furniture ----------------
 export interface Decor { id: string; x: number; y: number }
+
+/**
+ * Furniture with a use of its own (the hamster's cage: src/sim/systems/hamster.ts, which fills this
+ * in so the farmhouse needn't import it). F or right-click uses it (false: picked up as any other),
+ * its hover and its F bubble are its own, and Shift+right-click picks it up (src/app/play.ts).
+ */
+export interface DecorUse {
+  use(g: Game, d: Decor): boolean;
+  hover(g: Game, d: Decor): { text: string; color?: number }[];
+  prompt?(g: Game, d: Decor): { verb: string; hint?: string } | null;
+  placed?(g: Game, d: Decor): void;
+  lifted?(g: Game, d: Decor): void;
+}
+export const DECOR_USE = new Map<string, DecorUse>();
 
 export function decorList(g: Game): Decor[] {
   houseMap(g);
@@ -230,9 +246,11 @@ export function placeDecor(g: Game, id: string, x: number, y: number): string | 
   const err = canPlaceDecor(g, f, x, y);
   if (err) return err;
   if (g.player.inv.removeSpec(id, 1).length === 0) return 'You have none.';
-  decorList(g).push({ id, x, y });
+  const d = { id, x, y };
+  decorList(g).push(d);
   g.emit({ t: 'sfx', id: 'place' });
   g.count('decor');
+  DECOR_USE.get(id)?.placed?.(g, d);
   return null;
 }
 
@@ -249,16 +267,19 @@ export function pickupDecor(g: Game, x: number, y: number): boolean {
     g.toast('Your bag is full.');
     return true;
   }
+  DECOR_USE.get(d.id)?.lifted?.(g, d);
   const list = decorList(g);
   list.splice(list.indexOf(d), 1);
   g.emit({ t: 'sfx', id: 'pickup_struct' });
   return true;
 }
 
-export function houseInteract(g: Game, tx: number, ty: number): boolean {
+/** F or right-click at a farmhouse tile (`critter`: the pet or the hamster's ball is on it, so a rug yields to it) */
+export function houseInteract(g: Game, tx: number, ty: number, critter = false): boolean {
   const m = houseMap(g);
   if (g.sys.partnerAt?.(g, tx, ty)) return true;
-  if (decorAt(g, tx, ty)) return pickupDecor(g, tx, ty);
+  const dc = decorAt(g, tx, ty);
+  if (dc && !(critter && FURN_BY_ID.get(dc.id)!.flat)) return DECOR_USE.get(dc.id)?.use(g, dc) || pickupDecor(g, tx, ty);
   const o = m.o(tx, ty);
   switch (o) {
     case O.BED:

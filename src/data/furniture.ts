@@ -31,6 +31,7 @@ export const FURNITURE: FurnDef[] = [
   { id: 'f_tank', name: 'Fish Tank', price: 1600, desc: 'A glass tank with three very calm goldfish.', sprite: 'tank:0', w: 2, h: 1, solid: true, light: { r: 2.2, c: C.aqua }, shop: 'carpenter' },
   { id: 'f_fig', name: 'Fiddle Fig', price: 350, desc: 'Big leaves, big personality.', sprite: 'plant:0', w: 1, h: 1, solid: true, shop: 'general' },
   { id: 'f_fern', name: 'Potted Fern', price: 300, desc: 'Happy in any corner.', sprite: 'plant:1', w: 1, h: 1, solid: true, shop: 'general' },
+  { id: 'f_hamster_cage', name: 'Hamster Cage', price: 1000, desc: 'A brass-barred cage with a wheel, a water bottle and a deep bed of shavings. A hamster comes with it: you name it.', sprite: 'hamstercage:0', w: 2, h: 1, solid: true, shop: 'general' },
   { id: 'f_petbed', name: 'Pet Bed', price: 400, desc: 'A plump cushion. Your pet will sleep here at night.', sprite: 'petbed:0', w: 1, h: 1, flat: true, solid: false, shop: 'general' },
   { id: 'f_paint_meadow', name: 'Painting: Meadow at Dawn', price: 0, desc: 'A gift from Hazel. Soft light over wet grass.', sprite: 'painting:0', w: 1, h: 1, wall: true, solid: false },
   { id: 'f_paint_sea', name: 'Painting: Stormy Sea', price: 0, desc: 'A gift from Hazel. You can almost hear the waves.', sprite: 'painting:1', w: 1, h: 1, wall: true, solid: false },

@@ -397,7 +397,9 @@ export const ITEMS_AFTER_1_1 = ['cogbean_oil', 'gleaner', 'rail', 'field_gantry'
   // 2.0 Phase 3: crop intermediates, rapeseed and the thresher
   'canvas', 'lubricant', 'grain', 'straw', 'starch_paste', 'pigment', 'spirit', 'rapeseed', 'rapeseed_seed', 'thresher',
   // 2.0 Phase 4, the town keystones: the tram's cart bin (a structure's item, never in a bag)
-  'tram_bin'];
+  'tram_bin',
+  // 2.0 Phase 5, the owner's playtest: the hamster's cage
+  'f_hamster_cage'];
 for (const id of ITEMS_AFTER_1_1) {
   const i = list.findIndex((d) => d.id === id);
   if (i >= 0) list.push(...list.splice(i, 1));

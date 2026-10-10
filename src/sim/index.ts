@@ -15,6 +15,8 @@ import './systems/research';
 import './systems/automation';
 import './systems/animals';
 import './systems/pet';
+// the hamster in its cage (the owner's playtest): its own dice, after the pet's
+import './systems/hamster';
 import './systems/tock';
 import './systems/trust';
 import './systems/fishing';

@@ -337,6 +337,9 @@ export class UI {
         if (ch === '\b') value = value.slice(0, -1);
         else if (value.length < max && /[\w .'!?&-]/.test(ch)) value += ch;
       }
+      // a letter typed here is never also a hotkey (a name ending in "t" and Enter in one frame
+      // closed the window and then opened Research)
+      for (const c of [...this.input.pressed]) if (c.startsWith('Key') || c.startsWith('Digit')) this.input.pressed.delete(c);
       if (this.input.keyPressed('Enter')) this.focus = null;
     }
     this.text(value, x + 4, y + 4, C.ink);

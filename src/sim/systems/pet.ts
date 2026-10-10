@@ -2,7 +2,8 @@
 // and give it a scratch every day; a happy pet follows you around and brings you little gifts.
 // The owner's playtest asked for more: Shift+F tells it to stay around the farmhouse or come along;
 // a fish is its treat once a day; from two hearts it keeps the crows off the crops by the house
-// (src/sim/systems/farming.ts); a cat rides your belts and both nap by a warm furnace on cold days.
+// (src/sim/systems/farming.ts); a cat rides your belts and both nap by a warm furnace on cold days,
+// and indoors either may sit by the hamster's cage to watch it.
 // A stray draws on the world's dice as it always did (the pacing bot never adopts it); an adopted
 // pet's whims come from its own (petRng), so nothing it does moves the weather or the crops.
 import { Game, registerSystem } from '../Game';
@@ -52,6 +53,8 @@ export interface PetState {
   /** riding a belt, or curled up by a warm machine (its id) */
   ride?: boolean;
   warm?: number;
+  /** walking over to sit by the hamster's cage and watch it */
+  watch?: boolean;
 }
 
 /** what a treat (a fish, once a day) and a scratch are worth */
@@ -284,6 +287,7 @@ function beltAt(g: Game, x: number, y: number) {
  * evening a free tile beside a working furnace, oven or kiln within 12 tiles of the farmhouse.
  */
 function whim(g: Game, p: PetState, rng: Rng): boolean {
+  if (p.map === 'house') return watchHamster(g, p);
   if (p.map !== 'world') return false;
   const cold = g.time.season >= 2 || g.time.min >= 18 * 60;
   const [hx, hy] = nearHome(g);
@@ -316,6 +320,22 @@ function whim(g: Game, p: PetState, rng: Rng): boolean {
   if (!near) return false;
   p.tx = near[0]; p.ty = near[1]; p.ride = true; p.warm = undefined;
   return true;
+}
+
+/** indoors: over to the hamster's cage (src/sim/systems/hamster.ts) to sit and watch it */
+function watchHamster(g: Game, p: PetState): boolean {
+  const c = g.sys.hamster?.named ? decorList(g).find((d) => d.id === 'f_hamster_cage') : null;
+  if (!c) return false;
+  for (const [x, y] of [[c.x + 1, c.y + 1.7], [c.x + 0.5, c.y + 1.7], [c.x + 1.5, c.y + 1.7]]) {
+    if (!free(g, p, x, y)) continue;
+    p.tx = x;
+    p.ty = y;
+    p.watch = true;
+    p.ride = false;
+    p.warm = undefined;
+    return true;
+  }
+  return false;
 }
 
 /** carried along the belt it sits on, until the belt ends or it's had enough */
@@ -382,6 +402,18 @@ function tickPet(g: Game, dt: number) {
           }
           break;
         }
+        if (p.watch && Math.hypot(p.tx - p.x, p.ty - p.y) < 0.4) {
+          p.watch = false;
+          p.mode = 'sit';
+          p.t = 5 + rng.next() * 8;
+          p.dir = 1;
+          setEmote(p, p.kind === 'cat' ? '!' : '?', 2);
+          if (!g.flags.has('pet_watched')) {
+            g.flags.add('pet_watched');
+            g.toast(`${p.name} sits by the cage, watching ${g.sys.hamster.name} with great interest.`, undefined, C.amber);
+          }
+          break;
+        }
         if (p.warm !== undefined && Math.hypot(p.tx - p.x, p.ty - p.y) < 0.4) {
           p.mode = 'sleep';
           p.t = 12 + rng.next() * 12;
@@ -390,6 +422,7 @@ function tickPet(g: Game, dt: number) {
         }
         p.ride = false;
         p.warm = undefined;
+        p.watch = false;
         p.mode = 'idle'; p.t = 1 + rng.next() * 3;
       }
       break;
@@ -488,6 +521,7 @@ registerSystem({
     p.t = 1;
     p.ride = false;
     p.warm = undefined;
+    p.watch = false;
   },
 });
 
