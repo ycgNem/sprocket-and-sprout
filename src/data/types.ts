@@ -397,6 +397,8 @@ export interface QuestDef {
   main?: boolean;
   /** said once it's done, after the reward (what to do with it: "set the cage down...") */
   done?: string;
+  /** a one-step gift ("Housewarming"): it doesn't wait for one of the three story slots, nor take one */
+  small?: boolean;
   /**
    * the research keystone this quest walks through: its stages count only from when the quest starts
    * (looking at the town's mill on day 2 isn't the keystone's look)

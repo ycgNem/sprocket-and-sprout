@@ -162,7 +162,11 @@ export class App {
 class TitleScreen implements Screen {
   demo: Game;
   t = 0;
-  mode: 'main' | 'load' | 'settings' | 'new' = 'main';
+  mode: 'main' | 'load' | 'settings' | 'new' | 'notes' = 'main';
+  /** how long the patch notes have been open */
+  notesT = 0;
+  /** this version's notes not yet read in this browser: the button glows */
+  notesNew = !notesSeen();
   saves: SaveMeta[] = [];
   newGame: NewGameForm;
   importMsg = '';
@@ -205,8 +209,11 @@ class TitleScreen implements Screen {
     } else if (this.mode === 'new') {
       const res = this.newGame.draw(ui);
       if (res === 'back') this.mode = 'main';
+    } else if (this.mode === 'notes') {
+      if (!drawNotes(ui, this.notesT)) this.mode = 'main';
+      this.notesT += dt;
     }
-    ui.text(`v${version}  -  pixel art made with PixelLab, sound made procedurally`, 4, ui.h - 10, C.cream, { shadow: C.ink });
+    ui.text(`v${showVersion}  -  pixel art made with PixelLab, sound made procedurally`, 4, ui.h - 10, C.cream, { shadow: C.ink });
     ui.end();
     app.audio.update(dt, null);
   }
@@ -255,7 +262,16 @@ class TitleScreen implements Screen {
     y += bh + 6;
     if (ui.button('load', cx - bw / 2, y, bw, bh, 'Load Game', { disabled: !hasSave })) this.mode = 'load';
     y += bh + 6;
-    if (ui.button('settings', cx - bw / 2, y, bw, bh, 'Settings')) this.mode = 'settings';
+    // Settings and the patch notes share a row (the menu fits 960x600 as it did); the notes glow
+    // until this version's have been read
+    const hw = (bw - 4) / 2;
+    if (ui.button('settings', cx - bw / 2, y, hw, bh, 'Settings')) this.mode = 'settings';
+    if (ui.button('notes', cx + 2, y, hw, bh, "What's new", { style: this.notesNew ? 'green' : 'wood', tip: `The patch notes: what changed in ${showVersion}` })) {
+      this.mode = 'notes';
+      this.notesT = 0;
+      this.notesNew = false;
+      ui.scroll.set('notes', 0);
+    }
     y += bh + 6;
     if (ui.button('import', cx - bw / 2, y, bw, bh, 'Import Save (.json)')) this.importFile();
     // the browser offers to install the site as an app (Chrome/Edge): put that one click away
@@ -492,6 +508,10 @@ class NewGameForm {
 
 import * as atlas from '../render/atlas';
 import { version } from '../../package.json';
+import { drawNotes, notesSeen } from '../ui/notes';
+
+/** "2.0.0-beta" reads as "2.0 beta" on the title screen */
+const showVersion = version.replace(/^(\d+\.\d+)\.0-beta(\.\d+)?$/, '$1 beta$2').replace(/beta\./, 'beta ');
 function require_atlas() {
   return atlas;
 }

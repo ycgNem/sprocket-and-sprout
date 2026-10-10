@@ -93,6 +93,9 @@ const SC = {
   // ---- title and new game ----
   title: async () => {},
   'title-settings': async () => ev(() => { window.__app.screen.mode = 'settings'; }),
+  // the patch notes ("What's new"), at the top and scrolled into the middle
+  'title-notes': async () => ev(() => { const s = window.__app.screen; s.mode = 'notes'; s.notesT = 0; window.__app.ui.scroll.set('notes', 0); }),
+  'title-notes-mid': async () => ev(() => { window.__app.ui.scroll.set('notes', 900); }),
   'newgame-who': async () => ev(() => { const s = window.__app.screen; s.mode = 'new'; s.newGame.name = 'Robin'; s.newGame.farm = 'Willowbrook'; }),
   'newgame-where': async () => ev(() => { window.__app.screen.newGame.step = 'where'; }),
   // ---- first morning, as a new player sees it ----

@@ -1,6 +1,6 @@
 // Offline support: the game is fully procedural, so caching the page and its one script is enough.
 // Pages are fetched network-first (updates arrive), hashed assets cache-first.
-const CACHE = 'sns-v1';
+const CACHE = 'sns-v2';
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './manifest.webmanifest', './icon-192.png'])).then(() => self.skipWaiting()));

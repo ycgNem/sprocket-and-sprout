@@ -765,3 +765,38 @@ recommendations are the decisions.
     planted palm needs a fruit tree's open space, and no palm fruits in the greenhouse. A Deepworks
     level is the same all day, so what you take from it (its small chest, the bottom's starstone) is
     remembered for the day (`MineState.looted`, saved) and stays taken when you come back.
+130. **"Load which?" is a card beside the machine, and fuel is ranked (the critic's confirmation pass;
+    revises decision 125).** The chooser no longer pauses or covers the screen: a small card stands
+    beside the machine you face (to its right, or its left at the screen's edge), the HUD stays and
+    the farm keeps running, and turning or walking away puts it away. 1-6 or a click picks a line, F
+    or Enter the first, Shift+F opens the machine's window. A collect is the whole press: the card
+    doesn't follow it; holding the input, F still collects and loads it in one press. The bubble says
+    "Load <item>" for what you hold and "Load..." when the card would ask. Fuel lines come best fuel
+    first (coal 40, hardwood 20, wood 8...), ahead of the goods when a burner that has goods to work
+    sits cold, and say how many go in. A hand fuel load is about ten minutes of burn (`handFuel`: 15
+    coal, 75 wood), not a stack. By hand a better fuel takes a worse one's place, the worse back in the
+    bag; an arm only tops up what's in.
+131. **A hand load counts its items (the owner: "double check how much wood you can put in the
+    sawmill and make it a reasonable amount"; revises decision 124).** By hand a machine takes about
+    ten minutes of its work, at least 10 batches, and at most 50 batches or 150 of an input, whichever
+    is more (`handBatches`). Nothing takes fewer than before. The fast single-input machines take 150
+    (the sawmill's wood, five minutes of planks where 50 was gone in under two; the mill, the
+    thresher), and the furnace still takes 150 ore. What's put in comes back out of its window.
+132. **The pets come with a small early quest, not on the first morning (the owner: "a small quest
+    reward, spawning with it seems weird"; revises decision 127).** "Housewarming" is offered once the
+    Professor has been by (after The Professor's Springs, about five minutes in): walk into your
+    farmhouse and her gifts are there, the hamster in its cage, a tank of goldfish from Wren and five
+    radish seeds for the hamster. A note says to hold the cage and click the floor. The Mercantile
+    keeps a spare cage only after that (`unlock: 'flag:housewarming'`); sandbox, which has no quests,
+    stocks it from the start, and Clockwork Rush has no such quest. The cat or dog still finds you as
+    a stray on day 3. The hamster's share of the works becomes real: winding the spring arms alone
+    changed nothing (an arm is never a crock's bottleneck), so on the night shift the farmhouse
+    machines within four tiles of its running wheel work a quarter faster (`WHEEL_BOOST`, an hour more
+    of the four), and the morning says how many it kept going. Its cage hover is five lines, the done
+    things bright, and F at the cage while it's out in its ball calls it home.
+133. **The confirmation pass's smaller fixes.** Shift+F at the pet asks the tile first, as F does (a
+    run-stop at a ripe crop with the cat on it harvests). The pet keeps the crows off within 8 tiles
+    of its bowl, a scarecrow's reach, not the whole home field. Beach palms set their coconuts on
+    alternate days by tile (`palmSets`), so the beach is never bare all at once, and a palm's hover
+    says whether a coconut is up or when the next sets. The counter's "Also here" pages with a +N past
+    four. A window's title plate stays on screen at 1366x620 (`centered`).

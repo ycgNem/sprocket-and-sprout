@@ -5,6 +5,8 @@
 // gives the machines by its cage an hour's more work on the night shift, palms take turns, and the
 // pets come with a small early quest ("Housewarming"), not on the first morning.
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 import '../src/sim';
 import { DAY_END, Game } from '../src/sim/Game';
 import { key } from '../src/sim/inventory';
@@ -19,6 +21,7 @@ import { FURN_BY_ID } from '../src/data/furniture';
 import { canPlaceIndoors, placeIndoors } from '../src/sim/indoors';
 import { CAGE, cageOf, hamsterSys, nameHamster, WHEEL_REACH } from '../src/sim/systems/hamster';
 import { palmSets } from '../src/sim/systems/farming';
+import { deserialize } from '../src/sim/save';
 import type { Ent } from '../src/sim/ents';
 
 const run = (g: Game, sec: number) => { for (let i = 0; i < sec * 60; i++) g.tick(); };
@@ -201,6 +204,18 @@ describe('Housewarming (the owner: the pets as a small early quest, not on the f
     // the Mercantile keeps a spare from now on
     const entry = SHOP_BY_ID.get('general')!.stock.find((s) => s.item === CAGE)!;
     expect(g.unlocked(entry.unlock)).toBe(true);
+  });
+
+  it('a 1.1.1 farm gets it on load too, even with three story quests on the go (it takes no story slot)', () => {
+    const raw = JSON.parse(gunzipSync(readFileSync(new URL('./fixtures/save111_story_d12_factory.json.gz', import.meta.url))).toString('utf8'));
+    const { game: g } = deserialize(raw);
+    const q = questSys(g);
+    expect(q.active.some((a) => a.id === 's_housewarming')).toBe(true);
+    expect(q.active.filter((a) => a.id.startsWith('s_') && a.id !== 's_housewarming').length).toBe(3);
+    H.enterHouse(g);
+    run(g, 1);
+    expect(q.done).toContain('s_housewarming');
+    expect(g.player.inv.countId(CAGE)).toBe(1);
   });
 
   it('sandbox (no quests) stocks the cage from the start; Clockwork Rush has no such quest', () => {

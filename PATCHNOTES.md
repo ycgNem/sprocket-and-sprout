@@ -1,0 +1,299 @@
+# Sprocket & Sprout patch notes
+
+## 2.0 beta (October 2026)
+
+**The Works**
+
+Sprocket & Sprout 2.0 rebuilds the game around its works. You arrive to find the old keeper's clockwork farm rusted around one crock that still runs, bring it back machine by machine, then restore the town's mill, pumps, lamps, tram and clock with lines of your own. Hand farming stays, and your 1.x farms come with you. This is a beta: things may still change, and balance is still settling.
+
+### The big change
+
+- Automation is the heart of the game. From the first second something on your farm is running, and every step of the story ends with a machine doing something.
+- Hand farming stays: you can always till, plant, water and harvest yourself, and the morning harvest is yours before the machines start picking at noon.
+- One main path for everyone, from the keeper's crock to the town clock. Each era ends by handing you the next town keystone to bring back.
+- Every machine says what it's doing and why, so a stopped line is a puzzle you can read instead of a mystery.
+- The town is your customer: its businesses post standing orders that pay above market, and the town's works wait for what your lines make.
+
+### The Keeper's Line
+
+- A new opening on every farm map: the old keeper's yard, where one Preserving Crock still bubbles on its last beans and the rest of the works stand rusted around it.
+- Restore: press F at a rusted arm, belt, gleaner or desk to bring it back. Arms need a mainspring, and Prof. Cogwhistle comes over with two.
+- You start as the crock's arm, carrying beans and pickles yourself. Within minutes a line of chest, arm, crock, arm and crate runs on its own.
+- Then plant the keeper's gleaner bed, restore the study desk, learn Conveyance, and find your first bottleneck when a second crock starves.
+- Rowan's weekly order for pickled cogbeans brings you to the Orders board, and his thanks is a second recipe for the same beans: cogbean oil.
+- The River Works: trade Bram cogbean oil for the bars to mend the keeper's water wheel, restore its poles, mill and grain bin, and live through your first real brownout.
+- After the river works, the quests A Second Bed and More Power lead on to the Town Mill and the rest of the main path.
+- The Now strip shows one step at a time with the reason under it. Its ? opens the quest in your journal.
+- Lesson cards show the first time something happens, like a starved machine or a brownout. They never stop the game, and the Keeper's Notebook (J) keeps them all.
+- The keeper's cellar sends up a dozen cogbeans a morning through day 7, then fewer until day 11, and the granary tops up the grain bin with barley through day 7.
+
+### Machines, arms and power
+
+- Every structure is in one of six states (Working, Idle, Starved, Blocked, Unpowered or Needs fuel) with one line saying why, like what it's waiting for or that its output is full.
+- Only the machine where a problem starts gets a mark on the map. The machines it holds up get a faint dot, so a healthy line shows nothing at all.
+- Four lamps under the clock count what's working and what's starved, blocked or short of power or fuel. Click a lamp to ring those machines.
+- Hold I over a line to light it up, with its rate per day and what stops it. The Production window (P) has a Lines tab with every line's bottleneck and the fix.
+- Feed a machine something it can't use and the arm or belt says so: "The preserving crock can't use stone."
+- A soft sound plays when a machine near you stops, and a "Line faster!" banner shows when a change you made speeds a line up.
+- Shift+F opens any machine's window to pick its recipe. A recipe picked mid-batch takes over at the next batch.
+- Right-click a spring arm or gleaner to wind it: double speed for 30 seconds.
+- Reaching and Sorting Arms are spring arms now, built on a basic arm and needing no power. Brass Arms are the powered ones, three times quicker.
+- Brownouts are real: when a grid is short, every machine on it slows down and says by how much, and its lights dim.
+- Poles have a three-way switch: On, Off or Night shift only.
+- The night shift: while you sleep, your machines, arms and belts keep working until 6am, and the morning summary names yesterday's bottleneck.
+- The Preserves Jar is now called the Preserving Crock.
+
+### The Field Works and farming
+
+- The gleaner: a spring-wound picker on a post that gathers the ripe crops in the 3x3 around it. Craft one, or buy one at the Joinery.
+- The field gantry (Steam era) rides two rails to water, pick and resow a strip 5 tiles wide and up to 12 long, or 24 with Long Rails.
+- Field machines leave the morning harvest to you: a crop that ripened today waits until noon. Dawn Shift research adds a switch to pick from 6am.
+- Harvest Cranes and Seed Sowers move to the Water era, so a field can sow and pick itself before the Town Mill.
+- Artisan goods keep the quality of what went in, and every fifth pick in a hand-harvest streak comes up one quality step higher.
+- Cogbeans ripen in 4 days (was 8) and regrow every 2 (was 3), and the Mercantile sells their seeds. Barley grows in spring as well as fall.
+- New goods: canvas from the loom, grain and straw from the new thresher, starch paste and pigment from the crock, oil from the new rapeseed, and grain spirit that burns like two coal.
+- Lubricant fitted to a machine with F makes it 10% faster for good, and a length of canvas, a plank and a copper gear make six belts.
+- Eighteen crops get new seed costs and prices worked out from this game's own growing times, and cotton now sells for 18 (was 40).
+
+### Research and eras
+
+- Research is laid out in five eras, Spring, Water, Steam, Clockwork and Starlight, each with a goal: the Keeper's Line, the Town Mill, the Waterworks and Lamplighting, the Tram and the Clock.
+- Eight keystone topics have stages: look at the real thing, try it, often keep it running a while, then study it. A desk on a keystone waits, taking no bundles, until the stages are done.
+- Looking counts when you hover a thing, hold I over it or walk up to it. While you keep one running, the Now strip shows its rate and clock and a gauge fills on the machine.
+- Era rewards: the twelve old bonus topics (+40 energy, faster desks, arms that carry more, better prices, faster machines and more) now arrive as each era's goal is met.
+- New topics: Gleaning, Dyes & Pastes, Threshing, Field Gantry, Long Rails and Dawn Shift.
+- Harvest Bundles come from the works: a jar of preserves, a length of canvas and a copper coil.
+- The research window shows the eras as tinted bands, scrolls both ways, has a Fit view, says what a locked topic needs, and opens on the topic your current step asks for.
+
+### Orders and the town
+
+- The Orders board on the square (or J, then Orders) has three tabs: Today, Standing and Works.
+- Standing orders: nine businesses post weekly orders that pay above market and never flood it. Rowan pays double for silver pickles.
+- Fill a standing order by hand at the villager, or tag your crate "Ship to" a customer: the noon, 6pm and overnight posts deliver to them before the market gets the rest.
+- Reputation: each business has six ranks, from Associate to Partner. A new rank opens its next standing order and special stock in its shop.
+- Today: three small asks a day, by hand or by a tagged crate, gone at midnight. Standing orders and the Trading Guild's weekly contracts wait until you know how to make their goods.
+- Works: the town's projects, listed under the place they serve. The Kettle's Cellar, Dairy Day and the Bakery Window take a day's share on three days, so a line can fill them.
+- Shortages: about one week in three once the Town Mill turns, a business runs short. Its order doubles and pays 25% more an item, and Mags brings what it's made from.
+- Mags the freight broker parks by the square on Fridays and Sundays, and the Tuesday of a shortage week, with rare parts, off-season seeds, a sapling and a curio. On Sundays she auctions a lot.
+- Each machine is sold in one place: the Joinery has the wooden ones (gleaner, hand loom, water wheel, windmill, sawmill, thresher), the Workshop the brass ones, and Bram's foundry a blast furnace.
+
+### Town keystones
+
+- The Town Mill: Juniper's quest. Look at the silent mill, grind 20 meal on your own grid, keep a mill at 3 a minute for 2 minutes, study Milling, then fill its order of meal, planks and copper gears.
+- Once it turns, flour and bread come back to the shops, and Rowan posts a weekly bread order you can bake from any flour or meal.
+- The Waterworks: with steam, the pump house by the square runs again, the new fountain south of the clocktower plays, and the flooded galleries below the Clayworks drain.
+- Lamplighting: twelve lamps replace the square's four oil lampposts and light after 6pm on your own power, through the keeper's old pole at the farm gate. They draw 12 sparks.
+- The Tram: restore Old Thorne's rail cart on level 25 of the Deepworks. Every morning after, the tram sells up to 20 ore, bars or gems from its bin at the quarry for 30% over market.
+- The Clock: the last keystone wants 40 brass gears, 10 spark coils, a clockwork core and 10,000 coins.
+- The next keystone's order goes up on the Works tab from its era's first quest, so goods can go in as you make them, at the board or by a crate tagged for the Town Council.
+- Each finish has its moment: the camera goes to it, then the keystone's card, then the era's reward.
+
+### The Deepworks
+
+- The old 60-floor mine is now the Deepworks: 30 levels in six strata (Earth, Clayworks, Frost, Ember, Crystal and Starfall), each with its own rock, ores, colours and light.
+- Monsters are gone. Three kinds of pests take their place, and they never hurt you: rust-mites eat ore left on the floor, clatter-crabs sit in the way, and wisps hide the ladder.
+- Hazards still cost health, and each has a fix you place or time. In the Earth, a cracked ceiling falls when you walk under it, but 2 planks (F beside it) prop it up for good.
+- The Clayworks: the caved-in gallery on level 6 takes 20 beams from a sawmill and stays open for good. The way down past level 10 is under water until the town's Waterworks drains it.
+- The Ember: firedamp pockets vent every few seconds, with a hiss first, so cross while they're quiet. A spark-coil lantern burns a pocket off for good.
+- The Crystal: galleries too dark for your lantern. Set lamps down on the floor (F with a lamp in hand) to light 7 tiles around; they come back to your bag when you leave.
+- Starfall: star-shards still drop from the roof. Keep off the glowing marks, whose rings grow as a shard nears.
+- Every fifth level ends in a works chamber: the old lift, the seized boiler, the pump, the lamp works, the lockers and rail cart, and the fallen star. Walk up for a study card.
+- Restore the old lift on level 5 (4 planks, 2 copper gears and a rope) and it rides to every works chamber you've reached. The old pump on level 15 gets more ore out of the Frost and Ember.
+- Chests you open stay open for the rest of the day, and the starstone at the bottom doesn't come back when you leave and return. Drops near you go in your bag when you leave a level.
+- Five new achievements for restoring and studying the old machines down there.
+
+### People and Trust
+
+- Six villagers take up the works' trades: Juniper the millwright, Bram the foundry master, Sable the archivist, Old Thorne the old works' last engineer, Hazel the draughtswoman and Pip the apprentice.
+- They have dozens of new lines that follow the seasons, your Trust and the town's keystones, and new 2- and 4-Trust scenes. Main quests come from the people whose trade they are.
+- Friendship is now Trust, shown as ten cog pips on the dialogue box, the Journal's Town tab and the villager hover. Romance and pets keep their hearts.
+- Work builds Trust more than gifts: filling a villager's ask, standing order or main quest counts about as much as four loved gifts. Gifts give a third of what they used to.
+- Trust rewards come by letter: at Trust 3, Juniper's trade price (wooden machines 20% off) and Hazel's index (a 24-drawing library); at Trust 4, Bram's blast furnace at cost and Sable's faster studies.
+- Old Thorne hands over four of the old works' drawings for your drafting table at Trust 2, 4, 6 and 8, as the town's works come back.
+- Pip quizzes you on a lesson card you've seen, one a day. A right answer earns Trust and goes in Pip's notebook; a wrong one gets an explanation, and the card comes back later.
+- On some fine afternoons from day 5, Pip stands by one of your machines and asks what it's doing now. The question waits on a card beside the play while the farm keeps running.
+- Pip's watch (Trust 3): when a machine has stood stopped for a minute, Pip comes running to tell you which one and why.
+- Saw a works chamber before its quest asked? Sable lends you its record at the library, and that counts as the look. Talk to Sable after each new discovery and they file it, for Trust.
+- Villagers at work indoors can be talked to: in a shop, the forge, the inn or the library, the window has Chat, Give and Hand in for the keeper and anyone else inside.
+- The counter's "Also here" row shows up to four portraits, plus +N for more, and Hand in delivers what their asks, orders and quests want straight from your bag.
+
+### Festivals
+
+- The Sprocket Fair (spring 13) replaces Kite Day: bring a line that fits the Professor's 6x6 plate on the square, and she builds it with your research, stocked from your farm's goods.
+- It runs for five minutes of works time and scores the value it adds, in coins a minute, against the Professor's, Bram's and Juniper's lines, which grow each year.
+- The Founder's candles are its prizes, once a save: beat one entry for a 2,500-coin purse, two for the Founder's Lantern, all three for the Founder's Medal (+5% on all you ship).
+- From year 2, beat the top entry by half for the Gilded Clock and 20,000 coins. Tokens and coins come every year, though a line that adds no value wins nothing.
+- The Professor writes from spring 9 with the year's entries, and the Orders board pins a notice. Her window plays your run's first minute at a watchable pace and the rest fast.
+- The Harvest Haul (fall 15) replaces the Pumpkin Roll: every standing order pays double all day, by hand or by the post, and the Mayor auctions a rare lot against Roxy and Bram.
+- Lantern Night and Frostlight Skate stay. Founder's Day's spring review is retired, and its rewards are the Fair's prizes now.
+- New achievements: Blue Ribbon (beat all three Fair entries) and Going, Going, Gone (win a lot at auction).
+
+### Your farmhouse and Workshop HQ
+
+- Structures go indoors: chests, crocks, kegs, looms and the other machines that need no power, the study desk, lamps and signs. Belts and powered machines stay outside, and the ghost says why.
+- Spring arms work indoors too, by day and on the night shift, and right-click winds them.
+- The Workshop Wing (2,000 coins, 50 planks and 40 stone, from the Joinery's Workshop tab) opens the east wall into a flagstone workshop with a workbench (F crafts) and a tool wall.
+- The drafting table keeps up to 12 named blueprints (24 with Hazel's index). Load one to paste it outside, preview each with its sprites, or bench test a 6x6 line on the Fair's plate.
+- The almanac is now your ledger: yesterday's sales by customer and what's flooding the market, then tomorrow, the week and the season.
+- Quick stack (K) fills indoor chests too.
+
+### Pets and Tock
+
+- Housewarming: a new side quest from Prof. Cogwhistle, right after The Professor's Springs. Step into your farmhouse to find a hamster in its cage, a tank of goldfish and a few seeds for the hamster.
+- Name your hamster and pick one of four coats: Golden, Snow, Silver or Panda. The Mercantile sells a spare cage once you've had your housewarming.
+- A seed in hand and F is its supper, once a day; otherwise F gives it a scratch. It sleeps the day away and runs its wheel from 6pm.
+- Its wheel does real work: once it has a heart and its supper, it winds the spring arms near its cage to double speed and keeps nearby machines going an extra hour on the night shift.
+- From three hearts it sometimes leaves a few seeds from its cheek pouches by the cage.
+- Shift+F at the cage lets it out in its ball to roll about the farmhouse; Shift+F puts it back, and every morning it's home.
+- Your cat or dog still turns up as a stray on day 3. Shift+F at it, or its row in the Journal, tells it to stay home or come along.
+- A fish in hand is its treat, once a day. From two hearts it keeps the crows off the crops near the farmhouse.
+- A cat hops onto your belts now and then and rides them, and on cold days either pet naps by a warm furnace or oven. Indoors, your pet may sit by the cage to watch the hamster.
+- F or Shift+F at a crop or machine always goes to the crop or machine, never to a pet underfoot.
+- Tock, the Professor's clockwork helper, arrives the morning after the Tram's first run. It follows you about the farm and winds any run-down spring arm or gleaner within five tiles.
+
+### Professions and balance
+
+- Tinkering is listed first and earns XP from every batch your machines finish, so it's often your first profession choice.
+- Tinkering 5: Engineer (machines 10% faster) or Governor (powered machines keep full speed until the grid meets less than 75% of what they need).
+- Farming's perks work the field machines: Field Hand (every fourth gleaner, crane or gantry pick brings an extra crop) or Long Reach (gleaners pick a 5x5) at 5, Crock Master or Seedwright at 10.
+- Foraging and mining each get a machine perk: Sawyer (sawmills and charcoal kilns 25% faster), Drill Rigger (quarry drills 25% faster) and Furnace Hand (furnaces 25% faster).
+- Fishing and combat too: Pond Keeper (ponds 50% faster), Net Rigger (traps need no bait), Shorer (fewer planks and beams in the Deepworks) and Lampwright (set-down lamps light 10 tiles).
+- By hand, a machine takes about ten minutes of work at once, up to 150 of an input: a furnace 150 ore, a sawmill 150 wood, a crock 10 beans. Arms keep two batches queued, so lines still win.
+- Watering costs 25% less energy.
+- Beams come only from a sawmill now, the Joinery sells 30 planks a day, the Workshop 4 brass gears a day, and the Mercantile no longer sells oil.
+- Beach palms: shaking a wild tree tries for its seed once a day per tree, not on every press. A palm holds one coconut at a time and sets the next every other summer day.
+- Palms are staggered, and a bare palm tells you when it fruits next. Coconuts planted on the farm need open space like a fruit tree, and palms don't fruit in the greenhouse.
+
+### Quality of life and fixes
+
+- Machines ask before taking from your bag: with nothing a machine takes in hand, F at it opens a small "Load which?" chooser beside it while the game keeps running. Press 1-6 or F to pick.
+- The best fuel comes first (coal before wood), and fuel lines say how many go in, about ten minutes of burn. A better fuel replaces a worse one, which goes back to your bag.
+- Collecting from a machine never opens the chooser, and the F bubble says what the next F loads. Holding something it takes and pressing F still loads it at once.
+- Ctrl+Z takes back your last five placements, with a full refund.
+- Esc with a machine in hand puts it away instead of pausing, and the build slow-down ends as soon as you place something.
+- Toasts queue, three on screen at a time, instead of dropping the oldest, and the answer to what you just did jumps to the front.
+- The crafting grid sorts recipes under category headers, and look-alike recipes name their inputs.
+- Shift+right-click picks up any farmhouse furniture, even a piece F uses, like the hamster's cage. A toast at midnight reminds you to be in bed by 2am.
+- Typing a name no longer triggers hotkeys, and the hamster cage has its own icon in your bag.
+- Villagers no longer walk routes from a different farm after you load a save or start a new game.
+- Fainting in the Deepworks between a pickaxe swing and its hit no longer causes an error.
+
+### Art and sound
+
+- New art for the works: the gleaner, the field gantry and its rails, rusted machines with a broken-cog badge, and arms that read as arms at rest (a turntable, a folded arm and a claw).
+- Spring arms show a wind-up key that turns while wound, and powered arms a copper coil that sparks while they work.
+- The town keystones on screen: the mill's wheel turning with flour dust and sacks, the pump house's smoking chimney, the fountain, the square's lamps lit at night, and the tram's cart on its rails.
+- Each Deepworks stratum has its own look and light, with timber props, venting firedamp and star-shard rings.
+- Workshop HQ's drafting table (its lamp glows), workbench and tool wall; Tock in seven poses; and the hamster in four coats, with its ball and a cage with a wheel.
+- Bridges are seamless, and fences join up and turn properly at corners and along vertical runs. The title screen shows a restored works running.
+- New sounds: a ratchet when you wind a spring, a soft note when a machine near you stops, the grid switch, the firedamp's hiss and the hamster's squeak.
+
+### Saves and modes
+
+- Your 1.x farms load in 2.0 beta with nothing lost: fields, machines, bag and coins all come along. They get the Housewarming quest too, so walk into the farmhouse for the gifts.
+- An old farm skips the new opening and carries on with its story quests, and bread and flour stay in its shops without the Town Mill.
+- The restoration board becomes the Works tab and keeps your progress. Goods already in a retired basket (crops, fish, forage or gems) are paid back at market price.
+- Bonus topics you'd researched stay yours as era rewards, and your Guild rank and this week's contracts move to the Orders board.
+- The old mine becomes the Deepworks: your deepest floor is halved, lifts you'd reached carry over with the old lift restored, and grand chests you opened stay opened.
+- Kite Day and the Pumpkin Roll count as the Fair and the Haul, and Founder's candles you've won are kept.
+- Professions you picked keep their place with their 2.0 effects. Defender is now Shorer, so its +25 health goes.
+- A farm saved in 2.0 beta can't be opened by 1.1.1 or earlier.
+- Every new game in Story, Cozy and Clockwork Rush opens on the Keeper's Line. Rush medals are now 40k, 75k and 110k (were 20k, 40k and 65k), to match the faster economy.
+- Sandbox starts with every era reward as well as all research, and shortages stay out of Sandbox and Rush.
+
+## 1.1.1 (October 9, 2026)
+
+**Playtest hotfix**
+
+A hotfix from the first playtests of 1.1: the ranch opens, bridges are square, mine lifts remember shafts, and the map names every building and shows every villager. Paths, plank decks and the ground where two terrains meet look better too.
+
+### Fixes
+
+- Meadowlark Ranch opens: a villager waiting on a doorstep now steps straight in, so Clem finally gets inside.
+- Bridges are rectangles: no more L-shaped decks or strips of plank along the bank, on every farm map. Old saves are squared on load.
+- A shaft that drops you past floor 5, 10 and so on unlocks those lifts, and the lift lists every floor down to your deepest. Old saves get every lift above their deepest floor.
+- Shift-click moves stacks between your bag and a chest, ctrl-click moves one, and double-click moves every stack of a kind.
+- Structure windows have a Pick up button, tools take three hits to lift a structure, and a chest or crate with anything in it never breaks by tool.
+- Weeds and twigs no longer block your way, and screen shake is gentler (and off with the Screen shake setting).
+- Weeds and storm debris stay off the opening's marked tiles, which on some new games blocked the first arm step.
+- One name for the Professor everywhere, Prof. Cogwhistle, and a name tag over the villager the guide arrow points at.
+- Less mail: quests send no letters, the almanac keeps season notes, festivals and birthdays, and the mailbox brings at most one letter a day.
+- The research tree pans with the mouse wheel (Shift+wheel sideways), with scrollbars and a Fit overview.
+- Jars cost the same in every shop, the crate's pop shows what the market really pays, and the 960x600 web embed keeps the larger UI.
+
+### Look and feel
+
+- The map (M) labels every shop and home without overlap. Hover for the name, opening hours and who is inside; heads show you and every villager.
+- Flagstone paths with gravel edges, for your own paths and the town's roads. Cobble Path is now Flagstone Path.
+- Plank decks with rails over water, and a path you place now really changes the ground.
+- Where two kinds of ground meet, the edges blend instead of leaving square notches, tilled soil included.
+- The pickaxe swings overhead like the hoe, for every look.
+
+## 1.1 (October 9, 2026)
+
+**The visual overhaul**
+
+Every sprite is redrawn as pixel art on one warm palette, the keeper's clockwork farm runs from your first minutes, and a new villager moors her airship at the end of Main Street. Saves from 1.0 load as they are.
+
+### New look
+
+- Every sprite is redrawn as pixel art on the warm Resurrect 64 palette: terrain, crops, characters, machines, buildings, icons and the UI.
+- Crops arc into your hotbar, harvest streaks build (every tenth pick in a streak gives a bonus crop), coins shower into the odometer, and machines hop and pop their goods.
+- A brass mail-bird collects the noon and 6pm post, and the night tally counts up row by row.
+- Machines show a status lamp (working, waiting for input or blocked), and up close a ring that fills with each batch.
+- Shadows under trees and structures, smoke from each machine's chimney, wind gusts that sway the trees, and a title wordmark with the sprocket as its O.
+
+### A better first day
+
+- The keeper's clockwork farm runs from your first minutes: chest, arm, jar, arm, crate.
+- Key bubbles show what F does on whatever you face, and a guide arrow and compass point the way.
+- Belts drop goods into whatever they run into (a crate, chest or machine), so no arm is needed at the end of a line.
+- Prof. Cogwhistle welcomes you in three short lines, and there's no dead afternoon on day one.
+
+### New villager: Roxy Vane
+
+- A sky-courier who moors her airship, the Brass Vixen, on Skyhook Field at the east end of Main Street. She sends you a card on day 4.
+- Her hold sells off-season seeds and clockwork parts, and she has her own story over four heart events. She can become your partner.
+
+### Also
+
+- The UI stays readable on 1366x768 laptops, and the new-game form works with Tab and Enter.
+- Artisan goods flood the market more slowly, and the night tally warns you when one is flooding.
+- A finished study shows a Discovery! ribbon naming what it unlocked.
+- The derelict greenhouse is an ordinary seasonal plot until you restore it for year-round growth.
+- Installing over 1.0 keeps your farms.
+
+## 1.0 (October 8, 2026)
+
+**First release**
+
+The first release of Sprocket & Sprout, a cozy pixel-art farm-factory in the valley town of Thistlewick: farm by hand, build belts, arms and machines around your fields, and help the town back on its feet.
+
+### Farming and home
+
+- 36 crops across four seasons, with watering, sprinklers, fertilizers, silver, gold and star quality, giant crops, fruit trees and a ruined greenhouse to restore.
+- Coops and barns with eight kinds of animals, fishing with an original tension-reel minigame, and a 60-floor mine with ores, gems, monsters and treasure.
+- A walk-in farmhouse with renovations, home cooking with timed food buffs, furniture, and a stray cat or dog that adopts you on day 3.
+
+### The factory
+
+- Two-lane belts in three speeds, with curves, side-loading, underground belts and splitters, and spring-wound clockwork arms that need no power.
+- More than 20 machines with real recipes, and power from water wheels, windmills, steam engines and sun lenses, carried by poles and stored in spring batteries.
+- Harvest cranes, seed sowers, ore drills on the quarry's veins, and bumblebots that carry goods and build for you.
+- Blueprints you can copy, rotate and paste, ghosts that build themselves from your bag when you're near, and production stats with graphs.
+- A 60-node research tree, studied at desks with bundles made from farm and factory goods.
+
+### Town and goals
+
+- 13 villagers with schedules, dialogue, gifts, birthdays and heart events, who teach you recipes as friendships grow.
+- Shops with opening hours, Mags' traveling cart on Fridays and Sundays, and a market that pays less for whatever you flood it with.
+- Four festivals with minigames, Trading Guild contracts, a restoration board, three megaprojects, a museum, and Founder's Day each spring.
+- Romance: give the Brass Locket to a villager you love.
+
+### Ways to play
+
+- A clockwork opening: you start beside the keeper's working jar with arms, belts, a chest and a study desk.
+- Four game modes (Story, Cozy, Clockwork Rush and Sandbox) and five farm maps.
+- About 120 achievements, around 35 of them secret.
+- The post collects at noon and 6pm as well as overnight, passing out costs your morning instead of your coins, and the world slows down while you build.
+- Procedural music and sound. Play in your browser, where it installs as an app, or download it for Windows.

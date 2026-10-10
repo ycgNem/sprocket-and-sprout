@@ -8,7 +8,8 @@ inn's standing order fills by the post, and the keeper's water wheel turns the g
 river. With Professor Cogwhistle's research you add belts, mills, water wheels and little brass
 bumblebots, until the farm runs itself like a music box.
 
-**New in the 2.0 beta ("The Works", on the website; the Windows installers are still 1.1.1):**
+**New in the 2.0 beta ("The Works": on the website, and as a Windows beta on the Releases page; the
+full patch notes are under "What's new" on the title screen and in [PATCHNOTES.md](PATCHNOTES.md)):**
 - **The Keeper's Line**, a new opening on every map: rusted works to restore (F), one step at a
   time in the Now strip, lesson cards the first time something happens, and the Keeper's Notebook
   (J) to look them up again. By day 5 you have run a line, fed it from a field, found its
@@ -71,10 +72,10 @@ See `HANDOFF.md` for details.
 |---|---|
 | Move | WASD / arrows (hold Shift to walk slowly) |
 | Use tool / place / attack | Left mouse (hold to repeat; hold the hoe or can to charge an area) |
-| Talk / harvest / open / collect; at a machine: collect and load (with nothing it takes in hand, it asks what to load) | Right mouse or F |
+| Talk / harvest / open / collect; at a machine: collect, and load what you hold (with nothing it takes in hand, a card beside it asks what to load from your bag: 1-6, or F for the first) | Right mouse or F |
 | Open a machine's window (pick its recipe); your pet: stay or come along; the hamster's ball | Shift+F |
 | Pick up farmhouse furniture (the hamster's cage too) | Shift + right mouse |
-| Take back your last placement (within 10 s) | Ctrl+Z |
+| Take back your last placements (up to five) | Ctrl+Z |
 | Wind a spring arm or gleaner (2x speed for 30 s) | Right mouse on it |
 | Inspect a line (hold): the line lights up, its rate per day and why it stops | I |
 | Hotbar | 1-0, mouse wheel |
@@ -146,10 +147,11 @@ Fair's day, or a Brass Locket.
   give it a fish now and then, and it will follow you around (Shift+F: stay home or come along),
   nap in its bed, leave gifts by the door and, once it trusts you, keep the crows off the crops by
   the house. A cat rides your belts; both curl up by a warm furnace on cold days.
-- A hamster: the Mercantile's cage comes with one (name it, pick its coat). A seed a day for its
-  supper and a scratch; it sleeps by day and runs its wheel at night, and a happy, fed hamster's
-  wheel winds the spring arms beside its cage. Shift+F lets it out in its ball to roll about the
-  farmhouse.
+- A hamster and a tank of goldfish: Professor Cogwhistle's housewarming gifts, a few minutes into
+  your first day (walk into your farmhouse). Name the hamster and pick its coat; a seed a day for its
+  supper and a scratch. It sleeps by day and runs its wheel at night, and a happy, fed hamster's
+  wheel winds the spring arms beside its cage and keeps the machines near it working an hour longer
+  through the night. Shift+F lets it out in its ball to roll about the farmhouse.
 
 **Town**
 - 14 villagers with schedules, A*-pathing, 37+ lines of dialogue each (by season, weather, time,

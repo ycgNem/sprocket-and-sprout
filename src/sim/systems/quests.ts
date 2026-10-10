@@ -67,8 +67,9 @@ function startAvailable(g: Game, bedtime = false) {
     if (d.needFlag && !g.flags.has(d.needFlag)) continue;
     // Sandbox has no quests; Clockwork Rush keeps only the opening tutorial
     if (g.mode === 'sandbox' || (g.mode === 'rush' && !d.tutorial)) continue;
-    // at most three story quests at once; the rest wait their turn (tutorial steps don't count)
-    if (d.startDay === undefined && !d.tutorial && q.active.filter((a) => !QUEST_BY_ID.get(a.id)?.tutorial).length >= 3) continue;
+    // at most three story quests at once; the rest wait their turn (tutorial steps and small gifts don't count)
+    const story = (a: ActiveQuest) => !QUEST_BY_ID.get(a.id)?.tutorial && !QUEST_BY_ID.get(a.id)?.small;
+    if (d.startDay === undefined && !d.tutorial && !d.small && q.active.filter(story).length >= 3) continue;
     // a prerequisite gated behind a flag this save doesn't have (e.g. the new opening) counts as met
     const met = (a: string) => q.done.includes(a) || (!!QUEST_BY_ID.get(a)?.needFlag && !g.flags.has(QUEST_BY_ID.get(a)!.needFlag!));
     if (d.after && !d.after.every(met)) continue;
