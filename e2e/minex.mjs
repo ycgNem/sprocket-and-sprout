@@ -20,7 +20,8 @@ await page.evaluate(async () => {
   const A = await import('/src/render/atlas.ts');
   await A.artReady();
   window.S = { g, key: (await import('/src/sim/inventory.ts')).key };
-  // the way below level 10 is drained, and Spark Coils burn the Ember's gas off (the shots stand near it)
+  // the way below level 10 is drained; Spark Coils would burn off a gas pocket a shot stood in
+  // (the shots stand below them, to show one venting)
   g.flags.add('waterworks');
   g.research.done.add('r_spark');
   g.time.min = 11 * 60;
@@ -36,6 +37,7 @@ const visit = (level) => page.evaluate((level) => {
   const st = g.sys.mine;
   // (each stratum's first-visit note shows once in play; keep these shots clear of it)
   for (const id of ['earth', 'clayworks', 'frost', 'ember', 'crystal', 'starfall']) g.flags.add('deep:' + id);
+  window.S.hold = null;
   st.enter(g, level);
   const pick = (kind) => st.hazards.find((h) => h.kind === kind);
   const pest = (b) => st.monsters.find((mo) => mo.def.behavior === b);
@@ -45,7 +47,13 @@ const visit = (level) => page.evaluate((level) => {
   else if (theme === 1 && st.gallery) { at = [st.gallery[0] + 0.5, st.gallery[1] + 2.6]; what = 'the collapsed gallery'; }
   else if (theme === 1 && pest('mite')) { const mo = pest('mite'); at = [mo.x, mo.y + 2.2]; what = 'a rust-mite'; }
   else if (theme === 2 && pest('block')) { const mo = pest('block'); at = [mo.x, mo.y + 2.2]; what = 'a clatter-crab'; }
-  else if (theme === 3 && pick('gas')) { const h = pick('gas'); at = [h.x + 0.5, h.y + 3.2]; what = 'a gas pocket'; }
+  else if (theme === 3 && pick('gas')) {
+    // (its whole pocket mid-vent: S.hold puts it back there just before the shot, since a vent
+    // only lasts 2.5 s and its plume fades in and out with it)
+    const h = pick('gas');
+    window.S.hold = () => { for (const k of st.hazards) if (k.kind === 'gas' && k.group === h.group) { k.state = 3; k.t = 1.6; } };
+    at = [h.x + 0.5, h.y + 3.2]; what = 'a gas pocket venting';
+  }
   else if (theme === 4 && pest('guard')) { const mo = pest('guard'); at = [mo.x, mo.y + 2.4]; what = 'a wisp over its ladder'; }
   else if (theme === 5 && pick('shard')) { const h = pick('shard'); h.state = 1; h.t = 99; at = [h.x + 0.5, h.y + 3]; what = "a star-shard's mark"; }
   if (at) { g.player.x = at[0]; g.player.y = at[1]; }
@@ -58,6 +66,7 @@ for (const [i, level] of LEVELS.entries()) {
   await quiet();
   await snap();
   await page.waitForTimeout(900);
+  if (await page.evaluate(() => { window.S.hold?.(); return !!window.S.hold; })) await page.waitForTimeout(250);
   await page.screenshot({ path: `e2e/out/win/stratum-${i + 1}.png` });
   console.log(`stratum-${i + 1}.png`, JSON.stringify(info));
 }

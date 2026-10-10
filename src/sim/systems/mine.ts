@@ -9,7 +9,7 @@
 import { C } from '../../data/palette';
 import { ITEM_BY_ID } from '../../data/items';
 import { MONSTERS } from '../../data/creatures';
-import { CHAMBERS, CHAMBER_BY_KIND, STRATA, type ChamberKind, type StratumDef } from '../../data/deepworks';
+import { CHAMBERS, CHAMBER_BY_KIND, STRATA, VENT_CYCLE, VENT_ON, VENT_TELL, type ChamberKind, type StratumDef } from '../../data/deepworks';
 import type { MonsterDef } from '../../data/types';
 import { Rng } from '../../engine/rng';
 import { Game, registerSystem } from '../Game';
@@ -30,6 +30,8 @@ export const FLOOD_TEXT = "The way down is under water. The town's old pump hous
 export const CRACK_FUSE = 1.5;
 /** how long a star-shard's mark glows before the shard lands */
 const SHARD_WARN = 1.2;
+/** what a vent of firedamp costs you (a falling rock is 6, a star-shard 10) */
+export const VENT_HURT = 8;
 
 export interface Monster {
   id: string;
@@ -67,12 +69,17 @@ export interface Hazard {
   kind: HazardKind;
   x: number;
   y: number;
-  /** cracks come down and gas pockets burn off together, by group */
+  /** cracks come down, gas pockets vent and burn off together, by group */
   group: number;
-  /** 0 waiting, 1 going off (a crack rumbling, a shard's mark glowing), 2 spent */
+  /** 0 waiting (a gas pocket: quiet), 1 going off (a crack rumbling, a shard's mark glowing, a pocket
+   * hissing as it builds), 2 spent, 3 a pocket venting */
   state: number;
-  /** seconds left: a crack's fuse, a shard's wait or glow */
+  /** seconds left: a crack's fuse, a shard's wait or glow, a gas pocket's phase */
   t: number;
+  /** a gas pocket's whole cycle, seconds (each group keeps its own clock) */
+  period?: number;
+  /** a gas pocket that has already pushed you out of this vent */
+  hit?: boolean;
 }
 
 export interface MineLight { x: number; y: number; r: number; i: number; c?: number; flicker?: boolean; dyn?: boolean }
@@ -102,6 +109,8 @@ export interface MineState {
   dark: number;
   lantern: number;
   tint: number;
+  /** where you last stood clear of the firedamp: a vent pushes you back there */
+  clear: [number, number];
   /** one-off notes already said on this visit */
   told: Set<string>;
   // api
@@ -123,7 +132,7 @@ export function mine(g: Game): MineState {
   if (!g.sys.mine) {
     const st: MineState = {
       floor: 0, map: null, theme: 0, monsters: [], lights: [], deepest: 0, ladder: null, hidden: -1, wispLadder: null, broken: 0, rockHits: new Map(),
-      chambers: [], hazards: [], gallery: null, dark: 0.62, lantern: 6, tint: C.ink, told: new Set(),
+      chambers: [], hazards: [], gallery: null, dark: 0.62, lantern: 6, tint: C.ink, clear: [0, 0], told: new Set(),
       solid: mineSolid, useTool: mineTool, attack, interact: mineInteract, enterPrompt, enter: enterFloor, leave, debugDescend,
       lifts: liftLevels, chamberAt: (x, y) => chamberAt(st, x, y), restore: restoreChamber,
     };
@@ -570,8 +579,18 @@ export function generateFloor(g: Game, floor: number): Gen {
     }
   };
   if (theme === 0) groups(3, 2, 4, 'crack');
-  else if (theme === 3) groups(3 + (rng.next() < 0.5 ? 1 : 0), 3, 5, 'gas');
-  else if (theme === 5) {
+  else if (theme === 3) {
+    groups(3 + (rng.next() < 0.5 ? 1 : 0), 3, 5, 'gas');
+    // each pocket vents on its own clock (7-9 s), the first vents spread over a cycle so there is
+    // always a quiet way through; its own rng, so the level's chests stay where they were
+    const vr = new Rng(g.seed * 37 + floor * 613 + g.dayIndex * 7);
+    const n = hazards.length ? hazards[hazards.length - 1].group + 1 : 0;
+    for (let gi = 0; gi < n; gi++) {
+      const period = VENT_CYCLE[0] + vr.next() * (VENT_CYCLE[1] - VENT_CYCLE[0]);
+      const first = 0.6 + ((gi + vr.next() * 0.8) / n) * (period - 0.6);
+      for (const h of hazards) if (h.group === gi) { h.period = period; h.t = first; }
+    }
+  } else if (theme === 5) {
     const n = 4 + rng.int(0, 2);
     for (let k = 0; k < n; k++) {
       const cs = floors.filter(hzFree);
@@ -621,16 +640,27 @@ function lightsFor(g: Game, st: MineState) {
     else if (c.kind === 'cart') st.lights.push({ x, y: y - 0.6, r: 2.4, i: 0.55, c: C.apricot, flicker: true });
   }
   for (const h of st.hazards) {
-    if (h.kind === 'gas') st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 1.3, i: 0.3, c: C.lime });
-    else if (h.kind === 'shard') st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 1.1, i: 0.45, c: C.butter, flicker: true });
+    // (a quiet pocket's faint haze; venting, dynLights throws a plume of light over it)
+    if (h.kind === 'gas') st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 1.3, i: 0.25, c: C.lime });
+    // (enough glow that a waiting mark's ring reads out in the dark)
+    else if (h.kind === 'shard') st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 1.5, i: 0.6, c: C.butter, flicker: true });
   }
 }
 
-/** lights that move: wisps, a shard's mark about to be hit */
+/** lights that move: wisps, a shard's mark about to be hit, a gas pocket building up and venting */
 function dynLights(st: MineState) {
   st.lights = st.lights.filter((l) => !l.dyn);
   for (const mo of st.monsters) if (mo.def.behavior === 'guard') st.lights.push({ x: mo.x, y: mo.y - 0.7, r: 2.6, i: 0.95, c: C.aqua, flicker: true, dyn: true });
-  for (const h of st.hazards) if (h.kind === 'shard' && h.state === 1) st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 2.4, i: 1, c: C.butter, flicker: true, dyn: true });
+  let group = -1;
+  for (const h of st.hazards) {
+    if (h.kind === 'shard' && h.state === 1) st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 2.4, i: 1, c: C.butter, flicker: true, dyn: true });
+    // one light per pocket, on its first tile (the middle it grew from)
+    if (h.kind !== 'gas' || h.group === group) continue;
+    group = h.group;
+    const p = h.state === 1 ? 1 - h.t / VENT_TELL : 0;
+    if (h.state === 1) st.lights.push({ x: h.x + 0.5, y: h.y + 0.5, r: 1.4 + p, i: 0.3 + 0.3 * p, c: C.lime, dyn: true });
+    else if (h.state === 3) st.lights.push({ x: h.x + 0.5, y: h.y, r: 3, i: 0.85, c: C.lime, flicker: true, dyn: true });
+  }
 }
 
 /**
@@ -686,6 +716,7 @@ export function enterFloor(g: Game, floor: number) {
   p.y = gen.entry[1] + 1.4;
   p.kx = p.ky = 0;
   if (st.map.g(gen.entry[0], gen.entry[1] + 1) !== T.MINEFLOOR) p.y = gen.entry[1] + 0.9;
+  st.clear = [p.x, p.y];
   if (floor > st.deepest) {
     st.deepest = floor;
     g.sys.quests?.notify?.(g, 'floor', floor);
@@ -1255,21 +1286,36 @@ function tickPests(g: Game, st: MineState, dt: number) {
 }
 
 // ---------------- hazards ----------------
-function hurtPlayer(g: Game, dmg: number, fromX: number, fromY: number) {
+/** A hazard's blow, knocking you away from (fromX, fromY) at `knock` tiles a second. True when it landed. */
+function hurtPlayer(g: Game, dmg: number, fromX: number, fromY: number, knock = 7): boolean {
   const p = g.player;
-  if (p.invuln > 0) return;
+  if (p.invuln > 0) return false;
   // the combat skill, the Warrior perk and a defense buff soften the blow
   const def = (1 - Math.min(0.5, (p.skills.combat ?? 0) * 0.03)) * (g.hasPerk('warrior') ? 0.75 : 1) * (1 - 0.12 * g.buffLvl('defense'));
   const n = Math.max(1, Math.round(dmg * def));
   p.hp -= n;
   p.invuln = 1;
   const dx = p.x - fromX, dy = p.y - fromY, d = Math.hypot(dx, dy) || 1;
-  p.kx = (dx / d) * 7;
-  p.ky = (dy / d) * 7;
+  p.kx = (dx / d) * knock;
+  p.ky = (dy / d) * knock;
   g.emit({ t: 'sfx', id: 'hurt' });
   g.emit({ t: 'shake', amt: 0.3 });
   g.emit({ t: 'float', text: `-${n}`, x: p.x, y: p.y - 1.8, c: C.rose });
   if (p.hp <= 0) faint(g);
+  return true;
+}
+
+/**
+ * A venting pocket's blow: it costs you, and it shoves you back to where you last stood clear of
+ * the firedamp (knockback dies away over about a sixth of its speed in tiles, so this carries you
+ * just past that spot). True when it landed.
+ */
+function ventHit(g: Game, st: MineState): boolean {
+  const p = g.player;
+  let dx = st.clear[0] - p.x, dy = st.clear[1] - p.y, d = Math.hypot(dx, dy);
+  // (no clear spot to go back to: straight back from the way you face)
+  if (d < 0.05) [dx, dy, d] = [-[0, 1, 0, -1][p.dir], -[-1, 0, 1, 0][p.dir], 1];
+  return hurtPlayer(g, VENT_HURT, p.x - dx / d, p.y - dy / d, Math.min(24, Math.max(7, (d + 0.6) * 6)));
 }
 
 function faint(g: Game) {
@@ -1295,7 +1341,7 @@ function tickHazards(g: Game, st: MineState, dt: number) {
   if (!st.hazards.length) return;
   const m = st.map!, p = g.player;
   const ptx = Math.floor(p.x), pty = Math.floor(p.y - 0.2);
-  let changed = false;
+  let changed = false, inGas = false, lastGas = -1;
   for (const h of st.hazards) {
     if (h.state === 2) continue;
     if (h.kind === 'crack') {
@@ -1321,22 +1367,45 @@ function tickHazards(g: Game, st: MineState, dt: number) {
         } else if (m.obj[m.idx(h.x, h.y)] === O.NONE) m.setO(h.x, h.y, O.ROCK, 0);
       }
     } else if (h.kind === 'gas') {
-      if (h.state !== 0 || ptx !== h.x || pty !== h.y) continue;
+      // a pocket vents on its own clock: quiet (a faint haze), a hiss of building puffs, a plume;
+      // its first tile makes the sounds for the whole pocket
+      const lead = h.group !== lastGas;
+      lastGas = h.group;
+      h.t -= dt;
+      if (h.t <= 0) {
+        if (h.state === 0) {
+          h.state = 1;
+          h.t += VENT_TELL;
+          if (lead) g.emit({ t: 'sfx', id: 'hiss', x: h.x, y: h.y, v: 0.7 });
+        } else if (h.state === 1) {
+          h.state = 3;
+          h.t += VENT_ON;
+          if (lead) g.emit({ t: 'sfx', id: 'vent', x: h.x, y: h.y, v: 0.8 });
+        } else {
+          h.state = 0;
+          h.t += (h.period ?? VENT_CYCLE[0]) - VENT_TELL - VENT_ON;
+          h.hit = false;
+        }
+      }
+      if (ptx !== h.x || pty !== h.y) continue;
+      inGas = true;
       if (g.research.done.has('r_spark')) {
-        // the spark-coil lantern burns the pocket off
+        // the spark-coil lantern burns the pocket off for good
         for (const k of st.hazards) if (k.kind === 'gas' && k.group === h.group) { k.state = 2; g.emit({ t: 'fx', kind: 'sparkle', x: k.x + 0.5, y: k.y + 0.5, c: C.amber }); }
         g.emit({ t: 'sfx', id: 'switch_on', v: 0.6 });
         changed = true;
-        if (!st.told.has('gas')) {
-          st.told.add('gas');
+        if (!st.told.has('gasburn')) {
+          st.told.add('gasburn');
           g.toast('Your spark-coil lantern burns the firedamp off harmlessly.', undefined, C.amber);
         }
-      } else {
-        const up = st.floor - 1;
-        g.toast(`Firedamp! The gas puffs you back up to level ${up}. (A spark-coil lantern burns it off: research Spark Coils.)`, undefined, C.rose);
-        g.emit({ t: 'sfx', id: 'thud' });
-        enterFloor(g, up);
-        return;
+      } else if (h.state === 3 && !h.hit) {
+        // venting: it costs you and shoves you back out, once a vent (never up a level)
+        if (ventHit(g, st)) for (const k of st.hazards) if (k.kind === 'gas' && k.group === h.group) k.hit = true;
+        if (!st.map || g.player.where !== 'mine') return;
+        if (!st.told.has('gas')) {
+          st.told.add('gas');
+          g.toast('Firedamp! The vent shoves you back. Listen for the hiss and cross while it is quiet, or research Spark Coils: their lantern burns it off.', undefined, C.rose);
+        }
       }
     } else if (h.kind === 'shard') {
       h.t -= dt;
@@ -1360,6 +1429,11 @@ function tickHazards(g: Game, st: MineState, dt: number) {
         if (!st.map || g.player.where !== 'mine') return;
       }
     }
+  }
+  // (where a vent would push you back to)
+  if (!inGas) {
+    st.clear[0] = p.x;
+    st.clear[1] = p.y;
   }
   if (changed) {
     st.hazards = st.hazards.filter((h) => h.state !== 2);

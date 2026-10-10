@@ -202,6 +202,9 @@ export class Audio {
       case 'monster_die': this.tone(600, 'square', { a: 0.002, d: 0.2 }, 0.06 * v, B, 0, 0.3); this.noise(0.2, 0.15 * v, 'lowpass', 2000, 1, 0, 0.2); break;
       case 'bite': this.tone(1500, 'sine', { a: 0.001, d: 0.05 }, 0.12 * v, B); this.tone(1500, 'sine', { a: 0.001, d: 0.05 }, 0.12 * v, B, 0.1); break;
       case 'cast': this.noise(0.25, 0.1 * v, 'bandpass', 1500, 1, 0, 0.4); break;
+      // firedamp (the Deepworks' Ember): a rising hiss as a pocket builds, then the vent's whoosh
+      case 'hiss': this.noise(0.95, 0.07 * v, 'highpass', 2600, 0.7, 0, 1.6); this.noise(0.5, 0.04 * v, 'highpass', 4200, 0.7, 0.45, 1.2); break;
+      case 'vent': this.noise(0.8, 0.2 * v, 'bandpass', 500, 0.8, 0, 2.4); this.noise(0.6, 0.08 * v, 'highpass', 2000, 0.6, 0.05, 0.6); break;
       case 'reel': this.tone(2000 + Math.random() * 300, 'square', { a: 0.001, d: 0.01 }, 0.015 * v, B); break;
       case 'catch': [784, 988, 1175, 1568].forEach((f, i) => this.tone(f, 'square', { a: 0.003, d: 0.12 }, 0.05 * v, B, i * 0.07)); break;
       case 'lose': [392, 330, 262].forEach((f, i) => this.tone(f, 'triangle', { a: 0.01, d: 0.2 }, 0.08 * v, B, i * 0.12)); break;

@@ -5,9 +5,10 @@ import { Game } from '../src/sim/Game';
 import { key } from '../src/sim/inventory';
 import { O, ORE_TYPES, T, type TileMap } from '../src/sim/world/tilemap';
 import {
-  BEAMS_TO_SHORE, CRACK_FUSE, DEEP_FLAGS, FLOOD_TEXT, MAX_FLOOR, generateFloor, liftLevels, mine, themeOf, type MineState, type Monster,
+  BEAMS_TO_SHORE, CRACK_FUSE, DEEP_FLAGS, FLOOD_TEXT, MAX_FLOOR, VENT_HURT, generateFloor, liftLevels, mine, themeOf,
+  type Hazard, type MineState, type Monster,
 } from '../src/sim/systems/mine';
-import { CHAMBERS, CHAMBER_BY_KIND, OBSERVATIONS, STRATA, type ChamberKind } from '../src/data/deepworks';
+import { CHAMBERS, CHAMBER_BY_KIND, OBSERVATIONS, STRATA, VENT_CYCLE, VENT_ON, VENT_TELL, type ChamberKind } from '../src/data/deepworks';
 import { MONSTERS } from '../src/data/creatures';
 import { ITEM_BY_ID } from '../src/data/items';
 import { C } from '../src/data/palette';
@@ -68,6 +69,26 @@ function levelWith(behavior: Monster['def']['behavior'], levels: number[]): { g:
     }
   throw new Error('no level with a ' + behavior);
 }
+
+/** a gas pocket on level 17 with a clear floor tile beside it to walk in from */
+function pocketLevel(perk?: string) {
+  const g = new Game({ seed: 8 }), st = mine(g);
+  if (perk) g.player.perks.push(perk);
+  st.enter(g, 17);
+  const m = st.map!, gas = st.hazards.filter((h) => h.kind === 'gas');
+  const isGas = (x: number, y: number) => gas.some((h) => h.x === x && h.y === y);
+  for (const h of gas)
+    for (const [dx, dy] of N4) {
+      const x = h.x + dx, y = h.y + dy;
+      if (m.g(x, y) === T.MINEFLOOR && m.o(x, y) === O.NONE && !isGas(x, y) && !st.solid(g, x, y)) {
+        const group = gas.filter((k) => k.group === h.group);
+        const set = (state: number, t: number) => { for (const k of group) { k.state = state; k.t = t; } };
+        return { g, st, pocket: h as Hazard, from: [x, y] as [number, number], group, set, isGas };
+      }
+    }
+  throw new Error('no gas pocket with a clear side');
+}
+const tileOf = (g: Game) => [Math.floor(g.player.x), Math.floor(g.player.y - 0.2)];
 
 describe('the Deepworks: thirty levels in six strata', () => {
   it('every level 1-30, on several seeds, keeps its floor, its way down, its chambers and its hazards in reach of the ladder up', () => {
@@ -275,24 +296,84 @@ describe('the Deepworks: hazards', () => {
     for (const h of group) if (h !== crack) expect(st.map!.o(h.x, h.y)).toBe(O.ROCK);
   });
 
-  it('Ember: gas pockets puff you back up a level, unless Spark Coils burn them off', () => {
-    const g = new Game({ seed: 8 }), st = mine(g);
-    st.enter(g, 17);
-    const gas = st.hazards.find((h) => h.kind === 'gas')!;
-    expect(gas).toBeTruthy();
-    stand(g, gas.x, gas.y);
+  it('Ember: each gas pocket vents on its own 7-9 s clock, and the pockets start apart', () => {
+    for (const seed of SEEDS)
+      for (const f of [16, 18, 20]) {
+        const g = new Game({ seed }), st = mine(g), at = `seed ${seed} level ${f}`;
+        st.enter(g, f);
+        const gas = st.hazards.filter((h) => h.kind === 'gas');
+        expect(gas.length, at).toBeGreaterThan(0);
+        const groups = [...new Set(gas.map((h) => h.group))];
+        for (const gi of groups) {
+          const tiles = gas.filter((h) => h.group === gi);
+          // a pocket's tiles share one clock; everyone starts quiet
+          expect(new Set(tiles.map((h) => `${h.period}:${h.t}:${h.state}`)).size, at).toBe(1);
+          expect(tiles[0].state, at).toBe(0);
+          expect(tiles[0].period!, at).toBeGreaterThanOrEqual(VENT_CYCLE[0]);
+          expect(tiles[0].period!, at).toBeLessThanOrEqual(VENT_CYCLE[1]);
+          expect(tiles[0].period! - VENT_TELL - VENT_ON, at + ': the quiet spell').toBeGreaterThanOrEqual(3);
+        }
+        expect(new Set(groups.map((gi) => gas.find((h) => h.group === gi)!.t)).size, at).toBe(groups.length);
+      }
+  });
+
+  it('Ember: a quiet pocket is safe, its tell hisses, its vent costs health once and shoves you back out, never up a level', () => {
+    const { g, st, pocket, from, group, set, isGas } = pocketLevel();
+    const ventLight = () => st.lights.some((l) => l.dyn && l.c === C.lime && l.x === group[0].x + 0.5 && l.r >= 2.5);
+    // walk in from the side while it's quiet: nothing happens
+    set(0, 3);
+    stand(g, from[0], from[1]);
+    run(g, 0.1);
+    stand(g, pocket.x, pocket.y);
+    const hp = g.player.hp;
     g.events.length = 0;
-    run(g, 0.1);
-    expect(st.floor).toBe(16);
+    run(g, 1);
+    expect(g.player.hp).toBe(hp);
+    expect(ventLight()).toBe(false);
+    // the tell: a hiss and building puffs, still harmless
+    set(0, 0.05);
+    run(g, 0.6);
+    expect(pocket.state).toBe(1);
+    expect(g.events.some((e) => e.t === 'sfx' && (e as { id: string }).id === 'hiss')).toBe(true);
+    expect(g.player.hp).toBe(hp);
+    // it vents: one blow, a shove back out the way you came, and you're still on level 17
+    run(g, VENT_TELL);
+    expect(pocket.state).toBe(3);
+    expect(ventLight()).toBe(true);
+    expect(hp - g.player.hp).toBe(VENT_HURT);
     expect(toasts(g).some((t) => t.startsWith('Firedamp'))).toBe(true);
-    // with the spark-coil lantern the pocket burns off and you stay
+    run(g, 0.6);
+    const [tx, ty] = tileOf(g);
+    expect(isGas(tx, ty), `pushed out to ${tx},${ty}`).toBe(false);
+    expect(Math.abs(tx - from[0]) + Math.abs(ty - from[1])).toBeLessThanOrEqual(1);
+    expect([st.floor, g.player.where]).toEqual([17, 'mine']);
+    // once a vent: back in the plume, it doesn't hurt again
+    const after = g.player.hp;
+    stand(g, pocket.x, pocket.y);
+    run(g, 0.3);
+    expect(pocket.state).toBe(3);
+    expect(g.player.hp).toBe(after);
+    // the vent dies down and the pocket is quiet again; its next vent costs you again
+    run(g, VENT_ON);
+    expect(pocket.state).toBe(0);
+    expect(pocket.hit).toBe(false);
+    stand(g, pocket.x, pocket.y);
+    run(g, pocket.t + VENT_TELL + 0.1);
+    expect(pocket.state).toBe(3);
+    expect(g.player.hp).toBeLessThan(after);
+    expect([st.floor, g.player.where]).toEqual([17, 'mine']);
+  });
+
+  it('Ember: a spark-coil lantern burns a pocket off for good, at any point in its cycle', () => {
+    const { g, st, pocket, set } = pocketLevel();
     g.research.done.add('r_spark');
-    st.enter(g, 17);
-    const gas2 = st.hazards.find((h) => h.kind === 'gas')!;
-    stand(g, gas2.x, gas2.y);
+    set(3, 2);
+    stand(g, pocket.x, pocket.y);
+    const hp = g.player.hp;
     run(g, 0.1);
+    expect(g.player.hp).toBe(hp);
     expect(st.floor).toBe(17);
-    expect(st.hazards.some((h) => h.kind === 'gas' && h.group === gas2.group)).toBe(false);
+    expect(st.hazards.some((h) => h.kind === 'gas' && h.group === pocket.group)).toBe(false);
     expect(st.hazards.some((h) => h.kind === 'gas')).toBe(true);
   });
 
@@ -400,6 +481,17 @@ describe('the Deepworks: pests, not monsters', () => {
     const plain = hurt(false), warrior = hurt(true);
     expect(warrior).toBeGreaterThan(0);
     expect(warrior).toBeLessThan(plain);
+    // and off a vent of firedamp
+    const vent = (perk: boolean) => {
+      const { g: g3, pocket, set } = pocketLevel(perk ? 'warrior' : undefined);
+      set(3, 2);
+      stand(g3, pocket.x, pocket.y);
+      const hp = g3.player.hp;
+      run(g3, 0.1);
+      return hp - g3.player.hp;
+    };
+    expect(vent(false)).toBe(VENT_HURT);
+    expect(vent(true)).toBe(Math.round(VENT_HURT * 0.75));
   });
 
   it('a wisp hides the ladder: no rock turns it up, one hit shows it', () => {

@@ -58,7 +58,7 @@ export const STRATA: StratumDef[] = [
     id: 'ember', name: 'Ember', levels: [16, 20], ores: [[3, 5], [4, 4]], rock: 0.19, ore: 0.06, gem: 0.008, ice: 0,
     extra: [['coal', 0.1]], decor: 'stalagmite', decorP: 0.01, ladder: [0.04, 0.012], art: 2,
     dark: 0.6, lantern: 6, tint: C.wine,
-    intro: 'The Ember (levels 16-20): gold and coal. Firedamp hangs in pockets: a spark-coil lantern burns it off.',
+    intro: 'The Ember (levels 16-20): gold and coal. Firedamp pockets vent every few seconds: cross while they are quiet, or a spark-coil lantern burns them off.',
   },
   {
     id: 'crystal', name: 'Crystal', levels: [21, 25], ores: [], rock: 0.2, ore: 0, gem: 0.05, ice: 0,
@@ -73,6 +73,13 @@ export const STRATA: StratumDef[] = [
     intro: 'Starfall (levels 26-30): starmetal. Shards of the fallen star still drop from the roof: keep off the glowing marks.',
   },
 ];
+
+/**
+ * Firedamp vents on a clock (src/sim/systems/mine.ts): quiet, a hiss of building puffs for
+ * VENT_TELL seconds, then a plume for VENT_ON; each pocket's whole cycle is VENT_CYCLE seconds.
+ */
+export const VENT_TELL = 1, VENT_ON = 2.5;
+export const VENT_CYCLE: [number, number] = [7, 9];
 
 export type ChamberKind = 'lift' | 'boiler' | 'pump' | 'lampworks' | 'lockers' | 'cart' | 'star';
 

@@ -37,7 +37,7 @@ import { blendVertex, needsBlend } from './blend';
 import { drawDryDrops, drawRail, pushGantry } from './fieldworks';
 import { MState } from '../sim/mstate';
 import { rusty } from './rust';
-import { STRATA, CHAMBER_BY_KIND } from '../data/deepworks';
+import { STRATA, CHAMBER_BY_KIND, VENT_ON, VENT_TELL } from '../data/deepworks';
 import { deepFrames } from './art/deep';
 import type { MineState } from '../sim/systems/mine';
 import { pushTownworks } from './townworks';
@@ -1337,14 +1337,16 @@ export class Renderer {
 
   /**
    * The Deepworks' hazards (src/sim/systems/mine.ts). Under the actors: the cracks of a loose
-   * ceiling (grit trickles once it rumbles) and the glowing marks where star-shards land. Over them:
-   * firedamp haze and a shard on its way down.
+   * ceiling (grit trickles once it rumbles), the stain of a firedamp pocket and the ringed marks
+   * where star-shards land. Over them: firedamp (a faint haze while quiet, puffs that build as it
+   * hisses, a green plume while it vents) and a shard on its way down.
    */
   private drawHazards(g: Game, over: boolean) {
     const st = g.sys.mine as MineState | undefined;
     if (!st?.map || !st.hazards.length) return;
     const ctx = this.ctx, t = this.time, v = this.view;
     const px1 = (c: number, x: number, y: number) => { ctx.fillStyle = PALETTE[c]; ctx.fillRect(x, y, 1, 1); };
+    const ring = (cx: number, cy: number, r: number, c: number) => ctx.drawImage(ringImg(r, c), cx - r, cy - r);
     for (const h of st.hazards) {
       const px = h.x * TILE, py = h.y * TILE;
       if (px < v.x0 - 32 || px > v.x1 + 32 || py < v.y0 - 80 || py > v.y1 + 32) continue;
@@ -1375,10 +1377,19 @@ export class Renderer {
       } else if (h.kind === 'shard') {
         const cx = px + 8, cy = py + 9;
         if (!over) {
-          // a star-shaped scorch that glows; brighter while a shard is coming
+          // a star-shaped scorch that glows, brighter while a shard is coming. Starfall's floor
+          // glitters gold, so the mark sits on a dark disc inside a butter ring with a dark ring
+          // either side; the ring grows as the shard nears and blinks just before it lands
           const hot = h.state === 1;
+          const near = hot ? Math.max(0, Math.min(1, 1 - h.t / 1.2)) : 0;
           const pulse = hot ? Math.floor(t * 12) % 2 : Math.sin(t * 3 + hh * 6) > 0.2 ? 1 : 0;
           const r = hot ? 5 : 3 + pulse;
+          const rr = hot ? 6 + Math.round(near * 3) : 6 + (Math.sin(t * 2.4 + hh * 6) > 0.5 ? 1 : 0);
+          ctx.fillStyle = rgba(C.ink, hot ? 0.5 : 0.38);
+          for (let dy = -(rr - 1); dy <= rr - 1; dy++) {
+            const w = Math.floor(Math.sqrt((rr - 1) ** 2 - dy * dy));
+            ctx.fillRect(cx - w, cy + dy, w * 2 + 1, 1);
+          }
           ctx.fillStyle = PALETTE[C.bark];
           ctx.fillRect(cx - 3, cy - 1, 7, 3);
           ctx.fillRect(cx - 1, cy - 3, 3, 7);
@@ -1386,6 +1397,9 @@ export class Renderer {
           ctx.fillRect(cx - r, cy, r * 2 + 1, 1);
           ctx.fillRect(cx, cy - r + 1, 1, r * 2 - 1);
           if (hot || pulse) px1(C.cream, cx, cy);
+          ring(cx, cy, rr + 1, C.ink);
+          ring(cx, cy, rr - 1, C.ink);
+          ring(cx, cy, rr, hot && pulse ? C.cream : C.butter);
         } else if (h.state === 1) {
           // the shard streaks down onto its mark
           const p = Math.max(0, Math.min(1, 1 - h.t / 1.2));
@@ -1397,15 +1411,46 @@ export class Renderer {
           ctx.fillStyle = PALETTE[C.gold];
           ctx.fillRect(cx, sy - 4, 1, 6);
         }
-      } else if (h.kind === 'gas' && over) {
-        // firedamp: a slow yellow-green haze drifting over its pocket
+      } else if (h.kind === 'gas' && !over) {
+        // the pocket's stain on the floor, so you can see where it lies while it's quiet
+        const build = h.state === 1 ? 1 - h.t / VENT_TELL : 0;
+        ctx.fillStyle = rgba(C.lime, h.state === 3 ? 0.2 : 0.08 + build * 0.1);
+        ctx.fillRect(px + 2, py + 1, 12, 14);
+        ctx.fillRect(px + 1, py + 2, 14, 12);
+      } else if (h.kind === 'gas' && h.state === 3) {
+        // venting: a green plume boiling up out of the floor, two tiles high, over a bright jet at
+        // its mouth (it fades in and out)
+        const q = 1 - h.t / VENT_ON, fade = Math.max(0, Math.min(1, q * 8, (1 - q) * 5));
+        for (let k = 0; k < 6; k++) {
+          const f = (t * 1.4 + k / 6 + hh) % 1, s = Math.round(4 + f * 8);
+          const bx = Math.round(px + 8 + Math.sin(t * 3 + k * 1.9 + h.x) * (1 + f * 3) - s / 2), by = Math.round(py + 12 - f * 34 - s / 2);
+          ctx.fillStyle = rgba(k % 2 ? C.leaf : C.lime, (0.8 - f * 0.6) * fade);
+          ctx.fillRect(bx + 1, by, s - 2, s);
+          ctx.fillRect(bx, by + 1, s, s - 2);
+        }
+        const jet = Math.floor(t * 14 + hh * 7) % 2;
+        ctx.fillStyle = rgba(C.lime, 0.9 * fade);
+        ctx.fillRect(px + 5, py + 10, 6, 3);
+        ctx.fillRect(px + 6, py + 5 - jet, 4, 5 + jet);
+        ctx.fillStyle = rgba(C.cream, 0.7 * fade);
+        ctx.fillRect(px + 7, py + 7 - jet, 2, 5);
+      } else if (h.kind === 'gas') {
+        // quiet, a faint haze drifting over the pocket; hissing (the tell), it thickens and puffs
+        // bubble up off the floor, quicker as the vent nears
+        const build = h.state === 1 ? 1 - h.t / VENT_TELL : 0;
         for (let k = 0; k < 3; k++) {
           const ox = Math.round(Math.sin(t * 0.7 + k * 2.1 + h.x) * 3), oy = Math.round(Math.cos(t * 0.5 + k * 1.7 + h.y) * 2);
-          ctx.fillStyle = rgba(k === 1 ? C.leaf : C.lime, 0.26);
+          ctx.fillStyle = rgba(k === 1 ? C.leaf : C.lime, 0.14 + build * 0.2);
           const bx = px + 1 + k * 4 + ox, by = py + 2 + (k % 2) * 5 + oy;
           ctx.fillRect(bx + 1, by, 6, 6);
           ctx.fillRect(bx, by + 1, 8, 4);
         }
+        if (h.state === 1)
+          for (let k = 0; k < 3; k++) {
+            const f = (t * (1.5 + build * 2.5) + k / 3 + hh) % 1, s = 2 + Math.round(build * 2);
+            ctx.fillStyle = rgba(C.lime, 0.6 - f * 0.45);
+            ctx.fillRect(Math.round(px + 3 + k * 4 + Math.sin(t * 11 + k) * build), Math.round(py + 12 - f * (5 + build * 9)), s, s);
+          }
       }
     }
   }
@@ -1678,6 +1723,29 @@ function dt60(r: Renderer) {
 import { ITEMS } from '../data/items';
 export function itemIdCache(k: number): string {
   return ITEMS[k >> 2].id;
+}
+
+/** a one-pixel ring of radius r in a palette colour (the midpoint circle), drawn once and kept */
+const RINGS = new Map<number, HTMLCanvasElement>();
+function ringImg(r: number, c: number): HTMLCanvasElement {
+  const k = r * 64 + c;
+  let cv = RINGS.get(k);
+  if (!cv) {
+    cv = makeCanvas(r * 2 + 1, r * 2 + 1);
+    const x2 = ctx2d(cv);
+    x2.fillStyle = PALETTE[c];
+    for (let x = r, y = 0, e = 1 - r; x >= y; ) {
+      for (const [a, b] of [[x, y], [y, x], [-x, y], [-y, x], [x, -y], [y, -x], [-x, -y], [-y, -x]]) x2.fillRect(r + a, r + b, 1, 1);
+      y++;
+      if (e < 0) e += 2 * y + 1;
+      else {
+        x--;
+        e += 2 * (y - x) + 1;
+      }
+    }
+    RINGS.set(k, cv);
+  }
+  return cv;
 }
 
 /** pixel line with given thickness in world pixels */
