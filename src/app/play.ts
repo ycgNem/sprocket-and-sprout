@@ -450,7 +450,7 @@ export class PlayScreen implements Screen {
       if (g.sleeping) ui.text('The farm hums through the night...', ui.w / 2, ui.h / 2 + 26, C.pebble, { align: 'center' });
     }
     // like toasts, the banner waits for the window to close rather than covering its title
-    if (!this.modalOpen && !r.juice.banners.length) this.achQ = drawAchBanner(ui, this.achQ, dt);
+    if (!this.modalOpen && !r.juice.banners.length) this.achQ = drawAchBanner(ui, this.achQ, dt, this.hud.narrow ? this.hud.lowY : undefined);
     if (this.debug) WINDOWS.debug?.draw(ui, this, { id: 'debug', t: 0, data: {} });
     ui.end();
 

@@ -126,8 +126,9 @@ registerWindow('achievements', { draw: drawAchievements });
 // ---------------- unlock banner ----------------
 export interface AchBanner { id: string; t: number }
 
-/** Draws the front of the banner queue; returns the queue with finished banners removed. */
-export function drawAchBanner(ui: UI, q: AchBanner[], dt: number): AchBanner[] {
+/** Draws the front of the banner queue; returns the queue with finished banners removed. `lowY`: on
+ *  a narrow screen it rises from there (above the hotbar) instead of dropping over the Now strip. */
+export function drawAchBanner(ui: UI, q: AchBanner[], dt: number, lowY?: number): AchBanner[] {
   const b = q[0];
   if (!b) return q;
   b.t += dt;
@@ -136,7 +137,8 @@ export function drawAchBanner(ui: UI, q: AchBanner[], dt: number): AchBanner[] {
   if (!a || b.t > LIFE) return q.slice(1);
   const w = 210, h = 38;
   const slide = Math.min(1, b.t * 4) * (b.t > LIFE - 0.35 ? (LIFE - b.t) / 0.35 : 1);
-  const x = Math.floor(ui.w / 2 - w / 2), y = Math.floor(-h + slide * (h + 30));
+  // (on a narrow screen it rises a few pixels into place over the hotbar's gap, never across the hotbar)
+  const x = Math.floor(ui.w / 2 - w / 2), y = lowY !== undefined ? Math.floor(lowY - h + (1 - slide) * 8) : Math.floor(-h + slide * (h + 30));
   ui.fill(x + 2, y + h, w - 2, 2, C.ink, 0.4);
   ui.fill(x, y, w, h, C.ink);
   ui.fill(x + 1, y + 1, w - 2, h - 2, a.secret ? C.plum : C.bark);

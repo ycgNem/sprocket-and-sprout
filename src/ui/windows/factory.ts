@@ -234,8 +234,11 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   thumb(barX, spanX, st.data.panX, true, vw, maxX);
   thumb(barY, spanY, st.data.panY, false, vh, maxY);
   // Fit / full size: the overview shows every topic at once
-  // (above the tree, on the frame, so it never covers a topic: the sweep found it over a node)
-  if (ui.button('rfit', vx + vw - 46, y + 3, 44, 10, fit ? 'Zoom' : 'Fit', { style: 'flat', tip: fit ? 'Back to full size' : 'Show the whole tree' })) {
+  // (above the tree, on the frame, so it never covers a topic: the sweep found it over a node; on a
+  // narrow screen it moves to the frame's left end, clear of the window's title)
+  const titleW = textWidth('Research') / 2 + 40;
+  const fitX = vx + vw - 46 < x + w / 2 + titleW && vx + vw - 2 > x + w / 2 - titleW ? vx + 2 : vx + vw - 46;
+  if (ui.button('rfit', fitX, y + 3, 44, 10, fit ? 'Zoom' : 'Fit', { style: 'flat', tip: fit ? 'Back to full size' : 'Show the whole tree' })) {
     st.data.fit = !fit;
     st.data.panX = 0;
     st.data.panY = 0;
@@ -294,7 +297,9 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   const have = (id: string) => g.player.inv.countId(id) + labs.reduce((a, l) => a + (l.inv?.countId(id) ?? 0), 0);
   const short = sel.cost.filter((c) => have(c.item) < units);
   if (!g.research.done.has(sel.id)) {
-    yy += ui.para(short.length ? `You have ${short.map((c) => `${have(c.item)} ${ITEM_BY_ID.get(c.item)?.name.split(' ')[0].toLowerCase()}`).join(', ')} of ${units}: craft more (C)` : 'You have enough bundles', px + 6, yy, pw - 12, short.length ? C.brick : C.moss) + 2;
+    // (only where it fits above the Research button: a short window has no room for it)
+    const haveLine = short.length ? `You have ${short.map((c) => `${have(c.item)} ${ITEM_BY_ID.get(c.item)?.name.split(' ')[0].toLowerCase()}`).join(', ')} of ${units}: craft more (C)` : 'You have enough bundles';
+    if (yy + wrapText(haveLine, pw - 12).length * 9 <= py + h - 50) yy += ui.para(haveLine, px + 6, yy, pw - 12, short.length ? C.brick : C.moss) + 2;
   }
   const unl = unlocksOf(sel.id);
   if (unl.items.length && yy < py + h - 90) {

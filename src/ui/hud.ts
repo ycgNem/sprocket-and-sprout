@@ -20,6 +20,10 @@ export interface HudState {
   occupied?: { x: number; y: number; w: number; h: number }[];
   /** the bottom of the top-left column (Rush tracker + Now strip), where lesson cards hang */
   leftY?: number;
+  /** too narrow between the left and right columns (the 960x600 embed): the achievement banner and
+   *  toasts stack up from `lowY`, above the hotbar and the build bar, instead of over the Now strip */
+  narrow?: boolean;
+  lowY?: number;
 }
 
 /** Seconds a toast stays up (it fades out over the last 0.7 s). Tips get longer to read. */
@@ -94,10 +98,13 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   // at most three on screen, oldest first; the rest wait their turn (play.ts ages only these three).
   // Held (not drawn, not aging) while a window is open, since windows cover the top of the screen;
   // a quest ribbon owns the middle of the screen for a moment: toasts wait for it
-  // too narrow between the columns (the 960x600 embed): they stack up from above the hotbar, clear
-  // of the Now strip
+  // too narrow between the columns (the 960x600 embed): they stack up from above the hotbar (and the
+  // build bar, and an achievement banner), clear of the Now strip
   const narrow = colR - colL < 200;
-  let lowY = ui.h - 66;
+  const buildBar = play.mode !== 'normal' || (!play.win && !!play.heldPlaceable());
+  play.hud.narrow = narrow;
+  play.hud.lowY = ui.h - 66 - (buildBar ? 36 : 0);
+  let lowY = play.hud.lowY - (play.achQ.length ? 42 : 0);
   for (const t of play.modalOpen || play.app.renderer.juice.banners.length ? [] : play.hud.toasts.slice(0, 3)) {
     const life = toastLife(t.text);
     const a = t.t < life - 0.7 ? 1 : 1 - (t.t - (life - 0.7)) / 0.7;
