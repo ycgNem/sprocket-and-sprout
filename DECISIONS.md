@@ -571,3 +571,38 @@ recommendations are the decisions.
     (its own count, not your winding achievement; rusted machines are the keeper's to restore).
     Indoors, down the Deepworks and at night it waits by the door. F and the hover say how many keys
     it has turned.
+104. **Six villagers are the works' specialists (7.6, Phase 5).** Juniper the millwright (Oakroot
+    Joinery), Bram the foundry master, Sable the archivist (the library and the old works' archive),
+    Old Thorne the old works' last engineer (living among the wrecks in the forest), Hazel the
+    draughtswoman and pigment mixer, Pip the apprentice; ids, looks, birthdays and pronouns are kept,
+    each has 42-44 lines (seasons, Trust levels, keystone flags; a line can need a flag or its
+    absence), works-leaning gift tastes and new 2- and 4-Trust scenes (the 6- and 8- scenes edited
+    only where they contradicted the roles). Each machine is sold in one place: the Joinery the
+    wooden ones (water wheel, windmill, hand loom, gleaner, sawmill, thresher), the Workshop the brass
+    ones, Bram's foundry a blast furnace at 6,500 from rank 3. Juniper gives k10 (the Town Mill), Old
+    Thorne k11 (the boiler) and k16 (the Tram). Hazel's Today asks are pigment and starch paste.
+105. **Trust is the UI's word for a villager's hearts, ten cog pips (7.6).** On the dialogue box, the
+    Journal's Town tab and the villager hover; romance and pets keep hearts. Gifts give a third of
+    1.x's (love 27, like 15, neutral 7, dislike -7, hate -13; birthdays x8), and Trust comes mostly
+    from work: a Today ask 120, a standing order 100 (a big one 150), a main quest 100 to its giver
+    (40 for others, not twice when the reward already gives that villager Trust), the day's first
+    chat 20, an echo or a filing 60.
+106. **The specialists' talks add no system.** `npcs.ts` exposes `TALK_HOOKS` and `EVENT_HOOKS`;
+    `src/sim/people.ts` adds to them when imported, so the tick order is unchanged. Questions use the
+    event window with an `ask` that comes back to `finishAsk` (no 60, no heart-event count, no
+    cutscene; closing without an answer changes nothing). **Pip's echoes**: one per lesson card,
+    one a day from the cards you've seen, new before missed; right is +60 and "I wrote it in my
+    notebook!", wrong is an explanation and the card comes back later. **Pip's farm visit**: from day
+    5, a fine day with no other visitor, 40% from a hash of the seed and day (never `g.rng`), 3pm to
+    6pm beside one of your machines; Pip asks its real state (the machine's live `why`), and the
+    wrong answers are never a near-miss.
+107. **Sable's records and filing, Old Thorne's drawings.** While a keystone's main quest is on,
+    Sable lends the record of a chamber whose card you have but whose look didn't count, and taking
+    it is the look; on your first talk after each look, chamber card or town keystone, Sable files it
+    (+60 once). Old Thorne hands four blueprints to the drafting table's library (the keeper's crock
+    line after his 2-Trust scene; a mill line, a smelting line and the clock's gear line after the
+    Town Mill, the Waterworks and the Tram); a full library makes the drawing wait.
+108. **The re-roles don't move the game's dice.** Juniper's daily schedule is unchanged (a morning
+    walk to the Town Mill moved the bot's dice and failed seed 2024's day-5 test; the bio says
+    Juniper stops on the bridge to listen to it), and Hazel's two Today asks sit where her old two
+    were, so the day's draw picks the same villagers.
