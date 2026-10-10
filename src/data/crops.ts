@@ -54,6 +54,8 @@ export const CROPS: CropDef[] = [
     look: { style: 'bush', leaf: C.moss, fruit: C.cream }, desc: 'Soft white bolls. A loom spins it into cloth.', tags: ['fiber'] }),
   crop({ id: 'coffee', name: 'Coffee Cherry', seasons: [SU], stages: [1, 2, 2, 2, 3], regrow: 2, yield: [2, 4], price: 15, seedPrice: 120, icon: 'beans',
     look: { style: 'bush', leaf: C.pine, fruit: C.brick }, desc: 'Roast the beans for a morning that sparkles.', tags: ['brew'] }),
+  crop({ id: 'rapeseed', name: 'Rapeseed', seasons: [SU], stages: [1, 1, 2, 2], scythe: true, price: 18, seedPrice: 20, icon: 'grain', yield: [2, 3],
+    look: { style: 'grain', leaf: C.leaf, fruit: C.butter }, desc: 'A sea of yellow flowers, then pods of tiny black seeds. A mill presses them to oil.', tags: ['oilseed'] }),
   crop({ id: 'sunbell', name: 'Sunbell', seasons: [SU], stages: [2, 2, 2, 3], price: 140, seedPrice: 70, icon: 'bell',
     look: { style: 'flower', leaf: C.leaf, fruit: C.butter, fruit2: C.amber }, cat: 'flower', desc: 'A drooping bell that chimes in the breeze. Bees adore it.', tags: ['flower'] }),
 

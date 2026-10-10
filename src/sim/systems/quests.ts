@@ -122,6 +122,7 @@ function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
     case 'order': return prog >= 1 || (g.sys.orders?.filled?.[o.id] ?? 0) >= 1;
     case 'grid': return gridCovers(g, o.struct);
     case 'flag': return g.flags.has(o.flag);
+    case 'count': return (g.counters[o.key] ?? 0) >= o.n;
     case 'feeds': {
       const nodes = portGraph(g);
       return g.ents.all().some((e) => !e.ghost && !e.st.rust && e.def.id === o.struct && (!o.other || !e.st.keeper) && (nodes.get(e.id)?.ins.length ?? 0) > 0);
@@ -174,6 +175,7 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
       const open = (g.sys.orders?.open as { id: string; n: number; have: number }[] | undefined)?.find((x) => x.id === o.id);
       return open ? `${o.label} (${open.have}/${open.n})` : o.label;
     }
+    if (o.t === 'count') return `${o.label} (${Math.min(o.n, Math.floor(g.counters[o.key] ?? 0))}/${o.n})`;
     return n > 1 && o.t !== 'build' ? `${o.label} (${Math.min(prog, n)}/${n})` : o.label;
   }
   switch (o.t) {
@@ -208,6 +210,7 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
     case 'armload': return `An arm feeds the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct} (${Math.min(prog, o.n)}/${o.n})`;
     case 'order': return `Fill the order: ${o.id}`;
     case 'grid': return `Enough power for the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct}'s grid`;
+    case 'count': return `${o.key} (${Math.min(o.n, Math.floor(g.counters[o.key] ?? 0))}/${o.n})`;
   }
 }
 

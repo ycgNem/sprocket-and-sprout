@@ -1,7 +1,7 @@
 // Game-mode rules and per-map starting kits. Story is the default rule set; the others
 // tweak the clock, penalties, crafting and the opening inventory. Clockwork Rush also
 // scores the first 28 days and awards a medal.
-import { RESEARCH } from '../../data/research';
+import { RESEARCH, REWARD_PIECES } from '../../data/research';
 import { RUSH_DAYS, RUSH_MEDALS } from '../../data/modes';
 import { Game, registerSystem } from '../Game';
 import { key, kDef } from '../inventory';
@@ -105,6 +105,8 @@ function startKit(g: Game) {
     case 'sandbox':
       p.money = 1000000;
       for (const r of RESEARCH) g.research.done.add(r.id);
+      // and every era reward, since sandbox has no town keystones to earn them with
+      for (const p of REWARD_PIECES) g.research.rewards.add(p.id);
       g.flags.add('lab');
       applyEffects(g);
       break;

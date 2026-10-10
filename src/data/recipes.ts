@@ -32,6 +32,8 @@ hand('compost_bin', 1, [['wood', 15], ['fiber', 10]]);
 hand('compost', 2, [['fiber', 6], ['sap', 1]]);
 hand('bait', 5, [['fiber', 4], ['sap', 1]]);
 hand('rope', 1, [['fiber', 3]]);
+rec('hand', [s('straw', 1)], [s('fiber', 2)], 1, undefined, 'hand:fiber_straw');
+hand('lubricant', 1, [['oil', 1], ['sap', 1]], 'r_milling');
 hand('plank', 1, [['wood', 2]]);
 hand('beam', 1, [['hardwood', 2]]);
 hand('flower_pot', 1, [['wood', 10], ['#flower', 2]]);
@@ -85,6 +87,8 @@ rec('hand', [s('#gem', 1), s('gold_bar', 1), s('#wine', 1), s('spark_coil', 1)],
 
 // ---------------- Hand: logistics ----------------
 hand('belt_1', 3, [['copper_gear', 1], ['plank', 1], ['fiber', 2]], 'r_belts');
+// canvas belts: a loom's canvas doubles what a gear and a plank make
+rec('hand', [s('canvas', 1), s('plank', 1), s('copper_gear', 1)], [s('belt_1', 6)], 2, 'r_belts', 'hand:belt_1_canvas');
 hand('arm_basic', 1, [['copper_gear', 2], ['plank', 2], ['rope', 1]], 'r_arms');
 hand('under_1', 2, [['belt_1', 5], ['plank', 4], ['copper_gear', 2]], 'r_logistics');
 hand('splitter_1', 1, [['belt_1', 4], ['copper_gear', 2], ['copper_coil', 1], ['plank', 4]], 'r_logistics');
@@ -95,8 +99,9 @@ hand('belt_3', 2, [['belt_2', 2], ['gold_bar', 1], ['spark_coil', 1]], 'r_belt3'
 hand('under_3', 2, [['under_2', 2], ['gold_bar', 2], ['spark_coil', 2]], 'r_belt3');
 hand('splitter_3', 1, [['splitter_2', 1], ['gold_bar', 2], ['spark_coil', 2]], 'r_belt3');
 hand('arm_fast', 1, [['arm_basic', 1], ['copper_coil', 1], ['brass_gear', 1]], 'r_fast_arm');
-hand('arm_long', 1, [['arm_fast', 1], ['iron_plate', 1], ['brass_gear', 1]], 'r_long_arm');
-hand('arm_filter', 1, [['arm_fast', 1], ['spark_coil', 1]], 'r_filter_arm');
+// Reaching and Sorting arms are spring arms of the Water era: built on a basic arm, no power
+hand('arm_long', 1, [['arm_basic', 1], ['copper_gear', 2], ['plank', 2]], 'r_long_arm');
+hand('arm_filter', 1, [['arm_basic', 1], ['copper_coil', 2], ['copper_gear', 1]], 'r_filter_arm');
 hand('arm_bulk', 1, [['arm_fast', 1], ['brass_gear', 4], ['spring', 1], ['spark_coil', 2]], 'r_bulk_arm');
 hand('chest_iron', 1, [['iron_bar', 4], ['plank', 4]], 'r_storage');
 hand('chest_brass', 1, [['chest_iron', 1], ['brass_bar', 4]], 'r_storage');
@@ -123,6 +128,7 @@ hand('hand_loom', 1, [['wood', 40], ['fiber', 20], ['copper_gear', 1], ['rope', 
 hand('oven', 1, [['brick', 30], ['iron_bar', 1], ['stone', 10]], 'r_cooking');
 hand('mill', 1, [['plank', 20], ['stone', 10], ['copper_gear', 4], ['iron_bar', 1]], 'r_milling', 5);
 hand('sawmill', 1, [['plank', 10], ['iron_plate', 4], ['copper_gear', 4]], 'r_sawmill', 5);
+hand('thresher', 1, [['plank', 10], ['iron_plate', 4], ['copper_gear', 6], ['spring', 2]], 'r_threshing', 5);
 hand('steam_loom', 1, [['hand_loom', 1], ['iron_plate', 4], ['brass_gear', 4], ['copper_coil', 2]], 'r_steam_loom', 5);
 hand('bottler', 1, [['glass', 8], ['iron_plate', 4], ['copper_gear', 4], ['copper_coil', 2]], 'r_bottling', 5);
 hand('roaster', 1, [['iron_plate', 4], ['copper_coil', 2], ['brick', 10]], 'r_bottling', 4);
@@ -173,6 +179,8 @@ rec('keg', [s('wheat', 3)], [s('ale', 1)], 90, undefined, 'keg:ale');
 rec('keg', [s('barley', 3)], [s('stout', 1)], 100, undefined, 'keg:stout');
 rec('keg', [s('hops', 2)], [s('pale_ale', 1)], 120, undefined, 'keg:pale_ale');
 rec('keg', [s('#honey', 1)], [s('mead', 1)], 120, undefined, 'keg:mead');
+rec('keg', [s('sweetcane', 2)], [s('spirit', 1)], 90, undefined, 'keg:spirit_cane');
+rec('keg', [s('barley', 3)], [s('spirit', 1)], 100, undefined, 'keg:spirit_barley');
 
 // ---------------- Preserving crock (id 'jar') ----------------
 for (const [id] of FRUIT_LIST) rec('jar', [s(id, 1)], [s(`jam_${id}`, 1)], 60, undefined, `jar:jam_${id}`);
@@ -180,6 +188,13 @@ for (const [id] of VEG_LIST) rec('jar', [s(id, 1)], [s(`pickles_${id}`, 1)], 60,
 rec('jar', [s('cogbean', 2)], [s('cogbean_oil', 1)], 90, 'flag:recipe_cogbean_oil', 'jar:cogbean_oil');
 rec('jar', [s('#fish', 3)], [s('caviar', 1)], 90, undefined, 'jar:caviar');
 rec('jar', [s('roe', 5)], [s('caviar', 1)], 90, undefined, 'jar:caviar_roe');
+// Dyes & Pastes: the same roots and caps, locked to a paste or pigment recipe
+rec('jar', [s('potato', 2)], [s('starch_paste', 1)], 60, 'r_pastes', 'jar:paste_potato');
+rec('jar', [s('yam', 1)], [s('starch_paste', 1)], 60, 'r_pastes', 'jar:paste_yam');
+rec('jar', [s('corn', 2)], [s('starch_paste', 1)], 60, 'r_pastes', 'jar:paste_corn');
+rec('jar', [s('beet', 2)], [s('pigment', 1)], 80, 'r_pastes', 'jar:pigment_beet');
+rec('jar', [s('mooncap', 1)], [s('pigment', 1)], 80, 'r_pastes', 'jar:pigment_mooncap');
+rec('jar', [s('starpetal', 1)], [s('pigment', 4)], 80, 'r_pastes', 'jar:pigment_starpetal');
 
 // ---------------- Cheese press ----------------
 rec('press', [s('milk', 1)], [s('cheese', 1)], 40, undefined, 'press:cheese');
@@ -196,6 +211,9 @@ rec('loom', [s('rabbit_fluff', 1)], [s('cloth', 2)], 20, undefined, 'loom:fluff'
 rec('loom', [s('flax', 4)], [s('linen', 1)], 20, undefined, 'loom:linen');
 rec('loom', [s('alpaca_fleece', 1)], [s('fine_cloth', 1)], 30, undefined, 'loom:fleece');
 rec('loom', [s('fiber', 6)], [s('rope', 2)], 8, undefined, 'loom:rope');
+rec('loom', [s('flax', 2)], [s('canvas', 1)], 16, undefined, 'loom:canvas_flax');
+rec('loom', [s('cotton', 2)], [s('canvas', 1)], 16, undefined, 'loom:canvas_cotton');
+rec('loom', [s('fiber', 8)], [s('canvas', 1)], 16, undefined, 'loom:canvas_fiber');
 
 // ---------------- Seed sifter ----------------
 for (const cr of CROPS) rec('seeds', [s(cr.produce, 1)], [s(cr.seed, 2), s('fiber', 1, 0.3)], 10, undefined, `seeds:${cr.id}`);
@@ -207,6 +225,11 @@ rec('mill', [s('corn', 1)], [s('cornmeal', 1)], 4, undefined, 'mill:cornmeal');
 rec('mill', [s('sweetcane', 1)], [s('sugar', 1)], 4, undefined, 'mill:sugar');
 rec('mill', [s('beet', 1)], [s('sugar', 2)], 5, undefined, 'mill:beet');
 rec('mill', [s('sunflower', 1)], [s('oil', 1)], 6, undefined, 'mill:oil');
+rec('mill', [s('rapeseed', 3)], [s('oil', 1)], 6, undefined, 'mill:oil_rapeseed');
+rec('mill', [s('grain', 1)], [s('flour', 1)], 3, undefined, 'mill:grain');
+
+// ---------------- Thresher (2 s a sheaf) ----------------
+for (const c of ['wheat', 'barley', 'corn']) rec('thresher', [s(c, 1)], [s('grain', 2), s('straw', 1, 0.5)], 2, undefined, `thresh:${c}`);
 
 // ---------------- Sawmill ----------------
 rec('sawmill', [s('wood', 1)], [s('plank', 2), s('sawdust', 1, 0.3)], 2, undefined, 'saw:plank');

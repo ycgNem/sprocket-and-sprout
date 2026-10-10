@@ -342,7 +342,7 @@ export function hayCap(g: Game) {
   return g.ents.others.filter((e) => e.def.id === 'silo' && !e.ghost).length * 240;
 }
 export const siloPort = {
-  accept: (g: Game, _e: Ent, k: number) => (kDef(k).id === 'hay' ? Math.max(0, hayCap(g) - (g.sys.hay ?? 0)) : 0),
+  accept: (g: Game, _e: Ent, k: number) => (kDef(k).id === 'hay' || kDef(k).id === 'straw' ? Math.max(0, hayCap(g) - (g.sys.hay ?? 0)) : 0),
   insert: (g: Game, e: Ent, k: number, n: number) => {
     const can = Math.min(n, siloPort.accept(g, e, k));
     g.sys.hay = (g.sys.hay ?? 0) + can;

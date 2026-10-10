@@ -9,7 +9,7 @@ import { PixBuf } from './pixbuf';
 /** extra pixels above the footprint for tall art */
 export const EXTRA_TOP: Record<string, number> = {
   gleaner: 10, field_gantry: 12, rail: 0, keg: 4, jar: 6, furnace: 8, oven: 12, cheese_press: 8, hand_loom: 8, seed_sifter: 4, compost_bin: 2, charcoal_kiln: 8,
-  brick_kiln: 16, bee_skep: 4, lab: 10, mill: 20, sawmill: 12, steam_loom: 14, bottler: 14, assembler: 12, assembler_2: 14,
+  brick_kiln: 16, bee_skep: 4, lab: 10, mill: 20, thresher: 10, sawmill: 12, steam_loom: 14, bottler: 14, assembler: 12, assembler_2: 14,
   blast_furnace: 22, crusher: 12, roaster: 10, kitchen: 16, harvester: 14, planter: 10, drill_steam: 16, drill_brass: 16,
   sprinkler_1: 2, sprinkler_2: 3, sprinkler_3: 4, mist_tower: 18, scarecrow: 14, lamp: 16, pole_wood: 20, pole_iron: 22,
   pole_tower: 40, waterwheel: 10, windmill: 30, steam_engine: 18, sunlens: 8, spring_battery: 6, chest_wood: 2, chest_iron: 2,
@@ -216,6 +216,22 @@ const ART: Record<string, Art> = {
     pb.rect(4, t + 5, 4, 4, C.stone); pb.rect(W - 8, t + 5, 4, 4, C.stone);
     pb.ellipse(W / 2, t - 14, 4, 4, C.stone);
     pb.rect(W / 2 - 1, t - 14, 2, 8, C.walnut);
+  },
+  thresher: (pb, W, H, t, f, on) => {
+    // a plank housing with a slatted drum behind a window, a hopper on top and a straw chute
+    plankBox(pb, 2, t + 6, W - 4, H - t - 6, C.oak);
+    pb.rect(5, t - 6, 12, 8, C.walnut);
+    pb.rect(4, t - 8, 14, 3, C.tan);
+    for (let x = 6; x < 16; x += 3) pb.set(x, t - 4, C.amber);
+    pb.rect(W / 2 - 8, t + 10, 16, 10, C.ink);
+    for (let i = 0; i < 4; i++) {
+      const y = t + 11 + ((i * 3 + (on ? f : 0)) % 9);
+      pb.rect(W / 2 - 7, y, 14, 1, C.brass);
+    }
+    brassBand(pb, 2, t + 6, W - 4);
+    pb.rect(W - 6, t + 16, 5, 8, C.walnut);
+    pb.rect(W - 5, t + 23, 4, 2, on ? C.butter : C.tan);
+    gear(pb, 7, H - 7, 3, C.copper, on ? f : 0);
   },
   sawmill: (pb, W, H, t, f, on) => {
     pb.rect(2, t + 8, W - 4, H - t - 8, C.walnut);

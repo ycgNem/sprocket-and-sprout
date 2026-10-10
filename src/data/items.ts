@@ -216,6 +216,11 @@ comp('quilt', 'Patchwork Quilt', 900, { t: 'quilt', c: [C.rose, C.sky] }, 'Cloth
 comp('trellis', 'Trellis Stakes', 4, { t: 'twig', c: [C.oak, C.walnut] }, 'Used when crafting supports for climbing crops.');
 comp('bumblebot', 'Bumblebot', 400, { t: 'bot', c: [C.brass, C.amber] }, 'A clockwork bee. Put it in a hive and it will carry and build for you.');
 comp('concrete', 'Cobblecrete', 20, { t: 'brick', c: [C.stone, C.pebble] }, 'Gravel, sand and clay packed into blocks.');
+// crop intermediates (ROADMAP.md 4.10, Phase 3): a field's crop becomes a part of the works
+comp('canvas', 'Canvas', 60, { t: 'cloth', c: [C.tan, C.cream] }, 'Heavy woven cloth. Six canvas belts from one length.');
+comp('lubricant', 'Lubricant', 160, { t: 'flask', c: [C.amber, C.walnut] }, 'Oil thickened with sap. Hold it and press F on a machine: it runs 10% faster for good.');
+comp('grain', 'Threshed Grain', 14, { t: 'beans', c: [C.butter, C.amber] }, 'Clean grain off the thresher. A mill grinds it to flour.');
+it('straw', 'Straw', 'resource', 1, { t: 'hay', c: [C.butter, C.amber] }, 'The stalks a thresher leaves. The silo keeps it as hay; by hand it pulls apart into fiber.', { fuel: 3 });
 
 // research bundles
 const bundles: [string, string, number, string][] = [
@@ -283,8 +288,11 @@ art('roasted_beans', 'Roasted Beans', 75, { t: 'beans', c: [C.bark, C.walnut] },
 art('dried_tea', 'Dried Tea', 60, { t: 'leaf', c: [C.moss, C.pine] }, 'Curled, dried leaves.');
 art('coffee_drink', 'Coffee', 150, { t: 'cup', c: [C.bark, C.cream] }, 'Puts a skip in your step.', ['drink'], 5);
 art('tea', 'Green Tea', 120, { t: 'cup', c: [C.leaf, C.cream] }, 'Calm in a cup.', ['drink'], 10);
-art('flour', 'Flour', 50, { t: 'sack', c: [C.cream, C.tan] }, 'Finely milled wheat.');
-art('barley_flour', 'Barley Meal', 55, { t: 'sack', c: [C.tan, C.oak] }, 'Nutty, coarse meal.');
+art('flour', 'Flour', 50, { t: 'sack', c: [C.cream, C.tan] }, 'Finely milled wheat.', ['flour']);
+art('barley_flour', 'Barley Meal', 55, { t: 'sack', c: [C.tan, C.oak] }, 'Nutty, coarse meal.', ['flour']);
+art('starch_paste', 'Starch Paste', 70, { t: 'jar', c: [C.cream, C.frost] }, 'Boiled-down potato, yam or corn. Glue for labels, crates and the town works.');
+art('pigment', 'Pigment', 90, { t: 'jar', c: [C.rose, C.violet] }, 'Ground colour from beets, mooncaps or starpetals. For paint, dye and livery.');
+it('spirit', 'Grain Spirit', 'artisan', 140, { t: 'bottle', c: [C.frost, C.aqua] }, 'Clear, strong and very flammable: a steam engine burns it for twice a coal.', { tags: ['artisan'], quality: true, fuel: 80 });
 art('cornmeal', 'Cornmeal', 80, { t: 'sack', c: [C.amber, C.tan] }, 'Golden and gritty.');
 art('sugar', 'Sugar', 60, { t: 'sack', c: [C.cream, C.pebble] }, 'Sweet crystals from cane or beets.');
 art('oil', 'Sunflower Oil', 120, { t: 'bottle', c: [C.butter, C.amber] }, 'Pressed from sunflower seeds.');
@@ -385,7 +393,9 @@ for (const out of Object.keys(RECIPE_TEACHERS)) {
  * Items added after 1.1 go last, in this order, so every older item keeps its index: a few saved
  * things (a blueprint ghost's arm and splitter filters) hold raw item keys. A new item goes here.
  */
-export const ITEMS_AFTER_1_1 = ['cogbean_oil', 'gleaner', 'rail', 'field_gantry'];
+export const ITEMS_AFTER_1_1 = ['cogbean_oil', 'gleaner', 'rail', 'field_gantry',
+  // 2.0 Phase 3: crop intermediates, rapeseed and the thresher
+  'canvas', 'lubricant', 'grain', 'straw', 'starch_paste', 'pigment', 'spirit', 'rapeseed', 'rapeseed_seed', 'thresher'];
 for (const id of ITEMS_AFTER_1_1) {
   const i = list.findIndex((d) => d.id === id);
   if (i >= 0) list.push(...list.splice(i, 1));

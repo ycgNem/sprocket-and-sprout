@@ -4,7 +4,7 @@ import { guild, postContracts } from '../../sim/systems/contracts';
 import { FURNITURE } from '../../data/furniture';
 import { C } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
-import { RESEARCH } from '../../data/research';
+import { RESEARCH, REWARD_PIECES } from '../../data/research';
 import { SEASON_NAMES } from '../../data/types';
 import { key } from '../../sim/inventory';
 import type { PlayScreen } from '../../app/play';
@@ -346,7 +346,7 @@ function drawDebug(ui: UI, play: PlayScreen, st: WinState): boolean {
   row(['money', '+5000g', () => (g.player.money += 5000)], ['energy', 'Full energy', () => { g.player.energy = g.player.maxEnergy + g.mods.energy; g.player.hp = g.player.maxHp; }]);
   row(['hour', '+1 hour', () => (g.time.min = Math.min(1559, g.time.min + 60))], ['day', 'Sleep now', () => g.goToBed()]);
   row(['speed', `Speed x${L.speed === 1 ? 4 : L.speed === 4 ? 16 : 1}`, () => (L.speed = L.speed === 1 ? 4 : L.speed === 4 ? 16 : 1)], ['season', 'Next season', () => { g.time.day = 28; g.time.min = 1559; }]);
-  row(['research', 'All research', () => { for (const r of RESEARCH) g.research.done.add(r.id); g.flags.add('lab'); applyResearchMods(g); }], ['water', 'Water all', () => { for (const s of g.soil.values()) s.water = true; }]);
+  row(['research', 'All research', () => { for (const r of RESEARCH) g.research.done.add(r.id); for (const p of REWARD_PIECES) g.research.rewards.add(p.id); g.flags.add('lab'); applyResearchMods(g); }], ['water', 'Water all', () => { for (const s of g.soil.values()) s.water = true; }]);
   row(['grow', 'Grow crops', () => { for (const s of g.soil.values()) if (s.crop && !s.crop.dead) { s.crop.days += 3; s.crop.frac = 0; } g.sys.debugGrow?.(g); }], ['weather', `Wthr: ${g.weather}`, () => { const ws = ['sun', 'rain', 'storm', 'snow', 'wind'] as const; g.weather = ws[(ws.indexOf(g.weather as any) + 1) % 5]; }]);
   row(['kit', 'Factory kit', () => giveKit(g)], ['res', 'Resources', () => giveRes(g)]);
   row(['perf', 'Perf scene', () => runPerfScene(play)], ['tp', 'Warp: town', () => { g.player.x = 133.5; g.player.y = 64.5; g.player.where = 'world'; }]);

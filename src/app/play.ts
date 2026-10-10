@@ -45,7 +45,7 @@ import { promptAt, questTarget, toolVerb } from '../sim/prompts';
 import { POST_TIMES } from '../sim/systems/economy';
 import { quote } from '../sim/systems/economy';
 import { unlocksOf } from '../sim/systems/research';
-import { RESEARCH } from '../data/research';
+import { RESEARCH, ERA_NAMES } from '../data/research';
 import { DEBUG_KEYS, keyLabel } from '../engine/input';
 import { textWidth } from '../ui/font';
 
@@ -1322,11 +1322,14 @@ export class PlayScreen implements Screen {
     return e && !e.ghost ? e : null;
   }
 
-  /** the Keeper's Line notices what you look at: the rusted belt run (B5), a stopped machine (B6) */
+  /**
+   * What you look at counts: a keystone's observe stage (hover a water wheel, the keeper's belt
+   * run), and the Keeper's Line's B6 (a stopped machine read)
+   */
   private noticeLooked(e: Ent | null) {
-    if (!e || !this.g.flags.has('keepers_line')) return;
-    if (e.st.rust || e.st.yard) this.g.flags.add('observed:' + e.def.id);
-    if (e.state === MState.Starved || e.state === MState.Blocked) this.g.flags.add('read:starved');
+    if (!e) return;
+    this.g.flags.add('observed:' + e.def.id);
+    if (this.g.flags.has('keepers_line') && (e.state === MState.Starved || e.state === MState.Blocked)) this.g.flags.add('read:starved');
   }
 
   /** world tile coordinates -> UI px */
@@ -1509,6 +1512,14 @@ export class PlayScreen implements Screen {
           const sub = (def?.name ?? 'Research') + (unl.length ? '  -  new: ' + unl.slice(0, 2).join(', ') + (unl.length > 2 ? '...' : '') : '');
           J.banner({ title: 'Discovery!', sub, color: 50, items: [] });
           J.confetti(this.app.ui.w / 2, RIBBON_Y + 26, 40, true, 90);
+          break;
+        }
+        case 'era': {
+          // an era's town keystone is done: a banner, then the card with what the town gave back
+          a.sfx('research');
+          J.banner({ title: `The ${ERA_NAMES[e.era]} era`, sub: e.title, color: 50, items: [] });
+          J.confetti(this.app.ui.w / 2, RIBBON_Y + 26, 60, true, 120);
+          this.openWindow('message', { title: e.title, icon: 'clockwork_core', text: `The ${ERA_NAMES[e.era]} works are running, and the town notices. Its thanks, for good:\n\n${e.pieces.map((p) => '+ ' + p).join('\n')}\n\nThe research tree (T) names the next era's keystone.` });
           break;
         }
         case 'ach': {

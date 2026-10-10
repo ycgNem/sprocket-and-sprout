@@ -627,6 +627,19 @@ export function interactStruct(g: Game, e: Ent): boolean {
   const d = e.def;
   // the keeper's rusted machines come back with F (src/sim/rust.ts)
   if (isRusted(e.parent ?? e)) return restore(g, e.parent ?? e);
+  // lubricant: F holding it fits it to a machine, which runs 10% faster for good
+  if (e.mach && held && kDef(held.k).id === 'lubricant' && d.kind === 'machine') {
+    if (e.st.lubed) g.toast(`The ${d.name} is already oiled.`);
+    else {
+      p.inv.remove(held.k, 1);
+      e.st.lubed = true;
+      g.emit({ t: 'hop', ent: e.id });
+      g.emit({ t: 'sfx', id: 'insert' });
+      g.emit({ t: 'float', text: '+10% speed', x: e.x + e.w / 2, y: e.y, c: C.butter });
+      g.toast(`Oiled the ${d.name}: it runs 10% faster for good.`, 'i:lubricant');
+    }
+    return true;
+  }
   if (d.kind === 'scarecrow') {
     const lines = ['The scarecrow stares into the middle distance.', 'You tell the scarecrow about your day. It seems to listen.', "The scarecrow's button eyes look... grateful?", 'A crow lands on the scarecrow, sees you, and leaves.'];
     g.toast(lines[(g.counters.scare_talk = (g.counters.scare_talk ?? 0) + 1) % lines.length]);

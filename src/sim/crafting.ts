@@ -38,6 +38,7 @@ export function craft(g: Game, r: RecipeDef, times = 1): number {
     made++;
   }
   if (made) {
+    g.count('crafted:' + r.out[0].item, made);
     g.emit({ t: 'sfx', id: 'collect' });
     g.addXp('tinkering', made * 2);
     g.sys.quests?.notify?.(g, 'craft', made, r.out[0].item);

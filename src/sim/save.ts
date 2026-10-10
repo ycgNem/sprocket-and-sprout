@@ -211,7 +211,7 @@ export function serialize(g: Game, look: NPCLook): any {
       inv: p.inv.toJSON(), sel: p.sel, water: p.water, skills: p.skills, xp: p.xp, upgrading: p.upgrading, rows: p.rows,
     },
     flags: [...g.flags],
-    research: { done: [...g.research.done], current: g.research.current, progress: g.research.progress },
+    research: { done: [...g.research.done], current: g.research.current, progress: g.research.progress, rewards: [...g.research.rewards], valid: g.research.valid },
     soil: [...g.soil].map(([i, s]) => [i, s.water ? 1 : 0, s.fert, s.idle, s.crop ? [s.crop.id, s.crop.days, s.crop.stage, s.crop.ready ? 1 : 0, s.crop.harvests, s.crop.dead ? 1 : 0, s.crop.giant, s.crop.frac] : null]),
     map: saveMap(g.map),
     ents: g.ents.all().map(saveEnt).filter(Boolean),
@@ -282,6 +282,8 @@ export function deserialize(raw: any): { game: Game; look: NPCLook } {
   g.research.done = new Set(d.research.done);
   g.research.current = d.research.current;
   g.research.progress = d.research.progress ?? {};
+  g.research.rewards = new Set(d.research.rewards ?? []);
+  g.research.valid = d.research.valid ?? {};
   g.soil.clear();
   for (const [i, w, fert, idle, c] of d.soil) {
     g.soil.set(i, {

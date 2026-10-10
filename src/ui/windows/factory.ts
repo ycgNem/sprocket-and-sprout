@@ -1,9 +1,9 @@
 // Factory windows: research tree, production statistics with graphs, power grid overview.
 import { C } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
-import { RESEARCH, RESEARCH_BY_ID } from '../../data/research';
+import { ERA_KEYSTONE, ERA_NAMES, RESEARCH, RESEARCH_BY_ID, eraCol } from '../../data/research';
 import { key } from '../../sim/inventory';
-import { canResearch, researchUnits, setResearch, unlocksOf } from '../../sim/systems/research';
+import { canResearch, researchUnits, setResearch, stageNext, stageObjMet, stageObjText, stages, unlocksOf } from '../../sim/systems/research';
 import { powerState } from '../../sim/systems/power';
 import { RES } from '../../sim/systems/stats';
 import type { PlayScreen } from '../../app/play';
@@ -15,30 +15,61 @@ import { itemTooltip } from '../tooltips';
 import { linesTab } from './linetab';
 import { gridSentence } from '../../sim/systems/power';
 
-const NODE_W0 = 34, NODE_H0 = 34, GAP_X0 = 66, GAP_Y0 = 58;
-const TIER_COL = ['bundle_green', 'bundle_copper', 'bundle_rose', 'bundle_brass', 'bundle_star'];
+const NODE_W0 = 34, NODE_H0 = 34, GAP_X0 = 62, GAP_Y0 = 64;
+const ERA_TINT = [C.ink, C.leaf, C.river, C.copper, C.brass, C.lavender];
+const ERA_BUNDLE = ['', 'bundle_green', 'bundle_copper', 'bundle_rose', 'bundle_brass', 'bundle_star'];
 
-function nodeTier(id: string) {
-  const r = RESEARCH_BY_ID.get(id)!;
-  return Math.max(0, ...r.cost.map((c) => TIER_COL.indexOf(c.item)));
+/**
+ * Era bands: each era is a band of columns (its nodes' prerequisite depth inside the era), side by
+ * side from Spring to Starlight; rows come from the data. Returns each node's cell and each band's
+ * left edge and width (in node cells).
+ */
+function treeLayout() {
+  const col = new Map<string, number>();
+  const cols = [0, 0, 0, 0, 0, 0];
+  for (const r of RESEARCH) {
+    const c = eraCol(r.id);
+    col.set(r.id, c);
+    cols[r.era] = Math.max(cols[r.era], c + 1);
+  }
+  const start = [0, 0, 0, 0, 0, 0];
+  for (let e = 2; e <= 5; e++) start[e] = start[e - 1] + cols[e - 1];
+  const rows = Math.max(...RESEARCH.map((r) => r.row)) + 1;
+  return { cell: (id: string) => { const r = RESEARCH_BY_ID.get(id)!; return [start[r.era] + col.get(id)!, r.row] as const; }, start, cols, total: start[5] + cols[5], rows };
+}
+
+/** the four pips of a keystone (observe, experiment, validate, apply): filled when done */
+function keystonePips(ui: UI, g: PlayScreen['g'], id: string, x: number, y: number, w: number) {
+  const s = stages(g, id);
+  const done = g.research.done.has(id);
+  const pips = [s.observe, s.experiment, s.validate, done];
+  const n = pips.length, pw = 5, gap = Math.max(1, Math.floor((w - n * pw) / (n - 1)));
+  pips.forEach((p, i) => {
+    const px = x + i * (pw + gap);
+    ui.fill(px, y, pw, pw, C.ink);
+    ui.fill(px + 1, y + 1, pw - 2, pw - 2, p === null ? C.pebble : p || done ? C.lime : C.stone);
+  });
 }
 
 function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
-  const w = Math.min(ui.w - 20, 600), h = Math.min(ui.h - 30, 340);
+  const w = Math.min(ui.w - 20, 620), h = Math.min(ui.h - 30, 350);
   const { x, y } = centered(ui, w, h);
   if (!frame(ui, x, y, w, h, 'Research')) return false;
-  const vx = x + 8, vy = y + 14, vw = w - 170, vh = h - 22;
+  const vx = x + 8, vy = y + 14, vw = w - 176, vh = h - 22;
   ui.panel(vx, vy, vw, vh, 'inset', false);
   st.data.panX = st.data.panX ?? 0;
   st.data.panY = st.data.panY ?? 0;
+  const L = treeLayout();
   // Fit: the whole tree at small size (icons only), so every topic is one glance away
   const fit = !!st.data.fit;
-  const cols = Math.max(...RESEARCH.map((r) => r.pos[0])), rows = Math.max(...RESEARCH.map((r) => r.pos[1]));
-  const NODE_W = fit ? 18 : NODE_W0, NODE_H = fit ? 18 : NODE_H0;
-  const GAP_X = fit ? Math.min(44, Math.floor((vw - 40 - NODE_W) / cols)) : GAP_X0, GAP_Y = fit ? Math.min(30, Math.floor((vh - 34 - NODE_H) / rows)) : GAP_Y0;
-  const maxX = cols * GAP_X + NODE_W + (fit ? 24 : 32);
-  const maxY = rows * GAP_Y + NODE_H + (fit ? 26 : 40);
+  const HEAD = fit ? 14 : 24;
+  const NODE_W = fit ? 16 : NODE_W0, NODE_H = fit ? 16 : NODE_H0;
+  const GAP_X = fit ? Math.max(NODE_W + 4, Math.min(36, Math.floor((vw - 24) / L.total))) : GAP_X0;
+  const GAP_Y = fit ? Math.max(NODE_H + 3, Math.min(26, Math.floor((vh - HEAD - 16) / L.rows))) : GAP_Y0;
+  const BAND_PAD = fit ? 4 : 10;
+  const maxX = L.total * GAP_X + 5 * BAND_PAD + 16;
+  const maxY = HEAD + L.rows * GAP_Y + (fit ? 8 : 24);
   const SB = 5; // scrollbar thickness
   // drag to pan (right button, or shift + left); the wheel pans down, shift + wheel (or a sideways wheel) across
   if (ui.hover(vx, vy, vw, vh)) {
@@ -64,31 +95,51 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   else if (ui.clicked && spanY && ui.hover(barY.x - 1, barY.y, barY.w + 2, barY.h)) { st.data.bar = 'y'; ui.eat(); }
   if (st.data.bar === 'x') st.data.panX = -Math.max(0, Math.min(1, (ui.mx - barX.x) / barX.w)) * spanX;
   if (st.data.bar === 'y') st.data.panY = -Math.max(0, Math.min(1, (ui.my - barY.y) / barY.h)) * spanY;
+  // the first visit opens on the era the player is in
+  if (st.data.panX === 0 && st.data.firstEra === undefined) {
+    const cur = RESEARCH_BY_ID.get(g.research.current ?? '') ?? RESEARCH.find((r) => canResearch(g, r.id));
+    st.data.firstEra = cur?.era ?? 1;
+    if (cur && cur.era > 1) st.data.panX = -(L.start[cur.era] * GAP_X + (cur.era - 1) * BAND_PAD);
+  }
   st.data.panX = Math.max(-spanX, Math.min(0, st.data.panX));
   st.data.panY = Math.max(-spanY, Math.min(0, st.data.panY));
-  const ox = vx + 16 + st.data.panX, oy = vy + 20 + st.data.panY;
+  const ox = vx + 10 + st.data.panX, oy = vy + 6 + HEAD + st.data.panY;
+  const bandX = (era: number) => ox + L.start[era] * GAP_X + (era - 1) * BAND_PAD - BAND_PAD / 2;
   const pos = (id: string) => {
-    const r = RESEARCH_BY_ID.get(id)!;
-    return [ox + r.pos[0] * GAP_X, oy + r.pos[1] * GAP_Y] as const;
+    const [c, r] = L.cell(id);
+    const era = RESEARCH_BY_ID.get(id)!.era;
+    return [ox + c * GAP_X + (era - 1) * BAND_PAD, oy + r * GAP_Y] as const;
   };
   // the tree stops short of the scrollbars, so nothing hides under them
   ui.clip(vx + 1, vy + 1, vw - (spanY ? SB + 4 : 2), vh - (spanX ? SB + 4 : 2));
-  // tier header: the bundle each column of the tree is paid with
-  const tierOf = new Map<number, number>();
-  for (const r of RESEARCH) tierOf.set(r.pos[0], Math.max(tierOf.get(r.pos[0]) ?? 0, nodeTier(r.id)));
-  for (const [c, tier] of tierOf) ui.itemIcon(key(TIER_COL[tier]), ox + c * GAP_X + NODE_W / 2 - (fit ? 5 : 6), oy - (fit ? 13 : 16), fit ? 10 : 12);
-  // connections
+  // era bands: a tinted column per era with its name, its bundles and its keystone
+  for (let era = 1; era <= 5; era++) {
+    const bx = bandX(era), bw = L.cols[era] * GAP_X + BAND_PAD - (fit ? 2 : 6);
+    ui.fill(bx, vy + 1, bw, vh - 2, ERA_TINT[era], 0.1);
+    ui.fill(bx, vy + 1, bw, fit ? 11 : 21, ERA_TINT[era], 0.35);
+    const now = RESEARCH.some((r) => r.era === era && canResearch(g, r.id));
+    if (fit) ui.text(ellipsize(ERA_NAMES[era], bw - 4), bx + 2, vy + 3, C.ink);
+    else {
+      ui.itemIcon(key(ERA_BUNDLE[era]), bx + 3, vy + 4, 10);
+      ui.text(ERA_NAMES[era] + (now ? ' (now)' : ''), bx + 16, vy + 4, C.ink);
+      ui.text(ellipsize(ERA_KEYSTONE[era], bw - 8), bx + 4, vy + 13, C.walnut);
+    }
+  }
+  // connections: a line from another era is faint unless its node is picked, so the bands stay readable
   for (const r of RESEARCH) {
     const [ax, ay] = pos(r.id);
     for (const p of r.prereq) {
+      const pr = RESEARCH_BY_ID.get(p);
+      if (!pr) continue;
       const [bx, by] = pos(p);
       const done = g.research.done.has(p);
-      const col = done ? (g.research.done.has(r.id) ? C.moss : C.amber) : C.oak;
+      const col = done ? (g.research.done.has(r.id) ? C.moss : C.amber) : C.stone;
+      const a = pr.era === r.era || st.data.sel === r.id || st.data.sel === p ? 1 : 0.35;
       // elbow line
-      const mx = bx + NODE_W + (ax - bx - NODE_W) / 2;
-      ui.fill(bx + NODE_W, by + NODE_H / 2, Math.max(1, mx - bx - NODE_W), 1, col);
-      ui.fill(mx, Math.min(by, ay) + NODE_H / 2, 1, Math.abs(ay - by) + 1, col);
-      ui.fill(mx, ay + NODE_H / 2, Math.max(1, ax - mx), 1, col);
+      const mx = bx + NODE_W + Math.max(2, (ax - bx - NODE_W) / 2);
+      ui.fill(bx + NODE_W, by + NODE_H / 2, Math.max(1, mx - bx - NODE_W), 1, col, a);
+      ui.fill(mx, Math.min(by, ay) + NODE_H / 2, 1, Math.abs(ay - by) + 1, col, a);
+      ui.fill(Math.min(mx, ax), ay + NODE_H / 2, Math.max(1, Math.abs(ax - mx)), 1, col, a);
     }
   }
   // nodes
@@ -100,22 +151,38 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     const cur = g.research.current === r.id;
     const sel = st.data.sel === r.id;
     const hov = ui.hover(nx, ny, NODE_W, NODE_H);
-    // researched = brass frame, available = pulsing amber, locked = faded
+    // researched = moss, studying = apricot, available = cream with a pulsing amber rim, locked = dim slate
     const pulse = avail && !cur && Math.sin(ui.time * 4) > 0;
-    const rim = sel ? C.rose : done ? C.brass : cur || pulse ? C.amber : avail ? C.copper : C.slate;
-    const bg = done ? C.butter : cur ? C.apricot : avail ? C.cream : C.pebble;
+    const rim = sel ? C.rose : done ? C.moss : cur || pulse ? C.amber : avail ? C.copper : C.stone;
+    const bg = done ? C.lime : cur ? C.apricot : avail ? C.cream : C.slate;
+    if (r.keystone) {
+      // a keystone wears a copper double frame (brass once studied)
+      const k = fit ? 4 : 5;
+      ui.fill(nx - k, ny - k, NODE_W + k * 2, NODE_H + k * 2, C.ink);
+      ui.fill(nx - k + 1, ny - k + 1, NODE_W + k * 2 - 2, NODE_H + k * 2 - 2, done ? C.brass : C.copper);
+    }
     ui.fill(nx - 2, ny - 2, NODE_W + 4, NODE_H + 4, C.ink);
     ui.fill(nx - 1, ny - 1, NODE_W + 2, NODE_H + 2, rim);
     ui.fill(nx + 1, ny + 1, NODE_W - 2, NODE_H - 2, bg);
-    ui.fill(nx + 1, ny + 1, NODE_W - 2, 2, [C.leaf, C.copper, C.rose, C.brass, C.lavender][nodeTier(r.id)]);
-    ui.itemIcon(key(r.icon), nx + 1, ny + 1, fit ? 16 : 32, 0, avail || done ? 1 : 0.4);
+    ui.itemIcon(key(r.icon), nx + 1, ny + 1, fit ? 14 : 32, 0, avail || done ? 1 : 0.35);
     if (done && !fit) ui.text(ICON.star, nx + NODE_W - 7, ny + NODE_H - 9, C.moss, { shadow: C.cream });
     // name under the node (two short lines); Fit shows names on hover only
-    if (!fit) wrapText(r.name, GAP_X - 6).slice(0, 2).forEach((l, li) => ui.text(l, nx + NODE_W / 2, ny + NODE_H + 4 + li * 9, done ? C.moss : avail ? C.ink : C.stone, { align: 'center' }));
+    if (!fit) {
+      const nameY = ny + NODE_H + (r.keystone ? 13 : 4);
+      wrapText(r.name, GAP_X - 4).slice(0, 2).forEach((l, li) => ui.text(l, nx + NODE_W / 2, nameY + li * 9, done ? C.moss : avail ? C.ink : C.stone, { align: 'center' }));
+      if (r.keystone) keystonePips(ui, g, r.id, nx - 2, ny + NODE_H + 7, NODE_W + 4);
+    }
     const prog = g.research.progress[r.id] ?? 0;
     if (!done && prog > 0) ui.bar(nx + 2, ny + NODE_H - 4, NODE_W - 4, 3, prog / researchUnits(r.id, g), C.moss);
     if (hov && !st.data.bar) {
-      ui.tip([{ text: r.name, color: C.amber }, { text: r.desc }, { text: `Cost: ${researchUnits(r.id, g)} x ${r.cost.map((c) => ITEM_BY_ID.get(c.item)?.name).join(' + ')}`, color: C.butter }, { text: done ? 'Researched' : avail ? 'Click to select, double-click to start' : 'Needs: ' + r.prereq.filter((p) => !g.research.done.has(p)).map((p) => RESEARCH_BY_ID.get(p)!.name).join(', '), color: done ? C.lime : avail ? C.pebble : C.rose }]);
+      const next = avail ? stageNext(g, r.id) : null;
+      ui.tip([
+        { text: r.name + (r.keystone ? '  (keystone)' : ''), color: C.amber },
+        { text: r.desc },
+        { text: `Cost: ${researchUnits(r.id, g)} x ${r.cost.map((c) => ITEM_BY_ID.get(c.item)?.name).join(' + ')}`, color: C.butter },
+        ...(next ? [{ text: 'First: ' + next, color: C.apricot }] : []),
+        { text: done ? 'Researched' : avail ? 'Click to select, double-click to start' : 'Needs: ' + missingFor(g, r.id).join(', '), color: done ? C.lime : avail ? C.pebble : C.rose },
+      ]);
       if (ui.clicked) {
         ui.eat();
         if (st.data.sel === r.id && avail) setResearch(g, r.id);
@@ -138,14 +205,13 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   thumb(barX, spanX, st.data.panX, true, vw, maxX);
   thumb(barY, spanY, st.data.panY, false, vh, maxY);
   // Fit / full size: the overview shows every topic at once
-  if (ui.button('rfit', vx + vw - 52, vy + 4, 44, 12, fit ? 'Zoom' : 'Fit', { style: 'flat', tip: fit ? 'Back to full size' : 'Show the whole tree' })) {
+  if (ui.button('rfit', vx + vw - 52, vy + vh - (spanX ? 22 : 16), 44, 12, fit ? 'Zoom' : 'Fit', { style: 'flat', tip: fit ? 'Back to full size' : 'Show the whole tree' })) {
     st.data.fit = !fit;
     st.data.panX = 0;
     st.data.panY = 0;
   }
-  // info panel
-  // starts below the frame's close button (y+5..y+17)
-  const px = x + w - 158, py = y + 20, pw = 150;
+  // info panel: starts below the frame's close button (y+5..y+17) and never covers a node
+  const px = x + w - 164, py = y + 20, pw = 156;
   ui.panel(px, py, pw, h - 28, 'paper', false);
   const sel = RESEARCH_BY_ID.get(st.data.sel ?? g.research.current ?? '') ?? null;
   const labs = g.ents.others.filter((e) => e.def.kind === 'lab');
@@ -153,25 +219,41 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   if (g.research.current) {
     const r = RESEARCH_BY_ID.get(g.research.current)!;
     ui.text('Researching:', px + 6, py + 18, C.oak);
-    ui.text(r.name, px + 6, py + 28, C.ink);
+    ui.text(ellipsize(r.name, pw - 12), px + 6, py + 28, C.ink);
     ui.bar(px + 6, py + 39, pw - 12, 5, (g.research.progress[r.id] ?? 0) / researchUnits(r.id, g), C.moss);
   } else {
     // a locked pick names what it waits for, in red, where the "press Research this" line sits
-    const missing = sel && !g.research.done.has(sel.id) ? sel.prereq.filter((p) => !g.research.done.has(p)).map((p) => RESEARCH_BY_ID.get(p)!.name) : [];
+    const missing = sel && !g.research.done.has(sel.id) ? missingFor(g, sel.id) : [];
     if (labs.length && missing.length) ui.para('Needs: ' + missing.join(', '), px + 6, py + 18, pw - 12, C.brick);
     else ui.text(!labs.length ? 'Place a Study Desk first.' : sel ? (g.research.done.has(sel.id) ? 'Researched.' : 'Press "Research this" below.') : 'Pick a topic to study.', px + 6, py + 22, labs.length && sel ? C.moss : C.brick);
   }
   if (!sel) {
-    ui.para('Select a node to see what it unlocks. Scroll to move down, shift + scroll to move across, or drag the bars. Fit shows the whole tree.', px + 6, py + 56, pw - 12, C.walnut);
+    ui.para('Five eras, left to right. Each era has a keystone (the copper frames): look, try, keep it running, then study it. Scroll to move down, shift + scroll to move across. Fit shows the whole tree.', px + 6, py + 56, pw - 12, C.walnut);
     return true;
   }
   let yy = py + 54;
-  ui.text(sel.name, px + 6, yy, C.ink);
+  ui.text(ellipsize(sel.name, pw - 12), px + 6, yy, C.ink);
+  ui.text(ERA_NAMES[sel.era], px + pw - 6, yy, C.oak, { align: 'right' });
   yy += 11;
-  yy += ui.para(sel.desc, px + 6, yy, pw - 12, C.walnut) + 4;
+  yy += ui.para(sel.desc, px + 6, yy, pw - 12, C.walnut) + 3;
+  // a keystone's stages (look, try, keep it up), each with its check; the study is the fourth
+  if (sel.keystone && !g.research.done.has(sel.id)) {
+    const s = stages(g, sel.id), k = sel.keystone;
+    ui.text('Keystone: before the study', px + 6, yy, C.oak);
+    yy += 10;
+    const line = (ok: boolean | null, text: string) => {
+      if (ok === null) return;
+      ui.text(ok ? ICON.star : '-', px + 6, yy, ok ? C.moss : C.brick);
+      yy += ui.para(text, px + 14, yy, pw - 20, ok ? C.moss : C.ink) + 1;
+    };
+    line(s.observe, k.observe?.label ?? '');
+    if (k.experiment) for (const o of k.experiment) line(stageObjMet(g, o), stageObjText(g, o));
+    if (k.validate) line(s.validate, `${k.validate.label} (${Math.floor(s.held / 60)}:${String(Math.floor(s.held % 60)).padStart(2, '0')})`);
+    yy += 2;
+  }
   const units = researchUnits(sel.id, g);
-  ui.text(`Cost: ${units} x`, px + 6, yy, C.oak);
-  sel.cost.forEach((c, i) => ui.itemIcon(key(c.item), px + 56 + i * 15, yy - 4, 14));
+  ui.text(`${sel.keystone ? 'Study' : 'Cost'}: ${units} x`, px + 6, yy, C.oak);
+  sel.cost.forEach((c, i) => ui.itemIcon(key(c.item), px + 62 + i * 15, yy - 4, 14));
   yy += 14;
   // what you have toward it (bag + desks), so a pick you can't afford yet says so up front
   const have = (id: string) => g.player.inv.countId(id) + labs.reduce((a, l) => a + (l.inv?.countId(id) ?? 0), 0);
@@ -179,10 +261,8 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
   if (!g.research.done.has(sel.id)) {
     yy += ui.para(short.length ? `You have ${short.map((c) => have(c.item)).join(' + ')} of ${units}: craft more (C)` : 'You have enough bundles', px + 6, yy, pw - 12, short.length ? C.brick : C.moss) + 2;
   }
-  ui.text(`${sel.unitTime}s per unit per desk`, px + 6, yy, C.oak);
-  yy += 12;
   const unl = unlocksOf(sel.id);
-  if (unl.items.length) {
+  if (unl.items.length && yy < py + h - 90) {
     ui.text('Unlocks:', px + 6, yy, C.oak);
     yy += 10;
     unl.items.slice(0, 14).forEach((id, i) => {
@@ -190,16 +270,19 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
       ui.slot(ix, iy, { k: key(id), n: 1 }, { size: 18 });
       if (ui.hover(ix, iy, 18, 18)) ui.tip(itemTooltip(g, key(id)).slice(0, 3));
     });
-    yy += Math.ceil(Math.min(14, unl.items.length) / 7) * 20 + 2;
-  }
-  for (const e of sel.effects ?? []) {
-    yy += ui.para('+ ' + sel.desc.split('.')[0], px + 6, yy, pw - 12, C.moss);
-    void e;
   }
   const done = g.research.done.has(sel.id);
   const avail = canResearch(g, sel.id);
   if (!done && ui.button('rstart', px + 6, py + h - 48, pw - 12, 16, g.research.current === sel.id ? 'Researching...' : avail ? 'Research this' : 'Locked', { disabled: !avail || g.research.current === sel.id, style: 'green' })) setResearch(g, sel.id);
   return true;
+}
+
+/** what a node still needs: its missing prerequisites and the town keystone it waits on */
+function missingFor(g: PlayScreen['g'], id: string): string[] {
+  const r = RESEARCH_BY_ID.get(id)!;
+  const out = r.prereq.filter((p) => !g.research.done.has(p)).map((p) => RESEARCH_BY_ID.get(p)?.name ?? p);
+  if (r.needFlag && !g.flags.has(r.needFlag)) out.push(r.needFlag === 'waterworks' ? 'the Waterworks' : r.needFlag);
+  return out;
 }
 
 // ---------------- production stats ----------------

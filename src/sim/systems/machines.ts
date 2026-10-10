@@ -284,8 +284,8 @@ export function updateMachines(g: Game, dt: number) {
       }
     }
     // the keeper's jar runs its first few batches fast, so the opening's first pickle comes quickly;
-    // lubricant (an oiled machine) runs a fifth faster until morning
-    let sp = m.speed * speedMod * (e.st.quick > 0 ? 4 : 1) * (e.st.lube > 0 ? 1.2 : 1);
+    // a machine fitted with lubricant runs 10% faster for good
+    let sp = m.speed * speedMod * (e.st.quick > 0 ? 4 : 1) * (e.st.lubed ? 1.1 : 1);
     if (e.def.powerUse) {
       sp *= e.sat;
       if (e.sat <= 0.001) {
@@ -318,6 +318,8 @@ export function updateMachines(g: Game, dt: number) {
       }
       g.stats.states.moved(e, made);
       m.made++;
+      // keystone experiments count batches by machine kind ("grind 20 meal": made:mill)
+      g.count('made:' + e.def.id);
       if (e.st.quick > 0) e.st.quick--;
       m.crafting = false;
       m.progress = 0;

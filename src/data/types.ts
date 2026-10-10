@@ -351,7 +351,9 @@ export type ObjectiveDef = ObjectiveBase & (
   /** a standing order filled (src/sim/systems/orders.ts), by hand or by the post */
   | { t: 'order'; id: string }
   /** a machine of this kind (switched on) whose grid can power everything on it at once: no brownout */
-  | { t: 'grid'; struct: string });
+  | { t: 'grid'; struct: string }
+  /** a game counter reached (g.counters: 'made:<structure>', 'crafted:<item>', ...) */
+  | { t: 'count'; key: string; n: number });
 
 export interface QuestDef {
   id: string;
@@ -414,8 +416,25 @@ export interface ResearchDef {
   effects?: ResearchEffect[];
   /** structure/recipe unlocks are derived from RecipeDef.unlock; extra text */
   note?: string;
-  /** grid position in the research tree view */
-  pos: [number, number];
+  /** the era it belongs to (1 Spring .. 5 Starlight): its band in the research window */
+  era: number;
+  /** its row in the era band (the column is its prerequisite depth inside the era) */
+  row: number;
+  /** a keystone: stages before the bundles (ROADMAP.md 7.3) */
+  keystone?: KeystoneDef;
+  /** also needs this flag (a town keystone, e.g. the Waterworks for mist towers) */
+  needFlag?: string;
+}
+
+/**
+ * A keystone's stages, shown as four pips with the bundles (Apply): look at something, try it, keep
+ * it running. A desk on a keystone takes no bundles until the first three are done.
+ */
+export interface KeystoneDef {
+  observe?: { flag: string; label: string };
+  experiment?: ObjectiveDef[];
+  /** an item (or #tag) made at perMin or more, held for `minutes` sim minutes */
+  validate?: { item: string; perMin: number; minutes: number; label: string };
 }
 
 export interface ShopEntry {
