@@ -40,7 +40,7 @@ export interface HomeUpgrade {
 }
 
 export const HOME_UPGRADES: HomeUpgrade[] = [
-  { id: 'home_workshop', name: 'The Workshop', desc: "Opens the east wall into a stone-floored workshop: room for crocks, kegs, looms and chests indoors, a workbench and a tool wall.", price: 2000, materials: [{ item: 'plank', n: 50 }, { item: 'stone', n: 40 }] },
+  { id: 'home_workshop', name: 'Workshop Wing', desc: "Opens the east wall into a stone-floored workshop: room for crocks, kegs, looms, chests and the spring arms that tend them, a workbench and a tool wall.", price: 2000, materials: [{ item: 'plank', n: 50 }, { item: 'stone', n: 40 }] },
   { id: 'home_drafting', name: 'Drafting Table', desc: "Hazel's design, Juniper's joinery: a blueprint library. Save a copied line under a name, load it back to paste, bring it to the Sprocket Fair.", price: 800, materials: [{ item: 'plank', n: 12 }, { item: 'copper_bar', n: 2 }], requires: 'home_workshop' },
   { id: 'home_kitchen', name: 'Farmhouse Kitchen', desc: 'Refits the old stove. Cook any recipe at home, instantly, from what is in your bag.', price: 2500, materials: [{ item: 'plank', n: 40 }, { item: 'stone', n: 60 }, { item: 'copper_bar', n: 5 }] },
   { id: 'home_featherbed', name: 'Featherbed', desc: 'Late nights cost half as much energy the next morning.', price: 1800, materials: [{ item: 'cloth', n: 4 }, { item: 'wool', n: 8 }] },

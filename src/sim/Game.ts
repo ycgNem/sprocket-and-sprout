@@ -388,6 +388,7 @@ export class Game {
       if (this.ents.powerDirty || this.tickN % 2 === 0) updatePower(this, sdt * (this.ents.powerDirty ? 1 : 2));
       updateBelts(this.ents, sdt, this.beltSink, this.simTime, this.beltUses);
       updateArms(this, sdt);
+      updateArms(this, sdt, this.houseEnts);
       updateMachines(this, sdt);
       updateMachines(this, sdt, this.houseEnts);
     }
@@ -462,6 +463,7 @@ export class Game {
         updatePower(this, sdt);
         updateBelts(this.ents, sdt, this.beltSink, this.simTime, this.beltUses);
         updateArms(this, sdt);
+        updateArms(this, sdt, this.houseEnts);
         updateMachines(this, sdt);
         updateMachines(this, sdt, this.houseEnts);
         for (const s of SYSTEMS) if (s.works && s.tick) s.tick(this, sdt);

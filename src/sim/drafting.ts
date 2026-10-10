@@ -4,6 +4,7 @@
 // it (sys.house.lib), so any system can add to it without moving the tick order.
 import { ITEM_INDEX } from '../data/items';
 import { RECIPE_BY_ID } from '../data/recipes';
+import { INDEXED_LIB } from '../data/trust';
 import { STRUCT_BY_ID } from '../data/structures';
 import type { Game } from './Game';
 import type { Blueprint, BlueprintItem } from './blueprint';
@@ -19,6 +20,8 @@ export interface LibEntry {
 }
 
 export const LIB_MAX = 12;
+/** the library's size: 12, or 24 with Hazel's index (a Trust reward, src/data/trust.ts) */
+export const libMax = (g: Game) => (g.flags.has('trust:hazel_index') ? INDEXED_LIB : LIB_MAX);
 
 export interface DraftingState {
   lib: LibEntry[];
@@ -38,7 +41,7 @@ export const cloneBlueprint = (bp: Blueprint): Blueprint => JSON.parse(JSON.stri
  */
 export function addBlueprint(g: Game, name: string, bp: Blueprint, from = ''): boolean {
   const d = drafting(g);
-  if (d.lib.length >= LIB_MAX || !bp.items.length) return false;
+  if (d.lib.length >= libMax(g) || !bp.items.length) return false;
   let n = name.trim() || 'A line';
   if (d.lib.some((e) => e.name === n)) {
     let i = 2;
@@ -76,7 +79,7 @@ export const saveLib = (g: Game) => drafting(g).lib.map((e) => ({ ...e, bp: { w:
 
 export function loadLib(g: Game, d: unknown) {
   const list = Array.isArray(d) ? d : [];
-  drafting(g).lib = list.filter((e: any) => e && typeof e.name === 'string' && e.bp && Array.isArray(e.bp.items)).slice(0, LIB_MAX)
+  drafting(g).lib = list.filter((e: any) => e && typeof e.name === 'string' && e.bp && Array.isArray(e.bp.items)).slice(0, INDEXED_LIB)
     // a structure retired since it was saved drops out of the drawing
     .map((e: any) => ({ name: e.name, bp: { w: e.bp.w, h: e.bp.h, items: e.bp.items.filter((it: any) => STRUCT_BY_ID.has(it?.def)).map(loadItem) }, from: e.from ?? '', day: e.day ?? 0 }));
 }

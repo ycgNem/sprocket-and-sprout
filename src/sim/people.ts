@@ -13,17 +13,19 @@ import { DISCOVERIES, RECORDS, type DiscoveryDef } from '../data/archive';
 import { CHAMBER_BY_KIND, type ChamberKind } from '../data/deepworks';
 import { DRAWINGS, type DrawingDef } from '../data/drawings';
 import { ECHO_BY_LESSON, type EchoDef } from '../data/echoes';
+import { ITEM_BY_ID } from '../data/items';
 import { LESSON_BY_ID } from '../data/lessons';
 import { NPC_BY_ID } from '../data/npcs';
 import { C } from '../data/palette';
+import { recipesForStation } from '../data/recipes';
 import { RESEARCH_BY_ID } from '../data/research';
 import type { Game } from './Game';
 import type { Ent } from './ents';
 import { addBlueprint } from './drafting';
 import { keystoneQuest } from './keystones';
 import { lessonsSeen } from './lessons';
-import { MState, isProblem } from './mstate';
-import { addPoints, EVENT_HOOKS, fillTokens, npcSys, openDialog, TALK_HOOKS, type NPCState } from './systems/npcs';
+import { MState, isProblem, stateText } from './mstate';
+import { addPoints, EVENT_HOOKS, fillTokens, hearts, npcSys, openDialog, TALK_HOOKS, type NPCState } from './systems/npcs';
 
 /** Trust for an echo answered right (Pip) and for a discovery filed (Sable) */
 export const ECHO_TRUST = 60;
@@ -137,7 +139,48 @@ export function standBy(g: Game, e: Ent): [number, number] | null {
   return spots.find(([x, y]) => g.map.walkable(x, y) && !g.ents.at(x, y)) ?? null;
 }
 
-/** what each state looks like when it isn't the answer (and the answer, for a state with no detail line) */
+/** the line a machine shows on hover or under I right now (src/ui/statelines.ts's, without the grid's numbers) */
+export function machineLine(e: Ent): string {
+  if (e.state === MState.Working && e.mach?.recipe && e.mach.crafting && !e.why) return 'Working: ' + (ITEM_BY_ID.get(e.mach.recipe.out[0].item)?.name ?? '');
+  return stateText(e);
+}
+
+/** the sort of line it is ("Waiting for cogbeans" and "Waiting for salt" are both "Waiting for") */
+const gist = (line: string) => /^(Working|Waiting for harvest|Waiting for|Next ripe crop)\b/.exec(line)?.[1] ?? line;
+/** lines that mean nearly the same thing: one is never a decoy for another */
+const NEAR = [
+  ['Waiting for', 'Waiting for harvest', 'Waiting to be fed', 'Nothing feeds it any more'],
+  ['Next ripe crop', 'No crops in reach: plant around it', 'Ripe: picks at noon (or pick them by hand)'],
+];
+
+/**
+ * Lines this kind of machine can show (the critic's Phase 5 review: the decoys were states the
+ * machine can't have, so the answer was always the one specific line). A crock's are its recipes'
+ * inputs and goods, a full output and waiting to be fed; a furnace adds fuel, a mill power.
+ */
+export function kindLines(g: Game, e: Ent): string[] {
+  if (e.def.kind === 'gleaner')
+    return ['Picking', 'Basket full: an arm should empty it', 'Basket full: the arm is emptying it', 'No crops in reach: plant around it', 'Next ripe crop tomorrow', 'Next ripe crop in 3 watered days', 'Ripe: picks at noon (or pick them by hand)'];
+  const m = e.mach;
+  if (!m) return [];
+  const name = (spec: string) => (spec[0] === '#' ? 'any ' + spec.slice(1) : (ITEM_BY_ID.get(spec)?.name ?? spec).toLowerCase());
+  const out = new Set<string>();
+  for (const r of recipesForStation(m.station)) {
+    if (!g.unlocked(r.unlock) || !r.in.length || !r.out.length) continue;
+    out.add('Waiting for ' + name(r.in[0].item));
+    out.add('Working: ' + (ITEM_BY_ID.get(r.out[0].item)?.name ?? ''));
+  }
+  out.add('Output full: nothing takes its goods away');
+  out.add('Waiting to be fed');
+  if (e.def.fuel) out.add('Needs fuel: wood or coal');
+  if (e.def.powerUse) {
+    out.add('No power: place a pole within reach');
+    out.add('Crawling at 20%: the grid is short');
+  }
+  return [...out];
+}
+
+/** what a state reads as when the machine has nothing else to offer (the decoys' last resort) */
 const STATE_GIST: Record<MState, string> = {
   [MState.Idle]: 'Nothing has asked it for anything',
   [MState.Working]: 'Busy making something',
@@ -147,33 +190,85 @@ const STATE_GIST: Record<MState, string> = {
   [MState.NeedsFuel]: 'Its fire has gone out',
 };
 
-/** "Why is this crock stopped?": the machine's own line now, among two other states' */
+/**
+ * "Why is this crock stopped?": the line it shows now, among two others this kind of machine shows,
+ * one of them the same sort of line when there is one (another input, another good), so answering
+ * takes a look at it.
+ */
 export function machineQuestion(g: Game, e: Ent): { q: string; answers: string[]; right: number; why: string } {
   const s = e.state ?? MState.Idle;
   const name = e.def.name.toLowerCase();
-  let why = (e.why || STATE_GIST[s]).trim();
+  let why = machineLine(e).trim();
   if (why.length > 60) why = why.slice(0, why.lastIndexOf(' ', 57)) + '...';
   const q = s === MState.Working ? `What's this ${name} doing right now?` : isProblem(s) ? `Why is this ${name} stopped?` : `Why is this ${name} just sitting there?`;
   const h = dayHash(g, e.id * 7 + 3);
-  // never a decoy that's nearly the answer: a gleaner waiting for its field isn't "starved", a queue isn't "blocked"
-  const near = e.fieldWait ? MState.Starved : e.queued ? MState.Blocked : -1;
-  const others = ([MState.Idle, MState.Working, MState.Starved, MState.Blocked, MState.Unpowered, MState.NeedsFuel] as MState[])
-    .filter((x) => x !== s && x !== near && STATE_GIST[x] !== why);
-  const a = others[h % others.length];
-  const rest = others.filter((x) => x !== a);
-  const b = rest[(h >>> 8) % rest.length];
+  const near = NEAR.find((n) => n.includes(gist(why)));
+  const fits = (l: string) => l !== why && !(near && (near.includes(l) || near.includes(gist(l))) && gist(l) !== gist(why));
+  const cands = kindLines(g, e).filter(fits);
+  const same = cands.filter((l) => gist(l) !== l && gist(l) === gist(why));
+  const pick = (from: string[], salt: number) => from[(h >>> salt) % from.length];
+  const spare = Object.values(STATE_GIST).filter((l) => l !== why);
+  const a = same.length ? pick(same, 0) : cands.length ? pick(cands, 0) : spare[0];
+  const rest = cands.filter((l) => l !== a);
+  const b = rest.length ? pick(rest, 8) : spare.find((l) => l !== a)!;
   const right = (h >>> 16) % 3;
-  const answers = [STATE_GIST[a], STATE_GIST[b]];
+  const answers = [a, b];
   answers.splice(right, 0, why);
   return { q, answers, right, why };
 }
 
-function askMachine(g: Game, n: NPCState, e: Ent) {
+/**
+ * Pip's machine question, open beside the play (never modal: the critic's Phase 5 review found the
+ * event window kept you from the hover and the I key Pip tells you to use). src/ui/askcard.ts draws it.
+ */
+export interface PipAsk {
+  ent: number;
+  lead: string;
+  q: string;
+  answers: string[];
+  right: number;
+  /** Pip's reply once you've answered (and whether you were right) */
+  reply?: string;
+  ok?: boolean;
+}
+
+export const pipAsk = (g: Game): PipAsk | null => g.sys.pipAsk ?? null;
+
+function askMachine(g: Game, e: Ent) {
   const m = machineQuestion(g, e);
-  const name = e.def.name.toLowerCase();
-  openAsk(g, n, "Pip's Question", [{ who: 'npc', text: `Psst, {player}! I've been watching your ${name} all afternoon. Can I ask you about it?` }], m.q,
-    m.answers.map((a, i) => ({ text: a, reply: i === m.right ? "That's what I thought! I checked it with the I key, like you do. I wrote it in my notebook!" : `Nope! Look, it says "${m.why}". Hover it, or hold I, and a machine always tells you why.` })),
-    { kind: 'machine', id: String(e.id), right: m.right });
+  const ask: PipAsk = { ent: e.id, lead: fillTokens(g, `Psst, {player}! I've been watching your ${e.def.name.toLowerCase()} all afternoon.`), q: m.q, answers: m.answers, right: m.right };
+  g.sys.pipAsk = ask;
+  g.emit({ t: 'sfx', id: 'chime', v: 0.6 });
+}
+
+/**
+ * Your answer: right if it's the line Pip saw, or the line the machine shows now (it kept working
+ * while you looked). Pip's reply stays on the card a moment (src/ui/askcard.ts).
+ */
+export function answerPip(g: Game, pick: number) {
+  const a = pipAsk(g);
+  if (!a || a.reply !== undefined) return;
+  const e = g.ents.get(a.ent);
+  const now = e ? machineLine(e) : '';
+  const ok = pick === a.right || (!!now && a.answers[pick] === now);
+  finishAsk(g, { kind: 'machine', id: String(a.ent), right: ok ? pick : a.right }, pick);
+  a.ok = ok;
+  a.reply = ok ? "That's what I thought! I checked it the way you do. I wrote it in my notebook!" : `Nope! Look, it says "${now || a.answers[a.right]}". Hover it, or hold I, and a machine always tells you why.`;
+}
+
+/** put the question away unanswered (Pip asks again if you talk before they go home) */
+export function dropPipAsk(g: Game) {
+  g.sys.pipAsk = null;
+}
+
+/** is Pip's question still live: their visit, the machine, you on the farm and awake (else it goes) */
+export function pipAskLive(g: Game): boolean {
+  const a = pipAsk(g);
+  if (!a) return false;
+  const v = g.sys.visits;
+  const ok = v?.npc === 'pip' && v.ent === a.ent && g.player.where === 'world' && !g.sleeping && !!g.ents.get(a.ent);
+  if (!ok) dropPipAsk(g);
+  return ok;
 }
 
 function pipTalk(g: Game, n: NPCState): boolean {
@@ -182,7 +277,7 @@ function pipTalk(g: Game, n: NPCState): boolean {
   if (v?.npc === 'pip' && v.ent !== undefined && !v.asked) {
     const e = g.ents.get(v.ent);
     if (e && !e.ghost && Math.hypot(n.x - (e.x + e.w / 2), n.y - (e.y + e.h / 2)) < 4) {
-      askMachine(g, n, e);
+      askMachine(g, e);
       return true;
     }
   }
@@ -262,9 +357,11 @@ function sableTalk(g: Game, n: NPCState, shopAfter?: string): boolean {
 
 // ---------------- Thorne's drawings ----------------
 
-/** the next drawing Thorne owes you (its flag is set, you haven't got it) */
+/** the next drawing Thorne owes you (its flag is set, his Trust is there, you haven't got it) */
 export function drawingDue(g: Game): DrawingDef | null {
-  return DRAWINGS.find((d) => g.flags.has(d.after) && !g.flags.has('drawing:' + d.id)) ?? null;
+  const t = npcSys(g).byId.get('thorne');
+  const trust = t ? hearts(t) : 0;
+  return DRAWINGS.find((d) => g.flags.has(d.after) && trust >= d.trust && !g.flags.has('drawing:' + d.id)) ?? null;
 }
 
 /** into the drafting table's library (false: the library is full, so it waits) */
@@ -273,7 +370,8 @@ export function giveDrawing(g: Game, d: DrawingDef): boolean {
   g.flags.add('drawing:' + d.id);
   g.count('drawings');
   g.emit({ t: 'sfx', id: 'quest' });
-  g.toast("Thorne's drawing is in your drafting table's library.", undefined, C.butter);
+  // (no table yet: the drawing waits rolled up in the library, and the toast says where tables come from)
+  g.toast(g.flags.has('home_drafting') ? "Thorne's drawing is in your drafting table's library." : "Thorne leaves you a rolled drawing. Juniper can build a drafting table to read it (the Joinery's Workshop tab).", undefined, C.butter);
   return true;
 }
 

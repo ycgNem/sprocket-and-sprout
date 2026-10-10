@@ -35,11 +35,11 @@ function indoors(seed = 31) {
 }
 
 describe('Workshop HQ: structures indoors', () => {
-  it('takes chests, hand-era machines, desks and lamps; belts, arms and powered machines stay outside', () => {
+  it('takes chests, hand-era machines, spring arms, desks and lamps; belts and powered pieces stay outside', () => {
     const g = indoors();
-    for (const id of ['chest_wood', 'jar', 'keg', 'furnace', 'lab', 'lamp', 'sign']) expect(goesIndoors(id), id).toBe(true);
+    for (const id of ['chest_wood', 'jar', 'keg', 'furnace', 'arm_basic', 'arm_long', 'arm_filter', 'lab', 'lamp', 'sign']) expect(goesIndoors(id), id).toBe(true);
     expect(canPlaceIndoors(g, 'belt_1', 3, 8, 0).reason).toMatch(/Basement/);
-    expect(canPlaceIndoors(g, 'arm_basic', 3, 8, 0).reason).toMatch(/Basement/);
+    expect(canPlaceIndoors(g, 'arm_fast', 3, 8, 0).reason).toMatch(/power.*Spring arms work indoors/);
     expect(canPlaceIndoors(g, 'mill', 3, 7, 0).reason).toMatch(/power/);
     expect(canPlaceIndoors(g, 'crate_out', 3, 8, 0).reason).toMatch(/outdoors/);
     expect(canPlaceIndoors(g, 'sprinkler_1', 3, 8, 0).ok).toBe(false);
@@ -99,6 +99,25 @@ describe('Workshop HQ: structures indoors', () => {
     expect(crock.mach!.made).toBeGreaterThan(before);
     const end = g.events.find((e: any) => e.t === 'dayEnd') as any;
     expect(end.summary.nightBatches).toBeGreaterThan(0);
+  });
+
+  it('spring arms tend them: chest, arm, crock, arm, chest runs while you are out and overnight', () => {
+    const g = indoors();
+    const line = [['chest_wood', 3], ['arm_basic', 4], ['jar', 5], ['arm_basic', 6], ['chest_wood', 7]] as const;
+    for (const [id, x] of line) expect(canPlaceIndoors(g, id, x, 7, 1).ok, `${id} at ${x}`).toBe(true);
+    const [inp, , crock, , out] = line.map(([id, x]) => placeIndoors(g, id, x, 7, 1));
+    // fed by an arm with nothing to bring: waiting for its goods (not "waiting to be fed")
+    H.leaveHouse(g);
+    for (let i = 0; i < 3 * 60; i++) g.tick();
+    expect(crock.why).toMatch(/^Waiting for /);
+    inp.inv!.add(key('cogbean'), 4);
+    for (let i = 0; i < 80 * 60; i++) g.tick();
+    expect(out.inv!.countId('pickles_cogbean')).toBeGreaterThanOrEqual(1);
+    // and on the night shift
+    const before = crock.mach!.made;
+    inp.inv!.add(key('cogbean'), 4);
+    sleep(g);
+    expect(crock.mach!.made).toBeGreaterThan(before);
   });
 
   it('saves and loads: the structures, their contents and their store', () => {

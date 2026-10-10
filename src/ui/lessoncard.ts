@@ -23,18 +23,19 @@ export function queueLesson(play: PlayScreen, id: string) {
   play.lessons.q.push({ id, t: 0 });
 }
 
-/** Draw the front card (if any) at the left column; `dt` ages it unless a window is open. */
-export function drawLessonCard(ui: UI, play: PlayScreen, dt: number) {
+/** Draw the front card (if any) at the left column; `dt` ages it unless a window is open. Returns the y below it. */
+export function drawLessonCard(ui: UI, play: PlayScreen, dt: number): number {
   const L = play.lessons.q[0];
+  const y0 = Math.max(4, play.hud.leftY ?? 4);
   // a ribbon ("The noon post!") owns the top of the screen for a moment: the card waits for it
-  if (!L || play.modalOpen || play.g.sleeping || play.app.renderer.juice.banners.length) return;
+  if (!L || play.modalOpen || play.g.sleeping || play.app.renderer.juice.banners.length) return y0;
   const def = LESSON_BY_ID.get(L.id)!;
   L.t += dt;
   const input = play.app.input;
   // any key but walking (once it has been read a moment), a click on it, or time
   const move = new Set([...(input.binds.left ?? []), ...(input.binds.right ?? []), ...(input.binds.up ?? []), ...(input.binds.down ?? []), ...(input.binds.run ?? [])]);
   const keyed = L.t > MIN_T && [...input.pressed].some((k) => !move.has(k));
-  const x = 4, y = Math.max(4, play.hud.leftY ?? 4);
+  const x = 4, y = y0;
   // the two lines are one text: wrapped as a whole, a sentence never breaks where a line of the data does
   const lines = wrapText(def.text.join(' '), W - 44);
   const h = Math.max(36, 16 + lines.length * 9);
@@ -42,7 +43,7 @@ export function drawLessonCard(ui: UI, play: PlayScreen, dt: number) {
   if (keyed || clicked || L.t > MAX_T) {
     play.lessons.q.shift();
     if (clicked) ui.eat();
-    return;
+    return y;
   }
   const a = Math.min(1, L.t * 6, (MAX_T - L.t) * 2);
   ui.ctx.globalAlpha = a;
@@ -63,4 +64,5 @@ export function drawLessonCard(ui: UI, play: PlayScreen, dt: number) {
     ui.tip([{ text: 'Click or press a key to put it away.', color: C.pebble }, { text: "Every lesson stays in the Keeper's Notebook (J).", color: C.pebble }]);
   }
   play.hud.occupied?.push({ x, y, w: W, h });
+  return y + h + 4;
 }

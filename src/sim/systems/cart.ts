@@ -3,7 +3,8 @@
 // gears, springs, spark coils, lenses, iron plates, lubricant, now and then a clockwork core), two
 // or three seeds out of season (for the greenhouse), a sapling and one curio (a cart-only
 // furniture piece or a recipe card). No gems or relics. When a business in town runs short (a
-// shortage, src/sim/systems/orders.ts) she has its goods, or what they're made from, at a premium.
+// shortage, src/sim/systems/orders.ts) she has its goods, or what they're made from, at a premium,
+// and comes on the Tuesday too, so they're bought before the doubled order is due on Friday.
 // On Sundays she auctions one lot at the cart (src/sim/auction.ts). The week's stock comes from its
 // own seed; the world's random numbers go on as they did under the old peddler (worldDraws).
 import { CROPS } from '../../data/crops';
@@ -35,10 +36,20 @@ export function cart(g: Game): CartState {
   return g.sys.cart;
 }
 
+/**
+ * Mags' days: Fridays and Sundays, and the Tuesday of a week a business has run short (its doubled
+ * order is due on Friday, so the goods she brings for it come early: the critic's Phase 5 review)
+ */
+export function cartDay(g: Game): boolean {
+  if (g.weekday === 4 || g.weekday === 6) return true;
+  const short = g.sys.orders?.short as { week: number } | undefined;
+  return g.weekday === 1 && short?.week === Math.floor(g.dayIndex / 7);
+}
+
 export function cartHere(g: Game): boolean {
   const c = g.sys.cart as CartState | undefined;
   if (!c?.pos || g.player.where !== 'world') return false;
-  if (g.weekday !== 4 && g.weekday !== 6) return false;
+  if (!cartDay(g)) return false;
   if (g.sys.festivals?.today?.(g)) return false;
   return g.time.min >= CART_OPEN && g.time.min < CART_CLOSE;
 }
@@ -132,7 +143,7 @@ registerSystem({
       worldDraws(g);
       restock(g);
     }
-    if ((g.weekday === 4 || g.weekday === 6) && c.pos && g.daysPlayed > 2 && !g.flags.has('cart_seen')) {
+    if (cartDay(g) && c.pos && g.daysPlayed > 2 && !g.flags.has('cart_seen')) {
       g.flags.add('cart_seen');
       g.toast("Mags' freight cart is on the town square: rare parts from the far roads, Fridays and Sundays.");
     }

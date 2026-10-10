@@ -1,6 +1,8 @@
 // Who teaches which recipe. Recipes not listed here are known from the start.
-// Each villager mails the recipe once you reach the heart level; the almanac also
-// teaches one unknown recipe every Sunday.
+// Each villager mails the recipe once you reach the Trust level; the ledger's almanac page also
+// teaches one unknown recipe every Sunday. The villagers who cook teach the cooking: the works'
+// specialists reward Trust with works things instead (src/data/trust.ts; the critic's Phase 5
+// review found Bram's, Thorne's, Hazel's and Pip's rewards were soup).
 export interface RecipeTeacher { npc: string; hearts: number; note: string }
 
 export const RECIPE_TEACHERS: Record<string, RecipeTeacher> = {
@@ -12,13 +14,13 @@ export const RECIPE_TEACHERS: Record<string, RecipeTeacher> = {
   fried_fish: { npc: 'wren', hearts: 2, note: 'How we fry the catch down at the hut. Hot oil, cold batter.' },
   fish_stew: { npc: 'wren', hearts: 4, note: 'Fisher\'s stew. Whatever came up in the net, simmered with love.' },
   corn_chowder: { npc: 'clem', hearts: 3, note: 'Corn chowder for cold mornings at the ranch. Use good milk.' },
-  miners_pie: { npc: 'bram', hearts: 3, note: "Miner's pie. My father ate one every shift for forty years." },
-  chestnut_soup: { npc: 'thorne', hearts: 3, note: 'Chestnut soup. The forest gives, if you ask politely.' },
-  glow_sorbet: { npc: 'thorne', hearts: 6, note: 'A recipe from very old roots. Serve it under the stars.' },
-  stuffed_peppers: { npc: 'hazel', hearts: 3, note: 'Ember peppers! Spicy, bright, a little dangerous. Like good art.' },
+  miners_pie: { npc: 'clem', hearts: 5, note: "Miner's pie, the way the quarry crews liked it. Good beef, good crust, no fuss." },
+  chestnut_soup: { npc: 'marigold', hearts: 3, note: 'Chestnut soup. The forest gives, if you ask politely.' },
+  glow_sorbet: { npc: 'ines', hearts: 6, note: 'Glow sorbet. A very old recipe, and good for a fever. Serve it under the stars.' },
+  stuffed_peppers: { npc: 'roxy', hearts: 3, note: 'Stuffed ember peppers. City folk pay double for anything that burns, and this is the dish they mean.' },
   roast_yam: { npc: 'ines', hearts: 2, note: 'A simple, nourishing dish. Doctor\'s orders: eat your vegetables.' },
   pumpkin_pie: { npc: 'tobias', hearts: 4, note: 'The official pumpkin pie of the Thistlewick Harvest. Mayor-approved.' },
-  honey_bun: { npc: 'pip', hearts: 2, note: 'Honey buns!!! Dad says I can share the recipe. Don\'t eat them all at once (I did).' },
+  honey_bun: { npc: 'rowan', hearts: 3, note: "Honey buns. Pip says they invented them. Pip did not, but don't tell them I said so." },
 };
 
 export const recipeFlag = (out: string) => 'recipe_' + out;

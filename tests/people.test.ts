@@ -21,12 +21,13 @@ import { blueprintCost, pasteBlueprint } from '../src/sim/blueprint';
 import { drafting, LIB_MAX } from '../src/sim/drafting';
 import { keystoneQuest } from '../src/sim/keystones';
 import { MState } from '../src/sim/mstate';
-import { finishHeartEvent, hearts, npcSys, TASTE_POINTS } from '../src/sim/systems/npcs';
+import { finishHeartEvent, hearts, npcSys, POINTS_PER_HEART, TASTE_POINTS } from '../src/sim/systems/npcs';
 import { objDone, questSys } from '../src/sim/systems/quests';
 import { handDeliver, orders, type Order } from '../src/sim/systems/orders';
 import { stages } from '../src/sim/systems/research';
 import {
-  discoveryDue, drawingDue, echoDue, ECHO_TRUST, FILE_TRUST, finishAsk, giveDrawing, machineQuestion, recordDue, standBy, type Ask,
+  answerPip, discoveryDue, drawingDue, dropPipAsk, echoDue, ECHO_TRUST, FILE_TRUST, finishAsk, giveDrawing, kindLines, machineQuestion, pipAsk, pipAskLive,
+  recordDue, standBy, type Ask,
 } from '../src/sim/people';
 
 const SIX = ['juniper', 'bram', 'sable', 'thorne', 'hazel', 'pip'];
@@ -235,19 +236,41 @@ describe("Pip's echoes", () => {
     expect(echoDue(g)?.lesson).toBe('post');
   });
 
-  it("at the farm, Pip asks what one of your machines is doing, its real state among the answers", () => {
+  it("at the farm, Pip asks what one of your machines is doing: its line among two others it could show", () => {
     const g = new Game({ seed: 13 });
     for (const f of [...g.flags]) if (f.startsWith('lesson:')) g.flags.delete(f);
     const crock = g.ents.all().find((e) => e.def.id === 'jar')!;
     crock.st.rust = false;
     crock.state = MState.Starved;
-    crock.why = 'Waiting for cogbeans';
+    crock.why = 'Waiting for cogbean';
     const m = machineQuestion(g, crock);
     expect(m.q).toMatch(/stopped/);
     expect(m.answers.length).toBe(3);
-    expect(m.answers[m.right]).toBe('Waiting for cogbeans');
+    expect(m.answers[m.right]).toBe('Waiting for cogbean');
     expect(new Set(m.answers).size).toBe(3);
-    // standing beside it on a free tile, and asked there
+    // every answer is a line a crock shows, one of them another input it could be waiting for; never
+    // a fire or the grid (a crock has neither), never "waiting to be fed" against "waiting for cogbeans"
+    const lines = kindLines(g, crock);
+    for (const a of m.answers) expect(lines, a).toContain(a);
+    expect(m.answers.filter((a) => a.startsWith('Waiting for ')).length).toBe(2);
+    expect(m.answers.some((a) => /fuel|power|grid|to be fed/.test(a))).toBe(false);
+    // the same for every state a crock can be in, on any day
+    for (const why of ['Output full: nothing takes its goods away', 'Waiting to be fed', 'Working: Pickled Cogbean']) {
+      crock.why = why;
+      for (let d = 0; d < 6; d++) {
+        g.time.day = 1 + d;
+        const k = machineQuestion(g, crock);
+        expect(k.answers[k.right]).toBe(why);
+        expect(new Set(k.answers).size).toBe(3);
+        for (const a of k.answers) expect(lines, a).toContain(a);
+      }
+    }
+    g.time.day = 1;
+    crock.why = 'Waiting for cogbean';
+    // a furnace's include its fire, a gleaner's its field
+    expect(kindLines(g, { def: STRUCT_BY_ID.get('furnace'), mach: { station: 'smelter' } } as any)).toContain('Needs fuel: wood or coal');
+    expect(kindLines(g, { def: STRUCT_BY_ID.get('gleaner') } as any)).toContain('No crops in reach: plant around it');
+    // standing beside it on a free tile, and asked there: on a card beside the play, not a window
     const spot = standBy(g, crock)!;
     expect(spot).not.toBeNull();
     const pip = met(g, 'pip');
@@ -257,16 +280,60 @@ describe("Pip's echoes", () => {
     g.sys.visits = { npc: 'pip', talked: false, ent: crock.id, asked: false };
     const before = pip.points;
     talk(g, 'pip');
-    const ev = lastEvent(g);
-    expect(ev.ask.kind).toBe('machine');
-    expect(ev.choice.prompt).toMatch(/preserving crock/i);
-    finishAsk(g, ev.ask, ev.ask.right);
+    expect(lastEvent(g)).toBeNull();
+    const a = pipAsk(g)!;
+    expect(a.q).toMatch(/preserving crock/i);
+    expect(a.answers).toEqual(m.answers);
+    expect(pipAskLive(g)).toBe(true);
+    // put away: asked again on the next talk
+    dropPipAsk(g);
+    expect(pipAsk(g)).toBeNull();
+    talk(g, 'pip');
+    expect(pipAsk(g)!.answers).toEqual(m.answers);
+    // the crock moved on while you looked: the line it shows now is right too
+    const other = a.answers.findIndex((x, i) => i !== a.right && x.startsWith('Waiting for '));
+    crock.why = pipAsk(g)!.answers[other];
+    answerPip(g, other);
+    expect(pipAsk(g)!.ok).toBe(true);
+    expect(pipAsk(g)!.reply).toMatch(/notebook/);
     expect(pip.points).toBe(before + ECHO_TRUST);
     expect(g.sys.visits.asked).toBe(true);
     // asked once a visit: then the visit's own line
+    dropPipAsk(g);
     talk(g, 'pip');
+    expect(pipAsk(g)).toBeNull();
     expect(lastEvent(g)).toBeNull();
   });
+
+  it("a wrong answer gets the machine's own line back, and the card goes when you leave the farm", () => {
+    const g = new Game({ seed: 14 });
+    const crock = g.ents.all().find((e) => e.def.id === 'jar')!;
+    crock.st.rust = false;
+    crock.state = MState.Blocked;
+    crock.why = 'Output full: nothing takes its goods away';
+    const pip = met(g, 'pip');
+    pip.talked = true;
+    const spot = standBy(g, crock)!;
+    pip.x = spot[0] + 0.5;
+    pip.y = spot[1] + 0.9;
+    g.sys.visits = { npc: 'pip', talked: false, ent: crock.id, asked: false };
+    const before = pip.points;
+    talk(g, 'pip');
+    const a = pipAsk(g)!;
+    answerPip(g, (a.right + 1) % 3);
+    expect(a.ok).toBe(false);
+    expect(a.reply).toContain('"Output full: nothing takes its goods away"');
+    expect(pip.points).toBe(before);
+    // a second visit's question, then you go indoors: it's put away
+    g.sys.visits.asked = false;
+    dropPipAsk(g);
+    talk(g, 'pip');
+    expect(pipAskLive(g)).toBe(true);
+    g.player.where = 'house';
+    expect(pipAskLive(g)).toBe(false);
+    expect(pipAsk(g)).toBeNull();
+  });
+;
 });
 
 describe("Sable's archive", () => {
@@ -366,10 +433,12 @@ describe("Thorne's drawings", () => {
     }
   });
 
-  it('the first at the end of his 2-Trust event, the rest as the town wakes; all in the library', () => {
+  it('the first at the end of his 2-Trust event, the rest as the town wakes and his Trust grows; all in the library', () => {
+    expect(DRAWINGS.map((d) => d.trust)).toEqual([2, 4, 6, 8]);
     const g = new Game({ seed: 31 });
     const t = met(g, 'thorne');
     t.talked = true;
+    t.points = 2 * POINTS_PER_HEART;
     expect(drawingDue(g)).toBeNull();
     // the event's own flag is set when it starts; the drawing comes when it ends
     g.flags.add('heart_thorne_2');
@@ -377,9 +446,13 @@ describe("Thorne's drawings", () => {
     finishHeartEvent(g, 'thorne', 0);
     const lib = () => drafting(g).lib;
     expect(lib().map((e) => [e.name, e.from])).toEqual([["The keeper's crock line", 'thorne']]);
-    expect(g.events.some((e: any) => e.t === 'toast' && e.text === "Thorne's drawing is in your drafting table's library.")).toBe(true);
-    // a keystone done: his next talk brings the next
+    // (no drafting table yet: the toast says where one comes from)
+    expect(g.events.some((e: any) => e.t === 'toast' && /Juniper can build a drafting table/.test(e.text))).toBe(true);
+    // a keystone done, but the mill line waits for Trust 4; then his next talk brings it
     g.flags.add('town_mill');
+    talk(g, 'thorne');
+    expect(lib().length).toBe(1);
+    t.points = 4 * POINTS_PER_HEART;
     talk(g, 'thorne');
     expect(lastDialog(g).pages.join(' ')).toMatch(/Bin, arm, mill, arm, chest/);
     expect(lib().map((e) => e.name)).toEqual(["The keeper's crock line", 'A mill line']);
@@ -387,7 +460,11 @@ describe("Thorne's drawings", () => {
     expect(lib().length).toBe(2);
     g.flags.add('waterworks');
     g.flags.add('tram');
+    t.points = 6 * POINTS_PER_HEART;
     talk(g, 'thorne');
+    talk(g, 'thorne');
+    expect(lib().map((e) => e.name)).toEqual(["The keeper's crock line", 'A mill line', 'A smelting line']);
+    t.points = 8 * POINTS_PER_HEART;
     talk(g, 'thorne');
     expect(lib().map((e) => e.name)).toEqual(["The keeper's crock line", 'A mill line', 'A smelting line', "The clock's gear line"]);
     expect(drawingDue(g)).toBeNull();
@@ -395,7 +472,7 @@ describe("Thorne's drawings", () => {
 
   it('a full library keeps the drawing for later', () => {
     const g = new Game({ seed: 32 });
-    met(g, 'thorne');
+    met(g, 'thorne').points = 4 * POINTS_PER_HEART;
     const lib = drafting(g).lib;
     while (lib.length < LIB_MAX) lib.push({ name: 'Mine ' + lib.length, bp: DRAWINGS[0].bp, from: '', day: 0 });
     g.flags.add('town_mill');
@@ -418,7 +495,7 @@ describe('saves', () => {
     g.flags.add('lesson:arm');
     talk(g, 'pip');
     finishAsk(g, lastEvent(g).ask, 1);
-    met(g, 'thorne');
+    met(g, 'thorne').points = 2 * POINTS_PER_HEART;
     g.flags.add('heart_thorne_2');
     finishHeartEvent(g, 'thorne', 0);
     const g2 = deserialize(JSON.parse(JSON.stringify(serialize(g, look)))).game;

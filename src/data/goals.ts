@@ -139,7 +139,7 @@ export const QUESTS: QuestDef[] = [
       { t: 'research', id: 'r_sawmill', label: 'Study Sawmilling at the desk', why: 'The way to the boiler is caved in, and only beams will hold it: a sawmill cuts two from each hardwood.' },
       { t: 'made', struct: 'sawmill', n: 10, label: 'Saw 10 loads in a sawmill', why: '20 beams shore up the gallery on level 6. The Joinery sells hardwood, or fell the big trees.' },
       { t: 'flag', flag: 'gallery_shored', label: 'Shore up the caved-in gallery on level 6', why: 'The way down to the boiler: 20 beams, F at the collapse. It stays open for good.', goto: 'mine_entrance' },
-      { t: 'stage', id: 'r_steam', stage: 'observe', label: 'Look at the seized boiler on level 10', why: 'The old works ran on steam: see how its boiler did it. Walk up to it in the works chamber.', goto: 'mine_entrance' },
+      { t: 'stage', id: 'r_steam', stage: 'observe', label: 'Look at the seized boiler on level 10', why: "The old works ran on steam: see how its boiler did it. Walk up to it in the works chamber (seen it already? Sable at the library lends its record).", goto: 'mine_entrance' },
     ],
     reward: { money: 1500, items: [{ item: 'charcoal_kiln', n: 1 }] } },
   { id: 'k12_steam', title: 'Steam Power', giver: 'bram', tutorial: true, main: true, after: ['k11_boiler'], needFlag: 'keepers_line',
@@ -170,7 +170,7 @@ export const QUESTS: QuestDef[] = [
     objectives: [
       { t: 'research', id: 'r_glass', label: 'Study Glassblowing at the desk', why: 'A spark lives in glass, so the coils need it. Masonry first.' },
       { t: 'research', id: 'r_assembly', label: 'Study Assembly at the desk', why: "Spark coils are too fine for hands: a tinker's bench makes parts by itself. Spark Coils builds on it." },
-      { t: 'stage', id: 'r_spark', stage: 'observe', label: 'Study the old lamp works on level 20', why: "The old works made lamps that lit themselves: see how. The lift rides to every works chamber you've reached.", goto: 'mine_entrance' },
+      { t: 'stage', id: 'r_spark', stage: 'observe', label: 'Study the old lamp works on level 20', why: "The old works made lamps that lit themselves: see how. The lift rides to every works chamber you've reached (seen it already? Sable lends its record).", goto: 'mine_entrance' },
       { t: 'stage', id: 'r_spark', stage: 'experiment', label: 'Wind 6 copper coils (C)', why: 'Every spark coil starts as a copper coil: a copper bar winds 2.' },
       { t: 'stage', id: 'r_spark', stage: 'validate', label: 'Keep a kiln making a glass a minute for 2 minutes', why: 'Coils by the dozen want glass by the hour: an arm feeding sand from a chest keeps a kiln going.' },
       { t: 'research', id: 'r_spark', label: 'Study Spark Coils at the desk', why: 'Lamps for the square, and the heart of every machine after them: 25 sprout, 25 copper and 25 Harvest Bundles.' },
@@ -191,7 +191,7 @@ export const QUESTS: QuestDef[] = [
     desc: "Old Thorne ran the old works' rail cart, ore up to town every morning at six. It still stands in the Crystal galleries on level 25, beside the engineers' lockers, where he left it. Mend the cart, study Clockwork Assembly from their blueprints, and the Tram can run again.",
     hint: 'The Crystal galleries are dark: carry lamps and set them down. The rail cart takes 20 planks, 10 iron bars and 4 brass gears. An assembler finishes jobs by itself once it is fed.',
     objectives: [
-      { t: 'stage', id: 'r_assembly2', stage: 'observe', label: "Open the old works' lockers on level 25", why: "The engineers who built the Tram left their blueprints: read them.", goto: 'mine_entrance' },
+      { t: 'stage', id: 'r_assembly2', stage: 'observe', label: "Open the old works' lockers on level 25", why: "The engineers who built the Tram left their blueprints: read them (been down already? Sable has the copies they filed).", goto: 'mine_entrance' },
       { t: 'flag', flag: 'chamber:cart', label: 'Restore the rail cart on level 25', why: "The Tram's cart is down there: 20 planks, 10 iron bars and 4 brass gears, F at the cart.", goto: 'mine_entrance' },
       { t: 'stage', id: 'r_assembly2', stage: 'experiment', label: 'Have an assembler finish 10 jobs', why: 'Clockwork parts come from assemblers: see one through 10 jobs.' },
       { t: 'stage', id: 'r_assembly2', stage: 'validate', label: 'Keep a line making 2 brass gears a minute for 3 minutes', why: 'The Tram wants 40 brass gears: a line that makes 2 a minute and keeps it up.' },
@@ -253,7 +253,9 @@ export const QUESTS: QuestDef[] = [
 export const QUEST_BY_ID = new Map(QUESTS.map((q) => [q.id, q]));
 
 /** Daily town requests are generated from these templates. */
-export const REQUEST_POOL: { npc: string; item: string; n: number; seasons?: number[]; text: string }[] = [
+// `after`: an ask for goods only a later know-how makes waits for it, and until then the villager asks
+// for `before` instead (a swap, not a filter: the day's draw from the pool stays the same)
+export const REQUEST_POOL: { npc: string; item: string; n: number; seasons?: number[]; text: string; after?: string; before?: { item: string; n: number; text: string } }[] = [
   { npc: 'rowan', item: 'egg', n: 6, text: 'The breakfast rush is brutal. Six eggs, please!' },
   { npc: 'rowan', item: 'tomato', n: 5, seasons: [1], text: 'Tomato soup special today. I need tomatoes!' },
   { npc: 'rowan', item: 'flour', n: 10, text: 'Bread day! Ten sacks of flour would save me.' },
@@ -279,8 +281,10 @@ export const REQUEST_POOL: { npc: string; item: string; n: number; seasons?: num
   { npc: 'pip', item: 'strawberry', n: 3, seasons: [0], text: 'Strawberries! For science! (eating)' },
   // the draughtswoman's inks and mounts (ROADMAP.md 7.6): paste and pigment from a crock (Dyes & Pastes).
   // As many asks a season as her old two, in their places, so the day's dice pick the same villagers
-  { npc: 'hazel', item: 'starch_paste', n: 2, seasons: [1, 2], text: 'Two pots of starch paste. My drawings keep curling off the board.' },
-  { npc: 'hazel', item: 'pigment', n: 3, text: "I'm out of blue halfway through a blueprint. Three pots of pigment?" },
+  { npc: 'hazel', item: 'starch_paste', n: 2, seasons: [1, 2], text: 'Two pots of starch paste. My drawings keep curling off the board.',
+    after: 'r_pastes', before: { item: 'sunflower', n: 3, text: "I'm drawing sunflowers for the Mercantile's sign. I need models: three, please." } },
+  { npc: 'hazel', item: 'pigment', n: 3, text: "I'm out of blue halfway through a blueprint. Three pots of pigment?",
+    after: 'r_pastes', before: { item: 'clay', n: 5, text: 'Five lumps of clay? I model a machine before I draw it.' } },
   { npc: 'sable', item: 'quartz', n: 3, text: 'Quartz for the school science lesson.' },
   { npc: 'sable', item: 'pale_ale', n: 1, text: 'Book club tonight. One hop ale, quietly.' },
   { npc: 'tobias', item: 'wine_grape', n: 1, text: 'A bottle of grape wine for a visiting dignitary.' },

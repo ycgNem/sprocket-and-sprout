@@ -867,7 +867,7 @@ export function chamberCard(g: Game, kind: ChamberKind) {
     notes.push(`It teaches ${r.name}, a research keystone.`);
     // seen before its quest asks: say the look will count then
     const q = keystoneQuest(r.id);
-    if (q && !g.flags.has('observed:' + kind) && !lookCounts(g, 'observed:' + kind)) notes.push(`Come back to study it once "${q.title}" begins.`);
+    if (q && !g.flags.has('observed:' + kind) && !lookCounts(g, 'observed:' + kind)) notes.push(`Come back to study it once "${q.title}" begins, or borrow its record from Sable at the library then.`);
   }
   if (d.restore && g.flags.has(d.restore.flag)) notes.push(d.restore.running);
   else if (d.restore) {

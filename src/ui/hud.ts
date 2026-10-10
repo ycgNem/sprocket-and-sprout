@@ -92,7 +92,7 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   // ---- toasts (top, between the left column and the right one) ----
   // toasts make room under an achievement banner
   let toastY = 28 + (play.achQ.length ? 44 : 0);
-  const colL = Math.max(leftW, play.lessons.q.length ? 244 : 0) + 4, colR = cx - 6;
+  const colL = Math.max(leftW, play.lessons.q.length || g.sys.pipAsk ? 244 : 0) + 4, colR = cx - 6;
   const midX = colR - colL >= 200 ? Math.round((colL + colR) / 2) : Math.round(ui.w / 2);
   const maxW = colR - colL >= 200 ? Math.min(320, colR - colL) : Math.min(320, ui.w - 240);
   // at most three on screen, oldest first; the rest wait their turn (play.ts ages only these three).

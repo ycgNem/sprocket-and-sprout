@@ -2,7 +2,7 @@
 // Each arm reports its state (src/sim/mstate.ts): Starved when there is nothing behind it to
 // take, Blocked when what it holds (or could take) has nowhere to go in front.
 import type { Game } from '../Game';
-import { ArmState, DX, DY, Ent, entName } from '../ents';
+import { ArmState, DX, DY, Ent, Ents, entName } from '../ents';
 import { ItemKey, kDef, kStack } from '../inventory';
 import { isBusy, MState, offText, setHarvestWait, setQueued, setRefused, setState } from '../mstate';
 import { rustTick } from '../rust';
@@ -51,8 +51,8 @@ export function windArm(g: Game, e: Ent): boolean {
 
 const nameOf = (e: Ent | null) => (e ? entName(e).toLowerCase() : 'nothing');
 
-export function updateArms(g: Game, dt: number) {
-  const ents = g.ents;
+/** a store's arms (the farm's, or the farmhouse's spring arms: Workshop HQ) */
+export function updateArms(g: Game, dt: number, ents: Ents = g.ents) {
   const handBonus = g.mods.armHand;
   const now = g.simTime;
   for (let i = 0; i < ents.arms.length; i++) {

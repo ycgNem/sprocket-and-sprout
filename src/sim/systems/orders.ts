@@ -317,7 +317,12 @@ function rollShortage(g: Game) {
   o.lines[0].n *= SHORT_SIZE;
   o.unit = Math.round((o.unit ?? 0) * SHORT_PAY);
   os.short = { week, cust: o.cust, spec: o.lines[0].spec, n: o.lines[0].n };
-  g.toast(`${custName(o.cust)} has run short: this week it wants ${o.lines[0].n} ${specLabel(o.lines[0].spec)} at ${o.unit} coins each. Mags' cart has some, at a price.`, o.lines[0].spec[0] === '#' ? undefined : 'i:' + o.lines[0].spec, C.amber);
+  g.toast(`${custName(o.cust)} has run short: this week it wants ${o.lines[0].n} ${specLabel(o.lines[0].spec)} at ${o.unit} coins each, by Friday. Mags brings some to the square tomorrow, at a price.`, o.lines[0].spec[0] === '#' ? undefined : 'i:' + o.lines[0].spec, C.amber);
+}
+
+/** a villager's ask as posted today: goods a later know-how makes wait for it, and until then they ask for something you can make now */
+export function askNow(g: Game, r: (typeof REQUEST_POOL)[number]) {
+  return r.after && r.before && !holds(g, r.after) ? { ...r, ...r.before } : r;
 }
 
 /** today's three asks (after "A Second Bed"; 1.x saves from the first morning) */
@@ -329,7 +334,7 @@ function postToday(g: Game) {
   const pool = REQUEST_POOL.filter((r) => (!r.seasons || r.seasons.includes(g.time.season)) && ITEM_BY_ID.has(r.item));
   const used = new Set<string>();
   for (let tries = 0; tries < 30 && used.size < 3; tries++) {
-    const r = g.rng.pick(pool);
+    const r = askNow(g, g.rng.pick(pool));
     if (used.has(r.npc)) continue;
     used.add(r.npc);
     const price = ITEM_BY_ID.get(r.item)!.price;

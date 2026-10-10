@@ -81,6 +81,11 @@ describe('content data', () => {
     for (const p of PROJECTS) for (const it of p.items) expect(specOk(it.item), `${p.id}:${it.item}`).toBe(true);
     for (const m of MEGAPROJECTS) for (const st of m.stages) for (const it of st.items) expect(specOk(it.item), `${m.id}:${it.item}`).toBe(true);
     for (const r of REQUEST_POOL) expect(ITEM_BY_ID.has(r.item), r.item).toBe(true);
+    // an ask that waits for know-how names real research and asks for something real until then
+    for (const r of REQUEST_POOL.filter((x) => x.after)) {
+      expect(!r.after!.startsWith('r_') || RESEARCH_BY_ID.has(r.after!), `${r.npc} ${r.item} after ${r.after}`).toBe(true);
+      expect(!!r.before && ITEM_BY_ID.has(r.before.item), `${r.npc} ${r.item} before`).toBe(true);
+    }
     for (const n of NPCS) for (const list of Object.values(n.gifts)) for (const s of list) expect(specOk(s), `${n.id} gift ${s}`).toBe(true);
     for (const mo of MONSTERS) for (const d of mo.drops) expect(ITEM_BY_ID.has(d.item), d.item).toBe(true);
     for (const a of ANIMALS) expect(ITEM_BY_ID.has(a.product)).toBe(true);

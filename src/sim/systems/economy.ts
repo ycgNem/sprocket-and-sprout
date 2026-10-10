@@ -1,5 +1,6 @@
 // Economy: dynamic market prices (supply saturation, weekly demand, daily drift),
 // overnight shipping, shop buying/selling, tool upgrades and building kits.
+import { AT_COST, TRADE_PRICE, WOODEN_MACHINES } from '../../data/trust';
 import { C } from '../../data/palette';
 import { foundersBonus } from './founders';
 import type { ItemDef } from '../../data/types';
@@ -183,6 +184,9 @@ export function entryPrice(g: Game, e: ShopEntry): number {
   // pricier. Machines and other placeables keep their list price in every shop (a jar is 400 at
   // the Mercantile and the Workshop alike, however many you bought)
   let f = d.places ? 1 : 1 + Math.min(0.3, bought * 0.004);
+  // the specialists' Trust (src/data/trust.ts): Juniper's trade price, Bram's blast furnace at cost
+  if (WOODEN_MACHINES.has(e.item) && g.flags.has('trust:juniper_trade')) f *= TRADE_PRICE;
+  if (e.item === 'blast_furnace' && g.flags.has('trust:bram_cost')) f *= AT_COST;
   if (d.cat === 'seed' && g.time.day <= 7) f *= 0.9;
   if (d.cat === 'seed' && g.time.day >= 22) f *= 1.1;
   return Math.max(1, Math.round(base * f));

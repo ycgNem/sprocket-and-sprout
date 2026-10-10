@@ -1,7 +1,8 @@
 // Villagers as specialists (ROADMAP.md 7.6), real input (keyboard F/Enter, mouse clicks) against a
 // running dev server. For Juniper (the millwright) and Pip (the apprentice): the first meeting's intro,
 // a chat, a loved gift (+27 Trust), the new 2-Trust scene near its place in its hours; then one of Pip's
-// echoes answered by clicking the right choice (+60 Trust, the notebook, not a heart event).
+// echoes answered by clicking the right choice (+60 Trust, the notebook, not a heart event), and Pip's
+// question at the farm about a machine, on a card beside the play: hovered, then answered by a click.
 // Usage: BASE=http://127.0.0.1:5181/ node e2e/people.mjs   (prints PASS/FAIL lines; screenshots in e2e/out/)
 import { chromium } from 'playwright';
 const base = process.env.BASE ?? 'http://localhost:5173/';
@@ -131,6 +132,48 @@ await page.screenshot({ path: `e2e/out/people-${shot++}-pip-notebook.png` });
 for (let i = 0; i < 6 && await win(); i++) { await page.keyboard.press('Enter'); await wait(250); }
 const end = await ev(() => { const g = window.__game, n = g.sys.npcs.byId.get('pip'); return { pts: n.points, flag: g.flags.has('echo:arm'), heartEvents: g.counters.heart_events ?? 0, seen: n.seen, win: window.__play.win?.id ?? null, cutscene: !!g.sys.cutscene }; });
 check(end.flag && end.pts === p0 + 60 && end.heartEvents === events0 && end.seen.join() === '2' && !end.win && !end.cutscene, `pip: +60 Trust and the notebook, not a heart event: ${JSON.stringify({ p0, ...end, events0 })}`);
+
+// 6) Pip at the farm: a question about the crock Pip stands by, on a card beside the play (no
+// window): the crock's own line shows on hover while it's up, and clicking that line is right
+await ev(() => { window.__app.ui.audit = true; });
+const setup = await ev(async () => {
+  const g = window.__game, p = window.__play;
+  p.win = null; g.sys.dialogue = null; g.sys.cutscene = null; p.hud.toasts = [];
+  const P = await import('/src/sim/people.ts');
+  g.time.min = 15 * 60 + 30;
+  const crock = g.ents.all().find((e) => e.def.id === 'jar');
+  crock.st.rust = false;
+  const [sx, sy] = P.standBy(g, crock);
+  g.map.locs.set('pip_visit', [sx, sy]);
+  const pip = g.sys.npcs.byId.get('pip');
+  pip.talked = true;
+  pip.schedule = { ...pip.schedule, at: [[0, 'pip_visit']] };
+  pip.target = 'pip_visit'; pip.path = []; pip.visible = true;
+  pip.x = sx + 0.5; pip.y = sy + 0.9;
+  g.sys.visits = { npc: 'pip', talked: false, ent: crock.id, asked: false };
+  g.player.x = sx + 1.5; g.player.y = sy + 0.9; g.player.dir = 3;
+  return { id: crock.id, x: crock.x, y: crock.y };
+});
+await wait(400);
+const p1 = await pts('pip');
+await page.keyboard.press('KeyF'); await wait(500);
+const ask = await ev(() => { const a = window.__game.sys.pipAsk; return a ? { q: a.q, answers: a.answers, right: a.right, win: window.__play.win?.id ?? null } : null; });
+check(!!ask && !ask.win && /preserving crock/i.test(ask.q) && ask.answers.length === 3, `pip at the farm: the question on a card, no window: ${JSON.stringify(ask)}`);
+await page.screenshot({ path: `e2e/out/people-${shot++}-pip-machine.png` });
+const tile = await ev(({ x, y }) => { const s = window.__app.renderer.tileToScreen(x + 0.5, y + 0.5); return { x: s.x / window.__app.dpr, y: s.y / window.__app.dpr }; }, setup);
+await page.mouse.move(tile.x, tile.y); await wait(300);
+const line = await ev(async (id) => { const P = await import('/src/sim/people.ts'); return P.machineLine(window.__game.ents.get(id)); }, setup.id);
+const tipText = await ev(() => (window.__app.ui.lastAudit ?? []).filter((a) => a.kind === 'text').map((a) => a.s).join(' | '));
+check(tipText.includes('Preserving Crock') && tipText.includes(line) && !!(await ev(() => window.__game.sys.pipAsk)), `pip at the farm: hovering the crock shows its tooltip ("${line}") with the question still up`);
+await page.screenshot({ path: `e2e/out/people-${shot++}-pip-machine-hover.png` });
+await page.mouse.move(20, 700); await wait(250);
+const now = await ev(async (id) => { const P = await import('/src/sim/people.ts'); return P.machineLine(window.__game.ents.get(id)); }, setup.id);
+const at = await ev((now) => (window.__app.ui.lastAudit ?? []).filter((a) => a.kind === 'text' && a.x < 240 && a.s.length > 3 && (a.s === now || now.startsWith(a.s))).shift(), now);
+if (at) await page.mouse.click((at.x + 4) * S, (at.y + 3) * S);
+await wait(400);
+const done = await ev(() => { const g = window.__game, a = g.sys.pipAsk; return { ok: a?.ok, reply: a?.reply, asked: g.sys.visits?.asked, pts: g.sys.npcs.byId.get('pip').points, win: window.__play.win?.id ?? null }; });
+check(!!at && done.ok === true && /notebook/.test(done.reply ?? '') && done.asked && done.pts === p1 + 60 && !done.win, `pip at the farm: clicked "${now}": ${JSON.stringify({ p1, ...done })}`);
+await page.screenshot({ path: `e2e/out/people-${shot++}-pip-machine-reply.png` });
 
 await browser.close();
 console.log(results.join('\n'));

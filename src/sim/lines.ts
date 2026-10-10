@@ -7,7 +7,7 @@ import { availableRecipes, machTakesText } from './systems/machines';
 import { DAY_SECS } from './systems/stats';
 import { ITEMS } from '../data/items';
 import type { Game } from './Game';
-import { BeltKind, DX, DY, Ent, Ents, entName } from './ents';
+import { BeltKind, DX, DY, Ent, Ents, entName, storeOf } from './ents';
 import { kDef } from './inventory';
 import { MState } from './mstate';
 import { rebuildBelts } from './systems/belts';
@@ -22,7 +22,8 @@ export interface PortNode {
 /** structures that take crops from the ground: a field is their source */
 export const FIELD_KINDS = new Set(['gleaner', 'harvester', 'gantry']);
 
-let cache: { ents: Ents; ver: number; nodes: Map<number, PortNode> } | null = null;
+/** each store's graph (the farm's, the farmhouse's), kept until something in it changes */
+const caches = new WeakMap<Ents, { ver: number; nodes: Map<number, PortNode> }>();
 
 const root = (e: Ent) => e.parent ?? e;
 
@@ -35,10 +36,10 @@ function drillFront(e: Ent): [number, number] {
   }
 }
 
-/** The port graph, rebuilt when anything is placed, removed or rotated. */
-export function portGraph(g: Game): Map<number, PortNode> {
-  const ents = g.ents;
-  if (cache && cache.ents === ents && cache.ver === ents.version && !ents.beltsDirty) return cache.nodes;
+/** The port graph of a store (the farm's unless said), rebuilt when anything is placed, removed or rotated. */
+export function portGraph(g: Game, ents: Ents = g.ents): Map<number, PortNode> {
+  const cache = caches.get(ents);
+  if (cache && cache.ver === ents.version && !ents.beltsDirty) return cache.nodes;
   if (ents.beltsDirty) rebuildBelts(ents);
   const nodes = new Map<number, PortNode>();
   const node = (e: Ent) => {
@@ -77,21 +78,21 @@ export function portGraph(g: Game): Map<number, PortNode> {
     const [x, y] = drillFront(e);
     edge(e, ents.rootAt(x, y));
   }
-  cache = { ents, ver: ents.version, nodes };
+  caches.set(ents, { ver: ents.version, nodes });
   return nodes;
 }
 
 /** Is anything aimed at this structure (an arm dropping on it, a belt ending at it)? */
 export function hasFeeder(g: Game, e: Ent): boolean {
-  return (portGraph(g).get(root(e).id)?.ins.length ?? 0) > 0;
+  return (portGraph(g, storeOf(g, e)).get(root(e).id)?.ins.length ?? 0) > 0;
 }
 
 export function feedersOf(g: Game, e: Ent): Ent[] {
-  return portGraph(g).get(root(e).id)?.ins ?? [];
+  return portGraph(g, storeOf(g, e)).get(root(e).id)?.ins ?? [];
 }
 
 export function takersOf(g: Game, e: Ent): Ent[] {
-  return portGraph(g).get(root(e).id)?.outs ?? [];
+  return portGraph(g, storeOf(g, e)).get(root(e).id)?.outs ?? [];
 }
 
 /**
@@ -99,7 +100,7 @@ export function takersOf(g: Game, e: Ent): Ent[] {
  * if any: a stage that waits on it is "waiting for harvest", not Starved (ROADMAP.md 4.2).
  */
 export function fieldSource(g: Game, e: Ent): Ent | null {
-  const nodes = portGraph(g);
+  const nodes = portGraph(g, storeOf(g, e));
   const seen = new Set<number>([root(e).id]);
   let frontier = nodes.get(root(e).id)?.ins ?? [];
   for (let d = 0; d < 30 && frontier.length; d++) {
@@ -129,7 +130,7 @@ export function harvestWaitText(src: Ent): string {
 
 /** Every structure connected to `start` through ports, both ways (capped). */
 export function lineOf(g: Game, start: Ent, cap = 200): { members: Ent[]; sources: Ent[]; sinks: Ent[] } {
-  const nodes = portGraph(g);
+  const nodes = portGraph(g, storeOf(g, start));
   const s0 = root(start);
   const seen = new Set<number>([s0.id]);
   const members: Ent[] = [s0];
@@ -337,7 +338,7 @@ export function fmtRateIn(perDay: number, perMin: boolean): string {
 
 /** Walk up from a sink and name the bottleneck (ROADMAP.md 4.8). */
 export function diagnose(g: Game, sink: Ent): Diagnosis {
-  const nodes = portGraph(g);
+  const nodes = portGraph(g, storeOf(g, sink));
   const log = g.stats.states;
   const s0 = root(sink);
   const depth = new Map<number, number>([[s0.id, 0]]);

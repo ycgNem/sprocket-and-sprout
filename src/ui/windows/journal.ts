@@ -1,4 +1,5 @@
 // Journal (notebook, quests, orders, friends, collections, mail), world map, restoration board, museum.
+import { TRUST_REWARDS } from '../../data/trust';
 import { C, PALETTE } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { NPCS, NPC_BY_ID } from '../../data/npcs';
@@ -124,6 +125,9 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
         const h = hearts(n);
         const trust = h >= 10 ? 'Trust 10: as high as it goes' : `Trust ${h}: ${Math.round(((n.points % 250) / 250) * 100)}% of the way to ${h + 1}`;
         const lines = [{ text: d.name, color: C.amber }, { text: d.personality }, { text: trust, color: C.pebble }];
+        // what a works specialist gives as Trust grows (src/data/trust.ts): butter once it's yours
+        for (const r of TRUST_REWARDS.filter((x) => x.npc === n.id)) lines.push({ text: `Trust ${r.trust}: ${r.name}`, color: g.flags.has('trust:' + r.id) ? C.butter : C.pebble });
+        if (n.id === 'thorne') lines.push({ text: 'Trust 2, 4, 6, 8: his drawings of the old works, as the town wakes', color: C.pebble });
         const held = g.player.inv.slots[g.player.sel];
         if (held) lines.push({ text: `Would think of your ${ITEMS[held.k >> 2].name}: ${giftTaste(d, ITEMS[held.k >> 2].id)}`, color: C.lime });
         ui.tip(lines, 220);

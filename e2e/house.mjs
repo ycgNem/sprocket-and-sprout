@@ -1,6 +1,7 @@
 // Farmhouse interior: day, night, kitchen window, the ledger; then Workshop HQ with real input: a
-// chest and a crock placed indoors with the mouse, the crock fed by hand, the drafting table saving
-// the blueprint tool's copy, a save, a reload and Continue. Prints PASS/FAIL lines.
+// chest and a crock placed indoors with the mouse, the crock fed by hand, then by a spring arm (placed,
+// turned with R and wound by right-click) from a chest, the drafting table saving the blueprint
+// tool's copy, a save, a reload and Continue. Prints PASS/FAIL lines.
 // Usage: BASE=http://localhost:5173/ node e2e/house.mjs
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -128,6 +129,31 @@ await ev(`S.g.runWorks(70)`);
 await wait(500);
 const pick = await ev(`(() => S.g.houseEnts.rootAt(4, 7).mach.outBuf.map((s) => s.n).reduce((a, b) => a + b, 0))()`);
 check(pick >= 1, `the indoor crock made pickles: ${pick}`);
+// 4b) a spring arm tends it: a chest at (2, 7), an arm turned east with R at (3, 7), both by mouse
+await ev(`(async () => { const I = await import('/src/sim/inventory.ts'); const g = S.g; window.__calm();
+  const sl = g.player.inv.slots; sl[4] = { k: I.key('chest_wood'), n: 1 }; sl[5] = { k: I.key('arm_basic'), n: 1 }; })()`);
+await page.keyboard.press('Digit5'); await wait(150);
+t = await tileAt(2, 7);
+await page.mouse.click(t.x, t.y); await wait(300);
+await page.keyboard.press('Digit6'); await wait(150);
+const turns = await ev(`(1 - window.__play.rot + 4) % 4`);
+for (let i = 0; i < turns; i++) { await page.keyboard.press('KeyR'); await wait(120); }
+t = await tileAt(3, 7);
+await page.mouse.move(t.x, t.y); await wait(250);
+await page.screenshot({ path: `${out}/workshop-arm-ghost.png` });
+await page.mouse.click(t.x, t.y); await wait(300);
+const arm = await ev(`(() => { const H = S.g.houseEnts; const a = H.rootAt(3, 7); return { feed: H.rootAt(2, 7)?.def.id, arm: a?.def.id, rot: a?.rot }; })()`);
+check(arm.feed === 'chest_wood' && arm.arm === 'arm_basic' && arm.rot === 1, `placed a chest and a spring arm turned east indoors: ${JSON.stringify(arm)}`);
+// right-click winds it, as outside
+t = await tileAt(3, 7);
+await page.mouse.click(t.x, t.y, { button: 'right' }); await wait(300);
+check(await ev(`(S.g.houseEnts.rootAt(3, 7).st.wind ?? 0) > 0`), 'right-click winds the spring arm indoors');
+const made0 = await ev(`(async () => { const I = await import('/src/sim/inventory.ts'); S.g.houseEnts.rootAt(2, 7).inv.add(I.key('cogbean'), 4); return S.g.houseEnts.rootAt(4, 7).mach.made; })()`);
+await ev(`S.g.runWorks(90)`);
+await wait(400);
+const armed = await ev(`(() => { const H = S.g.houseEnts; return { left: H.rootAt(2, 7).inv.countId('cogbean'), made: H.rootAt(4, 7).mach.made }; })()`);
+check(armed.left < 4 && armed.made > made0, `the arm fed the crock from the chest: ${JSON.stringify({ made0, ...armed })}`);
+await page.screenshot({ path: `${out}/workshop-arm.png` });
 // something in the chest, to ride through the save
 await ev(`(async () => { const I = await import('/src/sim/inventory.ts'); S.g.houseEnts.rootAt(3, 8).inv.add(I.key('stone'), 9); })()`);
 await page.screenshot({ path: `${out}/workshop-placed.png` });

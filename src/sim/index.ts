@@ -16,6 +16,7 @@ import './systems/automation';
 import './systems/animals';
 import './systems/pet';
 import './systems/tock';
+import './systems/trust';
 import './systems/fishing';
 import './systems/mine';
 import './systems/quests';

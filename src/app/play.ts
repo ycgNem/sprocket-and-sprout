@@ -24,6 +24,8 @@ import { TILE } from '../render/art/terrain';
 import { structSize } from '../render/art/structs';
 import { drawHud, HudState, toastLife } from '../ui/hud';
 import { drawLessonCard, queueLesson, type LessonQueue } from '../ui/lessoncard';
+import { drawAskCard } from '../ui/askcard';
+import { pipAsk } from '../sim/people';
 import { lesson } from '../sim/lessons';
 import { WINDOWS, WinState } from '../ui/windows';
 import '../ui/windows/all';
@@ -334,7 +336,10 @@ export class PlayScreen implements Screen {
       this.sleepFade = Math.min(1, this.sleepFade + dt * 2);
     } else this.sleepFade = Math.max(0, this.sleepFade - dt * 1.5);
 
-    if (input.pressed.size || input.mouse.pressed.some(Boolean) || input.mouse.down[0] || input.mouse.down[2]) this.actedAt = performance.now();
+    // a key, a click or a button let go (a drag's placing, a charged can's pour) is an action; a button
+    // held through a drag or a watering hold isn't, or every toast the sim raised meanwhile would
+    // jump the queue as its answer (the critic's Phase 5 review)
+    if (input.pressed.size || input.mouse.pressed.some(Boolean) || input.mouse.released.some(Boolean)) this.actedAt = performance.now();
     // ---- a keystone's scene: the camera goes to look, then its card ----
     if (this.scene) {
       this.scene.t += dt;
@@ -429,7 +434,7 @@ export class PlayScreen implements Screen {
     ui.begin(r.ctx, input, app.uiScale, dt);
     // a modal window owns the screen: the HUD would only peek out around its edges
     if (!this.modalOpen) drawHud(ui, this, dt);
-    drawLessonCard(ui, this, dt);
+    drawAskCard(ui, this, dt, drawLessonCard(ui, this, dt));
     this.drawPrompt(ui, dt);
     if (!this.modalOpen) this.works.labels(this, ui, this.hoverEnt());
     if (!this.modalOpen && !ui.overUI) this.noticeLooked(this.hoverEnt());
@@ -631,6 +636,13 @@ export class PlayScreen implements Screen {
       return;
     }
     if (g.player.where !== 'world') return;
+    // while Pip asks about a machine, hovering it shows the machine, not Pip standing in front of it
+    const pa = pipAsk(g);
+    const pe = pa && pa.reply === undefined ? g.ents.rootAt(t.x, t.y) : null;
+    if (pe && pe.id === pa!.ent) {
+      this.structTip(ui, pe);
+      return;
+    }
     const n = g.sys.npcs?.at?.(g, t.fx, t.fy + 0.3);
     if (n) {
       const d = NPC_BY_ID.get(n.id)!;
@@ -1011,7 +1023,7 @@ export class PlayScreen implements Screen {
       let ix = t.x, iy = t.y;
       if (!this.reachOk(ix, iy, 2.6)) [ix, iy] = facingTile(g);
       // right-click on a spring arm or a gleaner turns its key (the winding verb); F opens its window
-      const we = p.where === 'world' ? g.ents.rootAt(ix, iy) : null;
+      const we = p.where === 'world' ? g.ents.rootAt(ix, iy) : p.where === 'house' ? g.houseEnts.rootAt(ix, iy) : null;
       if (we && !we.ghost && isWindable(we)) windArm(g, we);
       else if (!interact(g, ix, iy) && d?.edible) eatHeld(g);
     }
@@ -1166,6 +1178,15 @@ export class PlayScreen implements Screen {
         if (pulseOf(g, e) !== this.pulseFocus.kind) continue;
         ctx.strokeRect(e.x * TILE - 1, e.y * TILE - 1, e.w * TILE + 2, e.h * TILE + 2);
       }
+      ctx.lineWidth = 1;
+    }
+    // the machine Pip's asking about (src/ui/askcard.ts)
+    const pa = pipAsk(g);
+    const pe = pa && pa.reply === undefined ? g.ents.get(pa.ent) : null;
+    if (pe) {
+      ctx.strokeStyle = rgba(C.butter, blink + 0.2);
+      ctx.lineWidth = 2;
+      ctx.strokeRect(pe.x * TILE - 1, pe.y * TILE - 1, pe.w * TILE + 2, pe.h * TILE + 2);
       ctx.lineWidth = 1;
     }
     const q = g.sys.quests?.active as { id: string }[] | undefined;

@@ -612,7 +612,7 @@ describe('the Deepworks: works chambers', () => {
     g.events.length = 0;
     run(g, 0.1);
     expect(g.flags.has('observed:boiler')).toBe(false);
-    expect(cards(g)[0].text).toContain('Come back to study it once "Down to the Boiler" begins.');
+    expect(cards(g)[0].text).toContain('Come back to study it once "Down to the Boiler" begins, or borrow its record from Sable at the library then.');
     questSys(g).active.push({ id: 'k11_boiler', prog: [0, 0, 0, 0], day: g.dayIndex });
     run(g, 0.1);
     expect(g.flags.has('observed:boiler')).toBe(true);

@@ -1,8 +1,9 @@
 // Workshop HQ (ROADMAP.md 7.8): structures inside the farmhouse. They live in a second entity
 // store (`g.houseEnts`) that the machine, desk and night-shift code tick like the farm's; the
 // renderer draws them with the farm's structure code. Indoors takes what makes sense in a
-// workshop with no wiring: chests, the hand-era machines (nothing that draws power), the study
-// desk, lamps and signs. Belts and arms wait for the Basement (2.1).
+// workshop with no wiring: chests, the hand-era machines (nothing that draws power), the spring
+// arms that tend them (the critic's Phase 5 review: hand-fed machines indoors were Stardew's shed),
+// the study desk, lamps and signs. Belts and powered arms wait for the Basement (2.1).
 import { STRUCT_BY_ID } from '../data/structures';
 import type { StructureDef } from '../data/types';
 import type { Game } from './Game';
@@ -12,14 +13,14 @@ import type { Dir, Ent, Ents } from './ents';
 import { O, T } from './world/tilemap';
 import { HOUSE_DOOR } from './world/house';
 
-/** the kinds of structure that go indoors (a machine only if it draws no power) */
-const INDOOR_KINDS = new Set(['chest', 'machine', 'lab', 'lamp', 'decor']);
+/** the kinds of structure that go indoors (a machine or an arm only if it draws no power) */
+const INDOOR_KINDS = new Set(['chest', 'machine', 'arm', 'lab', 'lamp', 'decor']);
 
 /** why a structure can't go indoors, or null if it can */
 export function indoorRule(def: StructureDef): string | null {
-  if (def.kind === 'belt' || def.kind === 'underground' || def.kind === 'splitter' || def.kind === 'arm') return 'Belts and arms stay outside: the farmhouse has no Basement for them.';
+  if (def.kind === 'belt' || def.kind === 'underground' || def.kind === 'splitter') return 'Belts stay outside: the farmhouse has no Basement for them.';
   if (!INDOOR_KINDS.has(def.kind)) return `A ${def.name.toLowerCase()} belongs outside.`;
-  if (def.powerUse) return `The ${def.name.toLowerCase()} needs power: there's no grid indoors.`;
+  if (def.powerUse) return `The ${def.name.toLowerCase()} needs power: there's no grid indoors.${def.kind === 'arm' ? ' Spring arms work indoors.' : ''}`;
   // the bee crates feed bumblebots, which fly outdoors
   if (def.id.startsWith('crate_')) return 'Bumblebots fly outdoors: their crates stay outside.';
   return null;
