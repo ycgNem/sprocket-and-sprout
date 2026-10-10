@@ -11,6 +11,7 @@ import { STRUCT_BY_ID } from '../../data/structures';
 import { key, kDef } from '../../sim/inventory';
 import { buy, buyKit, canAffordKit, crackGeode, dailyLeft, entryPrice, sellToShop, shopBuys, shopStock, startUpgrade, unitPrice, upgradeOptions } from '../../sim/systems/economy';
 import { finishHeartEvent, hearts, npcSys } from '../../sim/systems/npcs';
+import { finishAsk, type Ask } from '../../sim/people';
 import { sprite, drawFit } from '../../render/atlas';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
@@ -115,7 +116,8 @@ function drawDialog(ui: UI, play: PlayScreen, st: WinState): boolean {
 }
 
 function drawEvent(ui: UI, play: PlayScreen, st: WinState): boolean {
-  const a = st.arg as { npc: string; title: string; lines: { who: string; text: string; npcId: string | null }[]; choice: { prompt: string; options: { text: string; reply: string; friendship: number }[] } | null };
+  // a heart event, or a villager's question (Pip's echoes, Sable's records: `ask`, src/sim/people.ts)
+  const a = st.arg as { npc: string; title: string; lines: { who: string; text: string; npcId: string | null }[]; choice: { prompt: string; options: { text: string; reply: string; friendship: number }[] } | null; ask?: Ask };
   st.data.i = st.data.i ?? 0;
   st.data.chars = (st.data.chars ?? 0) + 90 * Math.min(0.05, ui.dt);
   // letterbox
@@ -138,13 +140,17 @@ function drawEvent(ui: UI, play: PlayScreen, st: WinState): boolean {
       if (ui.button('ch' + i, x + 12, y + 6 + i * 20, w - 24, 17, o.text, { style: 'flat' })) {
         st.data.reply = o.reply;
         st.data.friend = o.friendship;
+        st.data.pick = i;
         st.data.chars = 0;
       }
     });
     return true;
   }
   if (!line) {
-    finishHeartEvent(g, a.npc, st.data.friend ?? 0);
+    if (a.ask) {
+      st.data.done = true;
+      finishAsk(g, a.ask, st.data.pick ?? -1);
+    } else finishHeartEvent(g, a.npc, st.data.friend ?? 0);
     return false;
   }
   ui.panel(x, y, w, h);
@@ -319,7 +325,15 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
 }
 
 registerWindow('dialog', { draw: drawDialog, onClose: (play) => (play.g.sys.dialogue = null) });
-registerWindow('event', { draw: drawEvent, onClose: (play, st) => { if (play.g.sys.cutscene) finishHeartEvent(play.g, st.arg.npc, st.data.friend ?? 0); } });
+registerWindow('event', {
+  draw: drawEvent,
+  onClose: (play, st) => {
+    // a question closed early still counts the answer you gave (none: it's asked again)
+    if (st.arg.ask) {
+      if (!st.data.done) finishAsk(play.g, st.arg.ask, st.data.pick ?? -1);
+    } else if (play.g.sys.cutscene) finishHeartEvent(play.g, st.arg.npc, st.data.friend ?? 0);
+  },
+});
 registerWindow('shop', { draw: drawShop });
 
 export { hearts, npcSys, trustRow, portrait };

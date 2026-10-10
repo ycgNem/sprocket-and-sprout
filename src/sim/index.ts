@@ -27,3 +27,5 @@ import './systems/bots';
 import './systems/achievements';
 import './systems/keeper';
 import './systems/modes';
+// the specialists' talks (no system of their own: they hang on the villagers' talk hooks)
+import './people';

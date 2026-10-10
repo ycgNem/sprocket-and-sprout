@@ -7,7 +7,7 @@ import { WEEKDAYS } from '../../data/types';
 import { Game, registerSystem } from '../Game';
 import type { BuildingInfo } from '../world/tilemap';
 import { skyfield } from '../world/worldgen';
-import { addPoints, npcSys, openDialog } from './npcs';
+import { addPoints, npcSys, openDialog, specialTalk } from './npcs';
 
 function fmt(min: number) {
   const h = Math.floor(min / 60);
@@ -95,18 +95,25 @@ export function door(g: Game, b: BuildingInfo) {
         openDialog(g, keeper, NPC_BY_ID.get(keeper.id)!.intro, shop.id);
         return;
       }
+      // a keeper with something of their own says it at the counter, then the shop opens (Thorne's drawings)
+      if (specialTalk(g, keeper, shop.id)) return;
     }
     g.emit({ t: 'ui', open: 'shop', arg: shop.id });
     return;
   }
   if (b.id === 'library') {
+    // Sable at work in the archive: a record to lend or a discovery to file comes first
     const sable = npcSys(g).byId.get('sable');
+    const inside = g.map.locs.get('library_in'), st = sable ? g.map.locs.get(sable.target) : undefined;
+    if (sable?.met && !sable.visible && inside && st && st[0] === inside[0] && st[1] === inside[1] && specialTalk(g, sable)) {
+      g.emit({ t: 'sfx', id: 'door' });
+      return;
+    }
     if (g.time.min >= 540 && g.time.min < 1080) {
       g.emit({ t: 'ui', open: 'museum' });
       g.emit({ t: 'sfx', id: 'door' });
       return;
     }
-    void sable;
     g.toast('Library & Schoolhouse: open 9am to 6pm.');
     return;
   }

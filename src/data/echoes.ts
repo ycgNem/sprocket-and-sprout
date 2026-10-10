@@ -1,0 +1,120 @@
+// Pip's echoes (ROADMAP.md 7.6, Phase 5): Pip copies every lesson card you've seen into a notebook
+// and asks it back, one a day, the next time you talk to them (src/sim/people.ts). Three answers,
+// one right. Right: Trust and "I wrote it in my notebook!"; wrong: Pip explains, nothing is lost and
+// the question comes back another day. One echo per lesson card (src/data/lessons.ts).
+
+export interface EchoDef {
+  /** the lesson card it echoes */
+  lesson: string;
+  /** Pip's question (it is also the choice's prompt, so it stays on one line) */
+  q: string;
+  /** three answers, in the order shown */
+  answers: [string, string, string];
+  /** the right one's index */
+  right: 0 | 1 | 2;
+  /** Pip, when you're right ("I wrote it in my notebook!" follows) */
+  yes: string;
+  /** Pip explains, when you're not */
+  no: string;
+}
+
+export const ECHOES: EchoDef[] = [
+  { lesson: 'rust', q: 'How do you bring back a rusted machine?',
+    answers: ['Press F at it. Arms want a mainspring first.', 'Hit it with the pickaxe until it shines.', 'Leave it a week and the rust falls off.'], right: 0,
+    yes: 'F at it, and a mainspring for the arms. Easy!',
+    no: "It's F at the rusty thing! A rusted machine does nothing at all until you restore it, and an arm needs a mainspring first." },
+  { lesson: 'arm', q: 'Where does an arm pick things up from?',
+    answers: ['From the square in front of it.', 'From the square behind it.', 'From anywhere it can reach.'], right: 1,
+    yes: 'Behind it! Then it drops them in front. It only does one thing!',
+    no: "From behind! An arm takes from the green square behind it and drops on the gold square in front. That's all it does. That's the point." },
+  { lesson: 'line', q: 'What makes a line a line?',
+    answers: ['It has to be straight.', 'Goods move with nobody carrying them.', 'It has a belt in it somewhere.'], right: 1,
+    yes: 'Nobody carrying anything! It runs while you sleep!',
+    no: "It's when nobody carries anything! Chest, arm, crock, arm, crate: the goods move by themselves. Belts help, but they're not the point." },
+  { lesson: 'post', q: 'When does the post take what is in the crate?',
+    answers: ['Only while you sleep.', 'Whenever the crate is full.', 'At noon, at 6pm and overnight.'], right: 2,
+    yes: 'Noon, six and overnight! Three posts a day!',
+    no: 'Noon, 6pm and overnight! The post empties the crate and pays for everything in it, so a crate can keep filling all day.' },
+  { lesson: 'field', q: 'When do machines pick a crop that ripened today?',
+    answers: ['From noon. The morning harvest is yours.', 'At dawn, before you are up.', 'Never. Only hands can pick.'], right: 0,
+    yes: 'From noon! The morning is for hands!',
+    no: 'From noon! The morning harvest is yours. A gleaner picks what ripens in the 3x3 around it, but it waits for midday.' },
+  { lesson: 'belt', q: 'Where does a belt drop its goods at the end?',
+    answers: ['On the ground, in a pile.', 'Into whatever it runs into.', 'Back at its start, round and round.'], right: 1,
+    yes: 'Into whatever is at the end! A crock, a chest, the crate!',
+    no: "Into whatever it runs into! A crock, a chest, the crate. You don't need an arm at the end of a belt." },
+  { lesson: 'stages', q: 'What does a keystone want before the desk studies it?',
+    answers: ['A full chest of bundles.', 'A lot of coins.', 'You look at it, then try it.'], right: 2,
+    yes: "Look, then try, then study! You don't research what you haven't touched!",
+    no: 'You look, then you try! A keystone wants you to see the real thing and try it small. Then the desk can study it.' },
+  { lesson: 'starved', q: 'A machine has an amber mark. What is wrong?',
+    answers: ['It is waiting for its input.', 'It has no power.', 'Its output is full.'], right: 0,
+    yes: "Amber means starved! It's hungry! Hover it to see what for!",
+    no: 'Amber means starved: it is waiting for its input. Hover it, or hold I, and it says exactly what it waits for.' },
+  { lesson: 'harvest', q: 'A line is waiting for its field. Is that bad?',
+    answers: ['Yes. Take the line down.', 'No. To get more, plant more in reach.', 'Yes. Buy crops to feed it.'], right: 1,
+    yes: "It's healthy! It's just waiting for things to grow!",
+    no: 'It is healthy! A line fed by a field waits for crops to ripen. If you want more, plant more where a picker reaches.' },
+  { lesson: 'blocked', q: 'A red bar on a belt. What does it mean?',
+    answers: ['The belt needs oil.', 'The belt is too slow.', 'Its goods have nowhere to go.'], right: 2,
+    yes: 'Nowhere to go! Something after it is full or stopped!',
+    no: 'A red bar means blocked: the goods there have nowhere to go. Something after it is full, stopped or missing.' },
+  { lesson: 'full', q: 'Why would a good machine just stop?',
+    answers: ['Its output is full and nothing takes it.', 'It got bored.', 'Machines stop at night.'], right: 0,
+    yes: 'Sixty goods and it stops! Something has to take them away!',
+    no: 'Its output got full! A machine holds 60 finished goods, then stops. An arm or a belt has to take them away.' },
+  { lesson: 'unpowered', q: 'A blue bolt on a machine. What does it want?',
+    answers: ['Water.', 'Power from a grid.', 'Coal in its fire.'], right: 1,
+    yes: 'Sparks! Poles carry them from a wheel!',
+    no: 'A blue bolt means power! No grid, or far too little. Poles carry sparks from a wheel to the machines around them.' },
+  { lesson: 'fuel', q: 'A grey flame on a furnace. What do you do?',
+    answers: ['Give it more power.', 'Empty its output.', 'Feed it coal or wood.'], right: 2,
+    yes: 'Coal or wood! By hand or by an arm!',
+    no: "A grey flame means fuel! It burns coal or wood. An arm can feed it from a chest, so you don't have to." },
+  { lesson: 'brownout', q: 'In a brownout, what happens on the grid?',
+    answers: ['Everything on it slows down.', 'Only the biggest machine stops.', "Nothing. It's just a name."], right: 0,
+    yes: 'Everything slows! Switch something off, or add power!',
+    no: 'Everything on the grid slows down! There is more demand than supply. Switch something off at a pole, or add a wheel.' },
+  { lesson: 'buffer', q: 'Why put a chest between two machines?',
+    answers: ['So the line looks tidy.', 'To even out the flow.', 'Chests make goods faster.'], right: 1,
+    yes: 'It evens out the flow! And it keeps the night shift fed!',
+    no: 'To even out the flow! A chest keeps the next machine fed when the first is slow, and through the night shift too.' },
+  { lesson: 'saturation', q: 'You ship lots of one thing. What happens?',
+    answers: ['Its price goes up.', 'Nothing at all.', 'Its price drops for a while.'], right: 2,
+    yes: 'The price drops! So you ship more kinds of things!',
+    no: "Its price drops for a while! The crate's price tag shows it. Ship more kinds of things and it comes back." },
+  { lesson: 'consign', q: 'What does tagging the crate for someone do?',
+    answers: ['Their order gets the goods first.', 'It locks the crate.', 'It sends everything to the city.'], right: 0,
+    yes: 'Their order gets first pick! The market gets the rest!',
+    no: 'Their order gets first pick! At each post, goods that fit their order go to them, and the market gets the rest.' },
+  { lesson: 'night', q: 'What does the works do from 2am to 6am?',
+    answers: ['It sleeps, like you.', 'It keeps running without you.', 'It rusts a little.'], right: 1,
+    yes: 'The night shift! It keeps going!',
+    no: 'It keeps running! That is the night shift. Stock a chest before bed and the night pays for it.' },
+  { lesson: 'quality', q: 'Can a machine pick a gold-quality crop?',
+    answers: ['Yes, always.', 'Only on Sundays.', 'No. Base or silver. Gold is for hands.'], right: 2,
+    yes: 'Base or silver! Gold is for hands!',
+    no: "No! Machines pick base or silver. Hand-picked crops can be gold, and a crock keeps its beans' quality." },
+  { lesson: 'recipes', q: 'How do you make a crock make oil, not pickles?',
+    answers: ['Shift+F at it, then click oil.', 'Put the oil in first.', 'Shake it.'], right: 0,
+    yes: "Shift+F and click oil! Then it's locked in!",
+    no: 'Shift+F opens it, and you click oil to lock it in. Same beans, two recipes. By itself it picks pickles.' },
+  { lesson: 'wind', q: 'What does winding a spring arm do?',
+    answers: ['Fixes it for good.', 'Twice as fast for 30 seconds.', "Nothing. It's for fun."], right: 1,
+    yes: 'Twice as fast for thirty seconds! Right-click!',
+    no: 'Twice as fast for 30 seconds! Right-click a spring arm or a gleaner. It is never a chore, just a boost.' },
+  { lesson: 'works', q: 'Where do goods for the town works go?',
+    answers: ["The Mayor's front door.", 'Anyone on the square.', 'The Works tab on the Orders board.'], right: 2,
+    yes: 'The Works tab! Or a crate tagged for the Council!',
+    no: 'The Works tab on the Orders board! Hand the goods in there, or tag a crate for the Town Council.' },
+  { lesson: 'reputation', q: 'What does a new rank with a business open?',
+    answers: ['Its next order and new stock.', 'A discount on everything.', 'Nothing much.'], right: 0,
+    yes: "Its next order and new stock! Bram has a blast furnace for Purveyors!",
+    no: "A new rank opens its next order and new stock! Each order you fill raises a business's trust in you." },
+  { lesson: 'undo', q: 'You put something in the wrong spot. What now?',
+    answers: ['Break it with the axe.', 'Ctrl+Z takes it back, full refund.', 'Live with it forever.'], right: 1,
+    yes: 'Ctrl+Z! Your last five placements!',
+    no: 'Ctrl+Z! It takes back your last five placements, and you get every piece back.' },
+];
+
+export const ECHO_BY_LESSON = new Map(ECHOES.map((e) => [e.lesson, e]));

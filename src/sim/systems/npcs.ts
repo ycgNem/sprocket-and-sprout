@@ -33,7 +33,18 @@ export interface NPCState {
   idleT: number;
   schedule: ScheduleDef | null;
   birthdayGift: boolean;
+  /** the first day this villager asks you a question again (Pip's echoes, src/sim/people.ts) */
+  askDay?: number;
 }
+
+/**
+ * A villager's own talk instead of a chat line (src/sim/people.ts: Pip's echoes, Sable's archive,
+ * Thorne's drawings); true when it opened something. People.ts adds to these when it's imported, so
+ * the specialists need no system of their own (import order is tick order).
+ */
+export const TALK_HOOKS: ((g: Game, n: NPCState, shopAfter?: string) => boolean)[] = [];
+/** after a heart event closes (Thorne's 2-Trust event hands over his first drawing) */
+export const EVENT_HOOKS: ((g: Game, npcId: string) => void)[] = [];
 
 export interface NPCSys {
   list: NPCState[];
@@ -380,6 +391,8 @@ export function talkTo(g: Game, n: NPCState) {
       return;
     }
   }
+  // a specialist's own talk (an echo, a record, a drawing) instead of a chat line
+  if (n.met && specialTalk(g, n)) return;
   const visit: string | null = n.met ? g.sys.visitLine?.(g, n) ?? null : null;
   let text = visit ?? chooseLine(g, n, d);
   if (visit && !g.sys.visits.talked) {
@@ -397,6 +410,21 @@ export function talkTo(g: Game, n: NPCState) {
   g.sys.quests?.notify?.(g, 'talk', 1, n.id);
   if (isBirthday(g, d) && !n.giftedToday) text += ` ...It's my birthday today, you know.`;
   openDialog(g, n, text);
+}
+
+/**
+ * Run the talk hooks; when one opens something it counts as the talk (the day's first chat, a
+ * quest's "talk to"). Also for doors: a shop or the library can open on its keeper's own talk.
+ */
+export function specialTalk(g: Game, n: NPCState, shopAfter?: string): boolean {
+  if (!TALK_HOOKS.some((h) => h(g, n, shopAfter))) return false;
+  n.met = true;
+  if (!n.talked) {
+    n.talked = true;
+    addPoints(g, n, 20);
+  }
+  g.sys.quests?.notify?.(g, 'talk', 1, n.id);
+  return true;
 }
 
 export function openDialog(g: Game, n: NPCState, text: string, shopAfter?: string, mood?: number) {
@@ -468,6 +496,7 @@ export function finishHeartEvent(g: Game, npcId: string, friendship: number) {
   if (n) addPoints(g, n, 60 + friendship);
   g.sys.cutscene = null;
   g.count('heart_events');
+  for (const h of EVENT_HOOKS) h(g, npcId);
 }
 
 registerSystem({
@@ -500,14 +529,14 @@ registerSystem({
     g.sys.cutscene = null;
   },
   save(g) {
-    return npcSys(g).list.map((n) => ({ id: n.id, points: n.points, met: n.met, seen: n.seen, giftsWeek: n.giftsWeek, talked: n.talked, giftedToday: n.giftedToday }));
+    return npcSys(g).list.map((n) => ({ id: n.id, points: n.points, met: n.met, seen: n.seen, giftsWeek: n.giftsWeek, talked: n.talked, giftedToday: n.giftedToday, ...(n.askDay ? { askDay: n.askDay } : {}) }));
   },
   load(g, d) {
     const s = npcSys(g);
     for (const r of d as any[]) {
       const n = s.byId.get(r.id);
       if (!n) continue;
-      Object.assign(n, { points: r.points, met: r.met, seen: r.seen ?? [], giftsWeek: r.giftsWeek ?? 0, talked: !!r.talked, giftedToday: !!r.giftedToday });
+      Object.assign(n, { points: r.points, met: r.met, seen: r.seen ?? [], giftsWeek: r.giftsWeek ?? 0, talked: !!r.talked, giftedToday: !!r.giftedToday, askDay: r.askDay ?? 0 });
     }
   },
   afterLoad(g) {
