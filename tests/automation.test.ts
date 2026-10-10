@@ -202,7 +202,8 @@ describe('arms and machines', () => {
     mill.mach!.inBuf.set(key('wheat'), 1);
     run(g, 6);
     expect(mill.mach!.outBuf.length).toBe(0);
-    expect(mill.mach!.status).toBe('No power');
+    expect(mill.state).toBe(4); // MState.Unpowered
+    expect(mill.why).toMatch(/No power/);
   });
 
   it('steam engines burn fuel only when there is load', () => {

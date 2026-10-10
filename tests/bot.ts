@@ -34,6 +34,8 @@ export interface DayLog {
 }
 
 const SECOND = 60; // ticks
+/** what the bot keeps in its bag for the works (tests/bot.ts works()) */
+const WORKS_PARTS = new Set(['jar', 'arm_basic', 'chest_wood', 'gleaner', 'splitter_1', 'belt_1', 'plank', 'rope', 'copper_gear']);
 
 export class Bot {
   g: Game;
@@ -191,6 +193,13 @@ export class Bot {
       if ((d.cat === 'crop' || d.cat === 'fruit' || d.cat === 'flower' || d.cat === 'forage' || d.cat === 'fish' || d.cat === 'artisan') && d.price > 0) {
         const researching = g.flags.has('lab') && !!g.research.current;
         const keep = d.cat === 'crop' || d.cat === 'fruit' ? (researching ? 8 : 3) : 0;
+        // the works first: the L1 jar line takes up to a day's worth of vegetables and fruit
+        const lineIn = this.lineIn !== null ? g.ents.get(this.lineIn) : null;
+        if (lineIn?.inv && (d.cat === 'crop' || d.cat === 'fruit') && sl.n > keep) {
+          const room = Math.max(0, 17 - lineIn.inv.slots.reduce((a, s) => a + (s ? s.n : 0), 0));
+          const give = Math.min(room, sl.n - keep);
+          sl.n -= give - lineIn.inv.add(sl.k, give);
+        }
         const n = Math.max(0, sl.n - keep);
         if (n > 0) {
           bin.inv!.add(sl.k, n);
@@ -352,7 +361,7 @@ export class Bot {
           lab.inv!.add(key('bundle_green'), got);
         }
         if (!g.research.current) {
-          const order = ['r_belts', 'r_arms', 'r_preserves', 'r_metallurgy', 'r_brewing', 'r_fertilizer', 'r_sprinklers', 'r_woodworking'];
+          const order = ['r_belts', 'r_arms', 'r_preserves', 'r_gleaning', 'r_metallurgy', 'r_brewing', 'r_fertilizer', 'r_sprinklers', 'r_woodworking'];
           const next = order.find((id) => canResearch(g, id)) ?? RESEARCH.find((r) => canResearch(g, r.id) && r.cost.every((c) => c.item === 'bundle_green'))?.id;
           if (next) {
             setResearch(g, next);
@@ -365,7 +374,138 @@ export class Bot {
     // keep 3 bars for Bram's furnace quest before turning bars into gears
     const keepBars = questSys(g).done.includes('t_furnace') ? 2 : 5;
     if (g.research.done.has('r_metallurgy') && g.player.inv.countId('copper_bar') >= keepBars) tryCraft('copper_gear');
-    if (g.research.done.has('r_belts')) tryCraft('belt_1');
+    if (g.research.done.has('r_belts') && g.player.inv.countId('belt_1') < 6) tryCraft('belt_1');
+  }
+
+  /** the works the bot keeps (ROADMAP.md 4.13): L1, a gleaner beside its plot, then L3 */
+  lineIn: number | null = null;
+  lineOut: number | null = null;
+  gleanOut: number | null = null;
+  pairOut: number[] = [];
+
+  /** a free run of n tiles in a row (x..x+n-1, y), clear of the plot */
+  private freeRun(n: number, rows = 2): [number, number] | null {
+    const g = this.g;
+    for (let y = 20; y < 46; y++)
+      for (let x = 38; x < 70 - n; x++) {
+        let ok = true;
+        for (let r = 0; r < rows && ok; r++)
+          for (let k = 0; k < n && ok; k++) {
+            const tx = x + k, ty = y + r;
+            if (this.plot.some(([a, b]) => Math.abs(a - tx) <= 1 && Math.abs(b - ty) <= 1)) ok = false;
+            else if (!canPlace(g, 'chest_wood', tx, ty, 0).ok) ok = false;
+          }
+        if (ok) return [x, y];
+      }
+    return null;
+  }
+
+  private placeAt(id: string, x: number, y: number, rot: 0 | 1 | 2 | 3 = 0) {
+    const g = this.g;
+    if (g.player.inv.countId(id) <= 0 || !canPlace(g, id, x, y, rot).ok) return null;
+    g.player.inv.removeSpec(id, 1);
+    const e = place(g, id, x, y, rot);
+    g.sys.quests?.notify?.(g, 'build', 1, id);
+    return e;
+  }
+
+  works() {
+    const g = this.g;
+    const tryCraft = (id: string, n = 1) => {
+      const r = RECIPES.find((r) => r.station === 'hand' && r.out[0].item === id);
+      if (r && canCraft(g, r, n)) {
+        craft(g, r, n);
+        return true;
+      }
+      return false;
+    };
+    const have = (id: string, n: number) => {
+      while (g.player.inv.countId(id) < n && tryCraft(id));
+      return g.player.inv.countId(id) >= n;
+    };
+    if (!g.research.done.has('r_arms') || !g.research.done.has('r_preserves')) return;
+    // the parts' parts: planks from wood, rope from fiber
+    while (g.player.inv.countId('plank') < 10 && g.player.inv.countId('wood') >= 30 && tryCraft('plank'));
+    while (g.player.inv.countId('rope') < 4 && g.player.inv.countId('fiber') >= 12 && tryCraft('rope'));
+    // L1: chest -> arm -> jar -> arm -> chest, fed from the bot's surplus crops
+    if (this.lineIn === null && have('jar', 1) && have('arm_basic', 2) && have('chest_wood', 2)) {
+      const at = this.freeRun(5, 1);
+      if (at) {
+        const [x, y] = at;
+        const a = this.placeAt('chest_wood', x, y);
+        this.placeAt('arm_basic', x + 1, y, 1);
+        this.placeAt('jar', x + 2, y);
+        this.placeAt('arm_basic', x + 3, y, 1);
+        const b = this.placeAt('chest_wood', x + 4, y);
+        if (a && b) {
+          this.lineIn = a.id;
+          this.lineOut = b.id;
+          this.notes.push('built L1');
+        }
+      }
+    }
+    // a gleaner beside the plot: gleaner -> arm -> chest, emptied into L1 each day
+    if (this.lineIn !== null && this.gleanOut === null && g.research.done.has('r_gleaning') && have('gleaner', 1) && have('arm_basic', 1) && have('chest_wood', 1)) {
+      const inPlot = (x: number, y: number) => this.plot.some(([a, b]) => a === x && b === y);
+      search: for (const [px, py] of this.plot)
+        for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {
+          const tx = px + dx, ty = py + dy;
+          if (inPlot(tx, ty) || !canPlace(g, 'gleaner', tx, ty, 0).ok) continue;
+          let near = 0;
+          for (let yy = ty - 1; yy <= ty + 1; yy++) for (let xx = tx - 1; xx <= tx + 1; xx++) if (inPlot(xx, yy)) near++;
+          if (near < 3) continue;
+          for (const [rot, ox, oy] of [[0, 0, -1], [1, 1, 0], [2, 0, 1], [3, -1, 0]] as const) {
+            const ax = tx + ox, ay = ty + oy, cx = tx + 2 * ox, cy = ty + 2 * oy;
+            if (inPlot(ax, ay) || inPlot(cx, cy) || !canPlace(g, 'arm_basic', ax, ay, rot).ok || !canPlace(g, 'chest_wood', cx, cy, 0).ok) continue;
+            this.placeAt('gleaner', tx, ty);
+            this.placeAt('arm_basic', ax, ay, rot);
+            const c = this.placeAt('chest_wood', cx, cy);
+            if (c) {
+              this.gleanOut = c.id;
+              this.notes.push('placed a gleaner');
+            }
+            break search;
+          }
+        }
+    }
+    // L3: chest -> arm -> belt -> splitter -> two belts -> two jars -> arms -> chests
+    if (this.lineIn !== null && !this.pairOut.length && g.research.done.has('r_logistics') && have('splitter_1', 1) && have('belt_1', 3) && have('jar', 2) && have('arm_basic', 3) && have('chest_wood', 3)) {
+      const at = this.freeRun(7, 2);
+      if (at) {
+        const [x, y] = at;
+        const a = this.placeAt('chest_wood', x, y);
+        this.placeAt('arm_basic', x + 1, y, 1);
+        this.placeAt('belt_1', x + 2, y, 1);
+        this.placeAt('splitter_1', x + 3, y, 1);
+        this.placeAt('belt_1', x + 4, y, 1);
+        this.placeAt('belt_1', x + 4, y + 1, 1);
+        this.placeAt('jar', x + 5, y);
+        this.placeAt('jar', x + 5, y + 1);
+        this.placeAt('arm_basic', x + 6, y, 1);
+        this.placeAt('arm_basic', x + 6, y + 1, 1);
+        const b = this.placeAt('chest_wood', x + 7, y), c = this.placeAt('chest_wood', x + 7, y + 1);
+        if (a && b && c) {
+          this.pairOut = [a.id, b.id, c.id];
+          this.notes.push('built L3');
+        }
+      }
+    }
+    // carry: the gleaner's chest into L1, the lines' goods to the crate
+    const lineIn = this.lineIn !== null ? g.ents.get(this.lineIn) : null;
+    const gl = this.gleanOut !== null ? g.ents.get(this.gleanOut) : null;
+    if (lineIn?.inv && gl?.inv) for (const s of gl.inv.slots) if (s) s.n = lineIn.inv.add(s.k, s.n);
+    if (gl?.inv) gl.inv.slots = gl.inv.slots.map((s) => (s && s.n > 0 ? s : null));
+    const bin = g.ents.get(g.shipBinId);
+    for (const id of [this.lineOut, ...this.pairOut.slice(1)]) {
+      const out = id !== null ? g.ents.get(id) : null;
+      if (!out?.inv || !bin?.inv) continue;
+      for (let i = 0; i < out.inv.slots.length; i++) {
+        const s = out.inv.slots[i];
+        if (!s) continue;
+        const left = bin.inv.add(s.k, s.n);
+        out.inv.slots[i] = left ? { k: s.k, n: left } : null;
+      }
+    }
   }
 
   placeNearHouse(id: string) {
@@ -387,7 +527,7 @@ export class Bot {
   /** keep the bag tidy: stash materials in chests by the house */
   stash() {
     const g = this.g;
-    const keep = new Set(['hoe', 'can', 'axe', 'pick', 'scythe', 'rod', 'sword']);
+    // tools, and the parts of the works the bot is still building
     let chests = g.ents.others.filter((e) => e.def.id === 'chest_wood');
     if (g.player.inv.slots.filter(Boolean).length > 24 && g.player.inv.countId('wood') >= 20) {
       const r = RECIPES.find((x) => x.out[0].item === 'chest_wood')!;
@@ -402,7 +542,7 @@ export class Bot {
       const sl = g.player.inv.slots[i];
       if (!sl) continue;
       const d = kDef(sl.k);
-      if (d.tool || d.weapon || d.plant || keep.has(d.id)) continue;
+      if (d.tool || d.weapon || d.plant || WORKS_PARTS.has(d.id)) continue;
       const cap = essentials.has(d.id) ? 120 : 0;
       const n = sl.n - cap;
       if (n <= 0) continue;
@@ -492,6 +632,7 @@ export class Bot {
     if (day >= 2 && (g.player.inv.countId('copper_ore') < 15 || day % 3 === 0)) this.mineTrip();
     else this.gather();
     this.crafting();
+    this.works();
     this.stash();
     const deep = mine(g).deepest;
     const eLeft = Math.round(g.player.energy);

@@ -153,6 +153,19 @@ const SC = {
   'research-traps': async () => ev(`(async () => { const { RESEARCH_BY_ID } = await import('/src/data/research.ts'); S.play.openWindow('research'); const p = RESEARCH_BY_ID.get('r_traps').pos; S.play.win.data.panX = -(p[0] * 66 - 150); S.play.win.data.panY = -(p[1] * 58 - 100); S.play.win.data.sel = 'r_traps'; })()`),
   'research-bots': async () => ev(`(async () => { const { RESEARCH_BY_ID } = await import('/src/data/research.ts'); S.play.openWindow('research'); const p = RESEARCH_BY_ID.get('r_bot_count').pos; S.play.win.data.panX = -(p[0] * 66 - 150); S.play.win.data.panY = -(p[1] * 58 - 100); S.play.win.data.sel = 'r_bot_count'; })()`),
   'research-fit': async () => ev(`(() => { S.play.openWindow('research'); S.play.win.data.fit = true; })()`),
+  // 1.2 Phase 1: the automation core and the Field Works
+  'works-lines': async () => ev(`(async () => { const g = S.g; S.play.closeWindow(); (${clearArea})(38, 26, 60, 36); const B = window.__build;
+    const a = B.place(g, 'chest_wood', 40, 28, 0); a.inv.add(S.key('cogbean'), 200); B.place(g, 'arm_basic', 41, 28, 1); B.place(g, 'jar', 42, 28, 0); B.place(g, 'arm_basic', 43, 28, 1); B.place(g, 'chest_wood', 44, 28, 0);
+    B.place(g, 'chest_wood', 40, 31, 0); B.place(g, 'arm_basic', 41, 31, 1); B.place(g, 'jar', 42, 31, 0); B.place(g, 'arm_basic', 43, 31, 1); B.place(g, 'chest_wood', 44, 31, 0);
+    for (let i = 0; i < 60 * 90; i++) g.tick(); S.play.openWindow('stats'); S.play.win.data.tab = 'lines';
+    const L = await import('/src/sim/lines.ts'); const s = L.lineSinks(g)[1]; if (s) S.play.win.data.sink = s.id; S.play.win.data.showFix = true; })()`),
+  'works-field': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); (${clearArea})(44, 26, 62, 44); const B = window.__build; g.research.done.add('r_gantry');
+    B.place(g, 'gleaner', 48, 29, 0); B.place(g, 'arm_basic', 49, 29, 1); B.place(g, 'jar', 50, 29, 0);
+    const gan = B.place(g, 'field_gantry', 50, 40, 0); for (let y = 34; y <= 39; y++) { B.place(g, 'rail', 50, y, 0); B.place(g, 'rail', 56, y, 0); } gan.inv.add(S.key('cogbean_seed'), 20);
+    g.player.x = 52; g.player.y = 33; g.time.min = 13 * 60; for (let i = 0; i < 60 * 8; i++) g.tick(); })()`),
+  'works-pole': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); (${clearArea})(44, 26, 60, 36); const B = window.__build; g.research.done.add('r_milling');
+    B.place(g, 'windmill', 46, 28, 0); const p = B.place(g, 'pole_wood', 49, 29, 0); const m1 = B.place(g, 'mill', 50, 29, 0); m1.mach.inBuf.set(S.key('wheat'), 50); const m2 = B.place(g, 'mill', 50, 31, 0); m2.mach.inBuf.set(S.key('wheat'), 50);
+    g.player.x = 48; g.player.y = 33; for (let i = 0; i < 300; i++) g.tick(); S.play.openWindow('struct', p.id); })()`),
   perk: async () => ev(`(() => { S.g.player.skills.farming = 5; S.play.openWindow('perk'); })()`),
   pause: async () => ev(`(() => { S.play.openWindow('pause'); })()`),
   settings: async () => ev(`(() => { S.play.openWindow('pause'); S.play.win.data.settings = true; })()`),

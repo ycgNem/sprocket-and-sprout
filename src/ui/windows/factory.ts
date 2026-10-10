@@ -10,8 +10,10 @@ import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { centered, frame } from './common';
 import { registerWindow, WinState } from './index';
-import { ICON, wrapText } from '../font';
+import { ICON, ellipsize, wrapText } from '../font';
 import { itemTooltip } from '../tooltips';
+import { linesTab } from './linetab';
+import { gridSentence } from '../../sim/systems/power';
 
 const NODE_W0 = 34, NODE_H0 = 34, GAP_X0 = 66, GAP_Y0 = 58;
 const TIER_COL = ['bundle_green', 'bundle_copper', 'bundle_rose', 'bundle_brass', 'bundle_star'];
@@ -204,10 +206,13 @@ function drawStats(ui: UI, play: PlayScreen, st: WinState): boolean {
   st.data.res = st.data.res ?? 1;
   st.data.tab = st.data.tab ?? 'items';
   const labels = ['1 min', '10 min', '1 hour'];
-  RES.forEach((_, i) => { if (ui.button('res' + i, x + 10 + i * 46, y + 10, 44, 14, labels[i], { active: st.data.res === i })) st.data.res = i; });
+  // the time windows apply to the item graphs, not to the Lines tab (it reads the day)
+  if (st.data.tab !== 'lines') RES.forEach((_, i) => { if (ui.button('res' + i, x + 10 + i * 46, y + 10, 44, 14, labels[i], { active: st.data.res === i })) st.data.res = i; });
+  if (ui.button('tLines', x + w - 234, y + 10, 70, 14, 'Lines', { active: st.data.tab === 'lines', tip: 'Every line end: what feeds it and why it stops' })) st.data.tab = 'lines';
   if (ui.button('tItems', x + w - 160, y + 10, 70, 14, 'Items', { active: st.data.tab === 'items' })) st.data.tab = 'items';
   if (ui.button('tPower', x + w - 86, y + 10, 70, 14, 'Power', { active: st.data.tab === 'power' })) st.data.tab = 'power';
   if (st.data.tab === 'power') return powerTab(ui, play, x, y, w, h);
+  if (st.data.tab === 'lines') return linesTab(ui, play, st, x, y, w, h);
   const res = st.data.res;
   const rows = [...g.stats.series.entries()]
     .map(([idx]) => ({ idx, p: g.stats.rate(idx, res, 'prod'), c: g.stats.rate(idx, res, 'cons') }))
@@ -284,14 +289,15 @@ function powerTab(ui: UI, play: PlayScreen, x: number, y: number, w: number, h: 
   const ps = powerState(g);
   const nets = [...ps.nets.values()];
   ui.text(`${nets.length} power grid${nets.length === 1 ? '' : 's'}`, x + 12, y + 32, C.walnut);
-  nets.slice(0, 6).forEach((n, i) => {
-    const ry = y + 46 + i * 44;
-    ui.panel(x + 10, ry, w - 20, 40, 'inset', false);
+  nets.slice(0, 5).forEach((n, i) => {
+    const ry = y + 46 + i * 46;
+    ui.panel(x + 10, ry, w - 20, 42, 'inset', false);
     const col = n.sat >= 0.99 ? C.moss : n.sat > 0.5 ? C.amber : C.brick;
     ui.text(`Grid #${n.id}: ${n.gens} generators, ${n.consumers} machines, ${n.poles} poles`, x + 16, ry + 4, C.ink);
     ui.text(`${ICON.bolt} demand ${Math.round(n.demand)}  supply ${Math.round(n.cap)}  satisfaction ${Math.round(n.sat * 100)}%`, x + 16, ry + 15, col);
     if (n.storeCap) ui.text(`batteries ${Math.round(n.stored)}/${n.storeCap}`, x + w - 16, ry + 15, C.walnut, { align: 'right' });
-    ui.bar(x + 16, ry + 27, w - 40, 6, n.cap > 0 ? Math.min(1, n.demand / n.cap) : 1, n.demand > n.cap ? C.brick : C.leaf);
+    ui.bar(x + 16, ry + 27, w - 40, 4, n.cap > 0 ? Math.min(1, n.demand / n.cap) : 1, n.demand > n.cap ? C.brick : C.leaf);
+    ui.text(ellipsize(gridSentence(g, n.id), w - 40), x + 16, ry + 32, n.demand > n.cap + 0.5 ? C.brick : C.walnut);
   });
   if (!nets.length) ui.para('No power grids yet. Research Water Power, then connect generators and machines with poles.', x + 12, y + 48, w - 24, C.walnut);
   return true;

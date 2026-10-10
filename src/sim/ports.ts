@@ -41,6 +41,13 @@ export function portAccept(g: Game, e: Ent, k: ItemKey, dir: Dir): number {
 }
 
 export function portInsert(g: Game, e: Ent, k: ItemKey, n: number, dir: Dir): number {
+  const got = portInsertRaw(g, e, k, n, dir);
+  // what arrives counts toward its rate (the Lines tab, the inspector); belts count at their ends
+  if (got > 0 && !e.belt) g.stats.states.received(e, got);
+  return got;
+}
+
+function portInsertRaw(g: Game, e: Ent, k: ItemKey, n: number, dir: Dir): number {
   if (e.ghost || n <= 0) return 0;
   const h = PORT_HANDLERS[e.def.kind];
   if (h?.insert) return h.insert(g, e, k, n);

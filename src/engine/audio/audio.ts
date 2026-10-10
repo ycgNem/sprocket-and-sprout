@@ -183,7 +183,14 @@ export class Audio {
       case 'plant': this.tone(520 * r(), 'sine', { a: 0.004, d: 0.1 }, 0.1 * v, B, 0, 0.75); this.noise(0.05, 0.05 * v, 'lowpass', 800); break;
       case 'harvest': [660, 880].forEach((f, i) => this.tone(f * r(), 'triangle', { a: 0.004, d: 0.1 }, 0.08 * v, B, i * 0.06)); this.noise(0.12, 0.07 * v, 'highpass', 2000); break;
       case 'place': this.tone(150, 'sine', { a: 0.002, d: 0.1 }, 0.25 * v, B, 0, 0.6); this.tone(900, 'square', { a: 0.001, d: 0.02 }, 0.03 * v, B, 0.02); break;
-      case 'pickup_struct': this.tone(200, 'sine', { a: 0.002, d: 0.08 }, 0.2 * v, B, 0, 1.6); break;
+      // the winding verb: a spring ratchet, six quick clicks rising
+      case 'ratchet': for (let i = 0; i < 6; i++) this.tone(1500 + i * 90, 'square', { a: 0.001, d: 0.018 }, 0.035 * v, B, i * 0.045); this.noise(0.05, 0.05 * v, 'highpass', 4000, 1, 0.28); break;
+      // a structure stops (ROADMAP.md 4.3): starved = a hollow click, blocked = a dull clunk
+      case 'state_starved': this.tone(520, 'triangle', { a: 0.002, d: 0.09 }, 0.05 * v, B, 0, 0.75); this.tone(390, 'triangle', { a: 0.002, d: 0.12 }, 0.04 * v, B, 0.07, 0.8); break;
+      case 'state_blocked': this.tone(110, 'square', { a: 0.003, d: 0.14 }, 0.05 * v, B, 0, 0.6); this.noise(0.08, 0.08 * v, 'lowpass', 500); break;
+      case 'switch_off': this.tone(700, 'square', { a: 0.001, d: 0.03 }, 0.05 * v, B); this.tone(300, 'sine', { a: 0.01, d: 0.25 }, 0.06 * v, B, 0.03, 0.5); break;
+      case 'switch_on': this.tone(700, 'square', { a: 0.001, d: 0.03 }, 0.05 * v, B); this.tone(300, 'sine', { a: 0.02, d: 0.3 }, 0.06 * v, B, 0.03, 2); break;
+      case 'pickup_struct':this.tone(200, 'sine', { a: 0.002, d: 0.08 }, 0.2 * v, B, 0, 1.6); break;
       case 'rotate': this.tone(1100, 'square', { a: 0.001, d: 0.02 }, 0.04 * v, B); this.tone(1300, 'square', { a: 0.001, d: 0.02 }, 0.04 * v, B, 0.03); break;
       case 'eat': for (let i = 0; i < 3; i++) this.noise(0.06, 0.15 * v, 'bandpass', 700 + i * 120, 2, i * 0.11); break;
       case 'levelup': [523, 659, 784, 1046].forEach((f, i) => this.tone(f, 'triangle', { a: 0.005, d: 0.25 }, 0.1 * v, B, i * 0.08)); break;

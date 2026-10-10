@@ -264,7 +264,7 @@ for (const [id, name, price, icon, desc, energy] of animal)
 
 // ---------------- Artisan goods ----------------
 const art = (id: string, name: string, price: number, icon: IconSpec, desc: string, tags: string[] = [], energy = 0) =>
-  it(id, name, 'artisan', price, icon, desc, { tags: ['artisan', ...tags], quality: false, edible: energy ? { energy, health: Math.round(energy / 2) } : undefined });
+  it(id, name, 'artisan', price, icon, desc, { tags: ['artisan', ...tags], quality: true, edible: energy ? { energy, health: Math.round(energy / 2) } : undefined });
 
 art('cheese', 'Cheese', 230, { t: 'cheese', c: [C.butter, C.amber] }, 'A golden wheel of cheese.', ['dairy'], 50);
 art('goat_cheese', 'Goat Cheese', 400, { t: 'cheese', c: [C.cream, C.pebble] }, 'Soft and tangy.', ['dairy'], 50);
@@ -273,6 +273,8 @@ art('mayo', 'Egg Custard', 190, { t: 'jar', c: [C.butter, C.cream] }, 'Silky and
 art('honey', 'Wildflower Honey', 100, { t: 'jar', c: [C.amber, C.brass] }, 'Gold in a jar.', ['honey'], 20);
 for (const [fl, nm, mult] of [['tulip', 'Tulip', 1.4], ['sunflower', 'Sunflower', 1.6], ['sunbell', 'Sunbell', 2.2], ['starpetal', 'Starpetal', 4], ['meadow_daisy', 'Daisy', 1.2], ['elderflower', 'Elderflower', 1.5], ['ice_crocus', 'Crocus', 2]] as const)
   art(`honey_${fl}`, `${nm} Honey`, Math.round(100 * mult), { t: 'jar', c: [C.amber, C.brass, -1, C.rose] }, `Honey flavored by ${nm.toLowerCase()} blossoms.`, ['honey'], 25);
+// the opening's second product (ROADMAP.md 4.10, taught by Rowan in Phase 2): one input, two recipes
+art('cogbean_oil', 'Cogbean Oil', 120, { t: 'bottle', c: [C.lime, C.brass] }, 'Pressed from cogbeans in a jar. Keeps gears quiet and salads bright.');
 art('mead', 'Mead', 300, { t: 'bottle', c: [C.amber, C.brass] }, 'Honey wine. Sweet and strong.', ['drink'], 25);
 art('ale', 'Wheat Ale', 200, { t: 'mug', c: [C.amber, C.cream] }, 'Golden and foamy.', ['drink'], 25);
 art('stout', 'Barley Stout', 240, { t: 'mug', c: [C.bark, C.tan] }, 'Dark, roasty and rich.', ['drink'], 30);

@@ -5,11 +5,14 @@ import { FISH } from '../../data/fish';
 import { ITEM_BY_ID } from '../../data/items';
 import { Game, registerSystem } from '../Game';
 import { DX, DY, Ent } from '../ents';
-import { key, kDef } from '../inventory';
+import { key, kDef, kStack } from '../inventory';
+import { takersOf, worksTally } from '../lines';
 import { PORT_HANDLERS, portAccept, portInsert } from '../ports';
-import { canPlant, canTill, fertilize, harvest, inGreenhouse, plant, till } from './farming';
+import { canPlant, canTill, cropTotal, fertilize, harvest, inGreenhouse, plant, till } from './farming';
 import { fuelValue } from './machines';
 import { O, T } from '../world/tilemap';
+import { MState, setState } from '../mstate';
+import { dawnOn, fieldIdleText, gantryTick, gleanerTick, pickable } from './fieldworks';
 import { ORE_TYPES } from '../world/tilemap';
 
 function area(e: Ent, r: number) {
@@ -18,18 +21,55 @@ function area(e: Ent, r: number) {
   return out;
 }
 
+/**
+ * A field machine with nothing ripe in reach is Idle, never Starved (crops grow on their own);
+ * its line says when the next crop in reach ripens, counting only watered days.
+ */
+export function nextRipeText(g: Game, e: Ent, r: number): string {
+  let best = Infinity, any = false;
+  for (const [x, y] of area(e, r)) {
+    if (!g.map.inb(x, y)) continue;
+    const s = g.soil.get(g.map.idx(x, y));
+    if (!s?.crop || s.crop.dead) continue;
+    any = true;
+    const cr = CROP_BY_ID.get(s.crop.id);
+    if (!cr) continue;
+    best = Math.min(best, Math.max(1, cropTotal(cr) - s.crop.days));
+  }
+  if (!any) return 'No crops in reach: plant around it';
+  return best <= 1 ? 'Next ripe crop tomorrow' : `Next ripe crop in ${best} watered days`;
+}
+
+function containerState(g: Game, e: Ent) {
+  const inv = e.inv!;
+  const full = inv.slots.every((s) => s && s.n >= kStack(s.k));
+  if (!full) {
+    if (e.state !== MState.Idle || e.why) setState(e, MState.Idle, '', g.simTime);
+    return;
+  }
+  if (e.def.kind === 'shipbin') setState(e, MState.Blocked, 'Full: the post comes at noon, 6pm and night', g.simTime);
+  else if (takersOf(g, e).some((t) => t.state === MState.Working)) setState(e, MState.Idle, 'Full, and being emptied', g.simTime);
+  else setState(e, MState.Blocked, 'Full: nothing takes from it', g.simTime);
+}
+
 function harvesterTick(g: Game, e: Ent, dt: number) {
   e.st.anim = Math.max(0, (e.st.anim ?? 0) - dt);
+  const now = g.simTime;
+  if (e.off) {
+    e.working = false;
+    setState(e, MState.Idle, 'Switched off at the pole', now);
+    return;
+  }
   if (e.sat <= 0.01) {
     e.working = false;
-    e.st.status = e.net ? 'Not enough power' : 'No power';
+    setState(e, MState.Unpowered, e.net ? 'No power: the grid has nothing to give' : 'No power: place a pole within reach', now);
     return;
   }
   e.st.cd -= dt * e.sat * (e.def.speed ?? 1) * g.mods.machineSpeed;
   if (e.st.cd > 0) return;
   e.st.cd = 0.7;
   if (e.inv!.slots.every((s) => s && s.n >= 99)) {
-    e.st.status = 'Hopper full';
+    setState(e, MState.Blocked, 'Hopper full: an arm should empty it', now);
     e.working = false;
     return;
   }
@@ -38,7 +78,7 @@ function harvesterTick(g: Game, e: Ent, dt: number) {
     if (!m.inb(x, y)) continue;
     const i = m.idx(x, y);
     const s = g.soil.get(i);
-    if (!s?.crop?.ready || s.crop.giant >= 0) continue;
+    if (!pickable(g, s?.crop, dawnOn(g, e))) continue;
     const out = harvest(g, i, g.rng, true);
     if (!out) continue;
     // every third pick leaves a little chaff (fiber) in the hopper
@@ -54,18 +94,25 @@ function harvesterTick(g: Game, e: Ent, dt: number) {
     }
     e.working = true;
     e.st.anim = 0.5;
-    e.st.status = 'Harvesting';
+    g.stats.states.moved(e, out.reduce((a, s) => a + s.n, 0));
+    setState(e, e.sat < 0.25 ? MState.Unpowered : MState.Working, e.sat < 0.25 ? 'Crawling: the grid is short' : 'Harvesting', now);
     g.emit({ t: 'fx', kind: 'leaves', x: x + 0.5, y: y + 0.5, n: 4 });
     return;
   }
   e.working = false;
-  e.st.status = 'Waiting for ripe crops';
+  setState(e, MState.Idle, fieldIdleText(g, area(e, e.def.reach ?? 3)), now);
 }
 
 function planterTick(g: Game, e: Ent, dt: number) {
+  const now = g.simTime;
+  if (e.off) {
+    e.working = false;
+    setState(e, MState.Idle, 'Switched off at the pole', now);
+    return;
+  }
   if (e.sat <= 0.01) {
     e.working = false;
-    e.st.status = e.net ? 'Not enough power' : 'No power';
+    setState(e, MState.Unpowered, e.net ? 'No power: the grid has nothing to give' : 'No power: place a pole within reach', now);
     return;
   }
   e.st.cd -= dt * e.sat * (e.def.speed ?? 1) * g.mods.machineSpeed;
@@ -74,7 +121,8 @@ function planterTick(g: Game, e: Ent, dt: number) {
   const inv = e.inv!;
   const seeds = inv.slots.filter((s) => s && kDef(s.k).plant?.crop);
   if (!seeds.length) {
-    e.st.status = 'Hopper needs seeds';
+    setState(e, MState.Starved, 'Waiting for seeds in its hopper', now);
+    e.want = 'seeds';
     e.working = false;
     return;
   }
@@ -101,13 +149,13 @@ function planterTick(g: Game, e: Ent, dt: number) {
       inv.remove(st!.k, 1);
       g.stats.use(st!.k, 1);
       e.working = true;
-      e.st.status = 'Sowing';
+      setState(e, MState.Working, 'Sowing', now);
       g.emit({ t: 'fx', kind: 'seed', x: x + 0.5, y: y + 0.5 });
       return;
     }
   }
   e.working = false;
-  e.st.status = seeds.length ? 'Nothing to sow (wrong season or no space)' : 'Hopper needs seeds';
+  setState(e, MState.Idle, 'Nothing to sow: every tile is planted, or the seeds are out of season', now);
 }
 
 export function drillOutputTile(e: Ent): [number, number] {
@@ -131,6 +179,7 @@ function drillOre(g: Game, e: Ent): string | null {
 
 function drillTick(g: Game, e: Ent, dt: number) {
   const inv = e.inv!;
+  const now = g.simTime;
   const [ox, oy] = drillOutputTile(e);
   // push buffered output first
   const buf = inv.slots[0];
@@ -145,7 +194,7 @@ function drillTick(g: Game, e: Ent, dt: number) {
     }
     if (inv.slots[0] && inv.slots[0]!.n >= 20) {
       e.working = false;
-      e.st.status = 'Output blocked';
+      setState(e, MState.Blocked, 'Output blocked: nothing takes the ore in front', now);
       return;
     }
   }
@@ -160,21 +209,26 @@ function drillTick(g: Game, e: Ent, dt: number) {
         if (f.n <= 0) e.st.fuel = null;
       } else {
         e.working = false;
-        e.st.status = 'Needs fuel';
+        setState(e, MState.NeedsFuel, 'Needs fuel: wood or coal', now);
         return;
       }
     }
     e.st.burn -= dt;
   } else {
+    if (e.off) {
+      e.working = false;
+      setState(e, MState.Idle, 'Switched off at the pole', now);
+      return;
+    }
     rate *= e.sat;
     if (e.sat <= 0.01) {
       e.working = true; // keep demanding
-      e.st.status = e.net ? 'Not enough power' : 'No power';
+      setState(e, MState.Unpowered, e.net ? 'No power: the grid has nothing to give' : 'No power: place a pole within reach', now);
       return;
     }
   }
   e.working = true;
-  e.st.status = 'Drilling';
+  setState(e, MState.Working, 'Drilling', now);
   e.st.progress += (dt * rate) / 2;
   if (e.st.progress >= 1) {
     e.st.progress = 0;
@@ -182,6 +236,7 @@ function drillTick(g: Game, e: Ent, dt: number) {
     if (!ore) return;
     const k = key(ore);
     g.stats.add(k, 1);
+    g.stats.states.moved(e, 1);
     const tgt = g.ents.rootAt(ox, oy);
     if (tgt && !tgt.ghost && portAccept(g, tgt, k, e.rot) > 0 && portInsert(g, tgt, k, 1, e.rot)) return;
     inv.add(k, 1);
@@ -192,14 +247,14 @@ function tapperTick(g: Game, e: Ent, dt: number) {
   const tr = g.map.trees.get(e.st.tree ?? g.map.idx(e.x, e.y));
   const def = tr ? TREE_BY_ID.get(tr.species) : null;
   if (!def?.tap || (tr && tr.stage < 4)) {
-    e.st.status = 'Needs a mature tree that gives sap';
+    setState(e, MState.Idle, 'Needs a mature tree that gives sap', g.simTime);
     return;
   }
   if (e.inv!.count(key(def.tap)) >= 5) {
-    e.st.status = 'Full';
+    setState(e, MState.Blocked, 'Full: take the sap', g.simTime);
     return;
   }
-  e.st.status = 'Dripping';
+  setState(e, MState.Working, 'Dripping', g.simTime);
   e.st.progress += dt / (g.time.season === 3 ? 400 : 240);
   if (e.st.progress >= 1) {
     e.st.progress = 0;
@@ -228,7 +283,10 @@ function trapDay(g: Game, e: Ent) {
 
 registerSystem({
   name: 'automation',
+  works: true,
   tick(g, dt) {
+    // chests and crates: Blocked only when full and nothing is emptying them (ROADMAP.md 4.2)
+    if (g.tickN % 30 === 0) for (const e of g.ents.others) if (!e.ghost && e.inv && (e.def.kind === 'chest' || e.def.kind === 'shipbin')) containerState(g, e);
     for (const e of g.ents.others) {
       if (e.ghost) continue;
       switch (e.def.kind) {
@@ -236,8 +294,14 @@ registerSystem({
         case 'planter': planterTick(g, e, dt); break;
         case 'drill': drillTick(g, e, dt); break;
         case 'tapper': tapperTick(g, e, dt); break;
+        case 'gleaner': gleanerTick(g, e, dt); break;
+        case 'gantry': gantryTick(g, e, dt); break;
       }
     }
+  },
+  dayStart(g) {
+    // the night tally's bottleneck line (src/sim/lines.ts), reached through a hook to keep Game.ts free of lines
+    g.sys.worksTally = worksTally;
   },
   dayEnd(g) {
     for (const e of g.ents.others) if (e.def.kind === 'fishtrap' && !e.ghost) trapDay(g, e);

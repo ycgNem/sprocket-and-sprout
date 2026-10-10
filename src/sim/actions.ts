@@ -562,6 +562,10 @@ export function interact(g: Game, tx: number, ty: number): boolean {
     if (out?.length) {
       const streak = harvestStreak(g);
       if (streak.bonus) out.push({ k: key(cr.produce, 0), n: 1 });
+      // the hands' edge (ROADMAP.md 4.9): every fifth pick in a streak rolls one quality step higher
+      if (streak.n % 5 === 0 && kDef(out[0].k).quality && (out[0].k & 3) < 3) out[0] = { k: out[0].k + 1, n: out[0].n };
+      // a hand pick inside a field machine's reach counts toward that field (the night tally says so)
+      g.count('hand_picks');
       for (const st of out) g.give(st.k, st.n);
       g.emit({ t: 'fx', kind: 'leaves', x: tx + 0.5, y: ty + 0.5, c: cr.look.leaf, n: 6 });
       // the play screen plays the (streak-pitched) pick sound and flies the crop to its slot

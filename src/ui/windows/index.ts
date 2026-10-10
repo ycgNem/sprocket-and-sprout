@@ -137,7 +137,8 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
   const sold: { k: number; n: number; price: number; coins?: number }[] = s.sold ?? [];
   const rows = sold.slice(0, 10);
   const D = st.data as { shown?: number; ticks?: number; done?: boolean; tease?: string[]; stamped?: boolean };
-  if (!D.tease) D.tease = morningTease(play, sold);
+  // the works first: yesterday's bottleneck in numbers and what the night shift made (ROADMAP.md 4.3, 4.14)
+  if (!D.tease) D.tease = [...worksLines(s), ...morningTease(play, sold)].slice(0, 4);
   // full 16 px icons in the night tally (the day's reward deserves more than belt-size icons)
   const ROW = 17;
   const w = 300, h = Math.min(316, 116 + Math.min(10, sold.length) * ROW + D.tease.length * 11 + ((s.quests ?? []).length ? 14 : 0));
@@ -218,6 +219,14 @@ function drawSummary(ui: UI, play: PlayScreen, st: WinState): boolean {
     D.done = true;
   }
   return true;
+}
+
+/** the night tally's works lines: the bottleneck and the night shift */
+function worksLines(s: { bottleneck?: string | null; nightBatches?: number }): string[] {
+  const out: string[] = [];
+  if (s.bottleneck) out.push(...wrapText('Yesterday: ' + s.bottleneck, 280).slice(0, 2));
+  if (s.nightBatches) out.push(`The night shift ran ${s.nightBatches} batch${s.nightBatches === 1 ? '' : 'es'} while you slept.`);
+  return out;
 }
 
 /** one or two lines about what's ready this morning */

@@ -2,6 +2,7 @@
 // Satisfaction = supply / demand (capped at 1) scales machine speed.
 import type { Game } from '../Game';
 import type { Ent } from '../ents';
+import { MState, setState } from '../mstate';
 import { fuelValue } from './machines';
 
 export interface NetStats {
@@ -102,9 +103,15 @@ export function rebuildPower(g: Game) {
         }
       }
   };
+  // the grid switch: consumers inside a switched-off pole's area are off (no demand, no work)
+  const offPoles = poles.filter((p) => poleOff(g, p));
   for (const e of ents.consumers) {
     assign(e);
     if (e.net) ps.nets.get(e.net)!.consumers++;
+    e.off = offPoles.some((p) => {
+      const s = p.def.supply ?? 2;
+      return e.x < p.x + p.w + s && e.x + e.w > p.x - s && e.y < p.y + p.h + s && e.y + e.h > p.y - s;
+    });
   }
   for (const e of ents.gens) {
     assign(e);
@@ -150,10 +157,14 @@ export function updatePower(g: Game, dt: number) {
     }
     const n = ps.nets.get(e.net);
     if (!n) continue;
+    if (e.off) continue;
     n.demand += (e.working ? e.def.powerUse ?? 0 : e.def.powerIdle ?? 0) * powerMul;
   }
   for (const e of g.ents.gens) {
-    if (!e.net) continue;
+    if (!e.net) {
+      if (e.gen) setState(e, MState.Idle, 'Not wired to a pole', g.simTime);
+      continue;
+    }
     const n = ps.nets.get(e.net);
     if (!n) continue;
     if (e.def.kind === 'accumulator') {
@@ -184,6 +195,9 @@ export function updatePower(g: Game, dt: number) {
       const gen = e.gen!;
       gen.out = gen.cap * load;
       e.working = gen.out > 0.01;
+      if (e.def.id === 'steam_engine' && gen.cap <= 0) setState(e, MState.NeedsFuel, 'Needs fuel: wood or coal', g.simTime);
+      else if (e.working) setState(e, MState.Working, `Making ${Math.round(gen.out)} of ${Math.round(gen.cap)} sparks`, g.simTime);
+      else setState(e, MState.Idle, gen.cap > 0 ? 'Nothing on its grid needs power' : 'No output right now', g.simTime);
       if (e.def.id === 'steam_engine' && load > 0) {
         if (gen.burn <= 0 && gen.fuel && gen.fuel.n > 0) {
           gen.burn += fuelValue(gen.fuel.k) * 0.5;
@@ -195,7 +209,7 @@ export function updatePower(g: Game, dt: number) {
     }
   }
   for (const e of g.ents.consumers) {
-    if (!e.net) {
+    if (!e.net || e.off) {
       e.sat = 0;
       continue;
     }
@@ -214,4 +228,39 @@ export function updatePower(g: Game, dt: number) {
       }
     }
   }
+}
+
+/**
+ * The grid's one sentence (pole tooltip and window, the Power tab): "Demand 180 / supply 120:
+ * add a generator or switch off two machines".
+ */
+export function gridSentence(g: Game, net: number): string {
+  const n = powerState(g).nets.get(net);
+  if (!n) return 'Not connected to anything yet.';
+  const d = Math.round(n.demand), s = Math.round(n.cap);
+  if (n.demand <= n.cap + 0.5) return n.demand > 0 ? `Demand ${d} / supply ${s}: enough power, ${Math.round(n.cap - n.demand)} spare.` : `Supply ${s}: nothing is drawing power right now.`;
+  let over = n.demand - n.cap, k = 0;
+  const draws = g.ents.consumers.filter((e) => e.net === net && !e.off).map((e) => (e.working ? e.def.powerUse ?? 0 : e.def.powerIdle ?? 0)).sort((a, b) => b - a);
+  for (const x of draws) {
+    if (over <= 0) break;
+    over -= x;
+    k++;
+  }
+  return `Demand ${d} / supply ${s}: add a generator or switch off ${k} machine${k === 1 ? '' : 's'}.`;
+}
+
+/** the grid switch's positions: 0 on, 1 off, 2 night shift only (ROADMAP.md 4.7) */
+export const POLE_SWITCH = ['On', 'Off', 'Night shift only'] as const;
+
+/** is this pole's area switched off right now? */
+export function poleOff(g: Game, p: Ent): boolean {
+  const sw = p.st.sw ?? 0;
+  return sw === 1 || (sw === 2 && !g.nightShift);
+}
+
+/** Turn a pole's grid switch to the next position (on → off → night shift only → on). */
+export function togglePole(g: Game, pole: Ent, to?: number) {
+  pole.st.sw = to ?? ((pole.st.sw ?? 0) + 1) % 3;
+  g.ents.powerDirty = true;
+  g.emit({ t: 'sfx', id: pole.st.sw === 0 ? 'switch_on' : 'switch_off', x: pole.x, y: pole.y });
 }

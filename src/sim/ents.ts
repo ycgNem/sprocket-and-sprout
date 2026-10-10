@@ -3,6 +3,7 @@
 import { STRUCT_BY_ID } from '../data/structures';
 import type { RecipeDef, StructureDef } from '../data/types';
 import { Inventory, ItemKey, Stack } from './inventory';
+import { MState } from './mstate';
 
 export type Dir = 0 | 1 | 2 | 3; // N E S W
 export const DX = [0, 1, 0, -1];
@@ -40,6 +41,8 @@ export interface BeltC {
   sPrio?: number;
   /** set during topology: items need to keep moving (render anim) */
   moving: boolean;
+  /** seconds the front item has been stuck (3 s = Blocked) */
+  stuck: number;
 }
 
 export enum ArmState { Idle = 0, ToDrop = 1, Dropping = 2, ToPick = 3 }
@@ -72,7 +75,6 @@ export interface MachC {
   /** remaining burn seconds */
   burn: number;
   fuel: Stack | null;
-  status: string;
   /** quality carried from inputs */
   q: number;
   /** cumulative products (for UI) */
@@ -110,6 +112,20 @@ export interface Ent {
   /** power satisfaction applied this tick */
   sat: number;
   working: boolean;
+  /** the machine contract's state (src/sim/mstate.ts), its detail line and when it began (sim seconds) */
+  state: MState;
+  why: string;
+  since: number;
+  /** a consumer on a switched-off pole (the grid switch): draws no power and does nothing */
+  off?: boolean;
+  /** what a Starved machine waits for (item name, for the advice); not saved */
+  want?: string;
+  /** waiting for its field to ripen (Idle, not Starved): ROADMAP.md 4.2; not saved */
+  fieldWait?: boolean;
+  /** a field gantry's strip tiles (refreshed as it ticks); not saved */
+  strip?: [number, number][];
+  /** the last item an arm carried (names what a starved machine waits for); not saved */
+  lastK?: number;
   /** generic per-kind state bag (labs, drills, hives, buildings, ...) */
   st: any;
 }
@@ -181,7 +197,7 @@ export class Ents {
   }
 
   private addRaw(def: StructureDef, x: number, y: number, rot: Dir, w: number, h: number, ghost: boolean): Ent {
-    const e: Ent = { id: this.nextId++, def, x, y, w, h, rot, net: 0, sat: 1, working: false, st: {} };
+    const e: Ent = { id: this.nextId++, def, x, y, w, h, rot, net: 0, sat: 1, working: false, state: MState.Idle, why: '', since: 0, st: {} };
     if (ghost) e.ghost = true;
     else initComponents(e);
     this.map.set(e.id, e);
@@ -275,6 +291,7 @@ export function initComponents(e: Ent) {
         curve: 0,
         toggle: [0, 0],
         moving: false,
+        stuck: 0,
       };
       break;
     case 'arm':
@@ -346,12 +363,23 @@ export function initComponents(e: Ent) {
     case 'decor':
       e.st.k = null;
       break;
+    case 'gleaner':
+      // its basket (12 crops)
+      e.inv = new Inventory(4);
+      e.st.cd = 0;
+      break;
+    case 'gantry':
+      // the hopper car: crops out, seeds in
+      e.inv = new Inventory(16);
+      e.st.pos = 0;
+      e.st.dir = 0;
+      break;
   }
 }
 
 export function newMach(d: StructureDef): MachC {
   return {
     station: d.station ?? '', speed: d.speed ?? 1, recipe: null, locked: false, inBuf: new Map(), outBuf: [],
-    crafting: false, progress: 0, burn: 0, fuel: null, status: 'Idle', q: 0, made: 0,
+    crafting: false, progress: 0, burn: 0, fuel: null, q: 0, made: 0,
   };
 }

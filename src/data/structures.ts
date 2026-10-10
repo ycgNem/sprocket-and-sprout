@@ -163,6 +163,14 @@ const defs: S[] = [
     desc: 'The foundation for a megaproject. Feed it materials by hand or by arm.' },
   { id: 'freight_depot', name: 'Guild Freight Depot', kind: 'depot', size: [3, 2], solid: true, price: 0,
     desc: "Fill the Trading Guild's weekly bulk contracts here. Arms can feed it." },
+
+  // ---------------- The Field Works (1.2: harvest automation, ROADMAP.md 4.9) ----------------
+  { id: 'gleaner', name: 'Gleaner', kind: 'gleaner', size: [1, 1], solid: true, reach: 1, speed: 1, price: 120,
+    desc: 'A spring-wound picker on a post. Picks the ripe crops around it (from noon) into its basket; arms take from it. Right-click to wind it.' },
+  { id: 'rail', name: 'Gantry Rail', kind: 'rail', size: [1, 1], floor: true, rotatable: true, price: 8,
+    desc: 'Track for a field gantry. Lay two parallel runs with exactly five tiles of soil between them.' },
+  { id: 'field_gantry', name: 'Field Gantry', kind: 'gantry', size: [7, 1], solid: true, rotatable: true, reach: 12, speed: 1, powerUse: 60, powerIdle: 2, price: 1800,
+    desc: 'A brass gantry that rides its rails over a 5-wide strip: waters, picks and resows it, and brings the crops back to its hopper car. Place it across the start of two rails.' },
 ];
 
 export const STRUCTURES: StructureDef[] = defs.map((d) => ({ ...d, item: d.item ?? d.id }));

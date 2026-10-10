@@ -170,6 +170,28 @@
   a GitHub release (ROADMAP.md, Phase 4).
 - New villager: Roxy Vane and her airship on Skyhook Field (the owner's request; DECISIONS #47).
 
+## 1.2 "The Works", Phases 0 and 1 (October 9, 2026)
+- Phase 0 (hotfix 1.1.1, on `main`): the owner's playtest bugs (shift-click, one-shot chests,
+  walkable weeds, dampened shake, one name for the Professor, less mail, research tree scrolling
+  and Fit, the key bubble avoiding the HUD, crate pop, jar price, 960x600 embed, palette names),
+  the overhead pickaxe (C32 look), flagstone paths, plank decks with rails, the seam audit
+  (`e2e/seams.mjs`, 165 offenders listed in `e2e/out/seams.md`), painted ground transitions (the
+  farming glitch), placed paths that finally change the ground. DECISIONS #49-63.
+- The spec: ROADMAP.md 3.1 (the gameplay loop) and 4 (the automation redesign + the Field Works),
+  rewritten at the owner's request and approved by the indie-critic after two review rounds.
+- Phase 1 (on `works`): the machine contract (`src/data/contract.ts`), six states with one reason
+  (`src/sim/mstate.ts`), queued / waiting for harvest, time in state with today and yesterday,
+  per-day rates, root-cause glyphs (`src/render/glyphs.ts`), four pulse lamps, the hold-I line
+  inspector and the fix ping (`src/app/worksview.ts`), the Production window's Lines tab
+  (`src/ui/windows/linetab.ts`) with the diagnosis (`src/sim/lines.ts`, `src/data/advice.ts`),
+  power feedback and the three-position grid switch, the winding verb, the night shift and the
+  night tally's lines, the Field Works (gleaner, field gantry + rails, the noon rule, quality
+  through artisan goods, the streak's quality step, the Dawn Shift and Long Rails research),
+  cogbean oil's data. DECISIONS #64-67.
+- Tests: `tests/lines.test.ts` (L1-L5, the night shift, the noon rule, the gantry), the contract
+  and advice data tests; `e2e/shift.mjs`, `e2e/works.mjs`, `e2e/terrainshots.mjs`, new sweep
+  scenarios (research scrolled/Fit, works-lines, works-field, works-pole); `e2e/perf.mjs` times the
+  night shift. The pacing bot builds L1 and a gleaner (L3 needs Logistics, which it doesn't reach).
 ## Next
 - The open items at the end of ROADMAP.md Phase 4 (arm redraw first) and the deferred critic
   list in HANDOFF.md.

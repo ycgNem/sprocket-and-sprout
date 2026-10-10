@@ -1,0 +1,17 @@
+{
+  "_note": "PixelLab review batches used as design references for art/fieldworks/build.mjs (the final sprites are drawn by hand in that script; nothing here is imported directly). Style images: art/fieldworks/raw/style (cut from src/art/factory.png and src/art/icons.png).",
+  "F1": {
+    "object": "38bb4642-2a73-461c-8541-bf9d6f4268d2",
+    "tool": "create_1_direction_object, style_images 24x24 (planter, roaster, spring battery, tapper)",
+    "cost": 10,
+    "slots": "0-19 gleaner idle (5 descriptions x4), 20-37 gleaner working (3 x6), 38-41 hopper wagon, 42-43 hopper wagon full of beans, 44-49 gantry A-frame leg on a wheel truck, 50-55 brass trolley with claw, 56-59 truss girder, 60-63 rail track",
+    "used": "1, 2, 21 (drum on a post, key on the left, arm right, basket), 42 (wagon heaped with beans), 44 (A-frame leg), 50 (trolley + claw). Rejected as finals: 19-20 px wide (the frame is 16), monochrome orange, truss 56-59 has white pixels."
+  },
+  "F2": {
+    "object": "eeffdd4c-f2ce-4b1b-84f1-a5d3a43321d1",
+    "tool": "create_1_direction_object size 16, style_images 16x16 (i:arm_basic, i:belt_1, i:bumblebot, i:copper_gear, i:oil, i:spring)",
+    "cost": 10,
+    "slots": "0-13 gleaner icon, 14-23 rail icon, 24-37 gantry icon, 38-51 cogbean oil bottle, 52-63 gantry picker head",
+    "used": "5-9 (spring disc on a post, read as the drum), 38-44 (green-gold oil bottle; the final keeps the i:oil family silhouette). Rejected: rails 14-23 (noisy, no outline), gantry 24-37 (reads as a table), heads 52-63 (muddy)."
+  }
+}

@@ -56,10 +56,12 @@ See `HANDOFF.md` for details.
 | Move | WASD / arrows (hold Shift to walk slowly) |
 | Use tool / place / attack | Left mouse (hold to repeat; hold the hoe or can to charge an area) |
 | Talk / harvest / open / collect | Right mouse or F |
+| Wind a spring arm or gleaner (2x speed for 30 s) | Right mouse on it |
+| Inspect a line (hold): the line lights up, its rate per day and why it stops | I |
 | Hotbar | 1-0, mouse wheel |
 | Backpack / Crafting | E (or Tab) / C |
 | Research tree | T |
-| Production stats + power grids | P |
+| Production: Lines (every line's bottleneck), items, power grids | P |
 | Journal (quests, friends, collections, mail) | J |
 | World map | M |
 | Rotate (placing or under the mouse) | R |
@@ -72,7 +74,7 @@ See `HANDOFF.md` for details.
 | Drop one item | Z |
 | Zoom | + / - or Ctrl + wheel |
 | Pause / close | Esc |
-| Debug & cheat panel | ` (backtick) |
+| Debug & cheat panel (dev builds or ?debug) | ` (backtick) |
 
 The debug panel (backtick) can add money, skip time, unlock all research, give a factory kit
 or resources, warp around the map, and jump straight to the newer systems: a stray pet, the

@@ -135,7 +135,8 @@ silhouette instead of replacing it.
 | Romance / partners | **Keep, freeze** | D3 | — |
 | Mags' cart | **Reshape → freight broker** | Rare components, a Sunday auction, shortage events | 5 |
 | Founder's Day | **Replace** | The Sprocket Fair scores a line's throughput (the deferred "Clockmakers' Exhibition") | 5 |
-| Crops (37), trees, animals, fishing, ponds | **Keep + industrial uses** | Re-derived numbers; fiber/oil/starch/pigment/spirit intermediates; animals and fishing unchanged | 3 |
+| Crops (37), trees, animals, fishing, ponds | **Keep + industrial uses** | Re-derived numbers; fiber/oil/starch/pigment/spirit intermediates; animals and fishing unchanged | 1, 3 |
+| Harvest automation | **Deepen: the Field Works** | Gleaner, crane and sower earlier with states, thresher, field gantry; hands keep quality (4.9) | 1 |
 | Modes, maps, achievements, profile | **Keep** | New "works" achievements; Rush unchanged | — |
 | Mail | **Reshape** | D9 | 0 |
 | Procedural art fallback (`?art=old`) | **Cut** at the end of Phase 6 | The generators in `src/render/art/` are deleted once nothing needs them | 6 |
@@ -169,120 +170,388 @@ analysis, never templates.
 **The screenshot test** (for Phase 6): a screenshot with no logo should be recognisable by its
 machines: moving parts, pipes and gantries in brass and copper, plants growing *on* the works.
 
+### 3.1 The gameplay loop
+
+Added 2026-10-09 at the owner's request ("hash out the gameplay loop"). Three loops nested in
+each other, and two halves of the player's attention (hands and works) that feed each other.
+
+**The verbs.** *Tend* (till, plant, water, harvest, forage, mine: the hands), *Build* (place,
+rotate, wind, link, switch), *Read* (glyphs, the hover line, the inspector, the Line tab, the
+tally), *Fix* (a buffer, a splitter, a second machine, more power, a faster part, a better
+recipe, planting more), *Supply* (the crate and its posts; orders from Phase 3).
+
+**Loop 1, the beat (1-5 real minutes): notice → read → fix → watch.**
+
+| Step | What the player sees or does | Built in |
+|---|---|---|
+| Notice | a glyph pops over the one stage that causes a stop; a pulse lamp blinks; a crop shows its blue drop; the crate's +N slows. A line limited only by its field shows no warning, just its numbers | 4.3, 4.9 |
+| Read | hover for the one-line reason; hold I to light the line; the Lines tab names the stage and states the gap in numbers, with the fixes one click away | 4.3, 4.6, 4.8 |
+| Fix | one of several answers, each a placement or a turn of a key; the hands are always a stopgap (carry beans to the jar) | 4.0 rule 2 |
+| Watch | the line runs; items flow; the fix ping ("Line faster: pickles 9 → 17/day"); the noon and 6pm posts land with a coin shower | 4.3, Phase 3 of 1.1 |
+
+The beat must be fun with no story attached: a stopped machine is a small puzzle with a
+visible clue and more than one answer, and solving it has a visible, countable payoff.
+
+**Loop 2, the day (one in-game day = 14 real minutes at Story speed, plus the works' night shift).**
+
+| Part | Clock | The usual shape |
+|---|---|---|
+| Morning | 6am-noon | the night tally (what the night shift made, yesterday's bottleneck with its numbers, what flooded the market); the forecast. **The morning harvest belongs to the hands**: field machines don't pick a newly ripe crop until noon, so the player picks the quality plot (and anything else) with a streak first, and waters what the sprinklers miss |
+| Day | noon-6pm | extend or fix a line; an errand to town (orders, parts, a villager); a trip to the quarry or the Deepworks for what the works lacks. The noon and 6pm posts are the two payouts |
+| Evening | 6pm-2am | an engineering choice, not a chore: the 4-hour night shift (4.14) runs only what can run unattended, so stock a buffer chest, fuel the steam engine, switch the mill on at its pole, then bed. The night tally says whether it paid |
+
+A good day ends with a line a little better than it started, and the tally proves it.
+
+**Loop 3, the era (5-30 days).** An order or a keystone needs something you can't make yet →
+research it (Phase 3: observe, experiment, apply) → the new machine creates a new bottleneck →
+the Deepworks or the town supplies the missing input → the keystone completes and the town
+visibly changes (the mill turns, the fountain runs, the square lights up) → a "Plan the works"
+card offers three directions for the next era.
+
+**Hands and works.** The hands are fast and fine early, the only source of gold and star quality
+and the harvest streak; the works is slow to set up and then runs while you sleep. Early days are
+mostly hands with a jar line; by day 10 a typical player spends about two thirds of their time on
+the works and one third tending, foraging and exploring; the hands never stop mattering, because
+quality orders, festivals and the quality plot pay for them (4.9).
+
+**Units.** Everything the player reads about a line is per day ("jar 17/day", "field 4/day"), the unit farming already speaks.
+
+**Pacing targets** (Story, a new player; the bot checks the ones it can): first automated sale
+≤ 4 min; first full line ≤ 10 min; first Starved diagnosis on day 2; first machine-harvested crop
+(a gleaner) by day 5; power by day 8; the field gantry by day 30; the Mill keystone by day 20.
+
 ---
 
-## 4. The automation redesign (Phase 1)
+## 4. The automation redesign (Phase 1, full spec)
 
 This is the most important work in the version and it comes first, in isolation, so the opening
-can be built on something that is already satisfying.
+can be built on something that is already satisfying. Revised 2026-10-09 at the owner's request
+("redo automation, add harvesting automation, make it full spec and expansive"), then revised
+again after two indie-critic spec reviews (the second: approved once its three last text fixes were in; they are; its required changes are folded
+in and marked *[critic]*). Section 3.1 is the loop it serves; 4.9 is the harvest half; 4.14 the
+night shift the loop relies on.
+
+### 4.0 Principles
+
+1. **Every stop has a visible reason**, shown once, at its cause (4.3).
+2. **Every problem has at least two fixes** (a second arm, a buffer chest, a splitter, more power,
+   a faster part, a better recipe, moving the line nearer its source, planting more).
+3. **Fixes are cheap to try and cheap to undo** (rotate in place, undo in Phase 2, full refunds).
+4. **The works runs while you're away and tells you how it went** (the posts, the night shift, the
+   night tally).
+5. **Nothing needs babysitting.** No maintenance chores, no daily refills of a buff; winding is a
+   bonus, never a requirement.
+6. **Fields are sources.** A ripe crop is an item waiting in the ground. Being limited by what the
+   field grows is a line's normal state, not a fault *[critic]*: it is shown as "Waiting for
+   harvest", never as an amber warning.
+7. **Hands stay first-class** (DECISIONS #61): the morning harvest belongs to the hands, and only
+   hands reach gold and star quality, which artisan goods now keep (4.9).
 
 ### 4.1 The machine contract
 
 Every structure that handles items declares what it does, and the game shows it everywhere.
 
-- **Data.** `StructureDef` gains `io: { in: ItemSpec[] | 'any'; out: ItemSpec[] | 'any'; time?: number; buffer: { in: number; out: number }; power?: number; fuel?: boolean }`, derived
-  automatically for machines from their station's recipes (`src/data/recipes.ts`) and declared
-  by hand for arms, belts, chests, the crate, the desk, drills, cranes, sowers. A data test
-  asserts every port-capable kind has one.
-- **State.** `e.working: boolean` becomes `e.state: MState` with exactly six values:
-  `Idle`, `Working`, `Starved` (wants input, none available), `Blocked` (output has nowhere to
-  go), `Unpowered` (no grid or satisfaction < 0.25), `NeedsFuel`. The free-text `m.status` in
-  `src/sim/systems/machines.ts:150-210` becomes a lookup from the state plus one detail string.
-  Arms get the same states: an arm with nothing behind it is Starved; one whose front is full is
-  Blocked. Belts: a lane that hasn't moved for 3 s is Blocked.
-- **Time in state.** `src/sim/systems/stats.ts` keeps, per entity, the share of the last 60 s
-  spent in each state (a ring of 60 one-second samples; cheap). This is what the diagnosis uses.
-- **Shown.** A 7 px state glyph above every non-idle, non-working machine and arm (new sprites
-  `fx:state:<state>`; amber for Starved, red for Blocked, blue for Unpowered, grey for fuel;
-  `Working` shows nothing, `Idle` a faint zz). The pulse lamps on the HUD (`src/ui/hudparts.ts`)
-  map to the same states. The tooltip on hover (`src/sim/prompts.ts`) adds one line: *"Waiting
-  for cogbeans"*, *"Crate is full"*, *"Needs 40 more power"*. The machine window
-  (`src/ui/windows/struct.ts`) leads with the contract: inputs → outputs, time, buffers, power.
+- **Data.** `StructureDef.io` = `{ in: ItemSpec[] | 'any' | 'field'; out: ItemSpec[] | 'any' | 'field'; time?: number; buffer: { in: number; out: number }; power?: number; fuel?: boolean }`,
+  derived for processing machines from their station's recipes (`src/data/recipes.ts`) and
+  declared by hand for the rest in `src/data/contract.ts`. `tests/data.test.ts` asserts every
+  port-capable kind has one.
 
-### 4.2 Arms
+| Kind | Takes | Gives | Buffer (in / out) | Runs on | Notes |
+|---|---|---|---|---|---|
+| Arm | the tile behind (any port) | the tile in front | its hand (1, Bulk 6) | spring or sparks | filter, stock limit, winding |
+| Belt / burrow | behind, sides, arms | the tile in front: a belt, or **delivers into any structure** | 4 per lane per tile | none | `Game.beltSink` |
+| Splitter | two belts | two belts | | none | alternate / prefer / filter |
+| Chest | anything | anything | its slots | none | the only buffer; fill bar on hover |
+| Shipping crate | sellable goods | the post (noon, 6pm, night) | 36 slots | none | saturation on its price tag |
+| Processing machine | its recipes' inputs | its recipes' outputs | 2 batches from arms (10 by hand) / 60 | sparks or fuel | auto picks single-input recipes; lock for the rest |
+| Study desk | bundles | research units | 5 | none | keystone stages in Phase 3 |
+| Drill | the ore vein under it | the tile in front | 20 | fuel or sparks | |
+| Tapper, fish trap, bee skep | a tree, the water, flowers | their basket | 1-5 | none | |
+| **Gleaner** (new) | ripe crops in its 3x3 (`field`) | its basket | 12 items | spring | 4.9 |
+| Harvest crane | ripe crops in 7x7 (`field`) | its hopper | 8 stacks | 25 sparks | silver cap |
+| Seed sower | seeds, fertilizer | crops planted in 7x7 (`field`) | 8 stacks | 20 sparks | tills first |
+| **Field gantry** (new) | its strip (`field`), seeds | its hopper car | 60 crops, 40 seeds | 60 sparks | 4.9 |
+| Generator | fuel (steam engine) | sparks | 20 fuel | | |
+| Depot, megaproject | their orders | | | none | |
+
+### 4.2 The six states, and time in state
+
+`e.working: boolean` stays for power demand and sound, and every structure also gets
+`e.state: MState` (`src/sim/mstate.ts`) with exactly six values, a one-line detail `e.why` and the
+time it began `e.since`. The free-text `m.status` / `e.st.status` strings are removed; every
+window, tooltip and lamp reads `stateText(e)`.
+
+| Kind | Working | Starved | Blocked | Unpowered | Needs fuel | Idle |
+|---|---|---|---|---|---|---|
+| Arm | swinging | nothing behind it, or what's behind is empty | what it holds or could take has nowhere to go (front full, front refuses it, stock limit) | powered and grid < 25% or no grid | | nothing behind *and* in front; switched off; **waiting for harvest** |
+| Processing machine | crafting | has a feeder (an arm or belt aimed at it) or a part-filled buffer, but not a full batch: "Waiting for cogbeans" | output buffer full (60) | grid < 25% or none | fuel-burner with nothing to burn | no feeder and empty; no recipe; switched off; **waiting for harvest** |
+| Belt | items moving | | the front item hasn't moved for 3 s | | | empty |
+| Splitter | as a belt, per half | | | | | |
+| Chest / crate / depot | | | no room for anything | | | otherwise |
+| Study desk | studying | a topic chosen, no bundle for it | | | | no topic |
+| Drill | drilling | | 20 waiting at a blocked front | brass drill without power | steam drill without fuel | |
+| Gleaner / crane / gantry | picking | gantry: seed bin empty | basket / hopper full | crane, gantry | | no crop ripe for picking: "Next ripe in 2 days" (with a sprout glyph); before noon with ripe crops: "Ripe: picks at noon (or pick them by hand)" |
+| Seed sower | sowing | hopper has no seeds | | yes | | nothing to sow |
+| Tapper, fish trap, bee skep | dripping, baited, buzzing | trap: no bait | basket full | | | no tree / winter / rain |
+| Generator | output > 0 | | | | steam engine without fuel | no demand; not wired |
+
+**Queued, not Blocked** *[critic, 2nd review]*. An arm, belt or chest that can't hand on its goods because its taker is Working (or because it reached a stock limit the player set) is a healthy queue in front of a busy machine: state Working, line "Queued: the jar is busy", no glyph, no lamp. Blocked is only for a stop whose taker is itself stopped or missing.
+
+**Waiting for harvest** *[critic]*. A stage that would be Starved, but whose supply traces back
+(through arms, belts and chests) to a field machine with nothing ripe, is Idle with the line
+"Waiting for harvest (next ripe in 2 days)". No glyph, no sound, no lamp. A line limited by its
+field is a healthy line; its bottleneck is shown as a number (4.8), not a warning.
+
+**Time in state.** `src/sim/systems/stats.ts` keeps, per structure:
+- the last 60 one-second samples (state, items received, items made or moved) for the live
+  readouts and the fix ping;
+- **today's and yesterday's totals** *[critic]*: seconds in each state and items in and out (12
+  numbers + 4 per structure), rolled over at 6am. The Lines tab and the night tally read these,
+  because farm-paced lines (a field picked at noon, a keg's 180 s batch) can't be judged on a
+  minute.
+
+**Rates are per day** wherever a thing makes one a minute or less, per minute above that *[critic]*: "jar 17/day", "cogbean field
+4/day", "crate 52/day", "sawmill 30/min". A **field's** rate is always nominal *[critic, 2nd review]*: plants in reach × average yield ÷ days per harvest (a field planted at once ripens at once, so yesterday's count reads 0 or 12). Hand picks inside a machine's reach count toward the field, and the tally says "your hands took 3 of the field's 4". Fields and machines share one unit, and it reads as farming, not
+Factorio. (Tooltips may add the per-minute figure for fast machines.)
+
+**Brownout** is not a seventh state: a machine on a grid between 25% and 99% is Working, slowly,
+and every surface says so (4.7).
+
+### 4.3 Showing state
+
+| Surface | What it shows |
+|---|---|
+| **Glyph**, at the root cause only *[critic]* | A 7 px mark over the structure once the state has lasted 2 s (arms 3 s; an arm's Starved 10 s): amber "waiting" (Starved), red bar (Blocked), blue bolt (Unpowered), grey flame (Needs fuel). A stage whose problem comes from its neighbour (Starved because its feeder is Starved or Unpowered; Blocked because its taker is Blocked) shows a faint dot instead, so each broken line has one glyph, at its cause. A field machine with nothing ripe shows a sprout. Working and Idle show nothing. Sprites `fx:state:<n>`, code-drawn placeholders until Phase 6. Replaces the old `fx:nopower` blink. |
+| **Hover tooltip** | one line: "Waiting for cogbeans", "Crate is full", "Running at 60%: the grid is 40 sparks short", "Waiting for harvest (next ripe tomorrow)", plus today's rate |
+| **Factory pulse** (HUD) | four lamps: Working, Starved, Blocked, Power & fuel (root causes only); click one to ring those structures |
+| **Status lamp** on each machine | the same four colours |
+| **Structure window** | leads with the contract: inputs → outputs, batch time, buffers, power; then the state line; poles get the grid switch |
+| **Sound** | one sound per new root-cause glyph (Starved: a hollow click; Blocked: a dull clunk), at most once per structure per 30 s, only within 8 tiles and on screen |
+| **Night tally** | one line naming yesterday's bottleneck with its numbers ("The jar waited for cogbeans 71% of yesterday: the field gives 4/day, the jar can use 17") |
+| **Fix ping** (new) | when a line's sink rises ≥ 25% in **nominal rate** (working share × recipe rate, over 5 minutes) after a placement or rotation near it, a small ribbon: "Line faster: pickles 9 → 17/day" *[critic]* |
+
+### 4.4 Arms
 
 The basic Clockwork Arm stays what it is (one item per swing, one tile, no power); the fix is
 purpose, visibility and feedback, not a new stat line.
 
-- **Pick/drop tiles always visible on hover**, not only in build mode (the green/gold squares).
-- **The held item is drawn mid-swing** at the right lane height (already in `renderer.ts`,
-  check it against the new arm art).
-- **Arm states** as in 4.1. An arm that is Starved for more than 10 s shows the glyph; the
-  first time this happens the lesson card "Starved" appears (section 6.4).
-- **The winding verb.** F on a spring arm (basic, reaching) gives it a 30-second overwind: 2x
-  speed, a spring-ratchet sound, the key turning in the art. It is a juice verb, not a chore:
-  arms never stop for lack of winding.
-- **The ladder stays** (Brass = fast, Reaching = 2 tiles, Sorting = filter, Bulk = handful) but
-  is re-sequenced by era (section 8): Reaching and Sorting arrive with Water power, not Steam.
-- **Numbers**: one basic arm (0.75 swings/s) keeps one jar busy; a second jar on the same bean
-  chest starves within a minute. These are the opening's "bottleneck" beat, and
-  `tests/lines.test.ts` pins them.
+- **Pick/drop squares always visible on hover**, also while holding something to place (the
+  green "takes from" and gold "drops on" squares).
+- **The held item is drawn mid-swing** at lane height.
+- **States** as in 4.2. Starved needs 10 s before its glyph (an arm between batches is normal).
+- **The winding verb** *[critic: right-click only]*. Right-click on a spring arm (or a gleaner)
+  turns its key: 30 s at 2x speed, a spring-ratchet sound, the key spinning on the base. F opens
+  its window as for every structure. It matters where an arm really is the bottleneck: one arm
+  (about 40 a minute) feeding two sawmills (30 a minute each) keeps up only while wound. It is a
+  juice verb with a real use, never a chore.
+- **The ladder stays** (Brass = 2.9x speed, Reaching = 2 tiles, Sorting = filter, Bulk = a handful)
+  and is re-sequenced by era in Phase 3 (Reaching and Sorting with Water power).
+- **Numbers**: a basic arm swings about 40 times a minute; a jar needs one bean a minute. For a jar
+  the arm is never the bottleneck; the beans are. `tests/lines.test.ts` pins it.
 
-### 4.3 Belts, buffers, splitters: clear roles
+### 4.5 Belts, buffers, splitters: clear roles
 
-- **Belt = distance and merging.** Keep `beltSink`. Add the blocked visual: a lane that stops
-  compresses and the chevrons stop scrolling.
-- **Chest = the only buffer.** The stock-limit setting on arms stays. A chest fed by an arm shows
-  a small fill bar when hovered.
-- **Splitter = division**, with the existing modes (alternate / prefer / filter).
+- **Belt = distance and merging.** A belt that ends at a structure delivers into it (`beltSink`).
+  A lane that stops compresses, and its chevrons stop scrolling (the Blocked visual).
+- **Chest = the only buffer.** The stock limit on arms stays. Hovering a chest shows a fill bar.
+  A buffer is how a line keeps working through the night shift (4.14).
+- **Splitter = division** (alternate / prefer left / prefer right / filter).
 - **Burrow belt = crossing.**
-- **The line inspector.** Hover a belt with the Inspect key (Q while not holding anything, or a
-  new I): the line lights up from its sources to its sinks, with items/min at the sink and the
-  first Starved/Blocked entity ringed. Implementation: a walk over `b.next` pointers and
-  `armTiles`, cached per topology version (`g.ents.version`).
 
-### 4.4 Power that you can see
+### 4.6 The line inspector
 
-- Under-supplied grids: machines animate slower, lamps dim, the pulse lamp turns amber, the
-  pole tooltip says *"Demand 180 / supply 120: add a generator or switch off two machines"*.
-- The Power tab (`factory.ts` `powerTab`) keeps the graph and adds the sentence.
-- A **grid switch** on poles (a toggle in the pole window) so "switch off two machines" is a
-  real option. Small: the pole's consumers get `e.off`.
+Hold **I** (Inspect) and hover any part of a line: the line lights up from its sources to its
+sinks (a brass outline on every member), each sink shows its rate per day, and the root-cause stage
+is ringed with its glyph and the diagnosis beside it (the gap and its numbers; the fixes behind
+"?", 4.8). Implementation: `src/sim/lines.ts` builds a port graph (arm pick → arm → arm drop,
+belt → next, belt end → the structure it feeds, drill → front) cached per `g.ents.version`. Field
+machines are sources and sowers sinks; no field → machine edge is drawn back, so the
+sifter → sower → field → crane cycle is cut at the field *[critic]*. The walk is a breadth-first
+search both ways, capped at 200 members.
 
-### 4.5 Bottleneck diagnosis
+### 4.7 Power you can see
 
-The Stats window gets a **Line** tab. Pick an item (or the crate): it lists the chain that makes
-it (sources → machines → sink, found by walking ports and belts), per-stage items/min, the
-share of time each stage spent Starved/Blocked, and one sentence of advice chosen from a small
-table: *"The jar waits for beans 60% of the time: add a second bean source, or a chest in
-between."* / *"The crate is full 40% of the time: the post can't keep up; ship more kinds or add
-a second crate."* / *"Two machines share one basic arm: a Brass Arm or a second arm."* The
-advice table is data (`src/data/advice.ts`), one entry per (state, kind) pair, so it grows
-without code.
+- **Brownout visuals**: machines on an under-supplied grid animate slower (frame rate × grid
+  share), the pulse lamp for power turns amber, and the tooltip says "Running at 60%: the grid is
+  40 sparks short".
+- **The pole window**: "Demand 180 / supply 120: add a generator or switch off two machines" (the
+  count is computed: the fewest biggest consumers to switch off).
+- **The Power tab** keeps the graph and adds the same sentence per grid.
+- **The grid switch**: a toggle in the pole window. Consumers inside a switched-off pole's area
+  get `e.off`: no demand, state Idle "Switched off at the pole". The switch has three positions: On, Off, and **Night shift only** *[critic suggestion]* (its machines run only during the night shift, no daily flipping). So "switch off two machines" is a
+  real option, and the mill can run only at night without a chore.
 
-### 4.6 Crops as industrial inputs
+### 4.8 Bottleneck diagnosis: the Lines tab
 
-Six intermediates with one capability each (data only, `src/data/recipes.ts` + `items.ts`):
+The Production window (P) gets a **Lines** tab. The list on the left holds every sink (crates,
+chests at the end of a line, desks, depots) and every item made yesterday or today. Picking one
+walks the line upstream (4.6) and shows the chain from sources to sink: per stage its name, its
+rate per day (yesterday and today so far), its capacity per day (what it could do flat out) and
+a bar of yesterday split by state. Under it, the **diagnosis**: one sentence that states the gap
+with its numbers *[critic: lead with the gap]*, and a **?** button that reveals the fixes (the
+first time, a lesson card shows them unasked; Phase 2).
+
+The rules, in order (shares are of yesterday, or of today once today has run 2 hours):
+
+1. **Power**: a consumer Unpowered or browned out ≥ 20% → "The sawmill ran at 50% speed: the grid
+   is 60 sparks short." Fixes: add a generator; switch off two machines at a pole.
+2. **Field-limited** *[critic]*: the first maker downstream of a field machine is "waiting for
+   harvest" ≥ 30% → "The cogbean field gives 4/day; the jar can use 17." Fixes: plant about 26
+   more cogbeans **where a picker reaches them** (a gleaner covers 8 tiles, a crane 48); feed the jar from a chest as well. (Never "add a gleaner" alone: it doesn't change what
+   the field grows.)
+3. **A feeder too slow**: an arm Working ≥ 90% that feeds machines Starved ≥ 30% → "The arm is
+   flat out and the two sawmills still wait: they can use 60/min, it moves 40." Fixes: wind it, a
+   second arm, a Brass Arm.
+4. **Starved**: the most upstream starving maker (root cause) ≥ 30% → "The jar waited for cogbeans
+   60% of yesterday: the wooden chest it draws from ran dry." Fixes depend on the source: fill the
+   chest faster; a second drill; a second upstream machine; give each machine its own source.
+5. **Blocked**: the most downstream stage Blocked ≥ 30% whose blockage isn't just a full queue in
+   front of a busy machine (a queue, 4.2) → "The crate was full 40% of yesterday: the post can't keep up." Fixes:
+   ship more kinds; a second crate; a chest before it.
+6. **Otherwise**: "Every stage keeps up. The slowest is the jar (17/day); a second jar doubles the
+   line if its beans keep up."
+
+The sentences and fixes are data (`src/data/advice.ts`), one entry per case, so the table grows
+without code. The same diagnosis feeds the inspector label, the night tally line and the
+indie-critic's "can you tell why it stopped?" check.
+
+### 4.9 The Field Works: harvest automation (new)
+
+Farming feeds the works, so the works must be able to farm without taking the hands away. The
+design rule: **a field is a source**. A ripe crop is an item waiting in the ground. Field machines
+take from fields the way arms take from chests, with the same states, and the Lines tab treats a
+field as the first stage of a line ("Cogbean field: 4/day").
+
+**The morning belongs to the hands** *[critic]*. Field machines only pick crops that have been ripe
+for 6 game hours, so a crop that ripens overnight waits until noon for the machines. Growth ticks
+at 6am, so this costs the machines no throughput; it gives the player the morning harvest (with its
+streak) every day. The Dawn Shift research (Clockwork) adds a switch in a field machine's window to
+pick from 6am.
+
+**Quality survives the works** *[critic]*. Artisan goods keep the quality of their input (the
+lowest input quality for multi-input recipes), so a gold tomato makes gold pickles and the
+quality plot pays all the way to the crate. Machines still cap what they pick (gleaner: base,
+crane and gantry: silver), so gold and star come only from hands.
+
+**The harvest streak pays.** Every fifth hand pick in a streak rolls one quality step higher.
+
+**The ladder**
+
+| Era | Piece | What it does | Reach | Runs on | Picks up to | Cost and research |
+|---|---|---|---|---|---|---|
+| 1 Spring | **Hands** | till, plant, water, harvest, the streak | the tile you face | energy | star | always |
+| 1 Spring | **Gleaner** | a spring-wound picker on a post: every 2 s it picks one crop ripe for picking in the 3x3 around it into its 12-item basket; arms take from the basket; right-click winds it (2x for 30 s); regrowing crops (cogbeans, peas, tomatoes) make it shine | 1 | spring | base quality, no XP | Gleaning (Spring, 8 sprout bundles, after Clockwork Arms); 3 planks + 2 copper gears + 1 rope |
+| 1 Spring | Tin Sprinkler | waters the 4 tiles beside it each morning | 1 | | | exists |
+| 2 Water | Compost bin → fertilizer; Seed Sifter (crop → 2 seeds + fiber) | closes the crop loop: overflow becomes seed | | | | exist |
+| 2 Water | **Harvest Crane** | picks a crop ripe for picking in the 7x7 around it every 0.7 s into an 8-stack hopper | 3 | 25 sparks | silver | exists; its research moves from tier 3 to Water (after Water Power + Irrigation) |
+| 2 Water | Brass Sprinkler | 3x3 | 1 | | | exists |
+| 3 Steam | **Seed Sower** | tills, fertilizes and plants the 7x7 around it from its hopper | 3 | 20 sparks | | exists; moves to Steam (after the crane + Seed Sifting) |
+| 3 Steam | **Field Gantry** *[critic: moved from Clockwork]* | 4.9.1 | 5 x rail | 60 sparks | silver | Field Gantry (Steam, after Seed Sowers + Assembly); gantry: 6 iron plates + 6 brass gears + 2 copper coils; rail: 1 iron bar + 1 plank each |
+| 4 Clockwork | Long rails (24 tiles), Dawn Shift, Gilded Sprinkler, Mist Tower | | | | | Clockwork research |
+
+#### 4.9.1 The field gantry (the signature machine)
+
+- **Layout** *[critic]*: two parallel rails laid along the outside edges of a strip, with exactly
+  5 tiles of soil between them (rails never take a soil row). Rails are 1-tile pieces; a run is 2 to
+  12 tiles long (24 with Long Rails). The gantry is placed across both rail ends; it is 7 wide (the
+  two rail tiles and the 5 between).
+- **Motion**: it shuttles end to end at one tile row a second. On each row it passes it waters
+  every soil tile, picks every crop ripe for picking into its hopper, and sows empty tilled soil
+  from its seed bin (and tills untilled soil under it).
+- **Unloading**: the hopper holds 60 crops. When it is full, or at the end of each pass, it
+  returns to the **unload end** (the end it was placed at) in state Working "Returning to unload";
+  arms or a belt at that end empty it like any container. If nothing empties it, it waits there
+  Blocked "Hopper full".
+- **States**: Working (moving, picking, returning); Starved "Seed bin empty" when it has tilled
+  soil to sow and no seeds; Blocked "Hopper full"; Unpowered; Idle "Next ripe in 2 days".
+- **The player walks under it** (the gantry and rails are not solid; the hopper car at the unload
+  end is).
+- **Numbers** *[critic: corrected]*: a 5 x 12 cogbean strip is 60 plants at 0.5 beans a day = 30
+  beans/day, about 1.8 jars; a 5 x 24 strip with Long Rails 60/day, about 3.5 jars. One row of 5
+  gives about 7.5 beans, so on an average day a pass of 12 rows fills about half the hopper; on a day when the whole strip ripens at once (90 beans) it fills by row 8 and goes back to unload mid-pass.
+
+**Field states.** A crop that still needs water after noon shows a blue drop (help for the hands).
+A gleaner, crane or gantry with nothing to pick shows a sprout glyph and "Next ripe in 2 days".
+
+**Hands versus machines.** Machines give quantity and run while you're away; hands give the
+morning, quality (now carried through the jar) and the streak. From Phase 3, some standing orders
+ask for a quality floor (a suggestion from the review: Rowan's first order in Phase 2 wants silver
+pickles), so a mature farm keeps a hand-tended quality plot beside its machine fields. That is the
+permanent answer to "can I still just farm?": yes, and the town pays more for it.
+
+**Numbers.** Cogbeans now ripen in 4 days (stages `[1,1,1,1]`, regrow 3) *[critic]*, so planting
+more pays off in week one. A cogbean plant gives about 1.5 beans every 3 days, 0.5 a day: a
+gleaner's 8 tiles yield about 4 a day while a jar can use 17. Fields are the natural limit of an
+early line, which is the opening's lesson ("a line is only as good as what feeds it"). A crane's
+48 tiles give about 24 a day (1.4 jars).
+
+### 4.10 Crops as industrial inputs (Phase 3, with the Mill) *[critic: moved]*
+
+Their consumers arrive in Phases 3-5, so they arrive with them; Phase 1 only adds cogbean oil's
+data for Phase 2.
 
 | Crop(s) | Intermediate | Made in | Used for |
 |---|---|---|---|
-| flax, cotton, fiber | **Canvas** | loom | belts (belt_1 recipe: wood + canvas), Roxy's envelope repairs (an order) |
-| sunflower, rapeseed (new) | **Oil** | mill | **Lubricant** (oil + sap): a machine buff item, +20% speed for a day when loaded (arms can feed it) |
-| potato, yam, corn | **Starch paste** | jar | blueprint ghosts build from paste + the parts (bumblebots), sign labels |
+| flax, cotton, fiber | **Canvas** | loom | Canvas belts: 1 canvas + 1 plank + 1 gear = 6 belts (twice the fiber recipe); Roxy's envelope repairs (an order) |
+| sunflower, rapeseed (new) | **Oil** (exists) | mill | **Lubricant** (oil + sap): a one-time fitting that makes a machine 10% faster for good (no daily chore) |
+| potato, yam, corn | **Starch paste** | jar | blueprint ghosts build from paste + parts (Phase 5), sign labels |
 | beet, mooncap, starpetal | **Pigment** | jar | paint: decor colours, the tram's livery, Hazel's orders |
-| sweetcane, barley | **Spirit** | keg | the steam engine's clean fuel (2x a coal), Rowan's orders |
-| cogbean | **Cogbean oil** | jar | the opening's second product (teaches "one input, two recipes") |
+| sweetcane, barley | **Spirit** | keg | clean steam fuel (twice a coal); Rowan's orders |
+| cogbean | **Cogbean oil** | jar (a locked recipe Rowan teaches in B7, Phase 2) | the opening's second product ("one input, two recipes") |
+| wheat, barley, corn | **Grain** + **straw** | **Thresher** (Phase 3, 40 sparks, 2 s a sheaf) | grain to the mill (flour, the Mill keystone); straw to the silo as hay or to fiber |
 
-Crops keep their food and sale uses; the point is that farming is now *required* by the works
-and the works is required by the town.
-
-### 4.7 "Machines feel alive" (lands in Phase 6, planned here)
+### 4.11 "Machines feel alive" (lands in Phase 6, planned here)
 
 Every machine gets an idle frame and a working loop; arms show the spring key turning while
 idle (the "?" at rest problem becomes the design: at rest the arm is a wound spring, not a
 question mark); the jar bubbles; the furnace glows and puffs; belts rattle (a subtle 2-frame
-roller animation); state changes make one sound each (Starved: a hollow click, once).
+roller animation); the gleaner's arm sweeps; the gantry's wheels turn on the rail.
 
-### 4.8 Tests and numbers
+### 4.12 Reference numbers
 
-- `tests/lines.test.ts` builds four canonical lines headless and asserts rates (±10%) and that
-  the diagnosis names the right stage: **L1** chest → arm → jar → arm → crate; **L2** two jars
-  on one chest (the second starves); **L3** a splitter feeding two jars (both run); **L4** a
-  water wheel + poles + mill with 2x the demand (brownout: both machines at half speed, the
-  advice says "add a generator").
-- `scripts/pace.ts` bots build L1 then L2 then L3 so the 28-day economy numbers include the new
-  behaviour; the 8-seed averages (Story 10.7k, Rush 13.0k today) must not fall more than 15%.
-- `e2e/perf.mjs` still runs 1,300 belts / 260 machines under 1 ms tick with the state tracking on.
+| Thing | Rate |
+|---|---|
+| A works day | 6am to 6am: 14 real minutes awake (6am-2am) + the 4-hour night shift (2.8 sim minutes) = 1,008 sim seconds |
+| Woven / Brass / Gilded belt | 1.5 / 3 / 4.5 tiles a second, 4 items per lane per tile |
+| Clockwork arm | about 40 a minute (80 wound); Brass about 115 |
+| Preserves jar | one batch a minute: about 17 a day |
+| Sawmill | a log every 2 s: 30 a minute |
+| Gleaner | 1 pick per 2 s while something is ripe for picking |
+| Harvest crane | 1 pick per 0.7 s while something is ripe for picking |
+| Field gantry | 1 tile row a second along its rail |
+| Cogbean plant | 0.5 beans a day after its first 4 days |
+
+### 4.13 Tests and numbers
+
+- `tests/lines.test.ts` builds five canonical lines headless and asserts rates (±10%) and that
+  the diagnosis names the right stage: **L1** chest → arm → jar → arm → crate (17/day, "every
+  stage keeps up"); **L2** two jars on one chest fed one bean a minute (the second jar starves
+  within a minute; the diagnosis names the shared chest); **L3** a splitter feeding two jars (both
+  run; the full belts in front of busy jars are *not* reported as blocked); L1 and L3 show **no glyph anywhere** (queues are Working); **L4** a water wheel +
+  poles + two sawmills (2x the demand: both at half speed, the diagnosis says the grid is 60 sparks
+  short; switching one off at its pole brings the other to full speed); **L5** a gleaner on a
+  cogbean field → arm → jar (the jar is "waiting for harvest", no Starved glyph anywhere, the
+  diagnosis says "the field gives 4/day; the jar can use 17").
+- A night-shift test: a chest-fed jar line makes about 2.8 more pickles a day than without it (the night shift runs before the `dayEnd` hooks, so bots and posts see its goods),
+  and the "skip" overnight setting makes the same as "full" within ±5% (coarse against fine steps). Skip mode's bedtime-to-2am stretch counts toward the perf budget too (bed at 7pm adds about 4,400 coarse steps).
+- `scripts/pace.ts` bots build L1, then a gleaner field, then L3, so the 28-day economy numbers
+  include the new behaviour; the 8-seed averages (Story 10.7k, Rush 13.0k today) must not fall more
+  than 15%.
+- `e2e/perf.mjs` still runs 1,300 belts / 260 machines under 1 ms tick with the state tracking on,
+  and that factory's night shift in 3 s or less.
+- The `indie-critic` (short, automation-only review) finds no "I can't tell why it stopped".
+
+### 4.14 The night shift *[critic]*
+
+Today `endDay` jumps from 2am to 6am with nothing simulated, and the "skip" overnight setting
+simulates nothing at all, though the almanac and the loop promise a factory that runs all night.
+So at 2am, before the day's summary, the works runs a **4-hour night shift**: only the works
+(power, belts, arms, machines, field machines, desks, bots; not villagers, crops or the player),
+in coarse steps of 4 ticks (2,520 steps), with the clock held at 2am and daylight at 0. The "skip"
+setting runs the bedtime-to-2am stretch the same way first, so both settings make the same goods.
+Field machines don't pick at night (nothing ripens until 6am). The night tally reports what the
+night shift made. This turns the evening into an engineering choice: stock a buffer chest, fuel
+the steam engine, switch the mill on, and the night pays for it.
 
 ---
 
@@ -385,7 +654,7 @@ buffer**, **Saturation**, **Consignment**, **Research stages**, **The night post
 Keep everything. Re-derive the ~15 crops still on Stardew's numbers (the 1.1 deferred list):
 `price = round((seedPrice + growDays * 6) * tagMult)` with `tagMult` 1.0 vegetable / 1.15
 fruit / 0.8 grain-fiber / 1.6 rare, then hand-adjust the five crops the pacing bot leans on.
-Add **rapeseed** (summer, oil). The six intermediates of 4.6. Giant crops, quality, cranes,
+Add **rapeseed** (summer, oil). The six intermediates of 4.10. Giant crops, quality, cranes,
 sowers unchanged.
 
 ### 7.2 The Deepworks (was the Old Mine)
@@ -491,11 +760,13 @@ in Phase 6.
 
 | Era | Capabilities (research columns) | Keystone | Target day (Story, bot) |
 |---|---|---|---|
-| **1 Spring** | Conveyance, Clockwork Arms, Preserving, Soil, Woodcraft, Metalwork, Brewing, Apiary, Tapping, Trapcraft | Keeper's Line | 1-5 |
-| **2 Water** | Water Power, Logistics (splitter, burrow), Reaching Arms, Sorting Arms, Milling, Sawmilling, Dairy, Weaving, Masonry, Glass, Brass, Storage, Irrigation | The Mill | 6-20 |
-| **3 Steam** | Steam Power, Wind, Brass Arms, Assembly, Drills, Crushing, Bottling, Hearth Cooking, Steam Loom, Spark Coils, Towers, Batteries | Waterworks, Lamplighting | 20-45 |
-| **4 Clockwork** | Clockwork Assembly, Bulk Arms, Harvest Cranes, Seed Sowers, Blast Furnace, Steam Kitchen, Gilded Sprinklers, Sun Lenses, Brass Drills, Brass Belts | The Tram | 45-80 |
+| **1 Spring** | Conveyance, Clockwork Arms, Preserving, Soil, **Gleaning**, Woodcraft, Metalwork, Brewing, Apiary, Tapping, Trapcraft | Keeper's Line | 1-5 |
+| **2 Water** | Water Power, Logistics (splitter, burrow), Reaching Arms, Sorting Arms, Milling, Sawmilling, **Harvest Cranes**, Seed Sifting, Dairy, Weaving, Masonry, Glass, Brass, Storage, Irrigation | The Mill | 6-20 |
+| **3 Steam** | Steam Power, Wind, Brass Arms, Assembly, Drills, Crushing, **Seed Sowers**, **Field Gantry**, **Threshing**, Bottling, Hearth Cooking, Steam Loom, Spark Coils, Towers, Batteries | Waterworks, Lamplighting | 20-45 |
+| **4 Clockwork** | Clockwork Assembly, Bulk Arms, **Long Rails**, **Dawn Shift**, Blast Furnace, Steam Kitchen, Gilded Sprinklers, Sun Lenses, Brass Drills, Brass Belts | The Tram | 45-80 |
 | **5 Starlight** | Bumblebots, Gilded Belts, Mist Towers, Starmetal, Grand Works | The Clock, the Orrery | 80+ |
+
+The Field Works ladder (4.9) runs through the eras: gleaners in Spring, cranes in Water, sowers, the field gantry and the thresher in Steam, long rails and the Dawn Shift in Clockwork. Phase 1 builds the machines and moves the crane's and sower's research earlier in today's tree; Phase 3 places them in the era columns.
 
 Each era's keystone is the "why" of its research; each era ends with a **Plan the works** card
 (three directions). Era rewards replace the 12 flat-buff nodes. The research tree's `pos`
@@ -522,8 +793,9 @@ moving part*, every machine has idle and working frames, every machine's output 
 | Town works props (mill wheel, pump house, fountain, lamps lit, tram + rails, water tower, gantry, pipes) | **New** | 50 |
 | Re-roled villagers (6 outfits + 6 portrait sets) | **Transform** | 50 |
 | Tinker's Yard wrecked machines, the Harvest Haul stalls, the Sprocket Fair test bed | **New** | 30 |
+| Field Works machines in their final style (gleaner, thresher, gantry, rail, hopper car: idle + working loops) | **Transform** (Phase 1 drafts get frames) | 30 |
 | Tock (stretch) | **New** | 20 |
-| **Total** | | **~450** (one month's budget, 150 in reserve) |
+| **Total** | | **~480** (one month's budget, about 120 in reserve) |
 
 The procedural generators (`src/render/art/`, ~4,000 lines in 12 files) are deleted at the end of Phase 6;
 `?art=old` goes with them; `node e2e/coverage.mjs` must still read 100%.
@@ -573,17 +845,28 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
 - Done when: the bug table's checks pass; the release is up; the seam audit exists and its
   offender list is in `e2e/out/seams.md`.
 
-### Phase 1 — The automation core (2 sessions)
-- 4.1 contract + states + time-in-state; 4.2 arms (hover squares, the winding verb); 4.3 the
-  blocked visual and the line inspector; 4.4 power feedback and the grid switch; 4.5 the Line
-  tab and `src/data/advice.ts`; 4.6 the six intermediates.
-- `tests/lines.test.ts` (L1-L4); `scripts/pace.ts` builds L1-L3; `e2e/perf.mjs` within budget.
-- State glyphs use placeholder code-drawn marks until Phase 6 (the renderer hooks are the
-  deliverable, the art is not).
-- Done when: the four lines diagnose correctly in tests and on screen; an 8-seed pace run is
-  within 15% of 1.1's numbers; `indie-critic` (short, automation-only review) finds no
-  "I can't tell why it stopped".
-
+### Phase 1 — The automation core and the Field Works (2-3 sessions; the owner asked for it in one)
+- **1a, the core** (4.0-4.8, 4.14): the contract (`src/data/contract.ts`), the six states,
+  "waiting for harvest", time in state (60 s rings plus today's and yesterday's totals), per-day
+  rates, root-cause glyphs (placeholder marks), the hover line, four pulse lamps, the structure
+  window's contract header, state sounds, the fix ping; arms (hover squares, the winding verb on
+  right-click); the Blocked belt visual and the chest fill bar; the line inspector (I); power
+  feedback and the grid switch; the Lines tab with `src/data/advice.ts` (the gap, fixes behind ?);
+  the night tally line; **the night shift**.
+- **1b, the Field Works** (4.9): the gleaner (research Gleaning, Spring), the morning-belongs-to-
+  the-hands rule, quality carried through artisan goods, the streak's quality step, field states
+  (the dry-crop drop, the sprout and "next ripe in N days"), the crane and sower re-sequenced
+  with full states, cogbeans ripening in 4 days, cogbean oil's data (for Phase 2).
+- **1c, the field gantry** (4.9.1): rails, the gantry and its hopper car, the shuttle sim, its
+  research (Steam), rendering with code-drawn parts until its art lands.
+- Art (allowed now, the owner's budget): gleaner, gantry + rail + hopper car; about 25 generations
+  with the art-director.
+- `tests/lines.test.ts` (L1-L5) and the night-shift test; `scripts/pace.ts` builds L1, a gleaner
+  field and L3; `e2e/perf.mjs` within budget (including the night shift).
+- Done when: the five lines diagnose correctly in tests and on screen; an 8-seed pace run is
+  within 15% of 1.1's numbers; the `indie-critic` approves the loop (3.1) and the spec (section 4)
+  before the build, and its short automation-only review of the build finds no "I can't tell why
+  it stopped".
 ### Phase 2 — The Keeper's Line (2-3 sessions)
 - Section 6 in full: the eight beats, the Now strip, the Notebook, lesson cards, undo, the
   Professor's visit scene, Rowan's first order (a minimal Orders board: Today + one Standing
@@ -598,8 +881,9 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
 ### Phase 3 — Orders, research stages, the Mill (2 sessions)
 - 7.4 the Orders board (unifying requests, contracts, projects; consignment; per-business
   reputation); 7.3 research stages, era columns, era rewards, the 12 nodes pruned; 7.1 crop
-  numbers and rapeseed; the Mill keystone end to end (project → flag → town change → Rowan's
-  bread); research window colours (1.1 leftover).
+  numbers and rapeseed; **4.10 the crop intermediates and the thresher** (moved here from Phase 1 by
+  the critic's review: their consumers arrive now); the Mill keystone end to end (project → flag →
+  town change → Rowan's bread); research window colours (1.1 leftover).
 - Save migration v4: contracts/requests/projects state → orders; research `done` unchanged;
   pruned node ids map to era rewards.
 - Done when: a bot run reaches the Mill by day 20 on 6 of 8 seeds; `data.test.ts` validates
@@ -678,12 +962,12 @@ Phase 0:
 > GitHub release, then create the `works` branch for everything after.
 
 Phase 1:
-> Read ROADMAP.md section 4. On branch `works`: the machine contract and the six states,
-> time-in-state in stats, state glyphs (placeholder marks), arm hover squares and the winding
-> verb, the blocked-belt visual and the line inspector, power feedback and the grid switch,
-> the Line tab with src/data/advice.ts, the six crop intermediates. Write tests/lines.test.ts
-> (L1-L4) first and make it pass. Update scripts/pace.ts. Run the checks and a short
-> indie-critic review of the automation only.
+> Read ROADMAP.md sections 3.1 and 4. On branch `works`: 1a the automation core (contract, six
+> states, time in state, glyphs, hover line, pulse lamps, winding, Blocked belts, the line
+> inspector, power feedback and the grid switch, the Lines tab with src/data/advice.ts, the fix
+> ping, the night shift); 1b the Field Works (gleaner, the morning rule, quality through artisan
+> goods, field states, crane/sower re-sequenced); 1c the field gantry. Write tests/lines.test.ts (L1-L5) first and make it pass.
+> Update scripts/pace.ts. Run the checks and a short indie-critic review of the automation.
 
 Phase 2:
 > Read ROADMAP.md sections 5 and 6. On `works`: replace both tutorial chains with the Keeper's
@@ -738,4 +1022,8 @@ to study, villagers who are specialists in things you cannot do. Not a game. Tha
 - **Starved / Blocked / Unpowered / Needs fuel / Idle / Working**: the only six machine states.
 - **Consignment**: a crate tag that routes the post to a customer.
 - **Trust**: the UI name for the hearts counter.
+- **Field Works**: the harvest-automation ladder (hands, gleaner, crane, sower, thresher, gantry).
+- **Gleaner**: the Spring-era spring-wound crop picker on a post (3x3).
+- **Field gantry**: the Clockwork-era rail-riding gantry that waters, harvests and resows a strip.
+- **Fix ping**: the ribbon that says a line got faster after a change.
 - **The Deepworks**: the mine. **The Works**: everything the player builds, and this version.

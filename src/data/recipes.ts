@@ -134,6 +134,10 @@ hand('freight_depot', 1, [['plank', 60], ['copper_bar', 10], ['rope', 5]], 'r_ar
 hand('kitchen', 1, [['oven', 1], ['iron_plate', 6], ['spark_coil', 2], ['copper_coil', 4]], 'r_kitchen', 6);
 hand('harvester', 1, [['iron_plate', 4], ['brass_gear', 4], ['copper_coil', 2], ['spring', 1]], 'r_harvester', 5);
 hand('planter', 1, [['iron_plate', 4], ['brass_gear', 4], ['copper_coil', 2], ['plank', 2]], 'r_planter', 5);
+// the Field Works (ROADMAP.md 4.9)
+hand('gleaner', 1, [['plank', 3], ['copper_gear', 2], ['rope', 1]], 'r_gleaning');
+hand('rail', 2, [['iron_bar', 1], ['plank', 1]], 'r_gantry');
+hand('field_gantry', 1, [['iron_plate', 6], ['brass_gear', 6], ['copper_coil', 2]], 'r_gantry', 5);
 hand('drill_steam', 1, [['iron_plate', 5], ['copper_gear', 6], ['brick', 10]], 'r_drills', 5);
 hand('drill_brass', 1, [['drill_steam', 1], ['brass_gear', 4], ['spark_coil', 2], ['copper_coil', 4]], 'r_brass_drill', 6);
 hand('construction_site', 1, [['beam', 50], ['brick', 50], ['iron_plate', 20]], 'r_grandworks', 10);
@@ -173,6 +177,7 @@ rec('keg', [s('#honey', 1)], [s('mead', 1)], 120, undefined, 'keg:mead');
 // ---------------- Preserves jar ----------------
 for (const [id] of FRUIT_LIST) rec('jar', [s(id, 1)], [s(`jam_${id}`, 1)], 60, undefined, `jar:jam_${id}`);
 for (const [id] of VEG_LIST) rec('jar', [s(id, 1)], [s(`pickles_${id}`, 1)], 60, undefined, `jar:pickles_${id}`);
+rec('jar', [s('cogbean', 2)], [s('cogbean_oil', 1)], 90, 'flag:recipe_cogbean_oil', 'jar:cogbean_oil');
 rec('jar', [s('#fish', 3)], [s('caviar', 1)], 90, undefined, 'jar:caviar');
 rec('jar', [s('roe', 5)], [s('caviar', 1)], 90, undefined, 'jar:caviar_roe');
 

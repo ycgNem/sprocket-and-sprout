@@ -32,6 +32,16 @@ const sim = await page.evaluate(() => {
   return { msPerTick: (t1 - t0) / 600, items };
 });
 console.log('sim', sim);
+// the night shift (ROADMAP.md 4.14): 4 game hours of the works in coarse steps; budget 3 s
+const night = await page.evaluate(async () => {
+  const g = window.__game;
+  const { NIGHT_SECS } = await import('/src/sim/Game.ts');
+  const t0 = performance.now();
+  g.runWorks(NIGHT_SECS);
+  return { nightShiftMs: Math.round(performance.now() - t0) };
+});
+console.log('night', night, night.nightShiftMs <= 3000 ? 'within the 3 s budget' : 'OVER the 3 s budget');
+if (night.nightShiftMs > 3000 || sim.msPerTick > 1) process.exitCode = 1;
 // measure frames for 5 seconds with the camera over the factory
 await page.evaluate(() => { const g = window.__game; g.player.x = 58; g.player.y = 66; window.__app.renderer.cam.targetZoom = 2; });
 await page.waitForTimeout(1500);

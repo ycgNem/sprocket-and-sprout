@@ -10,7 +10,7 @@ import { NPC_BY_ID } from '../data/npcs';
 import { ICON } from '../ui/font';
 import { ITEM_BY_ID } from '../data/items';
 import type { NPCLook } from '../data/types';
-import type { Game, GameEvent } from '../sim/Game';
+import { SEC_PER_MIN, type Game, type GameEvent } from '../sim/Game';
 import { DX, DY, Dir, Ent } from '../sim/ents';
 import { key, kDef, kId, itemName } from '../sim/inventory';
 import { canPlace, deconstruct, place, rotateStruct, structFootprint } from '../sim/build';
@@ -30,6 +30,10 @@ import { drawAchBanner, AchBanner } from '../ui/windows/achievements';
 import { recordAch } from './profile';
 import { OPENING } from '../sim/systems/modes';
 import { O, T } from '../sim/world/tilemap';
+import { MState } from '../sim/mstate';
+import { isSpringArm, isWindable, windArm } from '../sim/systems/arms';
+import { structRateLine, structStateLine } from '../ui/statelines';
+import { WorksView } from './worksview';
 import { PULSE_COL, machineState, pulseEnts } from '../ui/pulse';
 import { checkTips } from './tips';
 import { drawFx, Juice, ladderPitch, RIBBON_Y, type Pt } from '../render/juice';
@@ -74,7 +78,9 @@ export class PlayScreen implements Screen {
   /** the mouse is on a tile just out of tool reach (red outline, no action) */
   outOfReach = false;
   /** factory pulse: highlight machines in one state for a few seconds */
-  pulseFocus: { kind: 'ok' | 'starved' | 'blocked'; t: number } | null = null;
+  pulseFocus: { kind: 'ok' | 'starved' | 'blocked' | 'power'; t: number } | null = null;
+  /** the works seen from here: inspector, state sounds, fix ping, chest fill bars */
+  works = new WorksView();
   private lastWhere = '';
   tipT = 0;
   /** money last frame: a rise while you play becomes a coin shower into the odometer */
@@ -115,6 +121,7 @@ export class PlayScreen implements Screen {
       const e = g.player.where === 'world' ? g.ents.at(t.x, t.y) : null;
       if (e) {
         rotateStruct(g, e);
+        this.works.changed(g, t.x, t.y);
         // easter egg: spin one structure 20 times in quick succession
         const now = this.playtime;
         if (this.spin.id !== e.id || now - this.spin.t > 10) this.spin = { id: e.id, n: 0, t: now };
@@ -242,6 +249,9 @@ export class PlayScreen implements Screen {
       if (app.settings.overnight === 'full') {
         if (!app.loop.fastForward) app.loop.fastForward = () => g.sleeping;
       } else {
+        // skipping the night still runs the works from bedtime to 2am (the night shift follows),
+        // so both overnight settings make the same goods
+        g.runWorks(Math.max(0, 1560 - g.time.min) * SEC_PER_MIN);
         g.time.min = 1560;
         g.endDay(false);
       }
@@ -307,6 +317,7 @@ export class PlayScreen implements Screen {
 
     // ---- events ----
     this.processEvents(g.events);
+    this.works.update(this, dt);
     if (!this.win && g.sys.mode?.showResult) this.openWindow('rush');
     g.events.length = 0;
 
@@ -315,6 +326,7 @@ export class PlayScreen implements Screen {
     // a modal window owns the screen: the HUD would only peek out around its edges
     if (!this.modalOpen) drawHud(ui, this, dt);
     this.drawPrompt(ui, dt);
+    if (!this.modalOpen) this.works.labels(this, ui, this.hoverEnt());
     this.drawPostTimer(ui);
     this.drawCompass(ui);
     this.worldHover(ui);
@@ -474,7 +486,8 @@ export class PlayScreen implements Screen {
 
   /** tooltips for things under the mouse in the world: villagers, animals, structures */
   private worldHover(ui: any) {
-    if (this.win || ui.overUI || this.g.sleeping) return;
+    // while Inspect is held, the line inspector's labels take the hover's place
+    if (this.win || ui.overUI || this.g.sleeping || this.app.input.isDown('inspect')) return;
     const g = this.g;
     const t = this.mouseTile();
     const pt = petAt(g, t.fx, t.fy + 0.3);
@@ -512,13 +525,19 @@ export class PlayScreen implements Screen {
     const e = g.ents.rootAt(t.x, t.y);
     if (e && !e.ghost) {
       const lines: { text: string; color?: number }[] = [{ text: e.def.name + (e.ghost ? ' (ghost)' : ''), color: C.amber }];
-      if (e.mach) lines.push({ text: e.mach.status + (e.mach.recipe && e.mach.crafting ? ': ' + (ITEM_BY_ID.get(e.mach.recipe.out[0].item)?.name ?? '') : ''), color: e.mach.status === 'Working' ? C.lime : C.pebble });
-      if (e.st.status) lines.push({ text: e.st.status, color: C.pebble });
-      if (e.def.powerUse && !e.net) lines.push({ text: 'Not connected to power', color: C.rose });
+      // the machine contract's one line: what it's doing, or exactly what it waits for
+      const sl = structStateLine(g, e);
+      if (sl) lines.push(sl);
+      const rt = structRateLine(g, e);
+      if (rt) lines.push({ text: rt, color: C.pebble });
       if (e.gen) lines.push({ text: 'Output ' + Math.round(e.gen.out) + ' / ' + Math.round(e.gen.cap) + ' sparks', color: C.aqua });
-      if (e.def.kind === 'belt' || e.def.kind === 'underground' || e.def.kind === 'splitter') return;
-      lines.push({ text: 'F or right-click to open, R to rotate, pickaxe to remove', color: C.pebble });
-      ui.tip(lines.slice(0, 5));
+      if (e.def.kind === 'belt' || e.def.kind === 'underground' || e.def.kind === 'splitter') {
+        if (e.state === MState.Blocked) ui.tip(lines.slice(0, 3));
+        return;
+      }
+      const ik = keyLabel(this.app.input.binds.inspect?.[0] ?? 'KeyI');
+      lines.push({ text: isWindable(e) ? `Right-click: wind it (2x for 30s)  F: open  ${ik}: inspect` : `F or right-click to open, hold ${ik} to inspect the line`, color: C.pebble });
+      ui.tip(lines.slice(0, 6));
     }
   }
 
@@ -747,6 +766,7 @@ export class PlayScreen implements Screen {
           if (!canPlace(g, placeable, L.x, L.y, L.rot).ok) continue;
           p.inv.remove(st.k, 1);
           place(g, placeable, L.x, L.y, L.rot);
+        this.works.changed(g, L.x, L.y);
           placed++;
           if (def.kind === 'belt') this.rot = L.rot;
         }
@@ -819,7 +839,10 @@ export class PlayScreen implements Screen {
     if (input.mouse.pressed[2]) {
       let ix = t.x, iy = t.y;
       if (!this.reachOk(ix, iy, 2.6)) [ix, iy] = facingTile(g);
-      if (!interact(g, ix, iy) && d?.edible) eatHeld(g);
+      // right-click on a spring arm or a gleaner turns its key (the winding verb); F opens its window
+      const we = p.where === 'world' ? g.ents.rootAt(ix, iy) : null;
+      if (we && !we.ghost && isWindable(we)) windArm(g, we);
+      else if (!interact(g, ix, iy) && d?.edible) eatHeld(g);
     }
   }
 
@@ -851,6 +874,11 @@ export class PlayScreen implements Screen {
     const ctx = r.ctx;
     const grid = this.app.settings.showGrid;
     r.overlays.push(() => this.guideOverlays());
+    r.overlays.push(() => {
+      const he = this.hoverEnt();
+      this.works.fillBar(ctx, he);
+      this.works.overlay(this, ctx, he);
+    });
     r.overlays.push(() => {
       const hs = g.player.inv.slots[g.player.sel];
       const hf = hs && g.player.where === 'house' ? FURN_BY_ID.get(kDef(hs.k).furniture ?? '') : null;
@@ -895,6 +923,9 @@ export class PlayScreen implements Screen {
           this.drawGhostStruct(placeable, L.x, L.y, L.rot, chk.ok && inReach);
         }
         this.drawPlacementHints(placeable, t.x, t.y);
+        // an arm's take/drop squares show on hover while placing too (ROADMAP.md 4.4)
+        const he = g.ents.rootAt(t.x, t.y);
+        if (he && !he.ghost && (he.def.kind === 'arm' || he.def.kind === 'drill')) this.drawArmHint(he);
         return;
       }
       // tool target highlight
@@ -1143,6 +1174,14 @@ export class PlayScreen implements Screen {
     ctx.fillRect((e.x - s) * TILE, (e.y - s) * TILE, (e.w + s * 2) * TILE, (e.h + s * 2) * TILE);
   }
 
+  /** the structure under the mouse in the world (null indoors, in windows or over UI) */
+  hoverEnt(): Ent | null {
+    if (this.g.player.where !== 'world' || (this.win && WINDOWS[this.win.id]?.modal !== false)) return null;
+    const t = this.mouseTile();
+    const e = this.g.ents.rootAt(t.x, t.y);
+    return e && !e.ghost ? e : null;
+  }
+
   /** world tile coordinates -> UI px */
   toUI(tx: number, ty: number): Pt {
     const s = this.app.renderer.tileToScreen(tx, ty);
@@ -1285,6 +1324,8 @@ export class PlayScreen implements Screen {
               break;
             case 'hit': P.burst(x, y - 8, n, [C.cream, C.rose], { speed: 70, up: 20, life: 0.3 }); J.fx('fx:star', x, y - 8, { fps: 18 }); break;
             case 'scroll': J.fx('fx:scroll', x, y, { fps: 9, life: 1.4 }); break;
+            // the winding verb: a brass ring and a few sparks off the key
+            case 'wind': J.ring(x, y - 4, C.brass, 12, 0.35); P.burst(x, y - 4, 4, [C.brass, C.butter], { speed: 30, up: 25, life: 0.35, size: 1 }); break;
             case 'magic': P.burst(x, y - 8, n, [C.lavender, C.aqua, C.cream], { speed: 40, up: 30, g: -20, life: 1 }); break;
             case 'treefall': if (e.s) r.ambient.treeFall(e.s, e.x, e.y, e.dir ?? 1); break;
             default: P.burst(x, y, n, [C.cream], {});

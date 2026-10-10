@@ -195,3 +195,26 @@ recommendations are the decisions.
     breaks by tool (remove mode or the window's new Pick up button take it with its contents).
     Weeds and twigs are walkable; shaking is capped (trees and struck structures 2 px, the camera
     3 px, both off with the Screen shake setting).
+63. **Ground transitions are painted where the art has none (bug 3, the farming glitch).** Where two
+    terrains met without a Wang set (flagstone and water, tilled soil and a path, three terrains at
+    one corner) the dual grid dropped one class and left a square notch. `src/render/blend.ts`
+    paints those vertices: each class over the ones below it through a smooth, wobbly mask with a
+    dark rim (foam on water). The tilled-soil sets, whose tiles don't meet (the seam audit's worst),
+    are painted the same way. Art sets still win everywhere else.
+64. **The machine contract: six states, one reason, shown once (1.2 Phase 1).** Every structure is
+    Idle, Working, Starved, Blocked, Unpowered or Needs fuel, with one line of why
+    (`src/sim/mstate.ts`). Two refinements from the critic's spec review: a full queue in front of a
+    busy machine is Working ("Queued"), and a stage whose supply traces back to a field with nothing
+    ripe is Idle "waiting for harvest". Glyphs go on the root cause only (downstream symptoms get a
+    faint dot), so a healthy or field-limited line shows nothing. Rates are per day (per minute
+    above one a minute); the diagnosis states the gap in numbers and keeps the fixes behind "?".
+65. **The night shift.** At 2am, before the tally, the works runs the 4 hours to 6am (works-only, in
+    4-tick steps, ~1.3 s on the 1,300-belt perf scene). The "skip" overnight setting runs the
+    bedtime-to-2am stretch the same way, so both settings make the same goods. The evening becomes
+    an engineering choice (buffers, fuel, the pole's "Night shift only" position), not a chore.
+66. **The Field Works (harvest automation) keep the hands first-class.** Gleaner (Spring, spring-wound,
+    3x3, base quality), crane (moved to Water), sower, field gantry (Steam, rides two rails over a
+    5-wide strip, waters/picks/resows). Machines pick a crop that ripened today only from noon (the
+    morning harvest is the hands'; the Dawn Shift research adds a switch), artisan goods keep their
+    input's lowest quality, and every fifth pick of a hand streak rolls one quality step higher.
+67. **Cogbeans ripen in 4 days** (was 8) so "plant more" pays off in the first week; regrow stays 3.

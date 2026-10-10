@@ -18,6 +18,8 @@ export const DAY_START = 360; // 6:00
 export const DAY_END = 1560; // 2:00 next day
 export const DAYS_PER_SEASON = 28;
 export const DT = 1 / 60;
+/** the night shift: 2am to 6am, 4 game hours of sim time */
+export const NIGHT_SECS = 240 * SEC_PER_MIN;
 
 export interface TimeState {
   min: number;
@@ -37,6 +39,8 @@ export interface CropState {
   giant: number;
   /** growth fraction carried for speed fertilizer */
   frac: number;
+  /** the day it last ripened: field machines leave it to the hands until noon that day (not saved) */
+  ripeDay?: number;
 }
 
 export interface Soil {
@@ -123,6 +127,10 @@ export interface DaySummary {
   best?: number;
   /** titles of the quests completed today */
   quests?: string[];
+  /** machine batches the night shift finished (ROADMAP.md 4.14) */
+  nightBatches?: number;
+  /** yesterday's worst bottleneck, stated with its numbers (null when every line kept up) */
+  bottleneck?: string | null;
 }
 
 export interface Mods {
@@ -160,6 +168,8 @@ export type System = {
   dayEnd?: (g: Game, s: DaySummary) => void;
   /** ticks with real time even while the world is slowed (the player, pickups, minigames, the mine) */
   realtime?: boolean;
+  /** part of the works: also ticks during the night shift (field machines, desks, bots) */
+  works?: boolean;
   /** one-time setup of a brand-new game (not called when loading) */
   init?: (g: Game) => void;
   save?: (g: Game) => any;
@@ -349,7 +359,7 @@ export class Game {
     this.advanceClock(dt);
     if (sdt > 0) {
       if (this.ents.powerDirty || this.tickN % 2 === 0) updatePower(this, sdt * (this.ents.powerDirty ? 1 : 2));
-      updateBelts(this.ents, sdt, this.beltSink);
+      updateBelts(this.ents, sdt, this.beltSink, this.simTime);
       updateArms(this, sdt);
       updateMachines(this, sdt);
     }
@@ -388,9 +398,44 @@ export class Game {
     }
   }
 
+  /** true while the works runs unattended (the night shift); systems can skip what needs a waking world */
+  nightShift = false;
+
+  /**
+   * Run only the works (power, belts, arms, machines, and systems marked `works`) for `seconds`
+   * of sim time in coarse steps of `step` ticks: the night shift, and the "skip" overnight
+   * setting's bedtime-to-2am stretch (ROADMAP.md 4.14). The clock doesn't move.
+   */
+  runWorks(seconds: number, step = 4) {
+    const sdt = DT * step;
+    const n = Math.round(seconds / sdt);
+    this.nightShift = true;
+    // poles set to 'night shift only' switch their machines on for it
+    this.ents.powerDirty = true;
+    try {
+      for (let i = 0; i < n; i++) {
+        this.tickN++;
+        this.simTime += sdt;
+        updatePower(this, sdt);
+        updateBelts(this.ents, sdt, this.beltSink, this.simTime);
+        updateArms(this, sdt);
+        updateMachines(this, sdt);
+        for (const s of SYSTEMS) if (s.works && s.tick) s.tick(this, sdt);
+        this.stats.tick(this, sdt);
+      }
+    } finally {
+      this.nightShift = false;
+      this.ents.powerDirty = true;
+    }
+  }
+
   /** Called when sleeping ends the day or the player passes out at 2am. */
   endDay(passedOut: boolean) {
-    const summary: DaySummary = { day: this.time.day, season: this.time.season, year: this.time.year, sold: [], total: 0, passedOut, penalty: 0 };
+    // the night shift: the works runs the 4 hours from 2am to 6am before the day's tally
+    const batches = () => this.ents.machines.reduce((a, e) => a + (e.mach?.made ?? 0), 0);
+    const before = batches();
+    this.runWorks(NIGHT_SECS);
+    const summary: DaySummary = { day: this.time.day, season: this.time.season, year: this.time.year, sold: [], total: 0, passedOut, penalty: 0, nightBatches: batches() - before };
     for (const s of SYSTEMS) s.dayEnd?.(this, summary);
     const p = this.player;
     // passing out costs your morning, not your coins (cozy mode forgives it entirely)
@@ -428,6 +473,9 @@ export class Game {
     // weather
     this.weather = this.tomorrow;
     this.tomorrow = this.rollWeather();
+    // 6am: the works' day records roll over (today becomes yesterday), and the tally names the day's bottleneck
+    this.stats.states.rollDay();
+    summary.bottleneck = this.sys.worksTally?.(this) ?? null;
     this.wind = this.weather === 'storm' ? 1.8 : this.weather === 'wind' ? 1.5 : this.weather === 'rain' ? 1.1 : this.weather === 'snow' ? 0.9 : 0.6 + this.rng.next() * 0.4;
     for (const s of SYSTEMS) s.dayStart?.(this);
     this.emit({ t: 'dayEnd', summary });

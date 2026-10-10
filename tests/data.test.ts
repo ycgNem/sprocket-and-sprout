@@ -108,3 +108,30 @@ describe('one name for the Professor (DECISIONS #55)', () => {
     }
   });
 });
+
+describe('the machine contract (ROADMAP.md 4.1)', () => {
+  it('every structure that handles items declares what it takes, gives and holds', async () => {
+    const { ioOf, PORT_KINDS } = await import('../src/data/contract');
+    for (const s of STRUCTURES) {
+      if (!PORT_KINDS.includes(s.kind)) continue;
+      const io = ioOf(s);
+      expect(io, s.id).toBeTruthy();
+      expect(io!.note.length, s.id).toBeGreaterThan(5);
+      if (s.kind === 'machine') {
+        expect(Array.isArray(io!.in) && io!.in.length, s.id).toBeTruthy();
+        expect(Array.isArray(io!.out) && io!.out.length, s.id).toBeTruthy();
+        expect(io!.time, s.id).toBeTruthy();
+      }
+    }
+  });
+
+  it('every advice case fills without leftover placeholders', async () => {
+    const { ADVICE, adviceText } = await import('../src/data/advice');
+    const vars = { name: 'jar', pct: 50, item: 'cogbeans', src: 'chest', dst: 'crate', need: 40, n: 2, s: 's', have: 4, can: 17, more: 26, crop: 'cogbean' };
+    for (const k of Object.keys(ADVICE)) {
+      const t = adviceText(k, vars);
+      expect(t.gap, k).not.toMatch(/\{|\}/);
+      expect(t.fix, k).not.toMatch(/\{|\}/);
+    }
+  });
+});

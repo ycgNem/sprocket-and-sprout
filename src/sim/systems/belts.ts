@@ -1,6 +1,7 @@
 // Belt simulation: two lanes per tile, items keep a minimum spacing and hand off
 // to the next segment. Processed downstream-first so queues compress cleanly.
 import { BeltC, BeltKind, DX, DY, Dir, Ent, Ents, ITEM_SPACING, Lane, leftOf, opposite } from '../ents';
+import { isBusy, MState, setQueued, setState } from '../mstate';
 
 /** Recompute next pointers, curves, underground pairing lengths and update order. */
 export function rebuildBelts(ents: Ents) {
@@ -173,8 +174,15 @@ function transferOut(ents: Ents, e: Ent, lane: number, k: number, overflow: numb
   return false;
 }
 
-/** Advance all belts by dt seconds. Returns number of item moves (for perf stats). */
-export function updateBelts(ents: Ents, dt: number, sink?: BeltSink) {
+/** seconds a belt's front item may sit still before the belt counts as Blocked */
+export const BELT_BLOCK_AFTER = 3;
+
+/**
+ * Advance all belts by dt seconds. `now` (the sim clock) stamps state changes: a belt with goods
+ * whose front hasn't moved for 3 s is Blocked (its chevrons stop), one that moves is Working, an
+ * empty one Idle.
+ */
+export function updateBelts(ents: Ents, dt: number, sink?: BeltSink, now = 0) {
   if (ents.beltsDirty) rebuildBelts(ents);
   const order = ents.beltOrder;
   for (let oi = 0; oi < order.length; oi++) {
@@ -182,15 +190,37 @@ export function updateBelts(ents: Ents, dt: number, sink?: BeltSink) {
     const b = e.belt;
     if (!b) continue;
     const adv = b.speed * dt;
+    let moved = false, any = false;
     for (let li = 0; li < 2; li++) {
       const L = b.lanes[li];
       if (L.k.length === 0) continue;
-      advanceLane(ents, e, b, L, li, adv, sink);
+      any = true;
+      if (advanceLane(ents, e, b, L, li, adv, sink)) moved = true;
+    }
+    if (!any) {
+      b.stuck = 0;
+      if (e.state !== MState.Idle) setState(e, MState.Idle, '', now);
+    } else if (moved) {
+      b.stuck = 0;
+      if (e.state !== MState.Working || e.why) setState(e, MState.Working, '', now);
+    } else {
+      b.stuck += dt;
+      if (b.stuck >= BELT_BLOCK_AFTER) {
+        // a queue in front of a busy machine (or behind a moving/queued belt) is healthy: Working
+        // "Queued"; only a stop whose taker is itself stopped or missing is Blocked (ROADMAP.md 4.2).
+        // Belts tick downstream first, so the taker's state is this tick's.
+        const taker = b.next ?? (b.kind === BeltKind.UnderIn ? null : ents.rootAt(e.x + DX[e.rot], e.y + DY[e.rot]));
+        const t = taker?.parent ?? taker;
+        if (t && (t.belt ? t.state === MState.Working : isBusy(t))) {
+          if (e.state !== MState.Working || e.why === '') setQueued(e, t.belt ? null : t, now);
+        } else if (e.state !== MState.Blocked) setState(e, MState.Blocked, 'Backed up: what it runs into takes nothing more', now);
+      }
     }
   }
 }
 
-function advanceLane(ents: Ents, e: Ent, b: BeltC, L: Lane, li: number, adv: number, sink?: BeltSink) {
+/** moves a lane's items; true when its front item moved or left the belt */
+function advanceLane(ents: Ents, e: Ent, b: BeltC, L: Lane, li: number, adv: number, sink?: BeltSink): boolean {
   const len = b.len;
   // keep spacing across the tile boundary with the next lane's last item
   let cap = len;
@@ -204,7 +234,7 @@ function advanceLane(ents: Ents, e: Ent, b: BeltC, L: Lane, li: number, adv: num
   if (np >= len && transferOut(ents, e, li, L.k[0], np - len, sink)) {
     L.k.shift();
     L.p.shift();
-    if (L.k.length === 0) return;
+    if (L.k.length === 0) return true;
     // the new front stays at least one spacing behind the item that just left
     L.p[0] = Math.min(L.p[0] + adv, len, np - ITEM_SPACING);
   } else {
@@ -215,6 +245,7 @@ function advanceLane(ents: Ents, e: Ent, b: BeltC, L: Lane, li: number, adv: num
     const p = L.p[i] + adv;
     L.p[i] = p < lim ? p : lim > L.p[i] ? lim : L.p[i];
   }
+  return L.p[0] > old + 1e-6;
 }
 
 /** Remove and return the front-most item matching pred (arms picking up). */

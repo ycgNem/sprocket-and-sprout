@@ -3,6 +3,7 @@ import { RESEARCH, RESEARCH_BY_ID } from '../../data/research';
 import { RECIPES } from '../../data/recipes';
 import { ITEM_BY_ID } from '../../data/items';
 import { Game, registerSystem } from '../Game';
+import { MState, setState } from '../mstate';
 import type { Ent } from '../ents';
 import { key, kDef, kId } from '../inventory';
 import { PORT_HANDLERS } from '../ports';
@@ -75,7 +76,10 @@ function labAccept(g: Game, e: Ent, k: number): number {
 function updateLabs(g: Game, dt: number) {
   const cur = g.research.current;
   if (!cur) {
-    for (const e of g.ents.others) if (e.def.kind === 'lab') e.working = false;
+    for (const e of g.ents.others) if (e.def.kind === 'lab') {
+      e.working = false;
+      setState(e, MState.Idle, 'No topic chosen: open the research tree (T)', g.simTime);
+    }
     return;
   }
   const r = RESEARCH_BY_ID.get(cur)!;
@@ -87,11 +91,13 @@ function updateLabs(g: Game, dt: number) {
       // need one of each bundle type
       if (!r.cost.every((c) => inv.countId(c.item) >= 1)) {
         e.working = false;
-        e.st.status = 'Needs ' + r.cost.filter((c) => inv.countId(c.item) < 1).map((c) => ITEM_BY_ID.get(c.item)!.name).join(', ');
+        e.want = r.cost.filter((c) => inv.countId(c.item) < 1).map((c) => ITEM_BY_ID.get(c.item)!.name.toLowerCase()).join(' and ');
+        setState(e, MState.Starved, 'Waiting for ' + e.want, g.simTime);
         continue;
       }
       if ((g.research.progress[cur] ?? 0) + (g.sys.labsInFlight?.[cur] ?? 0) >= units) {
         e.working = false;
+        setState(e, MState.Idle, 'Other desks are finishing this topic', g.simTime);
         continue;
       }
       for (const c of r.cost) {
@@ -106,7 +112,7 @@ function updateLabs(g: Game, dt: number) {
       // research changed mid-unit: refund-free switch, unit applies to its own node
     }
     e.working = true;
-    e.st.status = 'Studying';
+    setState(e, MState.Working, 'Studying', g.simTime);
     const speed = (e.def.speed ?? 1) * g.mods.labSpeed;
     e.st.progress += (dt * speed) / r.unitTime;
     if (e.st.progress >= 1) {
@@ -122,6 +128,7 @@ function updateLabs(g: Game, dt: number) {
 
 registerSystem({
   name: 'research',
+  works: true,
   tick(g, dt) {
     updateLabs(g, dt);
   },

@@ -8,7 +8,7 @@ import { PixBuf } from './pixbuf';
 
 /** extra pixels above the footprint for tall art */
 export const EXTRA_TOP: Record<string, number> = {
-  keg: 4, jar: 6, furnace: 8, oven: 12, cheese_press: 8, hand_loom: 8, seed_sifter: 4, compost_bin: 2, charcoal_kiln: 8,
+  gleaner: 10, field_gantry: 12, rail: 0, keg: 4, jar: 6, furnace: 8, oven: 12, cheese_press: 8, hand_loom: 8, seed_sifter: 4, compost_bin: 2, charcoal_kiln: 8,
   brick_kiln: 16, bee_skep: 4, lab: 10, mill: 20, sawmill: 12, steam_loom: 14, bottler: 14, assembler: 12, assembler_2: 14,
   blast_furnace: 22, crusher: 12, roaster: 10, kitchen: 16, harvester: 14, planter: 10, drill_steam: 16, drill_brass: 16,
   sprinkler_1: 2, sprinkler_2: 3, sprinkler_3: 4, mist_tower: 18, scarecrow: 14, lamp: 16, pole_wood: 20, pole_iron: 22,

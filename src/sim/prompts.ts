@@ -82,7 +82,7 @@ export function promptAt(g: Game, tx: number, ty: number): Prompt | null {
     if (d.kind === 'depot') return at(held ? 'Deliver' : 'Open');
     if (e.mach && d.kind !== 'beehouse') return at(e.mach.crafting ? 'Open' : 'Load');
     if ((d.kind === 'tapper' || d.kind === 'fishtrap' || d.kind === 'harvester' || d.kind === 'drill') && e.inv && !e.inv.isEmpty()) return at('Collect');
-    if (d.kind === 'belt' || d.kind === 'underground' || d.kind === 'splitter' || d.kind === 'path' || d.kind === 'fence') return null;
+    if (d.kind === 'belt' || d.kind === 'underground' || d.kind === 'splitter' || d.kind === 'path' || d.kind === 'fence' || d.kind === 'rail') return null;
     return at('Open');
   }
   const s = g.soil.get(m.idx(tx, ty));

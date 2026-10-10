@@ -31,8 +31,11 @@ import { Lighting } from './lighting';
 import { Weather } from './weather';
 import { Ambient } from './ambient';
 import { camShakeOffset, wobbleOffset } from './shake';
+import { drawStateGlyphs } from './glyphs';
 import { drawPlanks, planksUnder } from './planks';
 import { blendVertex, needsBlend } from './blend';
+import { drawDryDrops, drawRail, pushGantry } from './fieldworks';
+import { MState } from '../sim/mstate';
 
 const CH = TileMap.CHUNK;
 /** flat objects baked into the ground that get a shadow, and its width */
@@ -570,6 +573,9 @@ export class Renderer {
     if (m === g.map) this.drawTownExtras(g);
     // power wires
     if (m === g.map) this.drawWires(g);
+    // the machine contract's glyphs: one mark at each stop's cause (ROADMAP.md 4.3)
+    if (m === g.map) drawStateGlyphs(ctx, g, tx0, ty0, tx1, ty1, this.time);
+    if (m === g.map) drawDryDrops(ctx, g, tx0, ty0, tx1, ty1, this.time);
     // ui overlays in world space (ghosts, highlights)
     for (const o of this.overlays) o(ctx);
     this.overlays = [];
@@ -782,7 +788,8 @@ export class Renderer {
           const tier = d.tier ?? 1;
           // tread phase: 16 one-pixel steps with imported belts (locked to item speed), else 4
           const fine = hasImage(`belt:${tier}:0:0:15`);
-          const bf = fine ? Math.floor(this.time * b.speed * 16) % 16 : Math.floor(this.time * b.speed * 4) % 4;
+          // a Blocked belt stops its chevrons (a queue in front of a busy machine keeps rolling)
+          const bf = e.state === MState.Blocked ? 0 : fine ? Math.floor(this.time * b.speed * 16) % 16 : Math.floor(this.time * b.speed * 4) % 4;
           const uf = fine && !hasImage(`ug:${tier}:0:0:15`) ? bf >> 2 : bf;
           if (d.kind === 'splitter') {
             if (!e.parent) {
@@ -835,6 +842,15 @@ export class Renderer {
           continue;
         }
         if (d.kind === 'path') continue;
+        // the Field Works: rails lie flat; the gantry's bridge rides them (src/render/fieldworks.ts)
+        if (d.kind === 'rail') {
+          drawRail(ctx, e);
+          continue;
+        }
+        if (d.kind === 'gantry') {
+          pushGantry(g, e, D, ctx, this.time);
+          continue;
+        }
         if (d.kind === 'megaproject' && e.st.project) {
           const def = MEGA_BY_ID.get(e.st.project);
           if (def) {
@@ -854,9 +870,10 @@ export class Renderer {
         // buildings (coops, barns…) light their windows at night like the town's houses
         const on = e.working || (d.kind === 'lamp' && g.daylight < 0.6) || (d.kind === 'generator' && (e.gen?.out ?? 0) > 0) || (d.kind === 'hive' && e.st.bots > 0) ||
           (d.kind === 'building' && g.daylight < 0.55);
-        const animated = on && (e.mach || d.kind === 'generator' || d.kind === 'drill' || d.kind === 'harvester' || d.kind === 'planter' || d.kind === 'beehouse' ||
+        const animated = on && (e.mach || d.kind === 'generator' || d.kind === 'drill' || d.kind === 'harvester' || d.kind === 'planter' || d.kind === 'beehouse' || d.kind === 'gleaner' ||
           d.kind === 'lamp' || d.kind === 'hive' || d.kind === 'sprinkler' || d.kind === 'lab');
-        const f = d.id === 'waterwheel' ? Math.floor(this.time * 6) % 4 : animated ? frame : 0;
+        // on a short grid machines animate slower (ROADMAP.md 4.7)
+        const f = d.id === 'waterwheel' ? Math.floor(this.time * 6) % 4 : animated ? (d.powerUse && e.sat < 0.99 ? Math.floor(this.time * 8 * Math.max(0.15, e.sat) + e.id) % 4 : frame) : 0;
         const s = sprite(`st:${d.id}:${f}:${on ? 1 : 0}:${season}`);
         if (d.kind === 'fence' || d.kind === 'gate') {
           D.push({ y: e.y + 0.7, f: () => drawSprite(ctx, s, e.x * TILE, e.y * TILE) });
@@ -891,7 +908,6 @@ export class Renderer {
           if (e.def.kind === 'decor' && e.def.id === 'sign' && e.st.k !== null && e.st.k !== undefined) {
             drawItemIcon(ctx, itemIdCache(e.st.k), e.x * TILE + 3, e.y * TILE - 3, 10);
           }
-          if (e.def.kind === 'machine' && e.def.powerUse && e.sat < 0.5 && e.working) this.drawNoPower(e);
         } });
         // chimney smoke: imported machines list their chimney mouths (factory sheet meta.smoke)
         const chim = smokePoints();
@@ -938,6 +954,17 @@ export class Renderer {
     const a = e.arm!;
     const base = sprite(`armb:${e.def.id}`);
     drawSprite(ctx, base, e.x * TILE, e.y * TILE);
+    // a wound spring arm spins its key (the winding verb, ROADMAP.md 4.4)
+    if (e.st.wind > 0) {
+      const kx = e.x * TILE + 12, ky = e.y * TILE + 11;
+      ctx.fillStyle = PALETTE[C.ink];
+      ctx.fillRect(kx - 2, ky - 2, 5, 5);
+      ctx.fillStyle = PALETTE[C.brass];
+      if (Math.floor(this.time * 12) % 2) ctx.fillRect(kx - 1, ky, 3, 1);
+      else ctx.fillRect(kx, ky - 1, 1, 3);
+      ctx.fillStyle = PALETTE[C.butter];
+      ctx.fillRect(kx, ky, 1, 1);
+    }
     // swing from pick side (t=0) to drop side (t=1) over the top
     const cx = e.x * TILE + 8, cy = e.y * TILE + 7;
     const reach = a.reach * 13;
@@ -963,7 +990,6 @@ export class Renderer {
     if (a.held) {
       drawItemIcon(ctx, itemIdCache(a.held.k), Math.round(hx - 5), Math.round(hy - 7), 10);
     }
-    if (a.powered && e.sat < 0.05) this.drawNoPower(e);
   }
 
   private drawNoPower(e: Ent) {

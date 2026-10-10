@@ -188,6 +188,7 @@ function growDay(g: Game, i: number, s: Soil) {
   c.stage = stageOf(cr, c.days);
   if (c.days >= cropTotal(cr)) {
     c.ready = true;
+    c.ripeDay = g.dayIndex;
     c.stage = cr.stages.length;
   }
 }

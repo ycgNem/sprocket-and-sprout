@@ -41,7 +41,12 @@ export const RESEARCH: ResearchDef[] = [
   // ---- Tier 3: Harvest bundles ----
   { id: 'r_long_arm', name: 'Reaching Arms', desc: 'Arms that reach two tiles.', icon: 'arm_long', cost: cost(25, G, CU, R), unitTime: 15, prereq: ['r_fast_arm'], pos: [4, 3] },
   { id: 'r_filter_arm', name: 'Sorting Arms', desc: 'Arms that only move what you tell them to.', icon: 'arm_filter', cost: cost(30, G, CU, R), unitTime: 15, prereq: ['r_fast_arm', 'r_assembly'], pos: [4, 4] },
-  { id: 'r_harvester', name: 'Harvest Cranes', desc: 'Powered cranes that pick ripe crops around them.', icon: 'harvester', cost: cost(30, G, CU, R), unitTime: 15, prereq: ['r_assembly', 'r_sprinklers'], pos: [4, 5] },
+  { id: 'r_harvester', name: 'Harvest Cranes', desc: 'Powered cranes that pick ripe crops in a 7x7 around them.', icon: 'harvester', cost: cost(20, G, CU), unitTime: 12, prereq: ['r_power', 'r_sprinklers'], pos: [4, 5] },
+  // ---- the Field Works (1.2, ROADMAP.md 4.9) ----
+  { id: 'r_gleaning', name: 'Gleaning', desc: 'A spring-wound picker on a post: it gathers the ripe crops around it.', icon: 'gleaner', cost: cost(8, G), unitTime: 8, prereq: ['r_arms'], pos: [1, 3] },
+  { id: 'r_gantry', name: 'Field Gantry', desc: 'A brass gantry on rails that waters, picks and resows a whole strip.', icon: 'field_gantry', cost: cost(30, G, CU, R), unitTime: 15, prereq: ['r_planter', 'r_assembly'], pos: [7, 6] },
+  { id: 'r_long_rails', name: 'Long Rails', desc: 'Gantry rails up to 24 tiles long.', icon: 'rail', cost: cost(40, G, CU, R, B), unitTime: 20, prereq: ['r_gantry'], pos: [8, 9] },
+  { id: 'r_dawn', name: 'Dawn Shift', desc: 'A switch on field machines to pick from 6am instead of noon.', icon: 'harvester', cost: cost(30, G, CU, R, B), unitTime: 20, prereq: ['r_gantry'], pos: [9, 4] },
   { id: 'r_planter', name: 'Seed Sowers', desc: 'Machines that till and plant seeds around them.', icon: 'planter', cost: cost(30, G, CU, R), unitTime: 15, prereq: ['r_harvester', 'r_seed_sifting'], pos: [5, 5] },
   { id: 'r_sprinkler2', name: 'Brass Sprinklers', desc: 'Sprinklers that water a 3x3 square.', icon: 'sprinkler_2', cost: cost(20, G, CU, R), unitTime: 15, prereq: ['r_sprinklers', 'r_brass'], pos: [4, 6] },
   { id: 'r_steam', name: 'Steam Power', desc: 'Fuel-burning steam engines and iron pylons.', icon: 'steam_engine', cost: cost(30, G, CU, R), unitTime: 15, prereq: ['r_wind', 'r_brass'], pos: [4, 7] },

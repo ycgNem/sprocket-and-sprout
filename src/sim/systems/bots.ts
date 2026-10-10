@@ -121,6 +121,7 @@ function finish(g: Game, b: Bot) {
 
 registerSystem({
   name: 'bots',
+  works: true,
   tick(g, dt) {
     const s = g.sys.bots as ReturnType<typeof botSys> | undefined;
     const hs = hives(g);

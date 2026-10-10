@@ -3,6 +3,9 @@ import { recipesForStation } from '../../data/recipes';
 import type { RecipeDef } from '../../data/types';
 import type { Game } from '../Game';
 import type { Ent, MachC } from '../ents';
+import { ITEM_BY_ID } from '../../data/items';
+import { MState, setHarvestWait, setState } from '../mstate';
+import { feedersOf, fieldSource, harvestWaitText, hasFeeder } from '../lines';
 import { ItemKey, kDef, kMatches, key, kStack, Stack } from '../inventory';
 
 const OUT_CAP = 60;
@@ -117,8 +120,12 @@ function canCraft(m: MachC, r: RecipeDef): boolean {
   return true;
 }
 
+/**
+ * Use up a batch's inputs. The batch remembers the lowest input quality: artisan goods keep it
+ * (ROADMAP.md 4.9, quality survives the works), so a gold tomato makes gold pickles.
+ */
 function consume(g: Game, m: MachC, r: RecipeDef) {
-  let q = 0;
+  let q = 3, any = false;
   for (const inp of r.in) {
     let need = inp.n;
     for (const [k, n] of m.inBuf) {
@@ -128,11 +135,12 @@ function consume(g: Game, m: MachC, r: RecipeDef) {
       if (n - t <= 0) m.inBuf.delete(k);
       else m.inBuf.set(k, n - t);
       need -= t;
-      q = Math.max(q, k & 3);
+      q = Math.min(q, k & 3);
+      any = true;
       g.stats.use(k, t);
     }
   }
-  m.q = q;
+  m.q = any ? q : 0;
 }
 
 export function pickRecipe(g: Game, e: Ent): RecipeDef | null {
@@ -142,28 +150,59 @@ export function pickRecipe(g: Game, e: Ent): RecipeDef | null {
   return null;
 }
 
+/** the thing a starved machine waits for, in words: a locked recipe's missing input, else what its feeders carry */
+function wantedInput(g: Game, e: Ent): string {
+  const m = e.mach!;
+  const name = (spec: string) => (spec[0] === '#' ? 'any ' + spec.slice(1) : (ITEM_BY_ID.get(spec)?.name ?? spec).toLowerCase());
+  if (m.locked && m.recipe) {
+    for (const inp of m.recipe.in) if (bufCountSpec(m, inp.item) < inp.n) return name(inp.item);
+  }
+  // a part-filled buffer: more of what's in it
+  for (const [k] of m.inBuf) return kDef(k).name.toLowerCase();
+  // what the arms aimed at it last carried
+  for (const f of feedersOf(g, e)) if (f.lastK !== undefined) return kDef(f.lastK).name.toLowerCase();
+  // never fed: name what it last made from, else nothing in particular (not a guess like 'strawberry')
+  return m.recipe ? name(m.recipe.in[0].item) : 'input';
+}
+
 export function updateMachines(g: Game, dt: number) {
   const speedMod = g.mods.machineSpeed + (g.sys.megaBonus?.machine ?? 0) + (g.hasPerk('engineer') ? 0.1 : 0) + (g.hasPerk('industrialist') ? 0.15 : 0);
+  const now = g.simTime;
   for (const e of g.ents.machines) {
     const m = e.mach!;
     if (e.def.kind === 'beehouse') {
       updateBees(g, e, dt);
       continue;
     }
+    if (e.off) {
+      e.working = false;
+      setState(e, MState.Idle, 'Switched off at its pole', now);
+      continue;
+    }
     if (!m.crafting) {
       if (outCount(m) >= OUT_CAP) {
-        m.status = 'Output full';
+        setState(e, MState.Blocked, 'Output full: nothing takes its goods away', now);
         e.working = false;
         continue;
       }
       const r = pickRecipe(g, e);
       if (!r) {
-        m.status = m.locked || availableRecipes(g, e).length ? (m.inBuf.size ? 'Missing ingredients' : 'Waiting for input') : 'Pick a recipe';
         e.working = false;
+        if (!m.locked && !availableRecipes(g, e).length) setState(e, MState.Idle, 'Pick a recipe', now);
+        else if (m.inBuf.size || hasFeeder(g, e)) {
+          // the reason is worked out on entering the state and once a second after that
+          if ((e.state !== MState.Starved && !e.fieldWait) || g.tickN % 60 === e.id % 60) {
+            e.want = wantedInput(g, e);
+            // supply that traces back to a field with nothing ripe: waiting for harvest, not starved
+            const field = m.inBuf.size ? null : fieldSource(g, e);
+            if (field) setHarvestWait(e, harvestWaitText(field), now);
+            else setState(e, MState.Starved, `Waiting for ${e.want}`, now);
+          }
+        } else setState(e, MState.Idle, m.made ? 'Nothing feeds it any more' : 'Waiting to be fed', now);
         continue;
       }
       if (e.def.fuel && m.burn <= 0 && !m.fuel) {
-        m.status = 'Needs fuel';
+        setState(e, MState.NeedsFuel, 'Needs fuel: wood or coal', now);
         e.working = false;
         continue;
       }
@@ -180,39 +219,45 @@ export function updateMachines(g: Game, dt: number) {
         g.stats.use(m.fuel.k, 1);
         if (--m.fuel.n <= 0) m.fuel = null;
       } else {
-        m.status = 'Needs fuel';
+        setState(e, MState.NeedsFuel, 'Out of fuel: wood or coal', now);
         e.working = false;
         continue;
       }
     }
-    // the keeper's jar runs its first few batches fast, so the opening's first pickle comes quickly
-    let sp = m.speed * speedMod * (e.st.quick > 0 ? 4 : 1);
+    // the keeper's jar runs its first few batches fast, so the opening's first pickle comes quickly;
+    // lubricant (an oiled machine) runs a fifth faster until morning
+    let sp = m.speed * speedMod * (e.st.quick > 0 ? 4 : 1) * (e.st.lube > 0 ? 1.2 : 1);
     if (e.def.powerUse) {
       sp *= e.sat;
       if (e.sat <= 0.001) {
-        m.status = e.net ? 'Not enough power' : 'No power';
+        setState(e, MState.Unpowered, e.net ? 'No power: the grid has nothing to give' : 'No power: place a pole within reach', now);
         e.working = true; // still demands power
         continue;
       }
     }
     e.working = true;
-    m.status = 'Working';
+    if (e.def.powerUse && e.sat < 0.25) setState(e, MState.Unpowered, `Crawling at ${Math.round(e.sat * 100)}%: the grid is short`, now);
+    else if (e.def.powerUse && e.sat < 0.99) setState(e, MState.Working, `Running at ${Math.round(e.sat * 100)}%: the grid is short`, now);
+    else setState(e, MState.Working, '', now);
     if (m.progress < 1) {
       m.progress += (dt * sp) / Math.max(0.05, r.time);
       if (e.def.fuel) m.burn -= dt * Math.min(1, sp);
     }
     if (m.progress >= 1) {
       if (outCount(m) >= OUT_CAP) {
-        m.status = 'Output full';
+        setState(e, MState.Blocked, 'Output full: nothing takes its goods away', now);
         e.working = false;
         continue;
       }
+      let made = 0;
       for (const o of r.out) {
         if (o.chance !== undefined && g.rng.next() >= o.chance) continue;
-        const k = key(o.item, 0);
+        const k = key(o.item, keepsQuality(r, o.item) ? m.q : 0);
         addOut(m, k, o.n);
         g.stats.add(k, o.n);
+        made += o.n;
       }
+      g.stats.states.moved(e, made);
       m.made++;
       if (e.st.quick > 0) e.st.quick--;
       m.crafting = false;
@@ -222,6 +267,10 @@ export function updateMachines(g: Game, dt: number) {
       g.emit({ t: 'made', ent: e.id, item: r.out[0].item, x: e.x + e.w / 2, y: e.y });
     }
   }
+}
+/** artisan goods (and recipes marked keepQuality) carry their input's quality */
+function keepsQuality(r: RecipeDef, item: string): boolean {
+  return !!r.keepQuality || ITEM_BY_ID.get(item)?.cat === 'artisan';
 }
 
 function addOut(m: MachC, k: ItemKey, n: number) {
@@ -234,14 +283,14 @@ function addOut(m: MachC, k: ItemKey, n: number) {
 function updateBees(g: Game, e: Ent, dt: number) {
   const m = e.mach!;
   if (g.time.season === 3 || g.isRaining()) {
-    m.status = g.time.season === 3 ? 'Bees are sleeping' : 'Bees hide from the rain';
+    setState(e, MState.Idle, g.time.season === 3 ? 'Bees are sleeping' : 'Bees hide from the rain', g.simTime);
     return;
   }
   if (outCount(m) >= 5) {
-    m.status = 'Full of honey';
+    setState(e, MState.Blocked, 'Full of honey', g.simTime);
     return;
   }
-  m.status = 'Buzzing';
+  setState(e, MState.Working, 'Buzzing', g.simTime);
   m.progress += dt / 420;
   if (m.progress >= 1) {
     m.progress = 0;

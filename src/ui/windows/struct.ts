@@ -5,15 +5,17 @@ import type { RecipeDef } from '../../data/types';
 import type { Ent } from '../../sim/ents';
 import { Inventory, key, kDef, kId } from '../../sim/inventory';
 import { availableRecipes, machInsert, setRecipe, stationRecipes } from '../../sim/systems/machines';
-import { powerState } from '../../sim/systems/power';
+import { gridSentence, POLE_SWITCH, powerState, togglePole } from '../../sim/systems/power';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { centered, frame, invGrid, SLOT } from './common';
 import type { WinState } from './index';
 import { itemTooltip, stationName } from '../tooltips';
-import { ICON } from '../font';
+import { ICON, ellipsize, textWidth } from '../font';
+import { structStateLine } from '../statelines';
 import { RESEARCH_BY_ID } from '../../data/research';
 import { deconstruct } from '../../sim/build';
+import { PORT_HANDLERS } from '../../sim/ports';
 
 /** Extra struct panels registered by later systems (labs, buildings, hives, megaprojects...). */
 export const STRUCT_PANELS: Record<string, (ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: number, st: WinState) => number> = {};
@@ -28,7 +30,7 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
   const kind = e.def.kind;
   const playerGridH = 3 * (SLOT + 2) + 14;
   let topH = 100;
-  if (e.inv && (kind === 'chest' || kind === 'shipbin' || kind === 'building' || kind === 'harvester' || kind === 'planter' || kind === 'fishtrap' || kind === 'tapper' || kind === 'drill'))
+  if (e.inv && (kind === 'chest' || kind === 'shipbin' || kind === 'building' || kind === 'harvester' || kind === 'planter' || kind === 'fishtrap' || kind === 'tapper' || kind === 'drill' || kind === 'gleaner' || kind === 'gantry'))
     topH = 24 + Math.ceil(e.inv.size / 12) * (SLOT + 2) + 16;
   if (e.mach) topH = 150;
   if (kind === 'pole' || kind === 'generator' || kind === 'accumulator') topH = 140;
@@ -57,13 +59,20 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
       };
     }
   } else if (e.inv) {
-    const readonly = kind === 'harvester' || kind === 'fishtrap' || kind === 'tapper' || kind === 'drill' || (kind === 'building' && e.def.id !== 'silo');
+    const readonly = kind === 'harvester' || kind === 'fishtrap' || kind === 'tapper' || kind === 'drill' || kind === 'gleaner' || kind === 'gantry' || (kind === 'building' && e.def.id !== 'silo');
+    const field = kind === 'harvester' || kind === 'gleaner' || kind === 'gantry';
     if (kind === 'shipbin') ui.text('The post takes it at noon, 6pm and overnight.', x + 14, top + 2, C.walnut);
     else if (kind === 'planter') ui.text('Seeds and fertilizer for sowing. Arms can refill it.', x + 14, top + 2, C.walnut);
-    else ui.text(readonly ? 'Collected goods. Click to take, or use an arm.' : `${e.inv.slots.filter(Boolean).length}/${e.inv.size} stacks used. Shift-click to move.`, x + 14, top + 2, C.walnut);
+    else if (field) {
+      // field machines lead with their state line (what they're picking, or when the next crop ripens)
+      const sl = structStateLine(g, e, true);
+      ui.text(ellipsize((sl?.text ?? '') + (kind === 'gantry' ? `  -  seeds: shift-click them in` : ''), w - 120), x + 14, top + 2, sl?.color ?? C.walnut);
+      if (g.research.done.has('r_dawn') && ui.button('dawn', x + w - 104, top - 1, 90, 12, e.st.dawn ? 'Picks from 6am' : 'Picks from noon', { style: 'flat', active: !!e.st.dawn, tip: 'Dawn Shift: pick newly ripe crops from 6am (off: the morning is left to your hands)' })) e.st.dawn = !e.st.dawn;
+    } else ui.text(readonly ? 'Collected goods. Click to take, or use an arm.' : `${e.inv.slots.filter(Boolean).length}/${e.inv.size} stacks used. Shift-click to move.`, x + 14, top + 2, C.walnut);
     invGrid(ui, play, e.inv, x + 14, top + 14, 12, { target: inv, readonly, accept: kind === 'shipbin' ? (k) => kDef(k).price > 0 : undefined });
     // the crate takes only what the post will buy, by shift-click as by hand
-    if (!readonly) target = kind === 'shipbin' ? (k, n) => (kDef(k).price > 0 ? n - e.inv!.add(k, n) : 0) : e.inv;
+    if (kind === 'gantry') target = (k, n) => PORT_HANDLERS.gantry.insert!(g, e, k, n);
+    else if (!readonly) target = kind === 'shipbin' ? (k, n) => (kDef(k).price > 0 ? n - e.inv!.add(k, n) : 0) : e.inv;
     if (kind === 'chest' && ui.button('csort', x + w - 60, top - 1, 46, 12, 'Sort', { style: 'flat' })) e.inv.sort();
     if (kind === 'shipbin') {
       let total = 0;
@@ -90,9 +99,11 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
 function machinePanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: number, st: WinState): (k: number, n: number) => number {
   const g = play.g;
   const m = e.mach!;
-  ui.text(stationName(m.station) + (e.def.speed && e.def.speed !== 1 ? `  (speed x${e.def.speed})` : ''), x + 14, y + 2, C.walnut);
-  const statusCol = m.status === 'Working' ? C.moss : m.status.includes('power') || m.status.includes('fuel') ? C.brick : C.oak;
-  ui.text(m.status, x + w - 14, y + 2, statusCol, { align: 'right' });
+  const head = stationName(m.station) + (e.def.speed && e.def.speed !== 1 ? `  (speed x${e.def.speed})` : '');
+  ui.text(head, x + 14, y + 2, C.walnut);
+  // the state line leads: what it's doing, or exactly what it waits for
+  const sl = structStateLine(g, e, true);
+  if (sl) ui.text(ellipsize(sl.text, w - 40 - textWidth(head)), x + w - 14, y + 2, sl.color, { align: 'right' });
   // input / output / fuel
   const iy = y + 16;
   ui.text('In', x + 14, iy + 6, C.oak);
@@ -169,6 +180,10 @@ function machinePanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w:
     if (res.click) setRecipe(g, e, m.locked && m.recipe?.id === r.id ? null : r);
   });
   ui.unclip();
+  // the contract: batch time, buffers, what it runs on
+  const times = [...new Set(all.map((r) => r.time))].sort((a, b) => a - b);
+  const runs = e.def.powerUse ? `uses ${e.def.powerUse} sparks` : e.def.fuel ? 'burns fuel' : 'no power';
+  ui.text(`Batch ${times.length ? (times.length > 1 ? `${times[0]}-${times[times.length - 1]}s` : times[0] + 's') : '-'}  -  queues 2 batches  -  holds 60  -  ${runs}`, x + 14, listY + areaH + 13, C.oak);
   if (locked) ui.text(`${locked} more recipe${locked > 1 ? 's' : ''} ${m.station === 'oven' ? 'to learn from villagers and the almanac' : 'locked behind research'}`, x + 14, listY + areaH + 2, C.oak);
   void st;
   void availableRecipes;
@@ -241,11 +256,18 @@ function powerPanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: n
     }
   }
   if (e.def.kind === 'accumulator') ui.text(`Stored: ${Math.round(e.st.stored)} / ${e.st.cap} spark-seconds`, x + 14, y + 2, C.ink);
+  // the grid switch: everything in this pole's area stops and draws nothing while it's off
+  if (e.def.kind === 'pole') {
+    const sw = e.st.sw ?? 0;
+    ui.text(sw === 1 ? 'Switched OFF: machines in its area are stopped.' : sw === 2 ? 'Its machines run only during the night shift.' : 'Powers the machines in its shaded area.', x + 14, y + 2, sw === 1 ? C.brick : C.walnut);
+    if (ui.button('poleswitch', x + w - 104, y - 1, 90, 13, POLE_SWITCH[sw], { style: sw === 0 ? 'green' : sw === 1 ? 'red' : 'wood', tip: 'The grid switch: On, Off, or Night shift only (its machines run 2am-6am). Click for the next position.' })) togglePole(g, e);
+  }
   if (!n) {
     ui.text(e.def.kind === 'pole' ? 'Not connected to anything yet.' : 'Not connected to a pole! Place a pole nearby.', x + 14, y + 16, C.brick);
     return;
   }
-  ui.text(`Grid #${n.id}: ${n.poles} poles, ${n.gens} generators, ${n.consumers} machines`, x + 14, y + 16, C.walnut);
+  const pl = (k: number, w: string) => `${k} ${w}${k === 1 ? '' : 's'}`;
+  ui.text(`Grid #${n.id}: ${pl(n.poles, 'pole')}, ${pl(n.gens, 'generator')}, ${pl(n.consumers, 'machine')}`, x + 14, y + 16, C.walnut);
   // rust instead of amber: amber text is unreadable on the peach panel
   const satCol = n.sat >= 0.99 ? C.moss : n.sat > 0.5 ? C.rust : C.brick;
   ui.text(`Demand ${Math.round(n.demand)}   Supply ${Math.round(n.cap)}   Satisfaction ${Math.round(n.sat * 100)}%`, x + 14, y + 27, satCol);
@@ -269,6 +291,8 @@ function powerPanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: n
   ui.text('demand', gx + 40, gy + 3, C.brick);
   ui.text(`${Math.round(max)}`, gx + gw - 4, gy + 3, C.oak, { align: 'right' });
   ui.text('last 60s', gx + gw - 4, gy + gh - 10, C.oak, { align: 'right' });
+  // what to do about it, in one sentence
+  ui.text(ellipsize(gridSentence(g, n.id), w - 28), x + 14, gy + gh + 4, n.demand > n.cap + 0.5 ? C.brick : C.moss);
   void kId;
   void RESEARCH_BY_ID;
 }

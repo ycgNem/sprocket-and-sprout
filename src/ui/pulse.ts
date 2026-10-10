@@ -1,20 +1,25 @@
-// Factory pulse: how many machines are working, starved for input, or blocked.
-// Shown as three lamps under the chronometer; clicking a lamp highlights those machines.
+// Factory pulse: how many machines are working, starved for input, blocked, or short of power or
+// fuel (the machine contract's states, src/sim/mstate.ts). Four lamps under the chronometer;
+// clicking one rings those machines on the farm.
 import { C } from '../data/palette';
 import type { Game } from '../sim/Game';
 import type { Ent } from '../sim/ents';
+import { MState, stateText } from '../sim/mstate';
 import type { UI } from './ui';
 import type { PlayScreen } from '../app/play';
 
-export type PulseKind = 'ok' | 'starved' | 'blocked';
-export const PULSE_COL: Record<PulseKind, number> = { ok: C.leaf, starved: C.amber, blocked: C.rose };
-const PULSE_NAME: Record<PulseKind, string> = { ok: 'working', starved: 'waiting for input', blocked: 'blocked (output full or no power)' };
+export type PulseKind = 'ok' | 'starved' | 'blocked' | 'power';
+export const PULSE_COL: Record<PulseKind, number> = { ok: C.leaf, starved: C.amber, blocked: C.rose, power: C.sky };
+const PULSE_NAME: Record<PulseKind, string> = { ok: 'working', starved: 'waiting for input (starved)', blocked: 'blocked: their goods have nowhere to go', power: 'short of power or fuel' };
 
 export function machineState(e: Ent): PulseKind | null {
-  const status: string = e.mach?.status ?? e.st.status ?? '';
-  if (/full|power|blocked/i.test(status)) return 'blocked';
-  if (e.working) return 'ok';
-  if (/waiting|missing|needs|pick a recipe/i.test(status)) return 'starved';
+  switch (e.state) {
+    case MState.Working: return e.def.powerUse && e.sat < 0.99 ? 'power' : 'ok';
+    case MState.Starved: return 'starved';
+    case MState.Blocked: return 'blocked';
+    case MState.Unpowered:
+    case MState.NeedsFuel: return 'power';
+  }
   return null;
 }
 
@@ -36,21 +41,21 @@ export function drawPulse(ui: UI, play: PlayScreen, x: number, y: number, w: num
   if (g.player.where !== 'world') return 0;
   const ents = pulseEnts(g);
   if (!ents.length) return 0;
-  const n: Record<PulseKind, number> = { ok: 0, starved: 0, blocked: 0 };
-  const why: Record<PulseKind, Map<string, number>> = { ok: new Map(), starved: new Map(), blocked: new Map() };
+  const n: Record<PulseKind, number> = { ok: 0, starved: 0, blocked: 0, power: 0 };
+  const why: Record<PulseKind, Map<string, number>> = { ok: new Map(), starved: new Map(), blocked: new Map(), power: new Map() };
   for (const e of ents) {
     const s = machineState(e);
     if (!s) continue;
     n[s]++;
-    const label = `${e.def.name}: ${(e.mach?.status ?? e.st.status ?? '').toLowerCase()}`;
+    const label = `${e.def.name}: ${stateText(e).toLowerCase()}`;
     why[s].set(label, (why[s].get(label) ?? 0) + 1);
   }
   const h = 15;
   ui.fill(x, y, w, h, C.ink, 0.88);
   ui.fill(x, y, w, 1, C.brass);
   ui.text('Factory', x + 4, y + 4, C.amber);
-  const kinds: PulseKind[] = ['ok', 'starved', 'blocked'];
-  const cellW = Math.floor((w - 44) / 3);
+  const kinds: PulseKind[] = ['ok', 'starved', 'blocked', 'power'];
+  const cellW = Math.floor((w - 44) / 4);
   kinds.forEach((k, i) => {
     const cx = x + 42 + i * cellW;
     const lit = n[k] > 0;
