@@ -135,6 +135,7 @@ export const PATCH_NOTES: PatchNote[] = [
           `Press N, or Next under the music slider in Settings, to skip to the next song.`,
           `Quests that ask for sprout bundles mention the quick way: a plant fiber with a coconut or anything else from the beach.`,
           `A fish trap that's already baited no longer takes another bait. Walk up to one to see whether it's baited.`,
+          `Hover over a crop to see what it is, how many days until it's ripe, whether it's been watered today and which seasons it grows in.`,
         ],
       },
     ],
