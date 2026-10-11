@@ -411,6 +411,16 @@
 - Checks: 379 tests; the year-long run; `mill20` 8/8 by day 18 (the Mill on days 16-18); pacing Story
   65.9k (57.5k to 68.8k), Rush 66.5k (62.2k to 72.2k).
 
+## After 2.0.0: live updates (October 11, 2026)
+- The owner's notes after the release, each pushed live with a line in 2.0's "Updates" (no version
+  bump): the patch notes for players (#148), Milling's rate stage (#149), the beach, kelp, coconuts
+  and pulling up crops (#150), the greenhouse wall's crops (#151), three songs to skip through (#152),
+  the bundle quests' beach hint and baited traps (#153), a crop's hover tip (#154), a hand-fuelled
+  steam drill (#155), the turning Harvest Crane (#156), reach on hover in its real shape (#157), the
+  pickaxe's up and down swings (#158), later research cheaper and even (#159), the mine's ladders
+  (#160).
+- Checks: 408 tests (1 skipped), tsc clean, the Pages deploy green.
+
 ## Next
 - 2.0.1: the critic's economy (cogbean), the cut list and the bot's re-baseline (HANDOFF.md "What's
   next"); an old-save player's "some stuff didn't transfer", once their exported save comes in.

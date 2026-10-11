@@ -4,9 +4,24 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 11, 2026): 2.0.0 "The Works" is released, and every phase of ROADMAP.md is done.**
-The website runs 2.0.0 and the GitHub release `v2.0.0` (Latest) has the notes and the Windows
-installers (DECISIONS #147); next is 2.0.1 ("What's next"). The last session finished Phase 6 and
+**Status (October 11, 2026, evening): 2.0.0 "The Works" is released, every phase of ROADMAP.md is
+done, and the owner's notes since have gone live as small updates without a version bump**
+(DECISIONS #148-#160, "Since 2.0.0" below). The website runs `works` at its latest push; the GitHub
+release `v2.0.0` (Latest) has the notes and Windows installers as of the music update (#152), so its
+body and installers lack #153-#160 (see "Where it stopped"). Next is 2.0.1 ("What's next").
+**Since 2.0.0** (each an owner's note, a change commit ending "DECISIONS #N" and a "Patch notes:"
+commit adding a line to 2.0's "Updates" in `src/data/patchnotes.ts` and PATCHNOTES.md): the patch
+notes rewritten for players (#148); Milling's rate stage and cornmeal (#149); the beach's own forage,
+kelp, coconuts, pulling up crops (#150); crops along the greenhouse wall (#151); three composed songs
+with N to skip (#152; ask the owner how they sound before more music work); the bundle quests point
+at the beach and a baited fish trap keeps its bait (#153); a crop's hover tip (#154,
+`src/ui/croptip.ts`); a steam drill fuelled by hand (#155); the Harvest Crane's four facings (#156,
+`facings` on a structure, `art/factory/crane/`); reach shown on hover in its real shape (#157,
+`src/ui/reach.ts`); the pickaxe's up and down swings for all nine looks (#158,
+`art/player/pickfix.py`); later research cheaper and even (#159); the mine's ladders hand-drawn
+(#160, `LADDERS` in `art/nature/spec.mjs`). 408 tests (1 skipped). No PixelLab generations since
+the release.
+Before that, the last release session finished Phase 6 and
 Phase 7 (DECISIONS #139-#147): the owner's second playtest of
 the opening (an arm tops up a hand-filled crock, the keeper's crock at 8x through B3, B6's last step
 names the arm, the clock slows only while placing), what answers F when several things are there and
@@ -18,7 +33,13 @@ plate and banner, gantry wheels, chamber shadows, then by script conveyor belts,
 keeper's farmhouse), the procedural generators deleted, version 2.0.0 and its patch notes, and the
 critic's confirmation pass (every earlier finding fixed in play; its two Majors, "where to get" the
 parts and the zoom after a reload, and its Minors fixed: #146).
-**Where it stopped:** `works` and `main` are the same commit, both pushed (the release). **To
+**Where it stopped:** `works` and `main` on origin are the same commit (the ladders' patch notes,
+`432d25c`, plus this docs commit), pushed with `git push origin works:main` and `git push origin
+works`; the Pages deploy passed. The worktree `../sns-p0check` still has `main` at `314d9f2`: run
+`git -C ../sns-p0check pull --ff-only` before building installers there. Not done (the owner hasn't
+asked): add #153-#160's Updates lines to the v2.0.0 release body (`gh release edit v2.0.0
+--notes-file ...`, from `node scripts/release-notes.mjs`) and rebuild and re-upload the installers
+(`gh release upload v2.0.0 release/*.exe --clobber`), as was done for #149-#151. **To
 release the next version, only on the owner's word:** bump `package.json` (and the lock file), add
 its entry on top of `src/data/patchnotes.ts` and PATCHNOTES.md, commit on `works` and push it; in
 `../sns-p0check` (`main` is checked out there) `git merge --ff-only works` and `git push origin main`
@@ -378,7 +399,8 @@ and everything after the critic's screenshot test was drawn by script for 0.
 
 A prompt to paste for the next session (2.0.1):
 
-> Read HANDOFF.md (the status, "What's next") and DECISIONS.md #139-#147. 2.0.0 is released. Now
+> Read HANDOFF.md (the status, "What's next") and DECISIONS.md #139-#160. 2.0.0 is released and
+> the owner's notes since are live as small updates (#148-#160). Now
 > 2.0.1 from the critic's 2.0 review (its M5 and cut list): the economy (a cogbean earns 34.5 coins a
 > tile a day raw, 85.5 pickled, against 18.6 for the next crop: try price 30 and a 3-day regrow, and
 > two orders before day 10 that need more than one crock), cut the standing orders to 5-6
@@ -387,6 +409,11 @@ A prompt to paste for the next session (2.0.1):
 > below. Keep working on `works`; ship only when the owner says.
 
 Left over:
+- From #156-#160, if the owner wants them: the steam engine, sawmill and assembler have one-sided
+  parts and could get a mirrored facing like the crane's (`facings`, a `like` + `flipX` entry per
+  frame); a pool of daylight at the mine's way up (a light for `O.MINE_EXIT` in `lightsFor()`,
+  src/sim/systems/mine.ts, beside the crystal one); research bundles with counts of their own would
+  need the desk to take different bundles per unit (#159).
 - An old-save player's "some stuff didn't transfer" (the owner's friend): ask for the exported save
   (pause menu, Export save file) and load it with `deserialize` in a probe to see what's missing;
   #144 already gives 1.x farms the cogbean oil recipe and a mill after Water Power.

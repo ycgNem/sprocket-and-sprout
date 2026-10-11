@@ -104,6 +104,15 @@
 - Crops planted right against the greenhouse's back wall can be harvested.
 - New music: three songs, Clockwork Morning, Sprout Lane Waltz and Lamplight, that take turns. They sound darker in the mine and softer at home and late at night.
 - Press N, or Next under the music slider in Settings, to skip to the next song.
+- Quests that ask for sprout bundles mention the quick way: a plant fiber with a coconut or anything else from the beach.
+- A fish trap that's already baited no longer takes another bait. Walk up to one to see whether it's baited.
+- Hover over a crop to see what it is, how many days until it's ripe, whether it's been watered today and which seasons it grows in.
+- You can fuel a steam drill yourself: hold coal or wood and press F, or open it and shift-click fuel in from your bag. Before, only arms could fuel one.
+- The Harvest Crane can be turned with R, before or after you place it, to face any of four ways. It still picks all around it.
+- Hover over a placed scarecrow, sprinkler, harvest crane, seed sower, gleaner, power pole or hive to see what it reaches. The scarecrow's area is shown as the circle it really covers.
+- The pickaxe swing facing up or down no longer looks broken, for every look.
+- The ladders in the mine are redrawn: the way down is a dark shaft with the ladder going into it, and the way up is a ladder you can see climbing out.
+- Later research costs less and climbs more evenly: the last era's topics ask 35 to 50 of each bundle instead of 50 to 80, and a few topics now cost more or less to match how much they change your farm.
 
 ## 2.0 beta (October 2026)
 
