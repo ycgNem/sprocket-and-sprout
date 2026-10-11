@@ -130,6 +130,7 @@ export const PATCH_NOTES: PatchNote[] = [
           `Kelp turns up a bit more often, on the beach and in fish traps set in the sea, and its tooltip says where to look.`,
           `Beach palms grow one or two coconuts at a time.`,
           `You can pull up a crop by swinging your axe or pickaxe at it twice. A ripe one drops its harvest.`,
+          `Crops planted right against the greenhouse's back wall can be harvested.`,
         ],
       },
     ],
