@@ -1002,3 +1002,23 @@ recommendations are the decisions.
     hand; hops, a trellis crop, is the one you'd plant there. `buildingFaced` (src/sim/near.ts, used
     by F and its key bubble) gives a bed along the wall with a crop or a structure on it to the bed;
     an empty bed by the door still says why the roof matters. `tests/interact.test.ts`.
+152. **The music is three composed songs a player can skip through (the owner after 2.0: "redo the
+    music, and add 3 tracks people can skip through").** The old music improvised one note at a time
+    from a scale picked by the season and the hour, so there was never a tune to remember.
+    src/engine/audio/songs.ts writes three songs in a small notation (a chord a bar, the lead as
+    pitch:steps, rhythms for the comp, the arpeggio and the drums, the bass by chord degree, swing
+    and accents) that compiles to timed events: Clockwork Morning (F major, 100 bpm, bells over a
+    marimba and a plucked arpeggio, a flute in the middle, 96 s), Sprout Lane Waltz (G major in 3/4,
+    a flute tune, 82 s) and Lamplight (a slow swung song for a whistle and an electric piano, 98 s).
+    src/engine/audio/music.ts plays them: each instrument is a struck or held oscillator with its own
+    harmonics (FM for the electric piano, filtered noise for most drums) on a mixer strip with pan,
+    reverb (a generated hall) and an echo set to the song's tempo. A song plays twice, then the next
+    starts after two seconds. N (a new rebindable action, "Next music track") or Next under the
+    Music slider in Settings fades the song out and starts the next half a second later; the title
+    screen shows "Now playing" for 5 s and a skip in the game says it in a toast. Underground the
+    music is low-passed and a little quieter, at home and outdoors after 9 pm a little softer; the
+    seasons and festivals no longer change it. Levels from offline renders: about 0.08 RMS, peaks
+    under 0.7, no compressor; MUSIC_LEVEL 0.24 puts that near 0.02 at full music volume, a little
+    above the old music and under the sound effects, and a song renders at 6-8x real time, so it
+    costs little. Settings saved before this keep their binds: an action new to the save gets its
+    default keys only when no saved action already uses them. `tests/songs.test.ts`.

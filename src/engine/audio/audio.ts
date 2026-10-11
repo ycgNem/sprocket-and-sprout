@@ -1,11 +1,17 @@
-// Procedural audio: synthesized SFX, ambient beds, and a generative music loop
-// whose key, scale, tempo and instrumentation follow the season and time of day.
+// Procedural audio: synthesized SFX, ambient beds, and the music (three composed songs played in
+// turn, src/engine/audio/songs.ts and music.ts), darker underground and softer indoors.
 import type { Game } from '../../sim/Game';
 import { playSfxr } from './sfxr';
+import { Music } from './music';
+import { SONGS } from './songs';
 
 interface Vol { master: number; music: number; sfx: number }
 
 type Env = { a: number; d: number; s?: number; r?: number };
+
+/** the music bus's level at full music volume: the songs mix to about 0.08 RMS, so this puts them
+ * near 0.02, a little above the old improvised music (0.009) and under the sound effects */
+const MUSIC_LEVEL = 0.24;
 
 export class Audio {
   ctx: AudioContext | null = null;
@@ -13,14 +19,17 @@ export class Audio {
   musicBus!: GainNode;
   sfxBus!: GainNode;
   ambBus!: GainNode;
-  delay!: DelayNode;
-  delayFb!: GainNode;
   noiseBuf!: AudioBuffer;
+  music: Music | null = null;
+  /** the song to start with once sound is allowed (a skip before the first click lands here) */
+  private firstSong = 0;
+  /** when the current song started (performance.now()), for "Now playing" */
+  songAt = -1e9;
+  /** told each song's title as it starts */
+  onSong?: (title: string, index: number) => void;
+  private room = '';
   vol: Vol;
   scene: 'title' | 'farm' | 'mine' | 'festival' | 'night' | 'home' = 'title';
-  private nextNote = 0;
-  private step = 0;
-  private chord = 0;
   private rain: { src: AudioBufferSourceNode; g: GainNode; f: BiquadFilterNode } | null = null;
   private wind: { src: AudioBufferSourceNode; g: GainNode; f: BiquadFilterNode } | null = null;
   private hum: { o: OscillatorNode; o2: OscillatorNode; g: GainNode } | null = null;
@@ -53,27 +62,21 @@ export class Audio {
       this.musicBus.connect(this.master);
       this.sfxBus.connect(this.master);
       this.ambBus.connect(this.master);
-      // a soft echo for the music
-      this.delay = ctx.createDelay(2);
-      this.delay.delayTime.value = 0.42;
-      this.delayFb = ctx.createGain();
-      this.delayFb.gain.value = 0.32;
-      const lp = ctx.createBiquadFilter();
-      lp.type = 'lowpass';
-      lp.frequency.value = 2200;
-      this.delay.connect(lp);
-      lp.connect(this.delayFb);
-      this.delayFb.connect(this.delay);
-      lp.connect(this.musicBus);
       // white noise buffer
       const len = ctx.sampleRate * 2;
       this.noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
       const data = this.noiseBuf.getChannelData(0);
       for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
       this.applyVol();
-      this.nextNote = ctx.currentTime + 0.3;
+      this.music = new Music(ctx, this.musicBus);
+      this.music.onSong = (title, i) => {
+        this.songAt = performance.now();
+        this.onSong?.(title, i);
+      };
+      this.music.start(this.firstSong, ctx.currentTime + 0.3);
     } catch {
       this.ctx = null;
+      this.music = null;
     }
   }
 
@@ -86,13 +89,32 @@ export class Audio {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     this.master.gain.setTargetAtTime(this.muted ? 0 : this.vol.master, t, 0.05);
-    this.musicBus.gain.setTargetAtTime(this.vol.music * 0.5, t, 0.05);
+    this.musicBus.gain.setTargetAtTime(this.vol.music * MUSIC_LEVEL, t, 0.05);
     this.sfxBus.gain.setTargetAtTime(this.vol.sfx * 0.7, t, 0.05);
     this.ambBus.gain.setTargetAtTime(this.vol.sfx * 0.5, t, 0.05);
   }
 
   setScene(s: Audio['scene']) {
     this.scene = s;
+  }
+
+  /** the song playing (or the one that will, before the first click) */
+  get trackIndex(): number {
+    return this.music?.index ?? this.firstSong;
+  }
+
+  get trackTitle(): string {
+    return SONGS[this.trackIndex].title;
+  }
+
+  /** Skip to the next song. Returns its title. */
+  nextTrack(): string {
+    if (this.music && this.ctx) this.music.next(this.ctx.currentTime);
+    else {
+      this.firstSong = (this.firstSong + 1) % SONGS.length;
+      this.songAt = performance.now();
+    }
+    return this.trackTitle;
   }
 
   // ---------------- primitives ----------------
@@ -241,117 +263,6 @@ export class Audio {
     this.pm = 1;
   }
 
-  // ---------------- music ----------------
-  private musicParams(g: Game | null) {
-    const season = g ? g.time.season : 0;
-    const hour = g ? g.time.min / 60 : 18;
-    const night = hour >= 20 || hour < 6;
-    const evening = hour >= 17 && !night;
-    // scales relative to root (semitones)
-    const SCALES: Record<string, number[]> = {
-      majpent: [0, 2, 4, 7, 9], lydian: [0, 2, 4, 6, 7, 9, 11], dorian: [0, 2, 3, 5, 7, 9, 10], minpent: [0, 3, 5, 7, 10], mixo: [0, 2, 4, 5, 7, 9, 10],
-    };
-    let root = [60, 55, 57, 62][season];
-    let scale = [SCALES.majpent, SCALES.lydian, SCALES.dorian, SCALES.minpent][season];
-    let tempo = [92, 100, 84, 70][season];
-    let density = [0.55, 0.62, 0.5, 0.38][season];
-    let wave: OscillatorType = season === 3 ? 'sine' : 'triangle';
-    if (evening) { tempo *= 0.9; density *= 0.8; }
-    if (night) { tempo *= 0.75; density *= 0.45; root -= 12; wave = 'sine'; }
-    if (this.scene === 'mine') { root = 45; scale = SCALES.minpent; tempo = 60; density = 0.3; wave = 'sine'; }
-    if (this.scene === 'festival') { root = 62; scale = SCALES.mixo; tempo = 118; density = 0.8; wave = 'square'; }
-    if (this.scene === 'home') { tempo *= 0.8; density *= 0.6; wave = 'sine'; root += 12; }
-    if (this.scene === 'title') { root = 57; scale = SCALES.majpent; tempo = 80; density = 0.5; }
-    // chord progressions (scale degrees)
-    const prog = season === 2 || this.scene === 'mine' ? [0, 5, 3, 4] : season === 3 ? [0, 3, 5, 4] : [0, 3, 4, 2];
-    return { root, scale, tempo, density, wave, prog, night };
-  }
-
-  private mtof(m: number) {
-    return 440 * Math.pow(2, (m - 69) / 12);
-  }
-
-  private note(m: number, dur: number, vol: number, wave: OscillatorType, t0: number, echo = true) {
-    const ctx = this.ctx!;
-    const t = t0;
-    const o = ctx.createOscillator();
-    const o2 = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = wave;
-    o2.type = 'sine';
-    o.frequency.value = this.mtof(m);
-    o2.frequency.value = this.mtof(m) * 2.001;
-    const g2 = ctx.createGain();
-    g2.gain.value = 0.15;
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(vol, t + 0.015);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g);
-    o2.connect(g2);
-    g2.connect(g);
-    g.connect(this.musicBus);
-    if (echo) g.connect(this.delay);
-    o.start(t);
-    o2.start(t);
-    o.stop(t + dur + 0.05);
-    o2.stop(t + dur + 0.05);
-  }
-
-  private pad(ms: number[], dur: number, vol: number, t0: number) {
-    const ctx = this.ctx!;
-    for (const m of ms) {
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      const f = ctx.createBiquadFilter();
-      f.type = 'lowpass';
-      f.frequency.value = 900;
-      o.type = 'sawtooth';
-      o.frequency.value = this.mtof(m);
-      o.detune.value = (Math.random() - 0.5) * 12;
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.linearRampToValueAtTime(vol, t0 + dur * 0.35);
-      g.gain.linearRampToValueAtTime(0.0001, t0 + dur);
-      o.connect(f);
-      f.connect(g);
-      g.connect(this.musicBus);
-      o.start(t0);
-      o.stop(t0 + dur + 0.05);
-    }
-  }
-
-  private scheduleMusic(g: Game | null) {
-    const ctx = this.ctx!;
-    const P = this.musicParams(g);
-    const beat = 60 / P.tempo / 2; // eighth notes
-    const deg = (d: number) => {
-      const n = P.scale.length;
-      const o = Math.floor(d / n);
-      return P.root + P.scale[((d % n) + n) % n] + o * 12;
-    };
-    while (this.nextNote < ctx.currentTime + 0.25) {
-      const t = this.nextNote;
-      const bar = Math.floor(this.step / 8);
-      if (this.step % 16 === 0) {
-        this.chord = P.prog[bar / 2 % P.prog.length | 0];
-        const c = this.chord;
-        this.pad([deg(c) - 12, deg(c + 2) - 12, deg(c + 4) - 12], beat * 16, P.night ? 0.018 : 0.012, t);
-        this.note(deg(c) - 24, beat * 6, 0.07, 'sine', t, false);
-      }
-      if (this.step % 8 === 4 && Math.random() < 0.6) this.note(deg(this.chord) - 24 + 7, beat * 3, 0.04, 'sine', t, false);
-      // melody
-      if (Math.random() < P.density) {
-        const offs = [0, 2, 4, 1, 3, 5, 7];
-        const d = this.chord + offs[Math.floor(Math.random() * (this.step % 4 === 0 ? 3 : offs.length))];
-        const len = beat * (Math.random() < 0.3 ? 3 : 1.6);
-        this.note(deg(d) + (Math.random() < 0.15 ? 12 : 0), len, P.night ? 0.035 : 0.05, P.wave, t);
-      }
-      // festival percussion
-      if (this.scene === 'festival' && this.step % 2 === 0) this.noise(0.05, this.step % 4 === 0 ? 0.08 : 0.04, 'highpass', 6000, 1, t - ctx.currentTime, 0, this.musicBus);
-      this.nextNote += beat * (this.step % 2 === 0 ? 1.04 : 0.96); // a little swing
-      this.step++;
-    }
-  }
-
   // ---------------- ambience ----------------
   private loopNoise(filter: BiquadFilterType, freq: number): { src: AudioBufferSourceNode; g: GainNode; f: BiquadFilterNode } {
     const ctx = this.ctx!;
@@ -370,10 +281,21 @@ export class Audio {
     return { src, g, f };
   }
 
+  /** underground the music is dark and low, indoors and late at night a little softer */
+  private setRoom(g: Game | null) {
+    const night = !!g && g.player.where === 'world' && g.time.min >= 21 * 60;
+    const [cutoff, level] = this.scene === 'mine' ? [1300, 0.8] : this.scene === 'home' ? [3500, 0.85] : night ? [6000, 0.85] : [20000, 1];
+    const key = cutoff + ':' + level;
+    if (key === this.room || !this.music || !this.ctx) return;
+    this.room = key;
+    this.music.setRoom(cutoff, level, this.ctx.currentTime);
+  }
+
   update(dt: number, g: Game | null, nearbyMachines = 0) {
     const ctx = this.ctx;
     if (!ctx || ctx.state !== 'running') return;
-    this.scheduleMusic(g);
+    this.music?.update(ctx.currentTime);
+    this.setRoom(g);
     if (!g) return;
     const t = ctx.currentTime;
     const outdoor = g.player.where === 'world';

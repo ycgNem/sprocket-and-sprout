@@ -37,7 +37,11 @@ export function loadSettings(): Settings {
     if (!raw) return d;
     const s = JSON.parse(raw);
     const out = { ...d, ...s };
-    out.binds = { ...d.binds, ...(s.binds ?? {}) };
+    const saved: Record<string, string[]> = s.binds ?? {};
+    out.binds = { ...d.binds, ...saved };
+    // an action added since these settings were saved keeps its default key only if nothing took it
+    const taken = new Set(Object.values(saved).flat());
+    for (const a of Object.keys(d.binds) as (keyof typeof d.binds)[]) if (!saved[a]) out.binds[a] = d.binds[a].filter((k) => !taken.has(k));
     return out;
   } catch {
     return d;

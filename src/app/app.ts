@@ -206,6 +206,7 @@ class TitleScreen implements Screen {
     const ui = app.ui;
     ui.begin(r.ctx, app.input, app.uiScale, dt);
     ui.fill(0, 0, ui.w, ui.h, C.ink, 0.25);
+    if (app.input.wasPressed('music')) app.audio.nextTrack();
     if (this.mode === 'main') this.mainMenu();
     else if (this.mode === 'load') this.loadMenu();
     else if (this.mode === 'settings') {
@@ -218,6 +219,8 @@ class TitleScreen implements Screen {
       this.notesT += dt;
     }
     ui.text(`v${showVersion}  -  pixel art made with PixelLab, sound made procedurally`, 4, ui.h - 10, C.cream, { shadow: C.ink });
+    // a song's name for a few seconds as it starts
+    if (performance.now() - app.audio.songAt < 5000) ui.text(`Now playing: ${app.audio.trackTitle}`, ui.w - 4, ui.h - 22, C.cream, { shadow: C.ink, align: 'right' });
     ui.end();
     app.audio.update(dt, null);
   }

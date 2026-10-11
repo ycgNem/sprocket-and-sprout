@@ -231,8 +231,8 @@ Fair's day, or a Brass Locket.
   and tilled-soil transitions, seasonal recolors, scattered decals), culling and y-sorting.
 - An art pipeline (`scripts/*-import.mjs`) that turns PixelLab output into palette-exact sheets;
   every sprite is looked up by name (2.0 retired the old procedural art).
-- Procedural Web Audio: about 50 synthesized SFX, ambient beds, and a generative music loop
-  whose scale, tempo and instruments follow the season and the hour.
+- Procedural Web Audio: about 50 synthesized SFX, ambient beds, and three composed songs written
+  in a small notation and played by a synthesizer (N skips to the next one).
 - Autosave every morning, 6 manual slots, versioned save migrations, and JSON export/import.
 
 See `PLAN.md` for the architecture, `DECISIONS.md` for design decisions and

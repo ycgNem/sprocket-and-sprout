@@ -243,7 +243,9 @@ crock, and the bot buys B6's crock before its seeds):
 ```
 src/engine/   loop (fixed 60 Hz sim, separate render), input (rebindable actions, keyLabel;
               DEBUG_KEYS / SHOWN_ACTIONS keep the debug panel to dev builds and ?debug), rng,
-              audio/audio.ts (procedural SFX + music), audio/sfxr.ts (jsfxr bank: base58 sounds
+              audio/audio.ts (procedural SFX, ambience, the music bus), audio/songs.ts (the three
+              songs in a small notation, compiled to timed events), audio/music.ts (the synthesizer
+              that plays them in turn; N skips), audio/sfxr.ts (jsfxr bank: base58 sounds
               from sfxr.me; ids in SFXR_BANK override the synthesized version)
 src/data/     typed content: items, crops, trees, fish, creatures, structures, recipes, research,
               npcs (14 villagers; Roxy is last), shops (10 + Mags' cart; airfreight = Roxy's),

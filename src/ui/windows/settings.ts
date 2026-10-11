@@ -3,6 +3,7 @@ import { C } from '../../data/palette';
 import { ACTIONS, ACTION_LABELS, DEFAULT_BINDS, SHOWN_ACTIONS, keyLabel } from '../../engine/input';
 import type { UI } from '../ui';
 import type { App } from '../../app/app';
+import { SONGS } from '../../engine/audio/songs';
 
 let tab: 'general' | 'keys' = 'general';
 let rebinding: string | null = null;
@@ -31,7 +32,7 @@ function toggle(ui: UI, id: string, x: number, y: number, label: string, v: bool
 /** Returns true when the panel should close. */
 export function settingsPanel(ui: UI, app: App, onClose: () => void): boolean {
   const s = app.settings;
-  const w = 320, h = 268;
+  const w = 320, h = 284;
   const x = Math.floor((ui.w - w) / 2), y = Math.floor((ui.h - h) / 2);
   ui.panel(x, y, w, h);
   ui.text('Settings', x + w / 2, y + 10, C.walnut, { align: 'center', scale: 2 });
@@ -52,6 +53,12 @@ export function settingsPanel(ui: UI, app: App, onClose: () => void): boolean {
     };
     row('Master volume', s.master, (n) => (s.master = n));
     row('Music', s.music, (n) => (s.music = n));
+    // the song playing, and the next (its key works anywhere)
+    ui.text('Song', x + 16, yy, C.ink);
+    ui.text(`${app.audio.trackTitle} (${app.audio.trackIndex + 1}/${SONGS.length})`, x + 120, yy, C.walnut);
+    const nk = s.binds.music[0];
+    if (ui.button('mnext', x + w - 64, yy - 3, 50, 13, 'Next', { tip: nk ? `Skip to the next song. ${keyLabel(nk)} does it anywhere.` : 'Skip to the next song.' })) app.audio.nextTrack();
+    yy += 16;
     row('Sound effects', s.sfx, (n) => (s.sfx = n));
     yy += 4;
     ui.text('UI scale', x + 16, yy + 3, C.ink);

@@ -810,6 +810,8 @@ export class PlayScreen implements Screen {
     // typing into a text field (e.g. naming your pet) must not trigger shortcuts
     if (ui.focus) return;
     if (DEBUG_KEYS && input.wasPressed('debug')) this.debug = !this.debug;
+    // the next song, from anywhere (the owner: "add 3 tracks people can skip through")
+    if (input.wasPressed('music')) this.toast('Now playing: ' + this.app.audio.nextTrack(), undefined, C.lavender);
     if (this.win && WINDOWS[this.win.id]?.modal !== false) {
       // window shortcuts toggle closed
       const map: Record<string, string> = { inventory: 'menu', craft: 'menu', research: 'research', stats: 'stats', journal: 'journal', map: 'map', achievements: 'achievements' };
