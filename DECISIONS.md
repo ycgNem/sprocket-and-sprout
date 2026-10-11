@@ -823,3 +823,23 @@ recommendations are the decisions.
     becomes `sns-v2`, so 1.x's cached assets go. 1.x farms load with nothing lost and get Housewarming
     (`QuestDef.small`: a one-step gift takes no story slot). Phases 6 (the art pass, after the PixelLab
     reset on Nov 9) and 7 (the 2.0.0 review and release) follow in a new session.
+136. **Phase 6, round 1 (the owner: "get started on phase 6 and adding new sprites", budget-minded).**
+    Four art agents in parallel in the main tree, each in its own folders: the Deepworks machines
+    (`art/deep`, derelict and restored, 4-frame working loops; `deepFrames` follows the sheet), the
+    town works (`art/town`: waterwheel, fountain, lamps, the pump house's rocking beam engine, tram
+    cart and bin; the mill and rails baked from the old generator), the last procedural names
+    (thresher, rapeseed, 11 bag icons, the `fx:state:*` glyphs: coverage 100%) and the ground seams
+    (`art/terrain/tools/seams.mjs`, 165 -> 0, by script). 74 generations of 388 (art drawn by script
+    wherever it looked as good); STYLE.md gains "Machines". The procedural generators still stand
+    (`?art=old`); deleting them and the remaining groups (re-roled villagers, Tinker's Yard, the
+    gantry's wheel frames, chamber shadows) are round 2.
+137. **The opening's arm steps (the owner's playtest: "you have to change the layout and pick up the
+    clockwork arm"; "restore the gleaner's arm: it's already restored and not checked").** A step
+    about an arm is done by what the layout does, not by a count or a tile: B3's first step is the new
+    objective kind `arm` (an arm taking from a chest into the crock), so an arm placed elsewhere
+    earlier no longer ticks it and leaves "watch the arm feed the crock" with nothing feeding it. The
+    tile turns an arm to face the crock from minute 0; one facing away gets a note ("R over the arm
+    turns it"); a spare comes if every arm is placed elsewhere; until B3 is done an arm fills the
+    keeper's crock as far as hands can (`st.handfeed`), so it never waits minutes behind a hand load.
+    A `restore` step at a tile counts a piece restored and then moved. The fence ghosts join (#134's
+    follow-up). The bot builds its own crock line after B6 (seed 99's line had stood in for B6's).

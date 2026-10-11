@@ -348,6 +348,17 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
+**Phase 6 status (2026-10-10, round 1 done, DECISIONS #136-#137):** the Deepworks machines, the town
+works, the thresher, rapeseed, the 11 missing icons and the state glyphs are imported (coverage
+6812/6812); the seam audit reads 0. PixelLab: 314 generations left plus the $2.00 credit (resets Nov
+9). Still to do in Phase 6: delete the procedural generators in `src/render/art/` and `?art=old`
+(first make `e2e/coverage.mjs` list `deep:`, `town:` and `o:52`; the deep agent's
+`art/deep/tools/coverage.mjs` checks them for now), a ground shadow under chamber machines
+(`renderer.ts`), the field gantry's turning wheels (`src/render/fieldworks.ts` asks for no frames
+yet), the re-roled villagers and portraits, the Tinker's Yard wrecks and Haul stalls, then
+qa-screens, the sweep at 1280x720 and 1366x620, and the owner's screenshot test. The opening's arm
+steps were reworked from the owner's playtest (#137).
+
 Phases 6 and 7 of ROADMAP.md (2.0 "The Works"), in a new session. The owner asked for both. Phase 6
 spends PixelLab generations (about 480 planned; the balance was about 388 on October 10, and the
 budget resets on November 9), so check `get_balance` first and plan the groups to fit what's there.
