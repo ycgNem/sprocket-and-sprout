@@ -1366,6 +1366,11 @@ chest and a crock placed indoors, fed, saved and reloaded), the checks, the swee
 Phase 3+4 confirmation pass, `928a07c`..`72ff71b`).
 
 ### Phase 6 — The art direction pass (3-4 sessions, after Nov 9)
+- **Round 1 done (October 10-11, DECISIONS #136):** the Deepworks machines, the town works, the
+  last procedural names (coverage 100%), the seam audit at 0, STYLE.md "Machines"; 74 generations.
+  Round 2: delete the generators and `?art=old` (after `coverage.mjs` learns `deep:`/`town:`/`o:52`),
+  chamber shadows, the gantry's wheel frames, the re-roled villagers, the Tinker's Yard and Haul
+  stalls, the screenshot test. The arms (Phase 5, by script) and the bridges (#134) are already done.
 - Section 9, one `art-director` agent per group in parallel (the Phase 2 pattern from 1.1,
   `art/README.md`); `STYLE.md` "Machines" section; the seam audit at 0; `coverage.mjs` 100%;
   delete `src/render/art/` generators and `?art=old`.

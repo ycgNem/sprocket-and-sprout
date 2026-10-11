@@ -4,22 +4,22 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 10, 2026, night): 2.0 beta is released.** Phases 1-5 of 2.0 "The Works" are
-built, `main` is fast-forwarded to `works` and pushed (the website runs 2.0 beta), and a GitHub
-pre-release `v2.0.0-beta` carries the patch notes and the Windows installers (1.1.1 stays the
-"Latest" release). Phase 5 (people, events, HQ: DECISIONS #100-#114), the critic's full review's
-fixes (#115-#123), the owner's playtest (#124-#129), the critic's confirmation pass (#130, #132,
-#133), the owner's last notes (hand loads count 150 of an input, the pets from "Housewarming": #131,
-#132), the bridges and fences pass (#134) and the release (#135) are all in. The patch notes are
-the title screen's "What's new" (`src/data/patchnotes.ts`) and PATCHNOTES.md.
-**Where it stopped:** released; nothing is pending. Next is Phases 6 and 7 in a new session
-("What's next" below). `main` is the release commit `ecf9eb0` (tag `v2.0.0-beta`); `works` is ahead
-only by docs and two release helpers (`node scripts/casecheck.mjs`: import paths match file case for
-the Linux deploy; `node scripts/release-notes.mjs "<version>"`: a PATCHNOTES.md section as a release
-body). Keep working on `works`; merge to `main` (fast-forward, in `../sns-p0check`) only when the
-owner says ship. Left on disk, safe to delete: `../sns-review` (the critic's build copy) and the
-merged worktrees `../sns-crops`, `../sns-deep`, `../sns-town` (remove their node_modules junction
-first).
+**Status (October 11, 2026): 2.0 beta is live, with a beta update; Phase 6 round 1 is done.** Phases
+1-5 of 2.0 "The Works" shipped as the 2.0 beta (GitHub pre-release `v2.0.0-beta`, DECISIONS #135;
+1.1.1 stays the "Latest" release). Since then, on `works` and pushed live (DECISIONS #136-#138):
+Phase 6's first art round (the Deepworks machines, the town works, the thresher, rapeseed, the last
+icons and the state glyphs: coverage 100%; the ground's seam audit at 0), the opening's arm steps
+reworked from the owner's playtest (the objective kind `arm`), item names on hover in the Orders
+board, a Statistics page in the pause menu, and the lost-tool fix (a finished upgrade that didn't
+fit the bag vanished; it now comes by post, and a farm missing a tool gets it back once on load).
+The patch notes have a "Beta update" section inside 2.0 beta's entry; the version is still
+`2.0.0-beta` (the owner: "don't advertise it as a new version").
+**Where it stopped:** nothing is pending. `main` = `d9e25b9` (deployed); `works` is ahead only by
+the wrap-up docs, and `works` is now on origin too. Next: Phase 6 round 2, then Phase 7 ("What's
+next" has the prompt). Keep working on `works`; merge to `main` (fast-forward, in `../sns-p0check`)
+and push only when the owner says ship. Left on disk, safe to delete: `../sns-review` (the critic's
+build copy) and the merged worktrees `../sns-crops`, `../sns-deep`, `../sns-town` (remove their
+node_modules junction first).
 The owner's rules since Phase 1: hand farming stays, but the factory is the face (ROADMAP.md 3.2,
 DECISIONS #68); one path for every player, no "pick a direction" card (#72); the Preserves Jar is
 the Preserving Crock (#76). ROADMAP.md is the 2.0 plan; ROADMAP-1.1.md the finished 1.1 overhaul.
@@ -348,47 +348,46 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
-**Phase 6 status (2026-10-10, round 1 done, DECISIONS #136-#137):** the Deepworks machines, the town
-works, the thresher, rapeseed, the 11 missing icons and the state glyphs are imported (coverage
-6812/6812); the seam audit reads 0. PixelLab: 314 generations left plus the $2.00 credit (resets Nov
-9). Still to do in Phase 6: delete the procedural generators in `src/render/art/` and `?art=old`
-(first make `e2e/coverage.mjs` list `deep:`, `town:` and `o:52`; the deep agent's
-`art/deep/tools/coverage.mjs` checks them for now), a ground shadow under chamber machines
-(`renderer.ts`), the field gantry's turning wheels (`src/render/fieldworks.ts` asks for no frames
-yet), the re-roled villagers and portraits, the Tinker's Yard wrecks and Haul stalls, then
-qa-screens, the sweep at 1280x720 and 1366x620, and the owner's screenshot test. The opening's arm
-steps were reworked from the owner's playtest (#137).
+**Phase 6 status (round 1 done October 10-11, DECISIONS #136):** the Deepworks machines (`art/deep`),
+the town works (`art/town`), the thresher, rapeseed, the 11 missing icons and the `fx:state:*`
+glyphs are imported (`node e2e/coverage.mjs`: 6812/6812); `node e2e/seams.mjs` reads 0. 74
+generations were spent; the balance was 314 plus the $2.00 credit on October 11 (2,000 more on
+November 9). The owner is budget-minded: spend only what's needed, draw by script where it looks as
+good (the agents did: half the new art cost 0 generations), Sonnet agents for mechanical work.
 
-Phases 6 and 7 of ROADMAP.md (2.0 "The Works"), in a new session. The owner asked for both. Phase 6
-spends PixelLab generations (about 480 planned; the balance was about 388 on October 10, and the
-budget resets on November 9), so check `get_balance` first and plan the groups to fit what's there.
-The bridges, fences and the hamster's cage were hand-pixeled by script for 0 generations, which is
-the fallback for small pieces. A prompt to paste:
+Round 1's pattern worked: one art-director agent per group in the main tree (no worktrees), each
+writing only in its own `art/<group>/` and `src/art/<group>.*` (art/README.md "Boundaries"), with a
+generation cap in its prompt and a report under 250 words; the dev server on 5173 is shared.
 
-> Read HANDOFF.md, DECISIONS.md #100-#135 (Phase 5, the owner's playtest, the 2.0 beta), then
-> ROADMAP.md section 9, Phases 6 and 7, and STYLE.md. 2.0 beta is live; work on `works`.
-> Phase 6, the art direction pass: check the PixelLab balance, then one art-director agent per
-> group in parallel, each in its own worktree outside the repo (the Phase 2 pattern from 1.1,
-> `art/README.md`; remove a worktree's node_modules junction before `git worktree remove`);
-> STYLE.md's "Machines" section (every machine has a readable moving part, idle and working frames,
-> and a marked output side); the seam audit (`node e2e/seams.mjs`) at 0; `node e2e/coverage.mjs` at
-> 100%, then delete the procedural generators in `src/render/art/` and `?art=old`. Run qa-screens
-> after each group. Done when the screenshot test (ROADMAP.md 3) passes by the owner's eye, the
-> sweep has 0 issues at 1280x720 and 1366x620, and qa-screens finds no regressions.
+A prompt to paste for the next session:
+
+> Read HANDOFF.md (the status, "What's next"), DECISIONS.md #134-#138, then ROADMAP.md section 9 and
+> Phases 6-7, STYLE.md ("Machines") and art/README.md. 2.0 beta is live; work on `works`. Check
+> the PixelLab balance first and keep spending to what's needed (art by script where it looks as
+> good). Phase 6 round 2: (1) make `e2e/coverage.mjs` list `deep:`, `town:` and `o:52`
+> (`art/deep/tools/coverage.mjs` has the names), find every sprite name still answered by
+> `src/render/art/` during a sweep (instrument the atlas), import or bake what's left, then delete
+> the procedural generators and `?art=old`; (2) a ground shadow under the Deepworks chamber machines
+> (`renderer.ts`) and the field gantry's turning wheels (`src/render/fieldworks.ts` must ask for
+> frames; the art agent can then draw them); (3) as the budget allows, one art-director per group:
+> the re-roled villagers' outfits and portraits, the Tinker's Yard wrecks, the Harvest Haul stalls,
+> the Fair's test bed; (4) qa-screens after each group, the sweep at 1280x720 and 1366x620 with 0
+> issues, and the owner's screenshot test (ROADMAP.md 3).
 > Phase 7, review and release 2.0: `/code-review` (high) on `v1.1.1..works`, the indie-critic's
-> full review, fix the Criticals; README, HANDOFF, PROGRESS, DECISIONS and the patch notes
-> (`src/data/patchnotes.ts` + PATCHNOTES.md: a "2.0" entry over "2.0 beta") updated; version
-> 2.0.0; merge to `main` and push only when the owner says ship; installers; `gh release create
-> v2.0.0`.
+> full review, fix the Criticals; README, HANDOFF, PROGRESS, DECISIONS and the patch notes (a "2.0"
+> entry over "2.0 beta" in `src/data/patchnotes.ts` + PATCHNOTES.md, taking in the "Beta update"
+> section); version 2.0.0; merge to `main` and push only when the owner says ship; installers;
+> `gh release create v2.0.0`.
 
 Left over for Phase 6 or 7:
 - The pace bot still stops at the Town Mill (k11 on is covered by `tests/eras.test.ts`).
 - Fishing's and combat's professions keep Stardew-like effects.
 - The drafting library opens only at the table (the critic, Phase 5).
-- The blueprint and placement ghosts draw a fence's east-west sprite on a north-south line (#134).
-- `art/icons/items.tsv` is stale by 15 post-1.1 items, and 11 of them have no icon pick (canvas,
-  lubricant, grain, straw, starch_paste, pigment, spirit, rapeseed and its seed, thresher, tram_bin):
-  their bag icons are procedural, so `coverage.mjs`'s icon family reads 541/552.
+- `art/factory/arms/ref/batch1/` (64 PixelLab arm concepts from before the arms were hand-pixeled,
+  Phase 5) is reference only; nothing imports it.
+- Time played (the Statistics page's `play_secs`) only counts from the beta update on.
+- The lost-tool return (#138) gives the best tier among the player's other tools: the game never
+  recorded which upgrade was paid for. A player who paid for more can send an exported save.
 
 Owner rules to keep in mind (all in DECISIONS.md): cut old systems freely, but hand farming
 (till, plant, water, harvest) stays (#61); the factory must be apparent and un-Stardew-like at a
@@ -401,6 +400,19 @@ are one game minute.
 The "deferred critic list" below is now covered by ROADMAP.md (crop numbers 7.1, re-roles 7.6,
 the Exhibition 7.7, Tock Phase 5, the Post Tube is dropped in favour of consignment 7.4,
 crafting labels Phase 2, the cut list D3-D5).
+
+Patterns from the beta update (DECISIONS #137-#138):
+- A quest step about a layout checks what the machines do, not a tile or a count: the objective kind
+  `arm` (`{ t: 'arm', from?, to? }`, ids or kinds; `armBetween` in quests.ts, inline so quests.ts
+  imports no system). A `restore` step at a tile also counts a piece restored and then moved.
+- The Keeper's Line's guide can write a line under its mark: set `this.guideNote` (`dy` = tiles down)
+  in the guide switch in `src/app/play.ts`; `armSlots()` snaps and turns a held arm onto a step's tile.
+- Real time played is the counter `play_secs` (the play screen counts it); the pause menu's
+  Statistics page (`src/ui/windows/statistics.ts`) reads `g.counters` and `g.earned`.
+- A tool from Bram that doesn't fit the bag goes by post (`postTool`, economy.ts); a system's
+  `afterLoad(g)` runs after a save loads (once-per-farm fixes take a flag, like `tools_found`).
+- Order lines name their item on hover (`drawLines` in `src/ui/windows/orders.ts` returns true when a
+  line is hovered, so the row's own tip steps aside).
 
 Patterns from 1.2 Phase 5 (people, the Fair, Workshop HQ, the owner's playtest):
 - A second entity store, `g.houseEnts` (ids from `HOUSE_IDS`, 1,000,000): `storeOf(g, e)` and

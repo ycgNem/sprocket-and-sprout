@@ -843,3 +843,14 @@ recommendations are the decisions.
     keeper's crock as far as hands can (`st.handfeed`), so it never waits minutes behind a hand load.
     A `restore` step at a tile counts a piece restored and then moved. The fence ghosts join (#134's
     follow-up). The bot builds its own crock line after B6 (seed 99's line had stood in for B6's).
+138. **A beta update, pushed live without a new version (the owner: "commit the changes and push live,
+    add small patch notes but don't advertise it as a new version").** Order lines name their item on
+    hover, with how many are in and its description (the owner: the clocktower's Works tab showed
+    three or more items as icons and counts only). A Statistics page in the pause menu: time played
+    (the new counter `play_secs`), days, coins earned, goods shipped, crops, the works' batches and
+    busiest machine, goods made by hand, and oddities from counters the sim already kept. A finished
+    tool upgrade that didn't fit the bag went to `g.sys.pendingGifts`, which nothing handed out or
+    saved (since 1.x: an owner's friend lost a watering can): Bram now posts it, and once per farm on
+    load a tool kind owned nowhere comes back at the best tier among the player's other tools, at
+    least Copper. The notes are a "Beta update" section inside 2.0 beta's entry, so the version stays
+    `2.0.0-beta` and "What's new" doesn't light up; no GitHub release. `main` = `d9e25b9`, deployed.

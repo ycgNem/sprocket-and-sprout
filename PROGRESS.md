@@ -363,10 +363,27 @@
   errors; the sweep is clean at 1280x720, 1366x620 and 960x600; every relative import matches its
   file's case (the Linux CI).
 
+## 2.0 Phase 6 round 1 and a beta update (October 10-11, 2026)
+- The art direction pass, round 1 (DECISIONS #136): four art-director agents in parallel, each in its
+  own folders, for 74 PixelLab generations. The Deepworks' seven chamber machines, derelict and
+  restored, with working loops, and the gallery doorways; the town works (a turning waterwheel, the
+  fountain's water, lamps, the pump house's rocking beam engine, the tram cart and bin; the mill and
+  rails baked from the old generator); the thresher, rapeseed, 11 bag icons and the state glyphs, so
+  every sprite name the game asks for is imported (6812/6812); the ground's seam audit from 165 to 0
+  by script. STYLE.md gains "Machines".
+- The opening's arm steps from the owner's playtest (#137): "Hands Free" counts an arm taking from
+  the cellar chest into the crock (an arm placed elsewhere no longer ticks it), the tile turns an arm
+  to face the crock, a note says R for one facing away, a spare arm comes if all are placed elsewhere,
+  and the arm fills the crock at once; the gleaner's arm counts once restored even if moved; fence
+  ghosts and previews join.
+- A beta update, live without a version bump (#138): item names on hover in the Orders board, a
+  Statistics page in the pause menu, and tool upgrades never lost to a full bag (and returned once).
+- Checks: 369 tests; the bot plays the Keeper's Line by day 5 on the eight seeds (it now builds its
+  own line after B6); coverage 6812/6812; seams 0; the deploy ran green.
+
 ## Next
-- In a new session, Phases 6 and 7 of ROADMAP.md: the art direction pass (one art-director per group,
-  after the PixelLab budget resets on Nov 9), then the 2.0.0 review and release; see HANDOFF.md
-  "What's next".
+- Phase 6 round 2, then Phase 7 (the 2.0.0 review and release): HANDOFF.md "What's next" has the
+  prompt.
 - Older ideas: more interior variety, farmhouse expansion tiers; more depth for mid-game automation
   goals and late-game megaprojects.
 

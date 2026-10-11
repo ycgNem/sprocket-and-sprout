@@ -11,6 +11,8 @@ import can be rerun. Rules: `STYLE.md`. Plan: `ROADMAP.md`.
 | `airship/` | Roxy's airship (`bld:airship:<season>:<night>:<frame>`), graded by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/airship.*` |
 | `terrain/` | Wang tilesets, base variants, per-tile classes, decals | `scripts/terrain-import.mjs` | `src/art/terrain.*` |
 | `fences/` | fences, walls, gates and the paddock by neighbour mask (`fence:<kind>:<mask>`), hand-pixeled by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/fences.*` |
+| `deep/` | the Deepworks chamber machines (`deep:<kind>:<restored>:<frame>`) and gallery doorways (`o:52:*`): one PixelLab machine each, every frame derived by `build.mjs`; doorways by `gallery.mjs` | `scripts/sprites-import.mjs` | `src/art/deep.*` |
+| `town/` | the town works (`town:*`, `st:tram_bin:*`): PixelLab pieces plus scripted frames (`tools/*.mjs`); the mill and rails baked from the old generator into `baked/` (`tools/bake.mjs`, needs the dev server) | `scripts/sprites-import.mjs` | `src/art/town.*` |
 | everything else | sprites by name (crops, objects, trees, buildings, machines, icons…) | `scripts/sprites-import.mjs` | `src/art/<group>.*` |
 
 ## How a sheet replaces procedural art
@@ -44,7 +46,8 @@ where the art would be the same.
 
 ## The cheap way to generate many sprites
 
-`create_1_direction_object` with `size` ≤ 42 returns **64 sprites for 10 generations**, and
+`create_1_direction_object` with a small `size` returns **64 sprites for 10 generations** (at `size`
+42 the same batch cost 15 in Phase 6), and
 `item_descriptions` gives each slot its own description, in order (slot 0 = first entry). The
 batch shares one consistent style. So:
 
@@ -81,8 +84,13 @@ and writes PNGs the usual importers take:
 - `node art/icons/hand.mjs && node art/icons/tools/build.mjs && node scripts/sprites-import.mjs
   art/icons/sprites.json`: icons drawn from character grids in `hand.mjs` (`raw/hand/<id>.png`,
   picked in `art/icons/picks.json`; review image `e2e/out/icons-hand.png`). `art/icons/items.tsv`
-  is stale by 15 post-1.1 items, 11 of them with no pick yet (see HANDOFF.md), so regenerate it
-  with `list-items.ts` only together with their picks, or `build.mjs` fails.
+  lists every item (regenerate it with `list-items.ts` together with picks for new items, or
+  `build.mjs` fails); picks.json's `external` list names icons another sheet draws (fieldworks).
+- `node art/terrain/tools/seams.mjs` (a `build.sh` step): lines up where the Wang sets cross each
+  edge, so `node e2e/seams.mjs` reads 0; `seams-diff.mjs` shows what it changed.
+- The thresher (`art/fieldworks/thresher.mjs`, imported by `art/fieldworks/build.mjs`), the state
+  glyphs `fx:state:*` (`art/fx/hand.mjs`), the Deepworks doorways (`art/deep/gallery.mjs`) and the
+  town's waterwheel, pump beam, fountain water, sign, buffer and town-line post (`art/town/tools/`).
 - Tock (`art/creatures/tock.mjs`) and the hamster (`art/creatures/hamster.mjs`; its cage and wheel
   `art/home/hamstercage.mjs`) are hand-pixeled as ASCII parts, every pose sharing one body; the
   PixelLab batches in their `raw/` folders were only the design reference.
