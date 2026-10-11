@@ -133,6 +133,8 @@ export const PATCH_NOTES: PatchNote[] = [
           `Crops planted right against the greenhouse's back wall can be harvested.`,
           `New music: three songs, Clockwork Morning, Sprout Lane Waltz and Lamplight, that take turns. They sound darker in the mine and softer at home and late at night.`,
           `Press N, or Next under the music slider in Settings, to skip to the next song.`,
+          `Quests that ask for sprout bundles mention the quick way: a plant fiber with a coconut or anything else from the beach.`,
+          `A fish trap that's already baited no longer takes another bait. Walk up to one to see whether it's baited.`,
         ],
       },
     ],
