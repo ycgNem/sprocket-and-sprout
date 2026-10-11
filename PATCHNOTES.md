@@ -94,6 +94,10 @@
 - The game remembers how far you zoomed in.
 - New art for the villagers, the festivals, the belts, the crock and the farmhouse.
 
+### Updates
+
+- The Milling step that asks you to keep a mill grinding is clearer: it shows how fast your mill is going and how to pass it, and cornmeal now counts as meal.
+
 ## 2.0 beta (October 2026)
 
 **The Works, first test**

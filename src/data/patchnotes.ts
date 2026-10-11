@@ -122,6 +122,12 @@ export const PATCH_NOTES: PatchNote[] = [
           `New art for the villagers, the festivals, the belts, the crock and the farmhouse.`,
         ],
       },
+      {
+        title: `Updates`,
+        items: [
+          `The Milling step that asks you to keep a mill grinding is clearer: it shows how fast your mill is going and how to pass it, and cornmeal now counts as meal.`,
+        ],
+      },
     ],
   },
   {
