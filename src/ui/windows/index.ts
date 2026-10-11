@@ -18,8 +18,6 @@ import { ICON, ellipsize, textWidth, wrapText } from '../font';
 import { DEBUG_KEYS, keyLabel } from '../../engine/input';
 import { applyResearchMods } from '../../sim/save';
 import { runPerfScene } from '../../app/perf';
-import { getArtMode, setArtMode } from '../../render/atlas';
-import { resetSkin } from '../skin';
 import { drawFx, ladderPitch } from '../../render/juice';
 import { QUEST_BY_ID } from '../../data/goals';
 import { CROP_BY_ID } from '../../data/crops';
@@ -362,11 +360,9 @@ function drawDebug(ui: UI, play: PlayScreen, st: WinState): boolean {
   row(['perf', 'Perf scene', () => runPerfScene(play)], ['tp', 'Warp: town', () => { g.player.x = 133.5; g.player.y = 64.5; g.player.where = 'world'; }]);
   row(['tpq', 'Warp: quarry', () => { g.player.x = 178.5; g.player.y = 40.5; g.player.where = 'world'; }], ['tpf', 'Warp: farm', () => { g.player.x = 49.5; g.player.y = 24.5; g.player.where = 'world'; }]);
   row(['pet', 'Stray pet', () => { const p = petSys(g); if (p.stage === 'none') { p.stage = 'stray'; p.map = 'world'; const [hx, hy] = g.map.loc('farmhouse'); p.x = hx - 1.5; p.y = hy + 2.5; } g.toast('A stray waits by the farmhouse.'); }], ['guild', 'Guild + depot', () => { g.research.done.add('r_belts'); g.research.done.add('r_arms'); unlockGuild(g, false); g.give(key('freight_depot'), 1); }]);
-  row(['home', 'Renovate', () => { for (const f of ['home_kitchen', 'home_featherbed', 'home_pantry', 'home_hearth']) g.flags.add(f); g.toast('Farmhouse fully renovated.'); }], ['furn', 'Furniture', () => { for (const f of FURNITURE) g.give(key(f.id), 1, false); g.toast('One of every furniture piece added.'); }]);
+  row(['home', 'Renovate', () => { for (const f of ['home_kitchen', 'home_featherbed', 'home_pantry', 'home_hearth', 'home_workshop', 'home_drafting']) g.flags.add(f); g.toast('Farmhouse fully renovated.'); }], ['furn', 'Furniture', () => { for (const f of FURNITURE) g.give(key(f.id), 1, false); g.toast('One of every furniture piece added.'); }]);
   row(['fair', 'Fair day', () => { g.time.season = 0; g.time.day = 13; g.time.min = 600; g.player.where = 'world'; g.player.x = 133.5; g.player.y = 64.5; }], ['locket', 'Locket', () => g.give(key('heart_charm'), 1)]);
   row(['mine', 'Mine +5 fl', () => g.sys.mine?.debugDescend?.(g, 5)], ['hearts', 'Friends +2h', () => { for (const n of g.sys.npcs?.list ?? []) n.points = Math.min(2500, (n.points ?? 0) + 500); }]);
-  // art overhaul: imported sheets vs the procedural 1.0 art
-  row(['art', `Art: ${getArtMode()}`, () => { setArtMode(getArtMode() === 'new' ? 'old' : 'new'); resetSkin(); app.renderer.invalidateAll(); }], ['cmp', `Compare ${app.renderer.compareArt ? 'on' : 'off'}`, () => (app.renderer.compareArt = !app.renderer.compareArt)]);
   btns.forEach(([id, label, fn], i) => {
     const bx = x + 6 + (i % 3) * 80, by = yy + Math.floor(i / 3) * 17;
     if (ui.button('dbg_' + id, bx, by, 76, 15, label, { style: 'flat' })) fn();

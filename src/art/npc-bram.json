@@ -24,24 +24,7 @@
     "walk3",
     "stand"
   ],
-  "keys": {
-    "tone": [
-      "#7a3045",
-      "#9e4539",
-      "#cd683d"
-    ],
-    "cloth": [
-      "#ab947a",
-      "#fdcbb0",
-      "#ffffff"
-    ],
-    "tunic": [
-      "#323353",
-      "#484a77",
-      "#4d65b4"
-    ]
-  },
-  "label": "Bram v3",
+  "label": "Bram, foundry master",
   "kind": "character",
   "ids": [
     "bram"
@@ -55,28 +38,25 @@
     "5": "stand",
     "6": "stand"
   },
-  "source": "PixelLab create_character v3, size 36, low top-down, single color outline (character 4305deca-17ca-4c38-a92e-9ab09bb2f7e1); walk: walking-4-frames",
-  "notes": "shirt recolored from brick red to a blue-slate ramp (tunic part): with his dark skin the red shirt read as one red figure",
+  "source": "PixelLab edit_image on the 16 walking-4-frames of character 4305deca-17ca-4c38-a92e-9ab09bb2f7e1 (job 87415b1a-b632-46a3-9167-96bf7160f241, 10 generations, raw frames in edit-a/), colours mapped by prep.mjs into prep/; stand = walk0",
+  "notes": "works outfit (ROADMAP 7.6): heavy leather apron, tan gauntlets, brass goggles pushed up; the 1.x blue shirt and skin tone kept",
   "colors": [
     "#2e222f",
-    "#323353",
     "#3e3546",
+    "#45293f",
     "#484a77",
-    "#4c3e24",
     "#4d65b4",
+    "#4d9be6",
     "#625565",
     "#6e2727",
     "#7a3045",
-    "#7f708a",
-    "#831c5d",
+    "#8fd3ff",
     "#966c6c",
-    "#9babb2",
     "#9e4539",
     "#ab947a",
-    "#ae2334",
     "#cd683d",
-    "#ed8099",
-    "#fbb954",
+    "#f79617",
+    "#f9c22b",
     "#fdcbb0",
     "#ffffff"
   ]

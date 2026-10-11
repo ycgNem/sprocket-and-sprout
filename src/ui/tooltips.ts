@@ -1,4 +1,5 @@
 // Rich tooltips for items and structures.
+import { SOURCE } from '../data/sources';
 import { BUFF_INFO, buffText } from '../data/buffs';
 import { C } from '../data/palette';
 import { STRUCT_BY_ID } from '../data/structures';
@@ -52,6 +53,8 @@ export function itemTooltip(g: Game, k: number, n = 1, extra: TipLine[] = []): T
   if (d.fuel) lines.push({ text: `Fuel: burns for ${d.fuel}s`, color: C.apricot });
   if (d.tool) lines.push({ text: `Tier ${d.tool.tier + 1} of 5`, color: C.pebble });
   if (d.weapon) lines.push({ text: `Damage ${d.weapon.dmg}  Speed ${d.weapon.speed}`, color: C.blush });
+  // a raw material says where it comes from (src/data/sources.ts)
+  if (SOURCE[d.id]) lines.push({ text: 'Get it: ' + SOURCE[d.id], color: C.pebble });
   const made = recipesFor(d.id).filter((r) => r.station !== 'hand' || d.places === undefined).slice(0, 2);
   if (made.length && d.cat !== 'seed') {
     const where = [...new Set(made.map((r) => (r.station === 'hand' ? 'crafting' : stationName(r.station))))].join(', ');

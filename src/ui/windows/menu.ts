@@ -1,6 +1,7 @@
 // The main game menu: Inventory, Crafting, Skills tabs.
 import { C } from '../../data/palette';
 import { ITEM_BY_ID } from '../../data/items';
+import { SOURCE } from '../../data/sources';
 import { FARM_BY_ID } from '../../data/modes';
 import { STRUCT_BY_ID } from '../../data/structures';
 import { RESEARCH_BY_ID } from '../../data/research';
@@ -163,7 +164,9 @@ function craftingTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: numbe
     for (let i = 0; i < gr.rs.length; i += cols) lines.push({ rs: gr.rs.slice(i, i + cols) });
   }
   const areaH = 132;
-  const lineH = (l: (typeof lines)[number]) => ('head' in l ? 11 : rowH);
+  // a row holding a recipe with a twin (four ways to a Sprout Bundle) is two lines: the name, then what
+  // this one takes (the owner's playtest: the cell showed only "fiber+fruit", never the name)
+  const lineH = (l: (typeof lines)[number]) => ('head' in l ? 11 : l.rs.some(hasTwin) ? rowH + 8 : rowH);
   const off = ui.scrollOffset('craftlist', gx, gy, gw, areaH, lines.reduce((a, l) => a + lineH(l), 0));
   ui.clip(gx, gy, gw, areaH);
   let ly = gy - off;
@@ -180,10 +183,12 @@ function craftingTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: numbe
       l.rs.forEach((r, i) => {
         const rx = gx + i * colW, unlocked = g.unlocked(r.unlock), can = unlocked && canCraft(g, r);
         const sel = st.data.sel === r.id;
-        const hov = ui.hover(rx, ly, colW - 2, rowH - 1);
-        if (sel || hov) ui.fill(rx, ly, colW - 2, rowH - 1, sel ? C.butter : C.tan, sel ? 0.7 : 0.5);
+        const hov = ui.hover(rx, ly, colW - 2, lh - 1);
+        if (sel || hov) ui.fill(rx, ly, colW - 2, lh - 1, sel ? C.butter : C.tan, sel ? 0.7 : 0.5);
         ui.itemIcon(key(r.out[0].item), rx + 1, ly + 1, 12, 0, can ? 1 : 0.45);
-        ui.text(recipeLabelFit(r, colW - 20), rx + 16, ly + 4, can ? C.ink : unlocked ? C.oak : C.pebble);
+        const twin = hasTwin(r), ty = twin ? ly + 3 : ly + 4 + Math.floor((lh - rowH) / 2);
+        ui.text(ellipsize(recipeName(r), colW - 20), rx + 16, ty, can ? C.ink : unlocked ? C.oak : C.pebble);
+        if (twin) ui.text(ellipsize(recipeInputs(r), colW - 20), rx + 16, ly + 12, can ? C.walnut : C.pebble);
         if (hov) {
           const tl = itemTooltip(g, key(r.out[0].item), 1);
           if (!unlocked) {
@@ -226,8 +231,12 @@ function craftingTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: numbe
     ui.itemIcon(key(icon), ix, iy, 12);
     const name = spec[0] === '#' ? 'any ' + spec.slice(1) : ITEM_BY_ID.get(spec)!.name;
     ui.text(`${Math.min(have, 999)}/${i.n}`, ix + 14, iy + 3, have >= i.n ? C.moss : C.brick);
-    if (ui.hover(ix, iy, 50, 12)) ui.tip([{ text: name }]);
+    if (ui.hover(ix, iy, 50, 12)) ui.tip([{ text: name }, ...(SOURCE[spec] ? [{ text: 'Get it: ' + SOURCE[spec], color: C.pebble }] : [])], 200);
   });
+  // the first ingredient you're short of that has a source says where to get it (the owner's
+  // playtest: nothing said where plant fiber comes from)
+  const short = r.in.find((i) => SOURCE[i.item] && g.player.inv.countSpec(i.item) < i.n);
+  if (short && dy + 52 <= y + h - 10) ui.text(ellipsize(`${ITEM_BY_ID.get(short.item)!.name}: ${SOURCE[short.item]}`, w - 44), x + 20, dy + 43, C.rust);
   const unlocked = g.unlocked(r.unlock);
   const max = unlocked ? maxCraftable(g, r) : 0;
   if (ui.button('craft1', x + w - 132, dy + 6, 54, 16, 'Craft', { style: 'green', disabled: max < 1 })) craft(g, r, 1);
@@ -242,33 +251,23 @@ function craftingTab(ui: UI, play: PlayScreen, st: WinState, x: number, y: numbe
  * look-alike rows say which is which (the critic, Phase 2).
  */
 export function recipeLabel(r: RecipeDef): string {
-  const out = ITEM_BY_ID.get(r.out[0].item)!;
-  const base = out.name + (r.out[0].n > 1 ? ` x${r.out[0].n}` : '');
-  if (HAND_RECIPES.filter((o) => o.out[0].item === r.out[0].item).length < 2) return base;
+  return hasTwin(r) ? `${recipeName(r)} (${recipeInputs(r)})` : recipeName(r);
+}
+
+/** a recipe's output by name ("Sprout Bundle", "Rope x2") */
+export const recipeName = (r: RecipeDef) => ITEM_BY_ID.get(r.out[0].item)!.name + (r.out[0].n > 1 ? ` x${r.out[0].n}` : '');
+
+/** what a recipe takes, in words ("3 crops", "plant fiber + fruit") */
+export function recipeInputs(r: RecipeDef): string {
   const word = (spec: string, n: number) => {
     const name = spec[0] === '#' ? spec.slice(1) : (ITEM_BY_ID.get(spec)?.name ?? spec).toLowerCase();
     return n > 1 ? `${n} ${name}${name.endsWith('s') ? '' : 's'}` : name;
   };
-  return `${base} (${r.in.map((i) => word(i.item, i.n)).join(' + ')})`;
+  return r.in.map((i) => word(i.item, i.n)).join(' + ');
 }
 
-/**
- * The label in a narrow grid cell: the full one if it fits, else the output's last word with what it
- * takes ("Bundle (3 crops)"), else just what it takes ("fiber+fruit": the icon says what it makes)
- * (the critic's re-check: three of the four bundle rows truncated to "Sprout Bundle (plan..")
- */
-function recipeLabelFit(r: RecipeDef, w: number): string {
-  const full = recipeLabel(r);
-  if (textWidth(full) <= w) return full;
-  const open = full.indexOf(' (');
-  if (open < 0) return ellipsize(full, w);
-  const inputs = full.slice(open + 2, -1);
-  // the output's last word, not its count ("Grain x2" is "Grain", never "x2")
-  const short = `${full.slice(0, open).replace(/ x\d+$/, '').split(' ').pop()} (${inputs})`;
-  if (textWidth(short) <= w) return short;
-  const bare = inputs.replace(/ \+ /g, '+');
-  return textWidth(bare) <= w ? bare : ellipsize(bare, w);
-}
+/** does another hand recipe make the same thing? (then its rows say what each takes) */
+const hasTwin = (r: RecipeDef) => HAND_RECIPES.filter((o) => o.out[0].item === r.out[0].item).length >= 2;
 
 export function specIcon(spec: string): string {
   const t = spec.slice(1);

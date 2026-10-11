@@ -1,7 +1,7 @@
 // Imported pixel-art sheets: every src/art/<name>.png with its <name>.json manifest, written by
 // scripts/art-import.mjs (see STYLE.md). A sheet takes over the procedural sprites of the same
-// names; the procedural art stays reachable as `name:old` and through setArtMode('old').
-import { artReady, defImageFamily, getArtMode } from '../atlas';
+// names.
+import { artReady, defImageFamily } from '../atlas';
 import { getLook } from './chars';
 import { PALETTE, ramp3, skin3 } from '../../data/palette';
 import type { NPCLook } from '../../data/types';
@@ -85,7 +85,6 @@ const drawsLook = (m: SheetMeta, id: string) => {
  * must draw the swing itself.
  */
 export function sheetToolFrame(id: string, kind: string, phase: 0 | 1): string | null {
-  if (getArtMode() !== 'new') return null;
   const m = charSheets.find((m) => drawsLook(m, id));
   if (!m) return null;
   if (m.frames?.[kind + phase]) return kind + phase;
@@ -94,7 +93,7 @@ export function sheetToolFrame(id: string, kind: string, phase: 0 | 1): string |
 
 /** How tall the character art of this look is (px, feet to top), for things drawn above the head. */
 export function charArtHeight(id: string): number {
-  const m = getArtMode() === 'new' ? charSheets.find((m) => drawsLook(m, id)) : undefined;
+  const m = charSheets.find((m) => drawsLook(m, id));
   return m?.artHeight ?? 22; // the procedural 16x24 characters
 }
 
@@ -104,7 +103,6 @@ export function charArtHeight(id: string): number {
  */
 const extraFrames = new Map<string, number>();
 export function charFrames(id: string, prefix: string): number {
-  if (getArtMode() !== 'new') return 0;
   const k = id + ':' + prefix;
   let n = extraFrames.get(k);
   if (n === undefined) {
@@ -114,11 +112,6 @@ export function charFrames(id: string, prefix: string): number {
     extraFrames.set(k, n);
   }
   return n;
-}
-
-/** Look ids of the candidate player sheets (ids `cand_*`) the debug Compare lineup shows. */
-export function compareIds(): string[] {
-  return charSheets.map((m) => m.ids?.[0]).filter((x): x is string => !!x && x.startsWith('cand'));
 }
 
 function defCharSheet(url: string, m: SheetMeta) {
@@ -185,9 +178,9 @@ export interface TerrainArt {
 let terrain: TerrainArt | null = null;
 /** set once the sheets have loaded, so no chunk is baked from missing frames */
 let terrainReady = false;
-/** The imported terrain, or null with the procedural art (?art=old), before it loads or without one. */
+/** The imported terrain, or null before it loads (or without one). */
 export function terrainArt(): TerrainArt | null {
-  return getArtMode() === 'new' && terrainReady ? terrain : null;
+  return terrainReady ? terrain : null;
 }
 
 function defTerrainSheet(url: string, m: TerrainMeta) {
@@ -257,7 +250,7 @@ let smoke: Record<string, [number, number]> | null = null;
  * the footprint's top-left), or null with the procedural art. Ids not listed don't smoke.
  */
 export function smokePoints(): Record<string, [number, number]> | null {
-  return getArtMode() === 'new' ? smoke : null;
+  return smoke;
 }
 
 export function registerSheetSprites() {

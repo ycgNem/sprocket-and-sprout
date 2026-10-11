@@ -200,9 +200,8 @@ chosen look's ramps (`RAMP3` / `SKIN3` in `src/data/palette.ts`). Rules for a ch
    original vs snapped).
 
 3. **Register**: nothing to do (`src/render/art/sheets.ts` loads every manifest in `src/art/` by
-   its `kind`). A sheet takes over the procedural sprite of the same name; the old one stays
-   reachable as `name:old`, with `?art=old` in the URL, or the debug panel's **Art** / **Compare**
-   buttons (backtick key). Hooks that only exist for imported art (the renderer falls back to its
+   its `kind`). Every sprite name comes from a sheet (2.0 deleted the procedural generators; only
+   `shadow:`, the `ib:` belt icons and `rust:` variants are made at runtime). Hooks that only exist for imported art (the renderer falls back to its
    own drawing without them): `emote:*`, `amb:*` critters, `bot:*` bumblebots, `fx:*`, `ui:*`
    nine-slice skin frames (`src/ui/skin.ts`), `tb:/tw:/tt:/td:` terrain tiles.
 

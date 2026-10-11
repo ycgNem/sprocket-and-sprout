@@ -800,8 +800,7 @@ describe('the Deepworks: lamps light the dark', () => {
     g.player.x = x + 0.5;
     g.player.y = y + 0.3;
     g.player.dir = 2;
-    // (the tile you face is your own: src/sim/systems/player.ts facingTile)
-    expect(Math.floor(g.player.y - 0.2 + 0.75)).toBe(y);
+    // a lamp aimed at the tile under your feet (a click there) goes on the next one you face
     expect(minePrompt(g, x, y)).toMatchObject({ verb: 'Set lamp', x: x + 0.5 });
     expect(st.interact(g, x, y)).toBe(true);
     expect(st.lamps).toEqual([[x, y + 1]]);

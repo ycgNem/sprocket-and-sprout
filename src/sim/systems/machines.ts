@@ -58,6 +58,11 @@ export function handBatches(r: RecipeDef): number {
   return Math.max(10, Math.min(Math.ceil(HAND_SECS / Math.max(1, r.time)), Math.max(50, Math.floor(150 / most))));
 }
 
+/** batches an arm may put in the keeper's crock past a full hand load while the opening teaches the arm */
+export const HANDFEED_OVER = 4;
+/** the keeper's crock's speed while the opening teaches the line (B1-B3), and after (its quick batches) */
+export const KEEPER_QUICK = 8, QUICK = 4;
+
 /** fuel by hand: about ten minutes of burn (15 coal, 75 wood), not a whole stack (critic, Phase 5 re-check) */
 export const handFuel = (k: ItemKey) => Math.ceil(HAND_SECS / Math.max(1, fuelValue(k)));
 
@@ -79,13 +84,15 @@ export function machAccept(g: Game, e: Ent, k: ItemKey, manual = false): number 
   let best = 0;
   // in auto mode keep at most 2 distinct inputs buffered
   if (!m.locked && m.inBuf.size >= 2 && !m.inBuf.has(k)) return 0;
-  // until the keeper's line is whole an arm may fill the keeper's crock as far as hands can: an arm
-  // placed after a hand load would otherwise stand holding a bean for minutes (st.handfeed, keeper.ts)
+  // until the keeper's line is whole an arm may fill the keeper's crock as far as hands can, and a
+  // few beans past a hand load: "watch the arm feed the crock" never waits on a crock your hands
+  // filled to the brim (the owner's playtest; st.handfeed, keeper.ts)
   const deep = manual || !!e.st.handfeed;
+  const over = !manual && e.st.handfeed ? HANDFEED_OVER : 0;
   for (const r of recipes) {
     for (const i of r.in) {
       if (!specMatch(k, i.item)) continue;
-      const cap = i.n * (deep ? handBatches(r) : 2);
+      const cap = i.n * ((deep ? handBatches(r) : 2) + over);
       const cur = bufCountSpec(m, i.item);
       best = Math.max(best, cap - cur);
     }
@@ -162,7 +169,9 @@ export function machInsert(g: Game, e: Ent, k: ItemKey, n: number, manual = fals
   if (e.def.fuel && fuelValue(k) > 0 && !availableRecipes(g, e).some((r) => r.in.some((i) => specMatch(k, i.item)))) {
     // a better fuel by hand: the worse one goes back to your bag
     if (m.fuel && m.fuel.k !== k) {
-      g.give(m.fuel.k, m.fuel.n, false);
+      // (not g.give: it's not new goods for the day's stats; what doesn't fit drops at your feet)
+      const left = g.player.inv.add(m.fuel.k, m.fuel.n);
+      if (left > 0) g.sys.drops?.spawn?.(g, m.fuel.k, left, g.player.x, g.player.y);
       m.fuel = null;
     }
     if (!m.fuel) m.fuel = { k, n: 0 };
@@ -354,9 +363,11 @@ export function updateMachines(g: Game, dt: number, ents: Ents = g.ents) {
         continue;
       }
     }
-    // the keeper's jar runs its first few batches fast, so the opening's first pickle comes quickly;
-    // a machine fitted with lubricant runs 10% faster for good
-    let sp = m.speed * speedMod * (e.st.quick > 0 ? 4 : 1) * (e.st.lubed ? 1.1 : 1) * boosts.reduce((a, [, st, k]) => (st.has(e.def.station ?? '') ? a * k : a), 1);
+    // the keeper's jar runs its first few batches fast, so the opening's first pickle comes quickly,
+    // and faster still until the line is whole (a pickle every 7.5 s: nobody waits minutes to watch
+    // the arm and the crate, the owner's playtest); a machine fitted with lubricant runs 10% faster
+    const quick = e.st.quick > 0 ? (e.st.handfeed ? KEEPER_QUICK : QUICK) : 1;
+    let sp = m.speed * speedMod * quick * (e.st.lubed ? 1.1 : 1) * boosts.reduce((a, [, st, k]) => (st.has(e.def.station ?? '') ? a * k : a), 1);
     if (wheel?.has(e.id)) sp *= WHEEL_BOOST;
     if (e.def.powerUse) {
       sp *= e.sat;

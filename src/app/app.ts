@@ -6,9 +6,9 @@ import { C, skin3 } from '../data/palette';
 import { GameLoop } from '../engine/loop';
 import { Input } from '../engine/input';
 import { Renderer } from '../render/renderer';
-import { artReady, hasImage, resetSprites, setArtMode, sprite } from '../render/atlas';
+import { artReady, hasImage, resetSprites, sprite } from '../render/atlas';
 import { resetSkin } from '../ui/skin';
-import { registerAllArt, registerMapBuildings, setPlayerLook } from '../render/art';
+import { registerAllArt, setPlayerLook } from '../render/art';
 import { UI } from '../ui/ui';
 import { Game } from '../sim/Game';
 import { loadSettings, saveSettings, Settings } from './settings';
@@ -44,6 +44,8 @@ export class App {
   screen!: Screen;
   loop: GameLoop;
   dpr = 1;
+  /** every imported sheet has loaded (the title's demo farm waits for it) */
+  artLoaded = false;
   cursor: PixelCursor;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -56,10 +58,9 @@ export class App {
     this.audio = new Audio(this.settings);
     this.ui.sfx = (id) => this.audio.sfx(id);
     registerAllArt();
-    // ?art=old shows the procedural 1.0 art (side-by-side comparisons during the overhaul)
-    if (new URLSearchParams(location.search).get('art') === 'old') setArtMode('old');
     // imported sheets load in the background; repaint cached terrain once they are in
     artReady().then(() => {
+      this.artLoaded = true;
       resetSprites();
       resetSkin();
       this.renderer.invalidateAll();
@@ -148,7 +149,6 @@ export class App {
     // the farm lives in localStorage: once you play, ask the browser not to clear it under storage pressure
     navigator.storage?.persist?.().catch(() => {});
     setPlayerLook(look);
-    registerMapBuildings(g.map);
     this.renderer.invalidateAll();
     this.screen = new PlayScreen(this, g, look, slot);
   }
@@ -173,7 +173,6 @@ class TitleScreen implements Screen {
   constructor(public app: App) {
     this.demo = new Game({ seed: 4242, name: 'Demo', farmName: 'Demo' });
     buildDemoFactory(this.demo);
-    registerMapBuildings(this.demo.map);
     setPlayerLook({ skin: C.apricot, hair: C.walnut, hairStyle: 'short', shirt: C.moss, pants: C.river });
     app.renderer.invalidateAll();
     app.renderer.cam.x = 60;
@@ -198,7 +197,12 @@ class TitleScreen implements Screen {
     r.cam.x = 62 + Math.sin(this.t * 0.03) * 14;
     r.cam.y = 34 + Math.sin(this.t * 0.021) * 8;
     if (this.demo.time.min > 22 * 60) this.demo.time.min = 16 * 60;
-    r.draw(this.demo, dt);
+    // the demo farm waits for the art sheets (a moment on the web): until then, the plain night
+    if (app.artLoaded) r.draw(this.demo, dt);
+    else {
+      r.ctx.fillStyle = PALETTE[C.ink];
+      r.ctx.fillRect(0, 0, r.W, r.H);
+    }
     const ui = app.ui;
     ui.begin(r.ctx, app.input, app.uiScale, dt);
     ui.fill(0, 0, ui.w, ui.h, C.ink, 0.25);
@@ -510,8 +514,8 @@ import * as atlas from '../render/atlas';
 import { version } from '../../package.json';
 import { drawNotes, notesSeen } from '../ui/notes';
 
-/** "2.0.0-beta" reads as "2.0 beta" on the title screen */
-const showVersion = version.replace(/^(\d+\.\d+)\.0-beta(\.\d+)?$/, '$1 beta$2').replace(/beta\./, 'beta ');
+/** "2.0.0-beta" reads as "2.0 beta" on the title screen, and "2.0.0" as "2.0" (as the patch notes name it) */
+const showVersion = version.replace(/^(\d+\.\d+)\.0-beta(\.\d+)?$/, '$1 beta$2').replace(/beta\./, 'beta ').replace(/^(\d+\.\d+)\.0$/, '$1');
 function require_atlas() {
   return atlas;
 }

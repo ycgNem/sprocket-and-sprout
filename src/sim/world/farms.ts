@@ -83,6 +83,8 @@ export function shapeFarm(m: TileMap, seed: number, kind: FarmKind, F: Box, plan
           } else if (r < 0.05) Ob(x, y, O.ARTIFACT);
           else if (r < 0.09) Ob(x, y, O.ROCK, Math.floor(r * 100) % 3);
           else if (r < 0.11) Ob(x, y, O.TWIG, 0);
+          // the old tinkers' machines, wrecked where they stood: a pickaxe breaks them for salvage
+          else if (r < 0.135) Ob(x, y, O.WRECK, Math.floor(hash2(x, y, seed + 25) * 4));
         }
     }
     // a copper seam the old tinkers mined: ore drills can run here

@@ -53,6 +53,14 @@ export class Particles {
   }
 
   text(x: number, y: number, text: string, c = C.cream) {
+    // a line that would land on one still rising there waits a line above it (three poles restored
+    // at once, a harvest and its XP)
+    const w = textWidth(text);
+    for (let k = 0; k < 4; k++) {
+      const o = this.list.find((q) => q.kind === 3 && q.text && Math.abs(q.y - y) < 9 && Math.abs(q.x - x) < (textWidth(q.text) + w) / 2 + 2);
+      if (!o) break;
+      y = o.y - 9;
+    }
     const p = this.spawn();
     p.x = x; p.y = y; p.vx = 0; p.vy = -18; p.g = 10;
     p.life = p.max = 1.1; p.c = c; p.size = 1; p.kind = 3; p.text = text;

@@ -8,6 +8,7 @@ import { QUEST_BY_ID } from '../data/goals';
 import type { Game } from './Game';
 import type { Ent } from './ents';
 import { kDef } from './inventory';
+import { onTile } from './near';
 import { cartHere } from './systems/cart';
 import { canTill } from './systems/farming';
 import { loadChoices, machAccept, stationRecipes } from './systems/machines';
@@ -105,19 +106,36 @@ export function tilePrompt(g: Game, tx: number, ty: number): Prompt | null {
     return null;
   }
   const npc = g.sys.npcs?.at?.(g, tx + 0.5, ty + 0.5);
-  if (npc) {
-    // a festival's host (or co-host) opens it, whatever you hold (talkTo): "Enter the Sprocket Fair"
-    const fest = g.sys.festivals?.active;
-    if (fest && (fest.cohost === npc.id || fest.host === npc.id)) return { verb: `Enter ${fest.the ? 'the ' : ''}${fest.name}`, x: npc.x, y: npc.y - 2 };
-    const held = p.inv.slots[p.sel];
-    const hd = held ? kDef(held.k) : null;
-    const name = questName(npc.id, NPC_BY_ID.get(npc.id)?.name ?? '');
-    // the same rules F follows (talkTo): the locket, then a gift, else a chat
-    const verb = hd?.id === 'heart_charm' && npc.met ? 'Offer the locket' : hd && wouldGift(g, npc, hd) ? `Give to ${name}` : npc.talked ? `Chat with ${name}` : `Talk to ${name}`;
-    return { verb, x: npc.x, y: npc.y - 2 };
-  }
   const animal = g.sys.animals?.at?.(g, tx + 0.5, ty + 0.5);
-  if (animal) return animal.petted ? null : { verb: 'Pet', x: animal.x, y: animal.y - 1.2 };
+  // the same order F follows (actions.ts interactTile): a villager or animal on the faced tile, then
+  // the tile's own things, then one only near it (the owner's playtest: the Professor beside the wheel)
+  const greet = (on: boolean): Prompt | null | undefined => {
+    if (npc && (!on || onTile(npc, tx, ty))) {
+      // a festival's host (or co-host) opens it, whatever you hold (talkTo): "Enter the Sprocket Fair"
+      const fest = g.sys.festivals?.active;
+      if (fest && (fest.cohost === npc.id || fest.host === npc.id)) return { verb: `Enter ${fest.the ? 'the ' : ''}${fest.name}`, x: npc.x, y: npc.y - 2 };
+      const held = p.inv.slots[p.sel];
+      const hd = held ? kDef(held.k) : null;
+      const name = questName(npc.id, NPC_BY_ID.get(npc.id)?.name ?? '');
+      // the same rules F follows (talkTo): the locket, then a gift, else a chat
+      const verb = hd?.id === 'heart_charm' && npc.met ? 'Offer the locket' : hd && wouldGift(g, npc, hd) ? `Give to ${name}` : npc.talked ? `Chat with ${name}` : `Talk to ${name}`;
+      return { verb, x: npc.x, y: npc.y - 2 };
+    }
+    if (animal && (!on || onTile(animal, tx, ty))) return animal.petted ? null : { verb: 'Pet', x: animal.x, y: animal.y - 1.2 };
+    return undefined;
+  };
+  const first = greet(true);
+  if (first !== undefined) return first;
+  const own = ownPrompt(g, tx, ty);
+  if (own) return own;
+  return greet(false) ?? null;
+}
+
+/** what F does at a tile's own things: the cart, a door, a structure, a crop, an object */
+function ownPrompt(g: Game, tx: number, ty: number): Prompt | null {
+  const m = curMap(g);
+  const o = m.o(tx, ty);
+  const top = (verb: string, lift = 0.1): Prompt => ({ verb, x: tx + 0.5, y: ty - lift });
   const cp = g.sys.cart?.pos as [number, number] | undefined;
   if (cp && cartHere(g) && tx >= cp[0] - 1 && tx <= cp[0] + 3 && ty >= cp[1] - 1 && ty <= cp[1] + 2) return { verb: "Mags' cart", x: cp[0] + 1.5, y: cp[1] - 0.5 };
   const b = m.buildingAtTile(tx, ty) ?? m.buildingAtTile(tx, ty - 1);
@@ -182,7 +200,7 @@ export function toolVerb(g: Game, tx: number, ty: number): string | null {
       case 'hoe': return canTill(g, tx, ty) ? 'Till' : null;
       case 'can': return m.isWater(tx, ty) ? 'Refill' : s && !s.water ? 'Water' : null;
       case 'axe': return o === O.TREE || o === O.STUMP || o === O.LOG || o === O.TWIG ? 'Chop' : null;
-      case 'pick': return o === O.ROCK || o === O.BOULDER || o === O.ORE_ROCK ? 'Break' : null;
+      case 'pick': return o === O.ROCK || o === O.BOULDER || o === O.ORE_ROCK ? 'Break' : o === O.WRECK ? 'Salvage' : null;
       case 'scythe': return o === O.WEED || o === O.TALLGRASS ? 'Cut' : null;
     }
     return null;
@@ -219,7 +237,9 @@ export function questTarget(g: Game): { x: number; y: number; label: string; npc
   // the Now strip's current step may say where to go for it (a villager or a place)
   const now = (q.now?.(g, 1) ?? [])[0] as { id: string; index: number } | undefined;
   const step = now ? QUEST_BY_ID.get(now.id)?.objectives[now.index] : undefined;
-  const go = step?.goto;
+  // a step that sends you to buy something lets go of the seller once it's in your bag (the critic's
+  // 2.0 pass: "Marigold" stayed up with the crock in hand); the farm's marks take over
+  const go = step?.t === 'build' && g.player.inv.countId(step.struct) > 0 ? undefined : step?.goto;
   // a main step studied at the desk points at the nearest desk; one with no place points nowhere,
   // rather than at a side quest (the critic: "Study Sawmilling" had the compass on the clocktower)
   if (now && QUEST_BY_ID.get(now.id)?.main && step && !go && step.t !== 'visit' && step.t !== 'talk') {

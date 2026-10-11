@@ -31,6 +31,22 @@ export function toastLife(text: string): number {
   return text.startsWith('Tip:') ? 7 : 4.5;
 }
 
+/**
+ * The toasts on screen: at most three, oldest first, and a new one only once the one before it has
+ * been up a moment, so a burst (loading a farm: quests, tips, orders) rolls in instead of landing
+ * all at once (the critic's 2.0 pass). One already showing stays. play.ts ages only these.
+ */
+export function liveToasts(list: { t: number }[]) {
+  const out: typeof list = [];
+  for (const t of list) {
+    if (out.length >= 3) break;
+    const prev = out[out.length - 1];
+    if (t.t <= 0 && prev && prev.t < 0.6) continue;
+    out.push(t);
+  }
+  return out;
+}
+
 export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   const g = play.g;
   const p = g.player;
@@ -43,12 +59,14 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   const ph = drawPulse(ui, play, cx, cy + ch0 + 3, cw);
   const ch = ch0 + (ph ? ph + 3 : 0);
 
-  // ---- minimap ----
-  if (g.player.where !== 'house') drawMinimap(ui, play, ui.w - cw - 4, cy + ch + 4, cw, 70);
+  // ---- minimap ---- (half height on a small screen: in the 960x600 embed the HUD covered nearly half
+  // the view, the critic's 2.0 review)
+  const mmH = ui.w < 520 ? 38 : 70;
+  if (g.player.where !== 'house') drawMinimap(ui, play, ui.w - cw - 4, cy + ch + 4, cw, mmH);
   // ---- food buff ----
   const buff = p.buff;
   if (buff) {
-    const by = cy + ch + 4 + (p.where !== 'house' ? 74 : 0);
+    const by = cy + ch + 4 + (p.where !== 'house' ? mmH + 4 : 0);
     const info = BUFF_INFO[buff.kind];
     ui.panel(cx, by, cw, 22, 'dark', false);
     ui.itemIcon(key(buff.src), cx + 4, by + 3, 16);
@@ -58,7 +76,7 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
     if (ui.hover(cx, by, cw, 22)) ui.tip([{ text: `${info.name} ${'I'.repeat(buff.lvl)}`, color: info.color }, { text: info.per + (buff.lvl > 1 ? ` (x${buff.lvl})` : '') }, { text: 'From ' + itemName(key(buff.src)) + '. Sleeping ends it.', color: C.pebble }]);
   }
 
-  occ.push({ x: cx - 2, y: 0, w: cw + 6, h: cy + ch + 4 + (p.where !== 'house' ? 74 : 0) + (buff ? 26 : 0) });
+  occ.push({ x: cx - 2, y: 0, w: cw + 6, h: cy + ch + 4 + (p.where !== 'house' ? mmH + 4 : 0) + (buff ? 26 : 0) });
   // ---- hotbar + gauges ----
   drawHotbar(ui, play, dt);
   occ.push({ x: 0, y: ui.h - 52, w: ui.w, h: 52 });
@@ -105,7 +123,7 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   play.hud.narrow = narrow;
   play.hud.lowY = ui.h - 66 - (buildBar ? 36 : 0);
   let lowY = play.hud.lowY - (play.achQ.length ? 42 : 0);
-  for (const t of play.modalOpen || play.app.renderer.juice.banners.length ? [] : play.hud.toasts.slice(0, 3)) {
+  for (const t of play.modalOpen || play.app.renderer.juice.banners.length ? [] : liveToasts(play.hud.toasts) as typeof play.hud.toasts) {
     const life = toastLife(t.text);
     const a = t.t < life - 0.7 ? 1 : 1 - (t.t - (life - 0.7)) / 0.7;
     ui.ctx.globalAlpha = Math.max(0, Math.min(1, a, t.t * 6));

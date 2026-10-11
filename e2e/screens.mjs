@@ -153,6 +153,9 @@ const SC = {
     await page.mouse.down();
     await page.mouse.move(p.e.x / p.d, p.e.y / p.d, { steps: 6 });
     await page.screenshot({ path: `${out}/build.png` }); // mid-drag; shot() would release the mouse
+    // let go without placing (Esc cancels a drag): whether a frame ran before the next step's window
+    // opened decided if the line went down, so the farm shots after it differed run to run
+    await ev(`(() => { S.play.drag = null; })()`);
     await page.mouse.up();
   },
   // ---- town and menus ----
@@ -206,7 +209,7 @@ const SC = {
     B.place(g, 'windmill', 46, 28, 0); const p = B.place(g, 'pole_wood', 49, 29, 0); const m1 = B.place(g, 'mill', 50, 29, 0); m1.mach.inBuf.set(S.key('wheat'), 50); const m2 = B.place(g, 'mill', 50, 31, 0); m2.mach.inBuf.set(S.key('wheat'), 50);
     g.player.x = 48; g.player.y = 33; for (let i = 0; i < 300; i++) g.tick(); S.play.openWindow('struct', p.id); })()`),
   // B8: the keeper's river works by the farm gate, rusted, from the gate road
-  'river-works': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); S.play.lessons.q = []; g.player.sel = 0; g.time.min = 10 * 60; g.player.where = 'world'; g.player.x = 87.5; g.player.y = 46.7; g.player.dir = 2; })()`),
+  'river-works': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); S.play.lessons.q = []; g.player.sel = Math.max(0, g.player.inv.slots.findIndex((s) => s && ['hoe_0', 'hoe_1', 'hoe_2', 'hoe_3', 'hoe_4'].map((id) => window.__itemIndex.get(id)).includes(s.k >> 2))); g.time.min = 10 * 60; g.player.where = 'world'; g.player.x = 87.5; g.player.y = 46.7; g.player.dir = 2; })()`),
   // restored, with Bram's Brass Arms: the mill turns slowly in a brownout (and the card says so)
   'river-brownout': async () => {
     await ev(`(() => { const g = S.g; for (let y = 47; y < 53; y++) for (let x = 83; x < 92; x++) { const e = g.ents.rootAt(x, y); if (e) { delete e.st.rust; delete e.st.need; delete e.st.needN; } } g.ents.powerDirty = true; g.ents.version++; window.__build.place(g, 'arm_fast', 85, 50, 1); window.__build.place(g, 'arm_fast', 88, 50, 1); for (let i = 0; i < 60 * 15; i++) g.tick(); })()`);
@@ -256,14 +259,14 @@ const SC = {
       window.__app.startGame(g, { skin: 22, hair: 49, hairStyle: 'braids', shirt: 30, pants: 46, accent: 56 });
     })()`);
     await wait(1200);
-    await ev(`(() => { ${S} S.play.closeWindow(); S.play.hud.toasts = []; S.play.hud.pickups = []; S.play.lessons.q = []; const g = S.g; g.player.sel = 0; g.player.x = 63.5; g.player.y = 31.5; const r = window.__app.renderer; r.juice.banners = []; r.cam.zoom = r.cam.targetZoom = 2; })()`);
+    await ev(`(() => { ${S} S.play.closeWindow(); S.play.hud.toasts = []; S.play.hud.pickups = []; S.play.lessons.q = []; const g = S.g; g.player.sel = Math.max(0, g.player.inv.slots.findIndex((s) => s && ['hoe_0', 'hoe_1', 'hoe_2', 'hoe_3', 'hoe_4'].map((id) => window.__itemIndex.get(id)).includes(s.k >> 2))); g.player.x = 63.5; g.player.y = 31.5; const r = window.__app.renderer; r.juice.banners = []; r.cam.zoom = r.cam.targetZoom = 2; })()`);
     await wait(800);
   },
   // ---- 2.0 Phase 5 (on the bot's day-5 farm, after the shots above) ----
   // the Sprocket Fair on the square: the Professor's 6x6 plate, the three entries running beside it,
   // the villagers at their places, and her key bubble ("Enter the Sprocket Fair")
   'fair-square': async () => {
-    await ev(`(async () => { const g = S.g; const G = await import('/src/sim/Game.ts'); S.play.closeWindow(); g.weather = 'sun';
+    await ev(`(async () => { const g = S.g; const G = await import(performance.getEntriesByType('resource').map((r) => r.name).find((n) => new URL(n).pathname === '/src/sim/Game.ts') ?? '/src/sim/Game.ts'); S.play.closeWindow(); g.weather = 'sun';
       g.time.season = 0; g.time.day = 13; g.time.min = 10 * 60; G.SYSTEMS.find((s) => s.name === 'festivals').dayStart(g);
       g.player.where = 'world'; g.player.x = 133.5; g.player.y = 69.5; window.__app.renderer.invalidateAll(); })()`);
     // the villagers walk to their places
@@ -271,7 +274,7 @@ const SC = {
     await ev(`(() => { const g = S.g; S.play.closeWindow(); S.play.hud.toasts = []; S.play.achQ = []; S.play.lessons.q = []; window.__app.renderer.juice.banners.length = 0;
       // the Fair's four at their places (the others walk there on their own)
       for (const id of ['ottoline', 'tobias', 'bram', 'juniper']) { const [x, y] = g.map.loc('fest_' + id); const n = g.sys.npcs.byId.get(id); n.x = x + 0.5; n.y = y + 0.9; n.visible = true; n.path = []; n.target = 'fest_' + id; n.moving = false; n.dir = 2; }
-      const [sx, sy] = g.map.loc('fest_ottoline'); g.player.x = sx + 1.5; g.player.y = sy + 0.9; g.player.dir = 3; g.player.sel = 0;
+      const [sx, sy] = g.map.loc('fest_ottoline'); g.player.x = sx + 1.5; g.player.y = sy + 0.9; g.player.dir = 3; g.player.sel = Math.max(0, g.player.inv.slots.findIndex((s) => s && ['hoe_0', 'hoe_1', 'hoe_2', 'hoe_3', 'hoe_4'].map((id) => window.__itemIndex.get(id)).includes(s.k >> 2)));
       const r = window.__app.renderer; r.cam.zoom = r.cam.targetZoom = 2; r.cam.x = g.player.x; r.cam.y = g.player.y - 0.6; })()`);
     await wait(500);
   },
@@ -318,6 +321,23 @@ const SC = {
     a.answer = null; a.call = 'once'; a.t = 0; S.play.openWindow('auction', 'haul'); })()`),
   // the Orders board on the Haul's day: double pay, and a business short this week
   'board-haul': async () => ev(`(() => { const g = S.g; S.play.closeWindow(); ${ORDERS}; const o = g.sys.orders.open.find((x) => x.def === 'bram_coal') ?? g.sys.orders.open.find((x) => x.kind === 'standing'); if (o) { o.short = true; o.lines[0].n *= 2; o.unit = Math.round(o.unit * 1.25); } S.play.openWindow('board'); })()`),
+  // the square on the Haul's day: the market stalls in the plaza's corners and the Mayor's podium
+  'haul-square': async () => {
+    await ev(`(async () => { const g = S.g; const G = await import(performance.getEntriesByType('resource').map((r) => r.name).find((n) => new URL(n).pathname === '/src/sim/Game.ts') ?? '/src/sim/Game.ts'); S.play.closeWindow(); g.weather = 'sun';
+      g.time.season = 2; g.time.day = 15; g.time.min = 10 * 60; G.SYSTEMS.find((s) => s.name === 'festivals').dayStart(g);
+      g.player.where = 'world'; g.player.x = 133.5; g.player.y = 66.5; g.player.dir = 0; window.__app.renderer.invalidateAll();
+      S.play.hud.toasts = []; S.play.achQ = []; S.play.lessons.q = []; window.__app.renderer.juice.banners.length = 0;
+      const r = window.__app.renderer; r.cam.zoom = r.cam.targetZoom = 2; r.cam.x = 133; r.cam.y = 60; })()`);
+    await wait(500);
+  },
+  // Tinker's Yard's wrecked machines (the four looks), by the player in a fall field
+  ruins: async () => {
+    await ev(`(() => { const g = S.g, m = g.map; S.play.closeWindow(); g.time.season = 2; g.time.min = 11 * 60; g.player.where = 'world'; g.player.x = 40.5; g.player.y = 46.5; g.player.dir = 2;
+      for (let v = 0; v < 4; v++) { const x = 37 + v * 2, y = 44; m.setO(x, y, window.__O.WRECK); m.objData[m.idx(x, y)] = v; }
+      window.__app.renderer.invalidateAll(); S.play.hud.toasts = []; window.__app.renderer.juice.banners.length = 0;
+      const r = window.__app.renderer; r.cam.zoom = r.cam.targetZoom = 3; r.cam.x = 40.5; r.cam.y = 45; })()`);
+    await wait(400);
+  },
   // Mags' freight cart on a Sunday: her parts, seeds out of season, a sapling, a curio, a shortage's beans, and the Sunday lot
   broker: async () => ev(`(async () => { const g = S.g; const Cart = await import('/src/sim/systems/cart.ts'); S.play.closeWindow(); g.time.season = 0; g.time.day = 14; g.time.min = 11 * 60;
     g.player.where = 'world'; const c = Cart.cart(g); const e = Cart.shortStock('pickles_cogbean', 12); if (!c.stock.some((x) => x.item === e.item)) c.stock.push(e);
@@ -337,13 +357,15 @@ const SC = {
     await wait(300);
   },
   // ---- the owner's playtest (Phase 5) ----
-  // Pip's question at the keeper's crock: the card under the lessons, the crock outlined
+  // Pip's question at the keeper's crock: the card under the lessons, the crock outlined (the noon post
+  // marked as gone, or its ribbon would hide the Now strip and the F prompt here and in loadpick; the card
+  // shows only during Pip's visit to that machine, src/sim/people.ts pipAskLive)
   'pip-ask': async () => ev(`(async () => { const g = S.g; S.play.closeWindow(); S.play.mode = 'normal'; S.play.rectStart = null; S.play.hud.toasts = []; const P = await import('/src/sim/people.ts');
-    g.player.where = 'world'; g.time.min = 14 * 60; const e = g.ents.at(54, 23); g.player.x = 54.5; g.player.y = 25.6; g.player.dir = 0;
-    const m = P.machineQuestion(g, e); g.sys.pipAsk = { ent: e.id, lead: "Psst, Wren! I've been watching your preserving crock all afternoon.", q: m.q, answers: m.answers, right: m.right };
+    g.player.where = 'world'; g.sys.postLast = 12 * 60; g.time.min = 14 * 60; const e = g.ents.at(54, 23); g.player.x = 54.5; g.player.y = 25.6; g.player.dir = 0;
+    const m = P.machineQuestion(g, e); g.sys.visits = { npc: 'pip', talked: true, ent: e.id, asked: true }; g.sys.pipAsk = { ent: e.id, lead: "Psst, Wren! I've been watching your preserving crock all afternoon.", q: m.q, answers: m.answers, right: m.right };
     const r = window.__app.renderer; r.cam.zoom = r.cam.targetZoom = 2; r.cam.x = g.player.x; r.cam.y = g.player.y - 0.6; })()`),
   // F at the crock with nothing it takes in hand: "Load which?", a card beside it (you face it)
-  loadpick: async () => ev(`(() => { const g = S.g; g.sys.pipAsk = null; const e = g.ents.at(54, 23); e.mach.inBuf.clear(); e.mach.outBuf = []; g.player.sel = 9; g.player.inv.slots[9] = null;
+  loadpick: async () => ev(`(() => { const g = S.g; g.sys.pipAsk = null; g.sys.visits = null; const e = g.ents.at(54, 23); e.mach.inBuf.clear(); e.mach.outBuf = []; g.player.sel = 9; g.player.inv.slots[9] = null;
     g.player.where = 'world'; g.player.x = 54.5; g.player.y = 24.6; g.player.dir = 0;
     g.player.inv.add(S.key('cogbean'), 7); g.player.inv.add(S.key('radish'), 12); g.player.inv.add(S.key('blueberry'), 30); S.play.openWindow('loadpick', e.id); })()`),
   // the counter: the Mercantile with Hazel in, a standing order the bag can answer
@@ -397,5 +419,12 @@ for (const r of report) {
 if (errors.length) lines.push('## Console', '', ...errors.slice(0, 40).map((e) => '- ' + e.split('\n')[0]), '');
 fs.writeFileSync(`${out}/report.md`, lines.join('\n'));
 fs.writeFileSync(`${out}/report.json`, JSON.stringify({ report, errors }, null, 1));
-console.log(`\n${lines[2]}\nReport: ${out}/report.md`);
+// every sprite the sweep saw drawn by code rather than from an imported sheet (the art pass's leftovers)
+const drawn = await ev(async () => {
+  const p = performance.getEntriesByType('resource').map((r) => r.name).find((n) => new URL(n).pathname === '/src/render/atlas.ts') ?? '/src/render/atlas.ts';
+  const A = await import(p);
+  return [...(A.codeDrawn ?? [])].filter((n) => !A.hasImage(n)).sort();
+});
+fs.writeFileSync(`${out}/drawn.json`, JSON.stringify(drawn, null, 1));
+console.log(`\n${lines[2]}\nReport: ${out}/report.md  (${drawn.length} sprite names drawn by code: drawn.json)`);
 await browser.close();

@@ -424,7 +424,7 @@
   "roof_gold": ["#cd683d", "#f9c22b"],
   "rod_rusty": ["#6e2727", "#b33831", "#ea4f36", "#f57d4a"],
   "split_tan": ["#45293f", "#694f62", "#966c6c", "#ab947a", "#fdcbb0"],
-  "belt_canvas": ["#45293f", "#694f62", "#ab947a", "#cd683d", "#fdcbb0"],
+  "belt_canvas": ["#3e3546", "#625565", "#694f62", "#f9c22b", "#fdcbb0"],
   "kiln_brick": ["#45293f", "#7a3045", "#9e4539", "#cd683d", "#e6904e"],
   "silo_brick": ["#45293f", "#6e2727", "#b33831", "#ea4f36", "#fdcbb0"],
   "roof3_green": ["#165a4c", "#239063", "#1ebc73"],

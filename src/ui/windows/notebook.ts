@@ -6,7 +6,7 @@ import { LESSON_BY_ID } from '../../data/lessons';
 import { ITEM_BY_ID } from '../../data/items';
 import { STRUCT_BY_ID } from '../../data/structures';
 import { ioOf, PORT_KINDS } from '../../data/contract';
-import { drawFit, sprite } from '../../render/atlas';
+import { drawPic, sprite } from '../../render/atlas';
 import { drawGlyph } from '../../render/glyphs';
 import { ACTION_LABELS, keyLabel, SHOWN_ACTIONS } from '../../engine/input';
 import { lessonsSeen } from '../../sim/lessons';
@@ -46,7 +46,7 @@ export function drawNotebook(ui: UI, play: PlayScreen, st: WinState, bx: number,
       const l = LESSON_BY_ID.get(id)!;
       ui.fill(cx, y + 2, 26, 26, C.ink);
       ui.fill(cx + 1, y + 3, 24, 24, C.plum);
-      drawFit(ui.ctx, sprite(l.pic), cx + 1, y + 3, 24, 24);
+      drawPic(ui.ctx, sprite(l.pic), cx + 1, y + 3, 24, 24);
       if (l.glyph) drawGlyph(ui.ctx, l.glyph, cx + 22, y + 5, ui.time);
       ui.text(l.title, cx + 32, y + 2, C.ink);
       l.text.forEach((t, i) => ui.text(ellipsize(t, cw - 36), cx + 32, y + 12 + i * 9, C.walnut));

@@ -18,6 +18,7 @@ import { canTill, fertilize, harvest, harvestStreak, plant, plantSapling, shakeT
 import { spawnDrop } from './systems/drops';
 import { deconstruct } from './build';
 import { isRusted, restore } from './rust';
+import { onTile } from './near';
 import { lesson } from './lessons';
 import { availableRecipes, loadChoices, machAccept, machInsert, setRecipe } from './systems/machines';
 import { curMap } from './systems/player';
@@ -261,8 +262,16 @@ function rockDrops(g: Game, x: number, y: number, o: O, data: number) {
   } else if (o === O.BOULDER) {
     drop(g, 'stone', g.rng.int(8, 12), x, y);
     if (g.rng.next() < 0.3) drop(g, 'geode', 1, x, y);
+  } else if (o === O.WRECK) {
+    // Tinker's Yard: an old machine's salvage
+    drop(g, 'copper_gear', g.rng.int(1, 3), x, y);
+    drop(g, 'iron_bar', 1, x, y);
+    if (g.rng.next() < 0.5) drop(g, 'spring', 1, x, y);
+    if (g.rng.next() < 0.35) drop(g, 'copper_coil', g.rng.int(1, 2), x, y);
+    if (g.rng.next() < 0.2) drop(g, 'old_cog', 1, x, y);
+    g.count('wrecks');
   }
-  g.addXp('mining', o === O.ORE_ROCK ? 5 : o === O.BOULDER ? 10 : 1);
+  g.addXp('mining', o === O.ORE_ROCK ? 5 : o === O.BOULDER || o === O.WRECK ? 10 : 1);
 }
 
 export function useTool(g: Game, kind: string, tier: number, tx: number, ty: number, charge = 0): boolean {
@@ -385,17 +394,17 @@ export function useTool(g: Game, kind: string, tier: number, tx: number, ty: num
       g.spend(cost);
       const o = m.o(tx, ty);
       const i = m.idx(tx, ty);
-      if (o === O.ROCK || o === O.ORE_ROCK || o === O.BOULDER || o === O.GEM_ROCK) {
+      if (o === O.ROCK || o === O.ORE_ROCK || o === O.BOULDER || o === O.GEM_ROCK || o === O.WRECK) {
         if (o === O.BOULDER && tier < 1) {
           g.toast('This boulder needs a copper pickaxe or better.');
           g.emit({ t: 'sfx', id: 'clang' });
           return true;
         }
-        const hp = o === O.ROCK ? 2 : o === O.ORE_ROCK ? 4 : 8;
+        const hp = o === O.ROCK ? 2 : o === O.ORE_ROCK ? 4 : o === O.WRECK ? 5 : 8;
         g.sys.rockHits = g.sys.rockHits ?? new Map<number, number>();
         const hits = (g.sys.rockHits.get(i) ?? 0) + power;
         fx(g, 'rock', tx, ty);
-        g.emit({ t: 'sfx', id: 'pick' });
+        g.emit({ t: 'sfx', id: o === O.WRECK ? 'clang' : 'pick' });
         if (hits >= hp) {
           rockDrops(g, tx, ty, o, m.objData[i]);
           m.setO(tx, ty, O.NONE);
@@ -558,17 +567,30 @@ function interactTile(g: Game, tx: number, ty: number, critter = false): boolean
     if (he && !he.ghost) return interactStruct(g, he);
     return g.sys.house?.interact?.(g, tx, ty, critter) ?? false;
   }
-  // NPCs near the target
+  // Several things can answer one F (the owner's playtest: the Professor beside the water wheel took
+  // the F meant for it). What is on the faced tile comes first: a villager or an animal standing on
+  // it, then the tile's own cart, door, structure, crop or object. One only near it comes last.
   const npc = g.sys.npcs?.at?.(g, tx + 0.5, ty + 0.5);
-  if (npc) {
-    g.sys.npcs.interact(g, npc);
-    return true;
-  }
   const animal = g.sys.animals?.at?.(g, tx + 0.5, ty + 0.5);
-  if (animal) {
-    g.sys.animals.pet(g, animal);
-    return true;
-  }
+  const greet = (on: boolean) => {
+    if (npc && (!on || onTile(npc, tx, ty))) {
+      g.sys.npcs.interact(g, npc);
+      return true;
+    }
+    if (animal && (!on || onTile(animal, tx, ty))) {
+      g.sys.animals.pet(g, animal);
+      return true;
+    }
+    return false;
+  };
+  if (greet(true)) return true;
+  return tileAnswers(g, tx, ty) || greet(false);
+}
+
+/** F at a tile's own things: the cart, a door, a structure, a crop, an object (true when one answered) */
+function tileAnswers(g: Game, tx: number, ty: number): boolean {
+  const p = g.player;
+  const m = curMap(g);
   const i = m.idx(tx, ty);
   // Mags' traveling cart
   const cp = g.sys.cart?.pos as [number, number] | undefined;

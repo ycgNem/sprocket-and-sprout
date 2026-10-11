@@ -1,12 +1,48 @@
 # Sprocket & Sprout patch notes
 
-## 2.0 beta (October 2026)
+## 2.0 (October 2026)
 
 **The Works**
 
-Sprocket & Sprout 2.0 rebuilds the game around its works. You arrive to find the old keeper's clockwork farm rusted around one crock that still runs, bring it back machine by machine, then restore the town's mill, pumps, lamps, tram and clock with lines of your own. Hand farming stays, and your 1.x farms come with you. This is a beta: things may still change, and balance is still settling.
+Sprocket & Sprout 2.0 is out of beta. Everything from the beta is below, plus a round of playtest fixes: a smoother opening, F that always reaches what you face, labels that never cover each other, and new art for the town's people and festivals.
 
-### Beta update
+### A smoother opening
+
+- The arm in "Hands Free" feeds the crock one bean at a time even if your hands filled it, and the keeper's crock pickles fast while you learn, so nobody waits around.
+- "Watch a bean ride the belt" ticks off when the bean reaches the crock, even while the crock is still full.
+- "Find out why it stopped" wants a look at the stopped crock itself (or I held over its line), so it can't tick off by accident.
+- The Bottleneck's last step says to add a clockwork arm by the second crock and marks the tile. If your arms all went into the fix, the Professor sends a spare.
+- Steps that wait on a machine or the post say what to do meanwhile.
+- You start with the works first on your hotbar and your hands free, and the camera opens closer on the keeper's yard.
+- The day no longer slows down while a machine's window is open.
+- The second crock's step gives the Mercantile's hours and says the Workshop sells crocks too, and the compass lets go of Marigold once a crock is in your bag.
+
+### Playing
+
+- F reaches the tile in front of the one you stand on. Standing above the water wheel and facing it, F now restores it (before, it could miss and pick your own tile).
+- A villager standing beside something no longer takes your F: someone standing on the tile you face answers first, then the tile itself, then a villager nearby. Heart scenes put villagers on a clear tile beside you.
+- Labels never cover each other: tooltips step aside from the F bubble, guide notes and name tags rise clear of it, and floating texts stack.
+- Crafting shows every item's name with its ingredients under it, so a sprout bundle says Sprout Bundle.
+- Materials and common parts say where to get them: plant fiber from cutting weeds (scythe or axe), clay from hoeing dig spots, ores by Deepworks level, and planks, rope, gears, coils and copper bars from their recipe or the shop that sells them. Hover them, or look in crafting.
+- A machine's window badges each recipe with its ingredient, so a crock's two dozen jars tell themselves apart.
+- The crate's Worth counts what its tagged customer will pay, and Statistics counts shipped goods at each post.
+- Arms never claim to carry more than they can, and line rates no longer spike right after loading a farm.
+- Trust messages name Prof. Cogwhistle, and in small windows the minimap is half as tall.
+- Farms from 1.x get the cogbean oil recipe, and once Water Power is studied Juniper mails over a grist mill, so Milling can be learned (it needs a mill to try).
+- A farm loads at the zoom you last chose (a step closer than before on a 720p window), and no tooltip pops up under a resting cursor when a game starts.
+- Messages that arrive together, like loading a farm, roll in one after another instead of all at once.
+- Holding I over a line fed by a rusted machine says it is rusted, not slow.
+
+### New art
+
+- Belts look like conveyors: dark iron rails, rollers and moving chevrons, and a rusted belt is a clear red-brown. The preserving crock has a brass lid, a gauge whose needle swings while it works and a steam vent.
+- The farmhouse shows it was the keeper's workshop: a brass cog on the gable, a copper downpipe into a gauged tank, and a vent on the ridge.
+- The six villagers with new jobs dress for them, on the map and in their portraits: Juniper the millwright, Bram the foundry master, Sable the archivist, Thorne the old works engineer, Hazel the draughtswoman and Pip the apprentice.
+- The Sprocket Fair's plate is a riveted brass deck, with a banner over the square's west entrance. The Harvest Haul sets up four market stalls and an auction podium.
+- Old machines lie wrecked in the Tinker's Yard halls: break them with the pickaxe for gears, bars and the odd spring.
+- The field gantry's wheels turn as it rides, and the Deepworks chamber machines cast shadows.
+
+### From the beta update
 
 - "Hands Free" is clearer: the arm step only counts an arm between the cellar chest and the crock. An arm put there faces the crock by itself, a note tells you to press R if one faces away, and it starts feeding the crock right away.
 - "Restore the gleaner's arm" ticks off even if you moved the arm after restoring it.
@@ -15,6 +51,12 @@ Sprocket & Sprout 2.0 rebuilds the game around its works. You arrive to find the
 - New art for the Deepworks machines, the town's waterwheel, fountain, lamps, pump house and tram, the thresher, rapeseed and the last missing item icons.
 - Ground tiles meet cleanly at their edges, and fence previews show north-south runs the right way.
 - Fixed: a tool upgrade that finished while your bag was full could vanish. It now comes by post, and if one went missing, Bram returns it the next time you load your farm.
+
+## 2.0 beta (October 2026)
+
+**The Works**
+
+Sprocket & Sprout 2.0 rebuilds the game around its works. You arrive to find the old keeper's clockwork farm rusted around one crock that still runs, bring it back machine by machine, then restore the town's mill, pumps, lamps, tram and clock with lines of your own. Hand farming stays, and your 1.x farms come with you.
 
 ### The big change
 

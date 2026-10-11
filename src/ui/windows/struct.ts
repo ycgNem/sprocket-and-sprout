@@ -16,7 +16,7 @@ import { structStateLine } from '../statelines';
 import { RESEARCH_BY_ID } from '../../data/research';
 import { deconstruct } from '../../sim/build';
 import { PORT_HANDLERS } from '../../sim/ports';
-import { ordersFor, tagChoices } from '../../sim/systems/orders';
+import { orderShare, ordersFor, tagChoices } from '../../sim/systems/orders';
 
 /** Extra struct panels registered by later systems (labs, buildings, hives, megaprojects...). */
 export const STRUCT_PANELS: Record<string, (ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: number, st: WinState) => number> = {};
@@ -80,8 +80,10 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
     else if (!readonly) target = kind === 'shipbin' ? (k, n) => (kDef(k).price > 0 ? n - e.inv!.add(k, n) : 0) : e.inv;
     if (kind === 'chest' && ui.button('csort', x + w - 60, top - 1, 46, 12, 'Sort', { style: 'flat' })) e.inv.sort();
     if (kind === 'shipbin') {
-      let total = 0;
-      for (const s of e.inv.slots) if (s) total += (g.sys.market?.priceOf?.(g, s.k) ?? kDef(s.k).price) * s.n;
+      // a tagged crate's goods fetch their customer's order prices first, the market the rest
+      const share = orderShare(g, e);
+      let total = share.coins;
+      e.inv.slots.forEach((s, i) => { if (s) total += (g.sys.market?.priceOf?.(g, s.k) ?? kDef(s.k).price) * share.left[i]; });
       ui.text(`Worth ${ICON.coin}${total.toLocaleString()}`, x + w - 14, top + 2, C.moss, { align: 'right' });
       crateTags(ui, play, e, x, top + 16 + Math.ceil(e.inv.size / 12) * (SLOT + 2), w);
     }
@@ -140,7 +142,11 @@ function crateTags(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: nu
   if (opts.length > 1 && ui.button('ctagp', x + 56, y, 14, 13, '<', { style: 'flat' })) set(at - 1);
   if (ui.button('ctag', x + 72, y, bw, 13, ellipsize(o.place, bw - 8), { style: 'flat', active: !!o.cust, tip })) set(at + 1);
   if (opts.length > 1 && ui.button('ctagn', x + 74 + bw, y, 14, 13, '>', { style: 'flat' })) set(at + 1);
-  if (opts.length === 1) ui.text('Orders from the town show up here once posted.', x + 96 + bw, y + 3, C.oak);
+  // the long line where it fits, else a short one (at 1280x720 the long one ran past the window's
+  // edge: the critic's 2.0 review)
+  const room = w - 104 - bw;
+  const none = ['Orders from the town show up here once posted.', 'Town orders show up here.'].find((t) => textWidth(t) <= room);
+  if (opts.length === 1 && none) ui.text(none, x + 96 + bw, y + 3, C.oak);
   // the price tag: the item in the crate the market is most flooded with
   let worst: { k: number; f: number } | null = null;
   for (const s of e.inv!.slots) {
@@ -235,6 +241,8 @@ function machinePanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w:
     const sx = x + 14 + (i % cols) * (SLOT + 2), sy = listY + Math.floor(i / cols) * (SLOT + 2) - off;
     if (sy < listY - SLOT || sy > listY + areaH) return;
     const res = ui.slot(sx, sy, { k: key(r.out[0].item), n: r.out[0].n }, { selected: m.pending ? m.pending.r?.id === r.id : m.recipe?.id === r.id && m.locked });
+    // its one input in the corner: a crock's two dozen jars tell themselves apart (the critic's 2.0 review)
+    if (r.in.length === 1 && r.in[0].item[0] !== '#' && r.in[0].item !== r.out[0].item) ui.spriteIcon('i:' + r.in[0].item, sx + 1, sy + SLOT - 11, 10);
     if (res.hover) {
       const ing = r.in.map((i) => `${i.n}x ${i.item[0] === '#' ? 'any ' + i.item.slice(1) : ITEM_BY_ID.get(i.item)!.name}`).join(' + ');
       ui.tip([{ text: ITEM_BY_ID.get(r.out[0].item)!.name, color: C.amber }, { text: ing || 'Nothing needed' }, { text: `${r.time}s per batch` + (r.out.length > 1 ? ', with bonus outputs' : ''), color: C.pebble }, { text: 'Click to lock this recipe in', color: C.pebble }]);

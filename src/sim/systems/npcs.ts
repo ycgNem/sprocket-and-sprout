@@ -1,10 +1,11 @@
 // Villagers: daily schedules with A* pathing, dialogue selection, gifts, friendship, heart events.
-import { shortName } from '../../data/cookbook';
+import { questName, shortName } from '../../data/cookbook';
 import { NPCS, NPC_BY_ID } from '../../data/npcs';
 import { ITEM_BY_ID, matchesSpec } from '../../data/items';
 import type { DialogueLine, HeartEventDef, ItemDef, NPCDef, ScheduleDef } from '../../data/types';
 import { Game, registerSystem } from '../Game';
 import { kDef } from '../inventory';
+import { DX, DY } from '../ents';
 import { findPath } from '../world/path';
 
 export const POINTS_PER_HEART = 250;
@@ -318,7 +319,7 @@ export function addPoints(g: Game, n: NPCState, pts: number) {
   if (after > before) {
     g.emit({ t: 'sfx', id: 'heart' });
     // the UI's word for hearts is Trust (ROADMAP.md 7.6); romance keeps its hearts
-    g.toast(`${shortName(NPC_BY_ID.get(n.id)!.name)} trusts you more: Trust ${after}`, undefined, 28);
+    g.toast(`${questName(n.id, NPC_BY_ID.get(n.id)!.name)} trusts you more: Trust ${after}`, undefined, 28);
     g.sys.quests?.notify?.(g, 'friend', after, n.id);
   }
 }
@@ -486,17 +487,36 @@ function checkHeartEvents(g: Game) {
   }
 }
 
+/** a clear tile beside the player for a villager to stand on in a scene, facing them: x, y (feet), dir */
+function besidePlayer(g: Game): [number, number, number] {
+  const p = g.player, px = Math.floor(p.x), py = Math.floor(p.y);
+  const fx = px + DX[p.dir], fy = py + DY[p.dir];
+  // right, left, below, above, then the corners; each faces back toward the player
+  const spots: [number, number, number][] = [[1, 0, 3], [-1, 0, 1], [0, 1, 0], [0, -1, 2], [1, 1, 3], [-1, 1, 1], [1, -1, 3], [-1, -1, 1]];
+  for (const [dx, dy, dir] of spots) {
+    const x = px + dx, y = py + dy;
+    if ((x === fx && y === fy) || !g.map.walkable(x, y)) continue;
+    const e = g.ents.at(x, y);
+    if (e && !e.ghost && e.def.solid) continue;
+    return [x + 0.5, y + 0.9, dir];
+  }
+  return [p.x + 1, p.y, 3];
+}
+
 function startHeartEvent(g: Game, n: NPCState, ev: HeartEventDef) {
   n.seen.push(ev.hearts);
   // shops can stock things from a heart event on (`unlock: 'flag:heart_<npc>_<hearts>'`)
   g.flags.add(`heart_${n.id}_${ev.hearts}`);
   const d = NPC_BY_ID.get(n.id)!;
-  // bring the NPC next to the player
+  // bring the NPC next to the player: on a clear tile beside them, never on a machine, in the water
+  // or on the tile they face (the owner's playtest: the Professor's farm-gate scene left her standing
+  // on the river wheel, which then answered F with her)
+  const [bx, by, bdir] = besidePlayer(g);
   n.visible = true;
   n.path = [];
-  n.x = g.player.x + 1;
-  n.y = g.player.y;
-  n.dir = 3;
+  n.x = bx;
+  n.y = by;
+  n.dir = bdir as 0 | 1 | 2 | 3;
   g.sys.cutscene = { npc: n.id };
   g.emit({ t: 'sfx', id: 'chime' });
   g.emit({

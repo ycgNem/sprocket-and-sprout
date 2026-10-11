@@ -108,7 +108,8 @@
      79
     ]
    ]
-  }
+  },
+  "post": "keeper.mjs"
  },
  "greenhouse": {
   "kind": "bld",

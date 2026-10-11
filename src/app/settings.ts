@@ -17,6 +17,8 @@ export interface Settings {
   pixelCursor: boolean;
   /** key bubbles next to things you can use ("F Enter") */
   keyPrompts: boolean;
+  /** the camera zoom you last chose, as steps from the window's own (src/app/play.ts) */
+  zoomStep: number;
 }
 
 const KEY = 'sns_settings_v1';
@@ -24,7 +26,7 @@ const KEY = 'sns_settings_v1';
 export function defaultSettings(): Settings {
   return {
     master: 0.8, music: 0.55, sfx: 0.8, uiScale: 0, binds: structuredClone(DEFAULT_BINDS),
-    overnight: 'full', pauseInMenus: true, showGrid: false, screenShake: true, autosave: true, pixelCursor: true, keyPrompts: true,
+    overnight: 'full', pauseInMenus: true, showGrid: false, screenShake: true, autosave: true, pixelCursor: true, keyPrompts: true, zoomStep: 0,
   };
 }
 

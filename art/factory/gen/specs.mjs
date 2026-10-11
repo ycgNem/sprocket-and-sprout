@@ -10,6 +10,7 @@
 //   seasons { 3: (offFrame) => image } extra art for one season (e.g. winter)
 import { Img } from './lib.mjs';
 import { FIRE } from './fx.mjs';
+import { drawCrock, crockFx, CROCK } from './crock.mjs';
 
 const fireOff = (rect) => ({ t: 'fire', rect, offOnly: true });
 
@@ -213,10 +214,11 @@ export const SPECS = {
     fx: [{ t: 'drip', x: 11, y0: 15, len: 3, c: '#905ea9', c2: '#6b3e75' }, { t: 'recolor', rect: [11, 5, 2, 2], map: { '#a884f3': '#eaaded', '#905ea9': '#a884f3' }, frames: [1, 3] }],
   },
   jar: {
-    src: 'raw/D/5.png',
-    // signature: bright raspberry jam behind the glass
-    edit: (im) => recolorRect(im, [8, 8, 10, 11], { '#7a3045': '#c32454', '#45293f': '#831c5d', '#ea4f36': '#f04f78' }),
-    fx: [{ t: 'bubbles', rect: [9, 9, 7, 8], c: '#f68181', n: 3 }],
+    // a machine since the 2.0 screenshot test (gen/crock.mjs): raw/D/5's raspberry jam crock under a
+    // brass canner lid with a gauge, a steam vent and clamp bars, 16 x 30. Working: the needle
+    // swings, the vent's cap jiggles, the jam bubbles, steam puffs from the cap (meta.smoke)
+    draw: drawCrock, smoke: CROCK.smoke,
+    fx: crockFx(),
   },
 
   // ---------------- batch H (34 px): 2x1 machines, compact 2x2, lamp, mist tower ----------------

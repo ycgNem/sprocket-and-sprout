@@ -133,7 +133,7 @@ await page.keyboard.up('Shift');
 await wait(300);
 check(!(await ev(`S.g.sys.hamster.ball`)), 'Shift+F at the cage puts it back');
 
-// 6. Shift+right-click picks the cage up (plain right-click, a tool in hand, is a scratch)
+// 6. Shift+right-click picks the cage up (plain right-click, with something in hand, is a scratch)
 await page.keyboard.press('Digit1');
 await wait(150);
 const before = await ev(`S.g.sys.hamster.pettedDay`);

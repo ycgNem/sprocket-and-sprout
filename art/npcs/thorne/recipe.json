@@ -23,32 +23,32 @@
   ],
   "input": {
     "up": [
-      "walking-4-frames/north/0.png",
-      "walking-4-frames/north/1.png",
-      "walking-4-frames/north/2.png",
-      "walking-4-frames/north/3.png",
-      "rotations/north.png"
+      "edit-a/north/0.png",
+      "edit-a/north/1.png",
+      "edit-a/north/2.png",
+      "edit-a/north/3.png",
+      "edit-a/north/0.png"
     ],
     "right": [
-      "walking-4-frames/east/0.png",
-      "walking-4-frames/east/1.png",
-      "walking-4-frames/east/2.png",
-      "walking-4-frames/east/3.png",
-      "rotations/east.png"
+      "edit-a/east/0.png",
+      "edit-a/east/1.png",
+      "edit-a/east/2.png",
+      "edit-a/east/3.png",
+      "edit-a/east/0.png"
     ],
     "down": [
-      "walking-4-frames/south/0.png",
-      "walking-4-frames/south/1.png",
-      "walking-4-frames/south/2.png",
-      "walking-4-frames/south/3.png",
-      "rotations/south.png"
+      "edit-a/south/0.png",
+      "edit-a/south/1.png",
+      "edit-a/south/2.png",
+      "edit-a/south/3.png",
+      "edit-a/south/0.png"
     ],
     "left": [
-      "walking-4-frames/west/0.png",
-      "walking-4-frames/west/1.png",
-      "walking-4-frames/west/2.png",
-      "walking-4-frames/west/3.png",
-      "rotations/west.png"
+      "edit-a/west/0.png",
+      "edit-a/west/1.png",
+      "edit-a/west/2.png",
+      "edit-a/west/3.png",
+      "edit-a/west/0.png"
     ]
   },
   "align": "feet-per-frame",
@@ -57,7 +57,7 @@
     34
   ],
   "meta": {
-    "label": "Thorne v3",
+    "label": "Thorne, works engineer",
     "kind": "character",
     "ids": [
       "thorne"
@@ -71,40 +71,22 @@
       "5": "stand",
       "6": "stand"
     },
-    "source": "PixelLab create_character v3, size 36, low top-down, single color outline (character f076a475-22d6-428a-8cc9-c46826943434); walk: walking-4-frames",
-    "notes": "hood and robe recolored from olive to a plum-brown cloak (cloak part): olive head to toe read as one blob and vanished on grass; the green sash stays"
+    "source": "PixelLab edit_image on the 16 walking-4-frames of character f076a475-22d6-428a-8cc9-c46826943434 (job 407cc6db-bb73-44c0-8389-0ad25218ff5f, 10 generations, frames in edit-a/): hood pushed back, goggles, engineer coat with brass buttons, spanner; stand = walk0",
+    "notes": "coat mapped onto the plum cloak ramp of the 1.x sheet (his colour); brass snapped olive, mapped to gold"
   },
   "parts": {
-    "cloak": {
+    "coat": {
       "from": [
-        "#2b291b",
-        "#353314",
-        "#383825",
-        "#433b2b",
-        "#3d3e13",
-        "#4e4b30",
-        "#434425",
-        "#4c5118",
-        "#4f511c",
-        "#59651d",
-        "#586c2a",
-        "#675c1d",
-        "#7b6e22",
-        "#7d7625",
-        "#8c892d",
-        "#938020",
-        "#909424",
-        "#a08a29",
-        "#a8971e"
+        "#3d2932",
+        "#604349"
       ],
       "keys": [
         "#45293f",
-        "#753c54",
-        "#966c6c"
+        "#753c54"
       ]
     }
   },
   "remap": {
-    "#313638": "#3e3546"
+    "#a2a947": "#f9c22b"
   }
 }

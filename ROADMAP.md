@@ -1368,9 +1368,11 @@ Phase 3+4 confirmation pass, `928a07c`..`72ff71b`).
 ### Phase 6 — The art direction pass (3-4 sessions, after Nov 9)
 - **Round 1 done (October 10-11, DECISIONS #136):** the Deepworks machines, the town works, the
   last procedural names (coverage 100%), the seam audit at 0, STYLE.md "Machines"; 74 generations.
-  Round 2: delete the generators and `?art=old` (after `coverage.mjs` learns `deep:`/`town:`/`o:52`),
-  chamber shadows, the gantry's wheel frames, the re-roled villagers, the Tinker's Yard and Haul
-  stalls, the screenshot test. The arms (Phase 5, by script) and the bridges (#134) are already done.
+- **Round 2 done (October 11, DECISIONS #145):** the re-roled villagers' work clothes and portraits,
+  the Tinker's Yard wrecks, the Haul's stalls and podium, the Fair's plate and banner, the gantry's
+  wheel frames, chamber shadows (90 generations); then by script, from the critic's screenshot test:
+  conveyor belts, the crock with a lid, gauge and vent, the keeper's farmhouse. `?art=old` and the
+  Compare lineup are gone. Coverage 6991/6991. The owner's screenshot test is the last check.
 - Section 9, one `art-director` agent per group in parallel (the Phase 2 pattern from 1.1,
   `art/README.md`); `STYLE.md` "Machines" section; the seam audit at 0; `coverage.mjs` 100%;
   delete `src/render/art/` generators and `?art=old`.
@@ -1378,6 +1380,10 @@ Phase 3+4 confirmation pass, `928a07c`..`72ff71b`).
   1280x720 and 1366x620; `qa-screens` finds no regressions.
 
 ### Phase 7 — Review and release 2.0 (1 session)
+- **Done on `works` (October 11, DECISIONS #139-#146):** the code review (high) on v1.1.1..works and
+  its fixes, the critic's full review (SHIP WITH FIXES) and its Critical, Majors and Minors, its
+  confirmation pass and those fixes, the owner's playtest fixes, version 2.0.0 and the 2.0 patch notes. Left: the merge, the installers
+  and the release, when the owner says ship.
 - `/code-review` (high) on `main..works`; the critic's full review; fix the Criticals.
 - README, HANDOFF, PROGRESS, DECISIONS updated; version 2.0.0; merge to `main`;
   `Build desktop app.bat`; `gh release create v2.0.0`.

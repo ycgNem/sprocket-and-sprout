@@ -39,6 +39,8 @@ const C = {
       '2': [['pumpkins', 36, 97], ['pumpkins2', 78, 97]],
       '3': [['wreath', 56, 79]],
     },
+    // the old keeper's workshop-home: gable cog, downpipe and tank, roof vent (art/buildings/keeper.mjs)
+    post: 'keeper.mjs',
   },
   greenhouse: {
     kind: 'bld', W: 176, H: 50, ox: 0, oy: 18, seasons: [1],

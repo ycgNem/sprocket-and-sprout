@@ -7,15 +7,17 @@ import { canPlace, deconstruct, place, rotateStruct } from '../src/sim/build';
 import { key } from '../src/sim/inventory';
 import { MState } from '../src/sim/mstate';
 import { OPENING, RIVER } from '../src/sim/opening';
-import { consign, filled, orders } from '../src/sim/systems/orders';
+import { consign, filled, orderShare, orders } from '../src/sim/systems/orders';
 import { powerState } from '../src/sim/systems/power';
 import { RECIPES } from '../src/data/recipes';
-import { setRecipe } from '../src/sim/systems/machines';
+import { machAccept, setRecipe } from '../src/sim/systems/machines';
 import { T, Z } from '../src/sim/world/tilemap';
 import { questSys } from '../src/sim/systems/quests';
 import { serialize, deserialize } from '../src/sim/save';
 import { QUESTS } from '../src/data/goals';
 import { LESSONS } from '../src/data/lessons';
+import { FIELD_KINDS, diagnose, fieldTiles, lineOf } from '../src/sim/lines';
+import { questTarget } from '../src/sim/prompts';
 import { Bot } from './bot';
 import type { Dir } from '../src/sim/ents';
 
@@ -81,6 +83,20 @@ describe('rust and restore', () => {
     expect(g.flags.has('lesson:rust')).toBe(true);
     secs(g, 10);
     expect(g.ents.get(g.shipBinId)!.inv!.countSpec('#preserve')).toBeGreaterThan(0);
+  });
+
+  it("holding I over the starved crock names the rusted piece that stops it, not a slower gleaner (the critic's 2.0 pass)", () => {
+    const g = new Game({ seed: 13 });
+    const jar = at(g, OPENING.jar);
+    // the cellar's last beans, then nothing: the gleaner, its arm and the belts are still rusted
+    let d: ReturnType<typeof diagnose> | undefined;
+    for (let t = 0; t < 600 && !d; t += 5) {
+      secs(g, 5);
+      d = lineOf(g, jar).sinks.map((s) => diagnose(g, s)).find((x) => x.key.startsWith('starved'));
+    }
+    expect(d?.key).toBe('starved:rusted');
+    expect(d?.gap).toMatch(/rusted/);
+    expect(d?.gap).not.toMatch(/slower/);
   });
 
   it('restoring the desk lets you craft sprout bundles; rust survives a save', () => {
@@ -250,7 +266,13 @@ describe('the eight beats', () => {
     const farm = (i: number) => g.map.zone[i] === Z.FARM;
     let works = 0;
     for (const e of g.ents.all()) if (!e.ghost && !e.parent && farm(g.map.idx(e.x, e.y))) works += e.w * e.h;
-    const tilled = [...g.soil.keys()].filter(farm).length;
+    // a field machine's bed is the works' intake, not a row the hands tend: A Second Bed's 16 beans
+    // around two new gleaners count with their gleaners (since the opening's arm step stopped making
+    // the bot wait, it reaches them by day 5)
+    const fed = new Set<number>();
+    for (const e of g.ents.all()) if (!e.ghost && FIELD_KINDS.has(e.def.kind)) for (const [x, y] of fieldTiles(g, e)) fed.add(g.map.idx(x, y));
+    const tilled = [...g.soil.keys()].filter((i) => farm(i) && !fed.has(i)).length;
+    works += [...g.soil.keys()].filter((i) => farm(i) && fed.has(i)).length;
     expect(works).toBeGreaterThan(tilled);
   }, 120000);
 
@@ -385,6 +407,11 @@ describe('the pre-merge review (2.0 beta)', () => {
     bin.st.tag = 'rowan';
     bin.inv!.add(key('pickles_cogbean'), 4);
     bin.inv!.add(key('pickles_cogbean', 1), 4);
+    // the crate's Worth reads the same as the post will pay, and reading it changes nothing
+    const share = orderShare(g, bin);
+    expect(share.coins).toBe(4 * 300 + 2 * 150);
+    expect(share.left.reduce((a, n) => a + n, 0)).toBe(2);
+    expect(orderShare(g, bin).coins).toBe(share.coins);
     const r = consign(g, [bin]);
     expect(r.total).toBe(4 * 300 + 2 * 150);
     expect(bin.inv!.count(key('pickles_cogbean', 1))).toBe(0);
@@ -441,6 +468,50 @@ describe("the owner's notes on the opening (Phase 6)", () => {
     expect(a.prog[1]).toBeGreaterThanOrEqual(2);
   });
 
+  it('B3: a crock filled to the brim by hand still takes the arm\'s beans, and its step is done in seconds', () => {
+    const g = new Game({ seed: 75 });
+    skipTo(g, 'k3_hands');
+    const jar = at(g, OPENING.jar);
+    // as much as hands put in (the owner's playtest: the arm then waited on batch after batch)
+    jar.mach!.inBuf.set(key('cogbean'), machAccept(g, jar, key('cogbean'), true) + (jar.mach!.inBuf.get(key('cogbean')) ?? 0));
+    expect(machAccept(g, jar, key('cogbean'), true)).toBe(0);
+    put(g, 'arm_basic', OPENING.feedArm, 0);
+    secs(g, 12);
+    expect(step(g)).not.toBe('k3_hands:1');
+    // and the line whole, the crock is a normal crock again: no room past a hand load
+    questSys(g).done.push('k3_hands');
+    secs(g, 1);
+    expect(jar.st.handfeed).toBeFalsy();
+  });
+
+  it("B6's last step names the arm, and a spare comes if every arm went into the fix", () => {
+    const step4 = QUESTS.find((q) => q.id === 'k6_bottleneck')!.objectives[4];
+    expect(step4.label).toMatch(/arm/i);
+    const g = new Game({ seed: 76 });
+    skipTo(g, 'k6_bottleneck');
+    const q = questSys(g).active.find((x) => x.id === 'k6_bottleneck')!;
+    // steps 0-3 done: two crocks fed, the reason read, the second crock making pickles
+    put(g, 'jar', OPENING.jar2, 0);
+    put(g, 'chest_wood', OPENING.jar2Chest, 0);
+    put(g, 'arm_basic', OPENING.jar2Feed, 0);
+    g.flags.add('read:starved');
+    q.prog[3] = 3;
+    g.player.inv.removeSpec('arm_basic', g.player.inv.countId('arm_basic'));
+    secs(g, 1);
+    expect(step(g)).toBe('k6_bottleneck:4');
+    expect(g.player.inv.countId('arm_basic')).toBe(1);
+  });
+
+  it("B6's compass points at Marigold until a crock is in your bag, then lets go (the critic's 2.0 pass)", () => {
+    const g = new Game({ seed: 77 });
+    skipTo(g, 'k6_bottleneck');
+    expect(step(g)).toBe('k6_bottleneck:0');
+    g.player.inv.removeSpec('jar', g.player.inv.countId('jar'));
+    expect(questTarget(g)?.label).toMatch(/Marigold/);
+    g.player.inv.add(key('jar'), 1);
+    expect(questTarget(g)).toBeNull();
+  });
+
   it('B3 with every arm placed elsewhere: a spare comes, once a day', () => {
     const g = new Game({ seed: 73 });
     skipTo(g, 'k3_hands');
@@ -465,5 +536,28 @@ describe("the owner's notes on the opening (Phase 6)", () => {
     g.flags.add('study:r_belts');
     secs(g, 2);
     expect(step(g)).toBe('k5_desk:6');
+  });
+
+  it("B5: a crock still full from B3's hands doesn't hold up the belt step (the critic's 2.0 C1)", () => {
+    const g = new Game({ seed: 74 });
+    skipTo(g, 'k5_desk');
+    interactStruct(g, at(g, OPENING.desk));
+    g.sys.quests.notify(g, 'craft', 1, 'bundle_green');
+    g.flags.add('study:r_belts');
+    g.flags.add('observed:belt_1');
+    for (const xy of OPENING.belts) interactStruct(g, at(g, xy));
+    g.player.inv.add(key('spring'), 1);
+    interactStruct(g, at(g, OPENING.gleanArm));
+    secs(g, 2);
+    expect(step(g)).toBe('k5_desk:6');
+    // fourteen beans in the crock (B3's arm topped up what hands put in), three in the gleaner
+    const jar = at(g, OPENING.jar);
+    jar.mach!.inBuf.set(key('cogbean'), 14);
+    interactStruct(g, at(g, OPENING.gleaner));
+    at(g, OPENING.gleaner).inv!.add(key('cogbean'), 3);
+    secs(g, 60);
+    expect(jar.mach!.inBuf.get(key('cogbean'))).toBeGreaterThan(2);
+    expect(g.flags.has('belt_into:jar')).toBe(true);
+    expect(step(g)).not.toBe('k5_desk:6');
   });
 });

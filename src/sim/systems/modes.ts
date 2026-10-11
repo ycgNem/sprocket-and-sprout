@@ -118,21 +118,24 @@ function startKit(g: Game) {
 }
 
 /**
- * Hotbar for the opening: the tools and pieces it uses, then two free slots so the first
- * harvest lands within reach. The scythe, club and any extras wait in the bag.
+ * Hotbar for the opening: the works' pieces first, then the tools and seeds, then free slots so the
+ * first harvest lands within reach. The scythe, club and any extras wait in the bag. The hand starts
+ * empty: the first beat is F at the crock, and a held arm would hang a ghost under the cursor and
+ * slow the clock (the critic's 2.0 M2: minute 0 held a hoe and read as a farming game).
  */
 function arrangeHotbar(g: Game) {
   const p = g.player;
-  const order = ['tool:hoe', 'tool:can', 'tool:axe', 'tool:pick', 'arm_basic', 'cogbean_seed', 'belt_1', 'chest_wood', 'jar', 'radish_seed'];
+  const order = ['arm_basic', 'belt_1', 'chest_wood', 'jar', 'tool:hoe', 'tool:can', 'tool:axe', 'tool:pick', 'cogbean_seed', 'radish_seed'];
   const all = p.inv.slots.filter(Boolean) as { k: number; n: number }[];
   const pick = (m: string) => {
     const i = all.findIndex((s) => (m.startsWith('tool:') ? kDef(s.k).tool?.kind === m.slice(5) : s.k === key(m)));
     return i >= 0 ? all.splice(i, 1)[0] : null;
   };
-  const hot = order.map(pick);
-  p.inv.slots = [...hot, null, null, ...all];
+  const hot = order.map(pick).filter((s) => s);
+  while (hot.length < 12) hot.push(null);
+  p.inv.slots = [...hot, ...all];
   while (p.inv.slots.length < 36) p.inv.slots.push(null);
-  p.sel = 0;
+  p.sel = 11;
 }
 
 registerSystem({

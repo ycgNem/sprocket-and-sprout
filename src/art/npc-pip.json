@@ -24,7 +24,7 @@
     "walk3",
     "stand"
   ],
-  "label": "Pip v3",
+  "label": "Pip, apprentice engineer",
   "kind": "character",
   "ids": [
     "pip"
@@ -38,43 +38,25 @@
     "5": "stand",
     "6": "stand"
   },
-  "source": "PixelLab create_character v3, size 24, low top-down, single color outline (character 76078dd0-90ca-404b-aa4b-318a3f00c81f); walk: walking-4-frames",
+  "source": "PixelLab edit_image on the 16 walking-4-frames of character 76078dd0-90ca-404b-aa4b-318a3f00c81f padded to 32 px (pad32/; job 4830711c-762b-4012-bee4-7d1a5d058a88, 10 generations, frames in edit-b/; the first try edit-a/, job e7fa5e8e-3112-430d-9273-74e07e8ebb6d, lost the golden hair), colours mapped and goggles drawn by prep.mjs into prep/; stand = walk0",
+  "notes": "works outfit (ROADMAP 7.6): big leather gloves, green tool satchel with a wrench, goggles on the forehead; golden hair and sky blue t-shirt kept. The 1.x sheet's cyan halo is gone with the redraw",
   "colors": [
-    "#239063",
     "#2e222f",
-    "#323353",
+    "#374e4a",
     "#3e3546",
     "#45293f",
-    "#484a77",
-    "#4c3e24",
     "#4d65b4",
     "#4d9be6",
     "#547e64",
-    "#676633",
-    "#694f62",
     "#6e2727",
-    "#7a3045",
-    "#7f708a",
     "#8fd3ff",
-    "#905ea9",
-    "#966c6c",
-    "#9babb2",
     "#9e4539",
-    "#ae2334",
-    "#b2ba90",
-    "#b33831",
     "#c7dcd0",
     "#cd683d",
     "#e6904e",
-    "#ea4f36",
-    "#f57d4a",
-    "#f68181",
     "#f79617",
     "#f9c22b",
     "#fbb954",
-    "#fbff86",
-    "#fca790",
-    "#fdcbb0",
-    "#ffffff"
+    "#fbff86"
   ]
 }

@@ -46,7 +46,8 @@
       "#7a3045": "#484a77"
      }
     }
-   ]
+   ],
+   "overlay": "outfits/bram.png"
   },
   "juniper": {
    "base": "batch1/8.png",
@@ -71,7 +72,36 @@
      "#cd683d": "#e6904e",
      "#9e4539": "#cd683d"
     }
-   }
+   },
+   "recolor": [
+    {
+     "region": [
+      7,
+      26,
+      10,
+      31
+     ],
+     "map": {
+      "#9e4539": "#ab947a",
+      "#966c6c": "#ab947a",
+      "#4c3e24": "#966c6c"
+     }
+    },
+    {
+     "region": [
+      20,
+      26,
+      24,
+      31
+     ],
+     "map": {
+      "#9e4539": "#ab947a",
+      "#966c6c": "#ab947a",
+      "#4c3e24": "#966c6c"
+     }
+    }
+   ],
+   "overlay": "outfits/juniper.png"
   },
   "ottoline": {
    "base": "batch1/12.png",
@@ -117,7 +147,8 @@
     "3": {
      "#cd683d": "#e6904e"
     }
-   }
+   },
+   "overlay": "outfits/pip.png"
   },
   "ines": {
    "base": "batch1/24.png",
@@ -171,7 +202,22 @@
     "1": "mood1/9.png",
     "2": "mood2/9.png",
     "3": "mood3/9.png"
-   }
+   },
+   "recolor": [
+    {
+     "region": [
+      0,
+      24,
+      31,
+      31
+     ],
+     "map": {
+      "#313638": "#484a77",
+      "#625565": "#4d65b4"
+     }
+    }
+   ],
+   "overlay": "outfits/sable.png"
   },
   "clem": {
    "base": "batch1/40.png",
@@ -187,7 +233,8 @@
     "1": "mood1/11.png",
     "2": "mood2/11.png",
     "3": "mood3/11.png"
-   }
+   },
+   "overlay": "outfits/hazel.png"
   },
   "thorne": {
    "base": "batch1/48.png",
@@ -241,7 +288,8 @@
       "#4c3e24": "#45293f"
      }
     }
-   ]
+   ],
+   "overlay": "outfits/thorne.png"
   },
   "peddler": {
    "base": "batch1/53.png",

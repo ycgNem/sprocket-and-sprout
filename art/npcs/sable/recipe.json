@@ -23,32 +23,32 @@
   ],
   "input": {
     "up": [
-      "walking-4-frames/north/0.png",
-      "walking-4-frames/north/1.png",
-      "walking-4-frames/north/2.png",
-      "walking-4-frames/north/3.png",
-      "rotations/north.png"
+      "prep/north/0.png",
+      "prep/north/1.png",
+      "prep/north/2.png",
+      "prep/north/3.png",
+      "prep/north/0.png"
     ],
     "right": [
-      "walking-4-frames/east/0.png",
-      "walking-4-frames/east/1.png",
-      "walking-4-frames/east/2.png",
-      "walking-4-frames/east/3.png",
-      "rotations/east.png"
+      "prep/east/0.png",
+      "prep/east/1.png",
+      "prep/east/2.png",
+      "prep/east/3.png",
+      "prep/east/0.png"
     ],
     "down": [
-      "walking-4-frames/south/0.png",
-      "walking-4-frames/south/1.png",
-      "walking-4-frames/south/0.png",
-      "walking-4-frames/south/3.png",
-      "rotations/south.png"
+      "prep/south/0.png",
+      "prep/south/1.png",
+      "prep/south/0.png",
+      "prep/south/3.png",
+      "prep/south/0.png"
     ],
     "left": [
-      "walking-4-frames/west/0.png",
-      "walking-4-frames/west/1.png",
-      "walking-4-frames/west/2.png",
-      "walking-4-frames/west/3.png",
-      "rotations/west.png"
+      "prep/west/0.png",
+      "prep/west/1.png",
+      "prep/west/2.png",
+      "prep/west/3.png",
+      "prep/west/0.png"
     ]
   },
   "align": "feet-per-frame",
@@ -57,7 +57,7 @@
     31
   ],
   "meta": {
-    "label": "Sable v3",
+    "label": "Sable, archivist",
     "kind": "character",
     "ids": [
       "sable"
@@ -71,62 +71,7 @@
       "5": "stand",
       "6": "stand"
     },
-    "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character cdd08326-9af1-4c0c-9cb5-af7802022f7b); walk: walking-4-frames",
-    "notes": "down walk2 reuses frame 0: the template drew frame 2 from behind"
-  },
-  "remap": {
-    "#313638": "#3e3546"
-  },
-  "parts": {
-    "cardigan": {
-      "from": [
-        "#324d62",
-        "#3e5a6d",
-        "#4f6878",
-        "#59758a",
-        "#637b78",
-        "#7894a7",
-        "#516270",
-        "#2c3b4e",
-        "#273a4a",
-        "#2b4a5e",
-        "#292f3a"
-      ],
-      "keys": [
-        "#323353",
-        "#484a77",
-        "#4d65b4"
-      ]
-    },
-    "tone": {
-      "from": [
-        "#eea173",
-        "#e09264",
-        "#cf7a4d",
-        "#b75e3f",
-        "#b25825",
-        "#d77259",
-        "#f0a88b",
-        "#eccca8"
-      ],
-      "keys": [
-        "#7a3045",
-        "#9e4539",
-        "#cd683d"
-      ]
-    },
-    "cloth": {
-      "from": [
-        "#fcf7d8",
-        "#e5e3ec",
-        "#e9e0db",
-        "#a8a1bd"
-      ],
-      "keys": [
-        "#ab947a",
-        "#fdcbb0",
-        "#ffffff"
-      ]
-    }
+    "source": "PixelLab edit_image on the 16 walking-4-frames of character cdd08326-9af1-4c0c-9cb5-af7802022f7b (south slot 2: the south rotation; job 1cea4522-6278-49f4-a8f9-1312105e90ad, 10 generations, raw frames in edit-a/), colours mapped by prep.mjs into prep/; stand = walk0",
+    "notes": "works outfit (ROADMAP 7.6): long archivist coat on the 1.x cardigan blue, satchel strap, rolled drawings at the hip; spectacles, purple hair and lavender scarf kept. Down walk2 reuses walk0 (the original walk drew frame 2 from behind)"
   }
 }

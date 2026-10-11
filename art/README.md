@@ -7,24 +7,29 @@ import can be rerun. Rules: `STYLE.md`. Plan: `ROADMAP.md`.
 | Folder | What | Importer | Output |
 |---|---|---|---|
 | `player/` | player character sheet (look-swappable) | `scripts/art-import.mjs` | `src/art/player.*` |
-| `npcs/` | NPC character sheets | `scripts/art-import.mjs` | `src/art/npc-*.*` |
+| `npcs/` | NPC character sheets; the six re-roled villagers' work clothes (2.0) come from PixelLab edits in `npcs/<id>/edit-a/`, laid out by `npcs/<id>/prep.mjs` | `scripts/art-import.mjs` | `src/art/npc-*.*` |
+| `portraits/` | villager portraits (`portrait:<id>:<mood>:<frame>`): moods by `moods.mjs`, the re-roled villagers' work clothes painted over by `outfits.mjs` (`outfits/`) | `scripts/sprites-import.mjs` | `src/art/portraits.*` |
 | `airship/` | Roxy's airship (`bld:airship:<season>:<night>:<frame>`), graded by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/airship.*` |
 | `terrain/` | Wang tilesets, base variants, per-tile classes, decals | `scripts/terrain-import.mjs` | `src/art/terrain.*` |
 | `fences/` | fences, walls, gates and the paddock by neighbour mask (`fence:<kind>:<mask>`), hand-pixeled by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/fences.*` |
 | `deep/` | the Deepworks chamber machines (`deep:<kind>:<restored>:<frame>`) and gallery doorways (`o:52:*`): one PixelLab machine each, every frame derived by `build.mjs`; doorways by `gallery.mjs` | `scripts/sprites-import.mjs` | `src/art/deep.*` |
 | `town/` | the town works (`town:*`, `st:tram_bin:*`): PixelLab pieces plus scripted frames (`tools/*.mjs`); the mill and rails baked from the old generator into `baked/` (`tools/bake.mjs`, needs the dev server) | `scripts/sprites-import.mjs` | `src/art/town.*` |
+| `ruins/` | the Tinker's Yard wrecks (`o:56:<v>:<season>`): one PixelLab wreck each (`raw/batches.json`), graded and given its four seasons by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/ruins.*` |
+| `fairs/` | the Harvest Haul stalls and podium (`haul:stall:<k>:<f>`, `haul:podium:<f>`), the Fair's test plate and banner (`fair:plate`, `fair:banner:<f>`), hand-pixeled by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/fairs.*` |
+| `buildings/` | town buildings and farm structures (`bld:*`, `st:*`) composed from PixelLab picks by `tools/compose.mjs` (config `buildings.json` from `tools/mkconfig.mjs`); the farmhouse's clockwork (gable cog, copper downpipe into a gauge tank, roof vent) pixeled over it by `keeper.mjs`, which compose runs as its `post` step (0 generations) | `scripts/sprites-import.mjs` | `src/art/buildings.*` |
 | everything else | sprites by name (crops, objects, trees, buildings, machines, icons…) | `scripts/sprites-import.mjs` | `src/art/<group>.*` |
 
-## How a sheet replaces procedural art
+## How a sheet names its sprites
 
 The renderer asks the atlas for sprites by name (`crop:radish:2:0:1:0`, `tree:oak:4:1:0:2`,
-`st:keg:0:1:2`, `i:radish` …). A sheet registers frames under those names; the procedural
-generators in `src/render/art/` are only the fallback, still reachable as `name:old` and with
-`?art=old`. **To learn the names, sizes and anchors, read the generator** (`registerXxxSprites` in
-`src/render/art/*.ts`): the frame size and `ox`/`oy` you import must match what it returns, so the
-renderer needs no change. Every parameter in a name is a variant the game draws (season, stage,
-frame, tier…); cover them all, using `*`/`**` patterns and `recolor` instead of separate art
-where the art would be the same.
+`st:keg:0:1:2`, `i:radish` …), and every name comes from an imported sheet: 2.0 deleted the 1.x
+procedural generators (DECISIONS #145). Only names made at runtime are still drawn in code:
+`shadow:<width>`, the `ib:` belt icons (from the imported `i:` icons) and the `rust:` variants.
+**To learn a name's size and anchor, read the sheet that has it** (`src/art/<group>.json`: its `r`
+rect and `o` origin): a replacement keeps the frame size and origin, so the renderer needs no
+change. A new family needs a line in `e2e/coverage.mjs`. Every parameter in a name is a variant the
+game draws (season, stage, frame, tier…); cover them all, using `*`/`**` patterns and `recolor`
+instead of separate art where the art would be the same.
 
 ## Tools
 
@@ -38,10 +43,8 @@ where the art would be the same.
   whole batch, snapped to the palette (what the import will make). Read it to choose.
 - `node scripts/sprites-import.mjs art/<group>/sprites.json`: build a sprites sheet (format in
   the script header). Preview: `e2e/out/art/<name>.preview.png`.
-- `node e2e/sprites.mjs <name> … --out e2e/out/<x>.png`: the running game draws each sprite
-  name, imported (left) next to the procedural 1.0 one (right). Needs the dev server
-  (http://localhost:5173/, usually already running). `e2e/out/peek.mjs` takes a full in-game
-  screenshot after running a JS snippet.
+- `e2e/out/peek.mjs` takes a full in-game screenshot after running a JS snippet (needs the dev
+  server, http://localhost:5173/, usually already running).
 - Node is portable: `export PATH="/c/Users/jacks/tools/node-v22.20.0-win-x64:$PATH"` in Bash.
 
 ## The cheap way to generate many sprites
@@ -88,12 +91,26 @@ and writes PNGs the usual importers take:
   `build.mjs` fails); picks.json's `external` list names icons another sheet draws (fieldworks).
 - `node art/terrain/tools/seams.mjs` (a `build.sh` step): lines up where the Wang sets cross each
   edge, so `node e2e/seams.mjs` reads 0; `seams-diff.mjs` shows what it changed.
-- The thresher (`art/fieldworks/thresher.mjs`, imported by `art/fieldworks/build.mjs`), the state
-  glyphs `fx:state:*` (`art/fx/hand.mjs`), the Deepworks doorways (`art/deep/gallery.mjs`) and the
-  town's waterwheel, pump beam, fountain water, sign, buffer and town-line post (`art/town/tools/`).
+- `node art/fairs/build.mjs`, then `node scripts/sprites-import.mjs art/fairs/sprites.json`: the
+  Harvest Haul stalls and podium, the Fair plate and banner (review: `e2e/out/fairs-build.png`;
+  `art/fairs/tools/contact.mjs` draws Phase 6 round 2's sprites at 1x and 3x).
+- The thresher (`art/fieldworks/thresher.mjs`) and the gantry bridges' turning wheels
+  (`art/fieldworks/wheels.mjs`; `build.mjs` asserts that the frames differ only in the wheels), both
+  imported by `art/fieldworks/build.mjs`; the state glyphs `fx:state:*` (`art/fx/hand.mjs`), the
+  Deepworks doorways (`art/deep/gallery.mjs`) and the town's waterwheel, pump beam, fountain water,
+  sign, buffer and town-line post (`art/town/tools/`).
 - Tock (`art/creatures/tock.mjs`) and the hamster (`art/creatures/hamster.mjs`; its cage and wheel
   `art/home/hamstercage.mjs`) are hand-pixeled as ASCII parts, every pose sharing one body; the
   PixelLab batches in their `raw/` folders were only the design reference.
+- `node art/factory/gen/belts.mjs && node art/factory/gen/belt-recipe.mjs && node
+  scripts/sprites-import.mjs art/factory/belts.json`: every belt and underground (`belt:*`, `ug:*`)
+  framed as a conveyor for the screenshot test: rails on both edges with axle caps, a roller every
+  8 px (ridge across the belt, end in the gap), the belt and chevron moving over them; the tier sets
+  the materials (`TIER`), and the rails and rollers are lit in world space after rotation.
+- The preserving crock (`art/factory/gen/crock.mjs`, built by `gen/structs.mjs`): raw/D/5's jam
+  crock under a hand-pixeled brass canner lid, steam vent and gauge, 16x30 (14 px above its tile);
+  only the vent stands high, so an arm behind it stays in view. `node art/factory/gen/crock.mjs`
+  previews every frame (`e2e/out/crock.png`).
 
 ## Boundaries (several agents work at once)
 

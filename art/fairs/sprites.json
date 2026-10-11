@@ -1,0 +1,28 @@
+{
+ "name": "fairs",
+ "kind": "sprites",
+ "meta": {
+  "note": "The square on festival days (ROADMAP 7.7): the Sprocket Fair test plate and banner, the Harvest Haul stalls and the Mayor's podium. Drawn by art/fairs/build.mjs; do not edit by hand."
+ },
+ "scale": 1,
+ "defaults": {
+  "file": "sheet.png",
+  "place": "none",
+  "keepStrays": true
+ },
+ "sprites": [
+  {"match":"fair:plate","rect":[0,0,102,102],"frame":[102,102],"origin":[3,3]},
+  {"match":"haul:stall:0:0","rect":[103,0,32,40],"frame":[32,40],"origin":[0,24]},
+  {"match":"haul:stall:0:1","rect":[136,0,32,40],"frame":[32,40],"origin":[0,24]},
+  {"match":"haul:stall:1:0","rect":[169,0,32,40],"frame":[32,40],"origin":[0,24]},
+  {"match":"haul:stall:1:1","rect":[202,0,32,40],"frame":[32,40],"origin":[0,24]},
+  {"match":"haul:stall:2:0","rect":[0,103,32,40],"frame":[32,40],"origin":[0,24]},
+  {"match":"haul:stall:2:1","rect":[33,103,32,40],"frame":[32,40],"origin":[0,24]},
+  {"match":"haul:stall:3:0","rect":[66,103,32,40],"frame":[32,40],"origin":[0,24]},
+  {"match":"haul:stall:3:1","rect":[99,103,32,40],"frame":[32,40],"origin":[0,24]},
+  {"match":"haul:podium:0","rect":[132,103,32,40],"frame":[32,40],"origin":[0,24]},
+  {"match":"haul:podium:1","rect":[165,103,32,40],"frame":[32,40],"origin":[0,24]},
+  {"match":"fair:banner:0","rect":[0,144,64,32],"frame":[64,32],"origin":[32,32]},
+  {"match":"fair:banner:1","rect":[65,144,64,32],"frame":[64,32],"origin":[32,32]}
+ ]
+}

@@ -8,8 +8,8 @@ inn's standing order fills by the post, and the keeper's water wheel turns the g
 river. With Professor Cogwhistle's research you add belts, mills, water wheels and little brass
 bumblebots, until the farm runs itself like a music box.
 
-**New in the 2.0 beta ("The Works": on the website, and as a Windows beta on the Releases page; the
-full patch notes are under "What's new" on the title screen and in [PATCHNOTES.md](PATCHNOTES.md)):**
+**New in 2.0 ("The Works": on the website, and for Windows on the Releases page; the full patch
+notes are under "What's new" on the title screen and in [PATCHNOTES.md](PATCHNOTES.md)):**
 - **The Keeper's Line**, a new opening on every map: rusted works to restore (F), one step at a
   time in the Now strip, lesson cards the first time something happens, and the Keeper's Notebook
   (J) to look them up again. By day 5 you have run a line, fed it from a field, found its
@@ -19,8 +19,14 @@ full patch notes are under "What's new" on the title screen and in [PATCHNOTES.m
   its rate and what stops it, and the Lines tab (P) names each line's bottleneck and the fix.
 - **The Orders board** on the square (and J -> Orders): standing orders from the town's
   businesses, by hand or by tagging the crate "Ship to:", so the post delivers them.
+- **The town's works**: the Town Mill, the Waterworks, the lamps, the tram and the clock,
+  each a keystone you look at, try small, keep running and study before you build it.
+- **The Deepworks**: the old mine is 30 levels in six strata, with pests instead of monsters,
+  hazards with fixes, and a works chamber to restore every fifth level.
 - **The Field Works**: gleaners and the field gantry harvest for you; the night shift runs the
   works while you sleep.
+- New art across the valley (the Deepworks machines, the town's works, the villagers' work
+  clothes, the Fair and the Harvest Haul), and 1.x farms come along with nothing lost.
 - The Preserves Jar is now the **Preserving Crock**.
 
 The pixel art (terrain, crops, trees, buildings, machines, characters, creatures, icons) was
@@ -218,7 +224,7 @@ Fair's day, or a Brass Locket.
 - Chunk-baked terrain drawn on a dual grid of Wang tiles (smooth grass, dirt, path, sand, water
   and tilled-soil transitions, seasonal recolors, scattered decals), culling and y-sorting.
 - An art pipeline (`scripts/*-import.mjs`) that turns PixelLab output into palette-exact sheets;
-  every sprite is looked up by name, so the old procedural art stays as a fallback (`?art=old`).
+  every sprite is looked up by name (2.0 retired the old procedural art).
 - Procedural Web Audio: about 50 synthesized SFX, ambient beds, and a generative music loop
   whose scale, tempo and instruments follow the season and the hour.
 - Autosave every morning, 6 manual slots, versioned save migrations, and JSON export/import.

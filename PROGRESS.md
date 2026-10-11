@@ -381,9 +381,36 @@
 - Checks: 369 tests; the bot plays the Keeper's Line by day 5 on the eight seeds (it now builds its
   own line after B6); coverage 6812/6812; seams 0; the deploy ran green.
 
+## 2.0: Phase 6 round 2, Phase 7, the owner's playtest and the critic's review (October 11, 2026)
+- The owner's playtest of the opening (DECISIONS #139): an arm tops up a crock your hands filled, the
+  keeper's crock runs at 8x through B3, B6's last step names the arm (a note beside its tile, a spare
+  if needed), the clock slows only while placing. F's priority with several things there (#140): the
+  faced tile's villager, then the tile's own things, then a villager nearby; heart scenes on a clear
+  tile; F's tile is the one in front of the tile you stand on. Labels never cover each other (#141).
+  Crafting names items with their ingredients under them and raw materials say where they come from
+  (#142). 1.x farms get the cogbean oil recipe and, after Water Power, a mill by post (#144).
+- The critic's full 2.0 review, SHIP WITH FIXES (#143): the B5 stall (C1), B6's self-ticking read
+  step (M1), minute 0's hoe and zoom (M2), F's tile (M3), waiting steps (M4) and a dozen Minors fixed;
+  the economy (M5) and the cut list left for 2.0.1.
+- Phase 6 round 2 (#145): the re-roled villagers' work clothes and portraits (70 generations), the
+  Tinker's Yard wrecks (salvage with the pickaxe), the Harvest Haul's stalls and podium, the Fair's
+  plate and banner, the gantry's turning wheels (backward when it rides back), shadows under the
+  chamber machines (20 generations), then by script: conveyor belts with rails and rollers, the crock
+  with a lid, gauge and steam vent, the farmhouse's cog, downpipe and tank. `?art=old` and the
+  Compare lineup are gone; coverage 6991/6991.
+- Phase 7: `/code-review` high on v1.1.1..works (findings fixed), the critic's review and its fixes,
+  version 2.0.0, the patch notes' 2.0 entry (taking in the beta update), README and docs.
+- The critic's confirmation pass, SHIP WITH FIXES (#146): every earlier finding fixed in play; the
+  parts say where to get them (rope, planks, gears, coils, copper bars), a farm loads at least at 3x
+  on a 720p window and at the zoom you last chose, B6 gives the shops' hours and lets go of the
+  compass once a crock is bought, the "meanwhile" tips name real things, a rusted feeder reads as
+  rusted, no tooltip until the mouse moves, toasts roll in one after another.
+- Checks: 379 tests; the year-long run; `mill20` 8/8 by day 18 (the Mill on days 16-18); pacing Story
+  65.9k (57.5k to 68.8k), Rush 66.5k (62.2k to 72.2k).
+
 ## Next
-- Phase 6 round 2, then Phase 7 (the 2.0.0 review and release): HANDOFF.md "What's next" has the
-  prompt.
+- Ship 2.0.0 when the owner says so (HANDOFF.md has the steps), then 2.0.1: the critic's economy
+  (cogbean), the cut list and the bot's re-baseline (HANDOFF.md "What's next").
 - Older ideas: more interior variety, farmhouse expansion tiers; more depth for mid-game automation
   goals and late-game megaprojects.
 

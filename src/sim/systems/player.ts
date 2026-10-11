@@ -147,11 +147,15 @@ function tryMove(g: Game, dx: number, dy: number) {
   }
 }
 
-/** The tile the player is facing. */
+/**
+ * The tile the player is facing: the one in front of the tile they stand on (the middle of their
+ * feet's box). Reaching 0.75 tiles from the middle (until 2.0) found your own tile from its upper
+ * half facing down, so F at the water wheel from the path did nothing (the critic).
+ */
 export function facingTile(g: Game): [number, number] {
   const p = g.player;
   const fx = [0, 1, 0, -1][p.dir], fy = [-1, 0, 1, 0][p.dir];
-  return [Math.floor(p.x + fx * 0.75), Math.floor(p.y - 0.2 + fy * 0.75)];
+  return [Math.floor(p.x) + fx, Math.floor(p.y - 0.15) + fy];
 }
 
 function tickBuff(g: Game, dt: number) {

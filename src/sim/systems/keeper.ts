@@ -7,7 +7,9 @@ import { key, kDef } from '../inventory';
 import { lesson } from '../lessons';
 import { MState } from '../mstate';
 import { buildRiverWorks, OPENING, RIVER } from '../opening';
-import { armBetween, questSys } from './quests';
+import { armBetween, nowLines, questSys } from './quests';
+import { machAccept } from './machines';
+import { send } from './goals';
 import { npcSys, type NPCState } from './npcs';
 
 const PROF = 'ottoline';
@@ -154,6 +156,29 @@ function secondJar(g: Game) {
   return g.ents.machines.find((e) => e.def.id === 'jar' && !e.st.keeper && !e.ghost) ?? null;
 }
 
+/**
+ * A 1.x farm never enters the Keeper's Line, so what its beats hand out on the way to the Town Mill
+ * comes another way (a 1.x player had no cogbean oil and no mill, and couldn't go on): B7's second
+ * recipe for the same beans, and a grist mill once Water Power is studied, since Milling's "try it
+ * small" grinds on a mill that only Milling makes (a 2.0 farm restores the keeper's)
+ */
+function oldFarmUnlocks(g: Game) {
+  if (g.flags.has('keepers_line') || g.mode === 'sandbox' || g.map.w <= 100) return;
+  g.flags.add('recipe_cogbean_oil');
+  const hasMill = g.ents.machines.some((e) => e.def.id === 'mill' && !e.ghost) || g.player.inv.countId('mill') > 0;
+  if (!g.research.done.has('r_power') || g.research.done.has('r_milling') || hasMill || g.flags.has('old_mill_sent')) return;
+  g.flags.add('old_mill_sent');
+  send(g, 'old_mill', {
+    from: 'juniper', title: 'A mill to learn on',
+    text: `Dear ${g.player.name},
+
+The old keeper's grist mill has sat in my yard for thirty years, waiting for a wheel to turn it. You have Water Power now, so it's yours: set it near a pole and grind something. A mill is learned on a mill, and Milling at your desk will show you how to build your own.
+
+- Juniper`,
+    items: [{ item: 'mill', n: 1 }],
+  });
+}
+
 registerSystem({
   name: 'keeper',
   init(g) {
@@ -165,11 +190,13 @@ registerSystem({
     // saves from 1.x never enter the Keeper's Line; their old tutorial quests are gone, so the desk
     // they would have been lent is theirs (the Workshop sells desks, bundles can be crafted)
     if (!g.flags.has('keepers_line') && g.map.w > 100) g.flags.add('lab');
+    oldFarmUnlocks(g);
     // a Keeper's Line save from before the river works existed gets them now (B8 needs them)
     if (g.flags.has('keepers_line') && g.map.w > 100) buildRiverWorks(g);
   },
   dayStart(g) {
     hooks(g);
+    oldFarmUnlocks(g);
     // saves from before the keeper's chests had their own names get them
     if (g.flags.has('keepers_line'))
       for (const [xy, t] of [[OPENING.chest, 'Cellar Chest'], [RIVER.bin, 'Grain Bin']] as const) {
@@ -206,6 +233,14 @@ registerSystem({
       k.armDay = g.dayIndex;
       g.give(key('arm_basic'), 1);
       g.toast('Prof. Cogwhistle sent a spare arm over for the cellar chest.', 'i:arm_basic');
+    }
+    // B6's last step wants an arm by the second crock: one spent on the starved crock's fix (a third
+    // arm from the cellar chest) leaves none, so a spare comes for it too, once a day
+    if (active(g, 'k6_bottleneck') && nowLines(g, 3).some((l) => l.id === 'k6_bottleneck' && l.index === 4) && !g.ents.at(OPENING.jar2Out[0], OPENING.jar2Out[1])
+      && g.player.inv.countId('arm_basic') === 0 && k.armDay !== g.dayIndex) {
+      k.armDay = g.dayIndex;
+      g.give(key('arm_basic'), 1);
+      g.toast('Prof. Cogwhistle sent a spare arm over for the second crock.', 'i:arm_basic');
     }
     // safety nets: a mainspring sold or dropped before its arm was restored comes again, and so do
     // seeds planted somewhere other than the gleaner's bed
@@ -246,6 +281,10 @@ registerSystem({
     // everything is restored, there is nothing to ride; don't hold the chain on it
     if (active(g, 'k5_desk') && !g.flags.has('belt_into:jar')) {
       const at = (xy: [number, number]) => g.ents.at(xy[0], xy[1]);
+      // a bean waiting at the belt's end of a crock still full from B3's hands has ridden it: the
+      // crock takes it only as it drains (the critic's 2.0 C1: up to 13 minutes of nothing)
+      const end = at(OPENING.belts[0])?.belt?.lanes.flatMap((l) => l.k) ?? [];
+      if (jar?.mach && end.some((bk) => machAccept(g, jar, bk) <= 0)) g.flags.add('belt_into:jar');
       const ready = [OPENING.gleanArm, ...OPENING.belts].every((xy) => at(xy) && !at(xy)!.st.rust);
       const gl = at(OPENING.gleaner);
       const moving = OPENING.belts.some((xy) => (at(xy)?.belt?.lanes.some((l) => l.k.length) ?? false)) || !!at(OPENING.gleanArm)?.arm?.held;

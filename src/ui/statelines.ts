@@ -68,7 +68,12 @@ export function structRateLine(g: Game, e: Ent): string | null {
     const d = log.perDay(e, dir);
     return d > 0 ? fmtRate(d) : '';
   };
-  if (e.arm) return `${rate('out') || '0/min'} carried (up to ${Math.round(armRate(e, g.mods.armHand) * (e.st.wind > 0 ? 2 : 1))}/min)`;
+  if (e.arm) {
+    const cap = Math.round(armRate(e, g.mods.armHand) * (e.st.wind > 0 ? 2 : 1));
+    // the last minute's count runs past the cap right after a wind or a load: never more than it can
+    const r = Math.min(log.rate(e, 'out'), cap);
+    return `${r >= 1 ? `${fmt(r)}/min` : rate('out') || '0/min'} carried (up to ${cap}/min)`;
+  }
   const verb = e.mach ? 'made' : ['harvester', 'gleaner', 'gantry'].includes(e.def.kind) ? 'picked' : e.def.kind === 'drill' ? 'dug' : '';
   if (verb) {
     const r = rate('out');

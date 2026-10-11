@@ -52,6 +52,26 @@ describe('save v5 migration', () => {
     }, 60000);
   }
 
+  it("a 1.x farm gets what the Keeper's Line hands out: the cogbean oil recipe, and a mill once Water Power is studied", () => {
+    // (a 1.x player had neither and couldn't go on: Milling's "try it small" grinds on a mill only Milling makes)
+    const { game: g } = deserialize(load('save111_wildwood_d25'));
+    expect(g.flags.has('keepers_line')).toBe(false);
+    expect(g.flags.has('recipe_cogbean_oil')).toBe(true);
+    const letters = () => [...((g.sys.goals as any).mail ?? []), ...((g.sys.goals as any).queue ?? [])].filter((m: any) => m.id === 'old_mill');
+    expect(letters()).toHaveLength(0);
+    g.research.done.add('r_power');
+    for (let d = 0; d < 2; d++) {
+      g.goToBed();
+      for (let n = 0; g.sleeping && n < 60 * 60 * 30; n++) g.tick();
+    }
+    expect(letters()).toHaveLength(1);
+    expect(letters()[0].items).toEqual([{ item: 'mill', n: 1 }]);
+    // a farm that already has a mill gets no letter
+    const { game: f } = deserialize(load('save111_story_d12_factory'));
+    expect(f.ents.machines.some((e) => e.def.id === 'mill')).toBe(true);
+    expect(f.flags.has('old_mill_sent')).toBe(false);
+  }, 60000);
+
   it('moves an accepted request, project progress, the Guild rank and the mine onto v5', () => {
     const raw = load('save111_wildwood_d25');
     raw.sys.goals.projects = { p_gears: { copper_gear: 3, spring: 10 }, p_spring: { tulip: 3, radish: 10 } };

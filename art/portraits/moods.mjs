@@ -7,13 +7,16 @@
 //   baseMap   { "#from": "#to" } palette fix applied to the neutral bust inside the zone (a noisy face)
 //   recolor   [{ region: [x0, y0, x1, y1], map: { "#from": "#to" } }] applied to every mood's output
 //             (a garment recolor that must match the walking sheet)
+//   overlay   "outfits/<id>.png": pixels drawn over every mood's output after the recolor (an outfit
+//             change, outfits.mjs); #ff00ff in it erases. Same pixels on every mood, so blinks stay still.
 // Output: moods/<id>-<mood>.png (mood 0 is the snapped neutral bust).
 //
-// Usage: node art/portraits/moods.mjs   (then node scripts/sprites-import.mjs art/portraits/sprites.json)
+// Usage: node art/portraits/outfits.mjs && node art/portraits/moods.mjs
+//        (then node scripts/sprites-import.mjs art/portraits/sprites.json)
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { encodePNG } from '../../scripts/lib/png.mjs';
+import { decodePNG, encodePNG } from '../../scripts/lib/png.mjs';
 import { loadArt, hex } from '../../scripts/lib/pixel.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -33,6 +36,17 @@ const recolor = (img, rules) => {
   return img;
 };
 const save = (img, f) => fs.writeFileSync(path.join(HERE, 'moods', f), encodePNG(img.w, img.h, img.data));
+const ERASE = '#ff00ff';
+const overlay = (img, file) => {
+  if (!file) return img;
+  const o = decodePNG(fs.readFileSync(path.join(HERE, file)));
+  for (let i = 0; i < o.data.length; i += 4) {
+    if (o.data[i + 3] < 128) continue;
+    if (hex(o.data[i], o.data[i + 1], o.data[i + 2]) === ERASE) img.data.fill(0, i, i + 4);
+    else img.data.set([o.data[i], o.data[i + 1], o.data[i + 2], 255], i);
+  }
+  return img;
+};
 
 let n = 0;
 for (const [id, p] of Object.entries(SET.portraits)) {
@@ -47,7 +61,7 @@ for (const [id, p] of Object.entries(SET.portraits)) {
         if (to) base.data.set(to, i);
       }
   }
-  save(recolor({ w: base.w, h: base.h, data: Uint8Array.from(base.data) }, p.recolor), `${id}-0.png`);
+  save(overlay(recolor({ w: base.w, h: base.h, data: Uint8Array.from(base.data) }, p.recolor), p.overlay), `${id}-0.png`);
   n++;
   for (const [mood, file] of Object.entries(p.moods ?? {})) {
     const edit = loadArt(path.join(HERE, file), 'auto').img;
@@ -61,7 +75,7 @@ for (const [id, p] of Object.entries(SET.portraits)) {
         const h = hex(edit.data[i], edit.data[i + 1], edit.data[i + 2]);
         out.data.set([...rgb(map[h] ?? h), 255], i);
       }
-    save(recolor(out, p.recolor), `${id}-${mood}.png`);
+    save(overlay(recolor(out, p.recolor), p.overlay), `${id}-${mood}.png`);
     n++;
   }
 }

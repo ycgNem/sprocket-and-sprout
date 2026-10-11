@@ -69,6 +69,27 @@ const res = await page.evaluate(async () => {
     add('home', 'hf:' + n);
   for (const s of R(4)) { add('home', `hf:table:0:${s}`); add('home', `hf:window:0:${s}`); add('home', `hf:window:1:${s}`); }
   for (const f of FURNITURE) for (const s of R(4)) add('home', `hf:${f.sprite}:${s}`);
+  // the Deepworks' chamber machines (every frame the renderer cycles) and gallery doorways
+  const DEEP = ['lift', 'boiler', 'pump', 'lampworks', 'lockers', 'cart', 'star'];
+  const { deepFrames } = await mod('/src/render/deepframes.ts');
+  for (const k of DEEP) for (const on of [0, 1]) for (const f of R(deepFrames(k, !!on))) add('deep', `deep:${k}:${on}:${f}`);
+  for (const v of R(4)) for (const s of R(4)) add('deep', `o:${O.GALLERY}:${v}:${s}`);
+  // the town works (src/render/townworks.ts): what each keystone's landmark draws in every state
+  for (const s of R(4)) for (const st of R(3)) add('town', `town:mill:${s}:${st}`);
+  for (const f of R(4)) add('town', `town:wheel:1:${f}`);
+  add('town', 'town:wheel:0:0');
+  for (const s of R(4)) { add('town', `town:pump:${s}:0:0`); for (const st of [1, 2]) for (const f of R(4)) add('town', `town:pump:${s}:${st}:${f}`); }
+  for (const s of R(4)) { add('town', `town:fountain:0:0:${s}`); for (const f of R(4)) add('town', `town:fountain:1:${f}:${s}`); }
+  for (const l of R(3)) add('town', `town:lamp:${l}`);
+  for (const v of ['h', 'v']) for (const ld of [0, 1]) for (const f of [0, 1]) add('town', `town:cart:${v}:${ld}:${f}`);
+  for (const n of ['rail:h', 'rail:v', 'rail:c', 'buffer', 'sign', 'townline']) add('town', 'town:' + n);
+  // Tinker's Yard's wrecks; the Harvest Haul's stalls and podium; the Sprocket Fair's plate
+  for (const v of R(4)) for (const s of R(4)) add('town', `o:${O.WRECK}:${v}:${s}`);
+  for (const k of R(4)) for (const f of R(2)) add('town', `haul:stall:${k}:${f}`);
+  for (const f of R(2)) add('town', `haul:podium:${f}`);
+  add('town', 'fair:plate');
+  // the field gantry's bridge, its wheels turning (frame 0 is the idle pose)
+  for (const a of [0, 1]) for (const f of R(4)) add('structure', `gantry:beam:${a}:${f}`);
   for (const it of ITEMS) add('icon', 'i:' + it.id);
   for (const q of [1, 2, 3]) add('icon', 'q:' + q);
   const out = {};

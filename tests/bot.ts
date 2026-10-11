@@ -1400,6 +1400,9 @@ export class Bot {
     if (g.time.min < 9 * 60) this.wait(Math.max(0, (9 * 60 - g.time.min) * 0.7));
     this.walkTo(120, 60);
     this.talk();
+    // B6's crock before the day's seeds, as a player buys what the quest asks first (with B5 no longer
+    // stalled behind a full crock, B6 is open by the first morning's shopping)
+    if (this.step() === 'k6_bottleneck:0') this.keeperLine(true);
     this.shop();
     this.buyLineParts();
     this.buyGleanerParts();

@@ -1,0 +1,21 @@
+{
+  "_note": "PixelLab batches for the Tinker's Yard wrecks (o:56:<v>:<season>). Raw downloads: raw/<batch>/<slot>.png (node scripts/pl-fetch.mjs). Style references: raw/style/*.png, cut from the game's sheets and rusted by tools/styleref.mjs (press = st:cheese_press, keg = st:keg, battery = st:spring_battery, boulder = the nature sheet's o:5:0); w1_1 and w1_24 are W1 slots 1 and 24 graded onto the ramps. One candidate per wreck; art/ruins/build.mjs grades it and derives the four seasons.",
+  "W1": {
+    "object": "a8b287da-97b3-40de-96a4-1ff48c945221",
+    "tool": "create_1_direction_object, view top-down, style_images 24x24 (press, keg, battery, boulder)",
+    "cost": 10,
+    "description": "derelict rusted clockwork machine wreck in a ruined workshop, cozy farm game, warm rust red-brown with tarnished brass and copper, green moss patches and a creeping vine growing on it, dark plum outline, light from the upper left, top-down 3/4 view, sits on one ground tile, no glow, no text",
+    "slots": "0-2 toppled boiler, 3-5 boiler with a missing plate, 6-8 tipped boiler drum with a gauge, 9-11 boiler on brick footing, 12-14 gear press on legs, 15-17 screw press, 18-20 meshed-cog press, 21-23 stamping press, 24-26 clockwork arm on a brass plinth, 27-29 robot arm on a pedestal, 30-32 crane arm, 33-35 arm on a cracked plinth, 36-38 loom frame, 39-41 conveyor frame, 42-44 weaving loom, 45-47 belt drive, 48-51 half-buried flywheel, 52-55 heap of cogwheels, 56-59 pipe junction with a valve wheel, 60-63 tipped ore cart",
+    "used": "none in the game; slots 1 (boiler) and 24 (arm) were graded and sent as W2's style images",
+    "rejected": "6-8 (the gauge reads as an eye: a creature), 27-29 and 56-59 (white eye dots, a robot or scarecrow figure), 54 (a face in the heap), 12-23 (presses read as a table, a cabinet, a clock or a fireplace at 1x), 52-55 (muddy heaps), 36-45 (white stray pixels, a canvas that reads as mud; 42 reads as a bug), 3-5 and 9-11 (a barrel, a log, a pumpkin), 0-2 and 24-26 (good shapes but yellow bands, a blob of moss on the plinth: remade in W2), 48-51 and 60-63 (good, but not one of the four wrecks asked for)"
+  },
+  "W2": {
+    "object": "ef54c066-6dcd-48a8-b3a4-3c0c1d7e2f77",
+    "tool": "create_1_direction_object, view top-down, style_images 24x24 (w1_1, w1_24, press, boulder)",
+    "cost": 10,
+    "description": "derelict rusted clockwork machine wreck in a ruined workshop, cozy farm game, warm rust red-brown with dull brass, green moss patches and a creeping vine growing on it, dark plum outline, light from the upper left, top-down 3/4 view, sits on one ground tile, no glow, no text",
+    "slots": "0-7 gear press (one upright cog on a timber frame), 8-15 two meshed cogs on an iron frame, 16-23 cog press with a stuck ram, 24-31 clockwork arm on a brass turntable, 32-39 clockwork arm snapped at the elbow, 40-47 conveyor frame with a snapped belt, 48-55 weaving loom with torn canvas, 56-63 toppled boiler",
+    "used": "56 v0 toppled boiler (riveted drum, open end dark, moss and vine on top), 2 v1 seized gear press (the cog reads at 1x; moss on the frame), 32 v2 clockwork arm on its plinth (small dark-brass base, claw on the ground, vine up the arm), 50 v3 broken loom (timber frame, cream canvas sagging, vine on a post)",
+    "rejected": "3-7 (the press in a tilted box reads as a cabinet or a clock), 8-15 (tangled cogs read as a creature at 1x), 16-23 (the side gear reads as a cart wheel; dark and busy), 24-31 (the turntable grades bright orange: a pumpkin), 40-47 (a bench with a cloth), 60-61 (white stray pixels), 0-1 (no moss, or moss on the cog's face)"
+  }
+}

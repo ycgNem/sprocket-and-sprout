@@ -56,11 +56,10 @@ export function defSpriteFamily(prefix: string, fn: (name: string) => Gen | null
 }
 
 /**
- * Is imported art for this sprite name loaded and in use (art mode 'new')? False while its sheet
- * is still loading, so hooks that only exist for imported art keep their fallback until then.
+ * Is imported art for this sprite name loaded? False while its sheet is still loading, so hooks
+ * that only exist for imported art keep their fallback until then.
  */
 export function hasImage(name: string): boolean {
-  if (artMode !== 'new') return false;
   const f = imageFrame(name);
   return !!f && !!sheets.get(f.url)?.canvas;
 }
@@ -86,8 +85,7 @@ function missingSprite(): Sprite {
 
 // ---- PNG sprite sheets ----
 // Imported art (src/art/*.png, made with scripts/art-import.mjs) registers frames under the same
-// names as the procedural sprites it replaces. A sheet wins over a generator once it has loaded;
-// `name:old` and setArtMode('old') still reach the procedural version during the overhaul.
+// names as the procedural sprites it replaces. A sheet wins over a generator once it has loaded.
 
 /** One frame cut out of a sheet. Coordinates are sheet pixels; ox/oy is the anchor as in Sprite. */
 export interface ImageFrame {
@@ -108,7 +106,6 @@ interface Sheet { canvas?: HTMLCanvasElement; failed?: boolean; ready: Promise<v
 const sheets = new Map<string, Sheet>();
 const imageSprites = new Map<string, ImageFrame>();
 const imageFamilies: [string, (name: string) => ImageFrame | null][] = [];
-let artMode: 'new' | 'old' = 'new';
 
 function loadSheet(url: string): Sheet {
   let sh = sheets.get(url);
@@ -154,16 +151,6 @@ export function artReady(): Promise<void> {
   return Promise.all([...sheets.values()].map((s) => s.ready)).then(() => {});
 }
 
-/** 'old' draws the procedural art everywhere (side-by-side comparisons). */
-export function setArtMode(m: 'new' | 'old') {
-  if (m === artMode) return;
-  artMode = m;
-  cache.clear();
-}
-export function getArtMode() {
-  return artMode;
-}
-
 function imageFrame(name: string): ImageFrame | null {
   const f = imageSprites.get(name);
   if (f) return f;
@@ -205,13 +192,15 @@ function frameGen(f: ImageFrame, src: HTMLCanvasElement): Gen {
   };
 }
 
+/** every sprite name this page has drawn by code (a generator) instead of from an imported sheet */
+export const codeDrawn = new Set<string>();
+
 export function sprite(name: string): Sprite {
   let s = cache.get(name);
   if (s) return s;
-  const old = name.endsWith(':old');
-  const base = old ? name.slice(0, -4) : name;
+  const base = name;
   let g: Gen | undefined;
-  if (!old && artMode === 'new') {
+  {
     const f = imageFrame(base);
     if (f) {
       const sh = loadSheet(f.url);
@@ -219,14 +208,18 @@ export function sprite(name: string): Sprite {
       else if (!sh.failed) sh.waiting.add(name);
     }
   }
-  if (!g) g = generators.get(base) as Gen | undefined;
   if (!g) {
-    for (const [p, fn] of prefixGens) {
-      if (base.startsWith(p)) {
-        const r = fn(base);
-        if (r) { g = r; break; }
+    g = generators.get(base) as Gen | undefined;
+    if (!g) {
+      for (const [p, fn] of prefixGens) {
+        if (base.startsWith(p)) {
+          const r = fn(base);
+          if (r) { g = r; break; }
+        }
       }
     }
+    // names drawn by code rather than an imported sheet (e2e/coverage.mjs --drawn lists them)
+    if (g) codeDrawn.add(base);
   }
   if (!g) {
     if (import.meta.env?.DEV) console.warn('missing sprite', name);
@@ -275,6 +268,19 @@ export function drawFit(ctx: CanvasRenderingContext2D, s: Sprite, x: number, y: 
     [dw, dh] = [Math.floor(s.w / d), Math.floor(s.h / d)];
   }
   ctx.drawImage(s.img, s.x, s.y, s.w, s.h, Math.round(x + (w - dw) / 2), Math.round(y + (h - dh) / 2), dw, dh);
+}
+
+/**
+ * A picture in a frame (a lesson card's, the Notebook's): as drawFit, but a sprite as narrow as the
+ * frame and at most half again too tall shows at 1x, its foot on the frame's floor and its top cut,
+ * rather than halved (the 30 px crock in a 24 px frame came out 8 px wide)
+ */
+export function drawPic(ctx: CanvasRenderingContext2D, s: Sprite, x: number, y: number, w: number, h: number) {
+  if (s.w <= w && s.h > h && s.h <= h * 1.5) {
+    ctx.drawImage(s.img, s.x, s.y + s.h - h, s.w, h, Math.round(x + (w - s.w) / 2), y, s.w, h);
+    return;
+  }
+  drawFit(ctx, s, x, y, w, h);
 }
 
 /**

@@ -199,7 +199,8 @@ function sourceOf(nodes: Map<number, PortNode>, e: Ent): Ent | null {
     for (const f of frontier) {
       if (seen.has(f.id)) continue;
       seen.add(f.id);
-      if (!f.arm && !f.belt) return f;
+      // a rusted arm or belt carries nothing: the chain breaks there
+      if (f.st.rust || (!f.arm && !f.belt)) return f;
       next.push(...(nodes.get(f.id)?.ins ?? []));
     }
     frontier = next;
@@ -444,7 +445,8 @@ export function diagnose(g: Game, sink: Ent): Diagnosis {
       // two or more machines drawing on one starving source share it
       const sharing = src ? makersFedBy(nodes, src).filter((o) => o !== s.e).length : 0;
       // a chest with goods in it didn't run dry: it has none of what's wanted
-      const k = sharing ? 'starved:shared' : sourceKey(src) === 'chest' && src?.inv?.slots.some(Boolean) ? 'starved:chest-other' : 'starved:' + sourceKey(src);
+      // a rusted source (the keeper's gleaner before B4) isn't slow, it's stopped (the critic's 2.0 pass)
+      const k = src?.st.rust ? 'starved:rusted' : sharing ? 'starved:shared' : sourceKey(src) === 'chest' && src?.inv?.slots.some(Boolean) ? 'starved:chest-other' : 'starved:' + sourceKey(src);
       pick(s, k, { name: label(s.e), pct: pct(s.shares[MState.Starved]), item: wantName(s.e), src: src ? label(src) : 'nothing', n: sharing + 1 });
     }
   }
@@ -493,7 +495,7 @@ export function consumersToSwitchOff(g: Game, net: number): number {
  * with its numbers; null when every line kept up (or there are no lines yet).
  */
 export function worksTally(g: Game): string | null {
-  const rank: Record<string, number> = { 'power:none': 0, 'power:brownout': 1, needsfuel: 2, field: 3, 'slow:arm': 4, 'slow:arm-out': 4, 'starved:shared': 5, 'starved:chest': 5, 'starved:machine': 5, 'starved:drill': 5, 'starved:none': 6 };
+  const rank: Record<string, number> = { 'power:none': 0, 'power:brownout': 1, needsfuel: 2, field: 3, 'slow:arm': 4, 'slow:arm-out': 4, 'starved:shared': 5, 'starved:chest': 5, 'starved:machine': 5, 'starved:drill': 5, 'starved:rusted': 5, 'starved:none': 6 };
   let best: Diagnosis | null = null;
   for (const s of lineSinks(g).slice(0, 12)) {
     const d = diagnose(g, s);

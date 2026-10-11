@@ -854,3 +854,97 @@ recommendations are the decisions.
     load a tool kind owned nowhere comes back at the best tier among the player's other tools, at
     least Copper. The notes are a "Beta update" section inside 2.0 beta's entry, so the version stays
     `2.0.0-beta` and "What's new" doesn't light up; no GitHub release. `main` = `d9e25b9`, deployed.
+139. **The opening, from the owner's second playtest ("cog beans can go in 1 at a time ... make the
+    pickles pickle faster ... specify they need to add another clockwork arm ... the time runs slow when
+    you're watching the items being made").** Until B3 is done an arm tops up a crock your hands filled
+    to the brim, four batches past a hand load (`HANDFEED_OVER`), so "watch the arm feed the crock" never
+    waits on you to empty it; the keeper's crock runs at 8x through B3 (`KEEPER_QUICK`, 4x elsewhere),
+    and the steps say so. B6's last step names the arm, the guide marks its tile with a note beside it
+    ("Put a clockwork arm here"), R turns it, and a spare comes once a day if every arm went into the
+    starved crock's fix (`k.armDay`, shared with B3's net). The clock runs slow only while you place
+    something, not while a machine's window is open. Measured in the running game: the arm step takes
+    4 s, the crate step 24 s.
+140. **What answers F when several things are there (the owner: Prof. Cogwhistle stood by the water
+    wheel and took every F; "change how interactions work with multiple instances").** In order: a
+    villager or animal standing on the tile you face, then the tile's own things (the cart, a door, a
+    structure, a crop, forage, a tree, the board, the mailbox), then a villager within reach; the key
+    bubble and the hover follow the same order (`onTile` in the pure `src/sim/near.ts`, so no system
+    import reorders the ticks). Heart scenes stand a villager on a clear tile beside you
+    (`besidePlayer`: right, left, below, above, then the corners; never the tile you face or a solid
+    one). And F's tile is the one in front of the tile you stand on (`facingTile`: the middle of your
+    feet's box, then one step): reaching 0.75 of a tile found your own tile from its upper half, so F
+    at the water wheel from the path above did nothing (the critic's 2.0 M3).
+141. **Labels never cover each other (the owner: "on the water wheel the text is glitched, try to fix
+    instances of overlapped text").** `ui.keepClear` holds this frame's world labels: the key bubble,
+    the guide's note, the post timer, the compass and its name tag, the I-labels. The pointer's tooltip
+    steps to another corner of the pointer when its usual place covers one; the guide's name tag over a
+    villager rises clear of the bubble and the post's tag (or waits); floating texts that would land on
+    one still rising stack a line above it (three "Restored!" at once); the I-labels of a line stack.
+142. **Help names what a thing is and where it comes from (the owner: "sprout bundle tells you what
+    it's made of instead of saying sprout bundle"; "it doesn't tell you how to get plant fiber").**
+    Crafting rows name the item, with its ingredients on a second line where two recipes make it;
+    raw materials say where to get them (`src/data/sources.ts`: plant fiber from weeds and the scythe,
+    clay from dig spots, the ores by Deepworks level) in their tooltip and under the recipe that needs
+    them; A Second Bed's step says a bundle is 3 crops or a crop and a plant fiber.
+143. **The critic's 2.0 review: SHIP WITH FIXES, and the fixes.** C1: B5's "watch a bean ride the
+    belt" stalled 7.5 to 13 minutes behind a crock filled by B3's hands (a belt only feeds a crock under
+    2 batches); a bean waiting at the belt's end of a crock that refuses it now counts, and the step
+    says "to the crock". M1: B6's "find out why it stopped" counts the second crock (or I held over a
+    stop), not the arm that is starved the moment it lands under the cursor. M2: minute 0 read as a
+    farming game (a hoe in hand): the hotbar leads with the works (arm, belt, chest, crock), then the
+    tools, the hand starts empty, and a new game opens one zoom step closer on the keeper's yard. M3:
+    F's tile (#140). M4: steps that wait name something to do meanwhile. Minors: the crate's line fits
+    its window, the trust toast says Prof. Cogwhistle, an arm's rate never passes its cap, Statistics
+    counts goods at each post, B1's why line, the minimap is half height under 520 UI px (the 960x600
+    embed), the patch notes' heading has contrast, each recipe in a machine's window has its input as
+    a badge, the crate's Worth counts its tagged customer's orders (`orderShare`, a dry run of
+    `consign`), and rates over the last minute read at least 20 seconds. The pace bot buys B6's crock
+    before its seeds (B6 now opens by the first morning, and the bot's seeds left it short). Left for
+    2.0.1: the economy (M5: cogbean at 34.5 coins a tile a day is the whole economy; price 30 and
+    regrow 3, and orders that need two crocks), the cut list (5-6 businesses, one auction, no
+    shortages yet), the bot's re-baseline, the crock's 24 jars as distinct art.
+144. **1.x farms get what the Keeper's Line hands out (the owner: a 1.x player "doesn't have access to
+    cog oil and he can't progress ... and the mill").** A 1.x farm never enters the chain, so B7's
+    cogbean oil recipe never came, and Milling's "try it small" (grind 20 meal) wants a mill that only
+    Milling makes (a 2.0 farm restores the keeper's). On load and each morning a farm without the
+    Keeper's Line gets the recipe, and once Water Power is studied Juniper mails a grist mill (once, and
+    not if one stands or is in the bag). `tests/migrate.test.ts` checks it on the 1.1.1 fixtures.
+145. **Phase 6, round 2 (the owner: "get started on the last of phase 6"; budget-minded).** Art agents in
+    the main tree, each in its own folders: the six re-roled villagers' work clothes and portraits
+    (PixelLab edits of their 1.x sheets: Juniper's millwright apron, Bram's foundry apron and goggles,
+    Sable's archivist coat, Thorne the old works engineer with his hood down, Hazel's draughtswoman's
+    smock, Pip the apprentice; 70 generations), and the dressing: Tinker's Yard wrecks (`O.WRECK` in
+    the ruins halls, broken with the pickaxe for gears, an iron bar, sometimes a spring), the Harvest
+    Haul's four stalls and the Mayor's podium, the Fair's plate and its banner (over the square's west
+    entrance, clear of the clocktower door), the gantry's wheel frames (played backward as it rides
+    back), shadows under the Deepworks chamber machines (20 generations). Then by script, from the
+    critic's screenshot test ("a cozy farm sim whose tutorial is a small conveyor line, framed by a
+    Stardew farmhouse"): belts with dark iron rails, rollers and chevrons (rusted ones red-brown); the
+    crock with a brass lid, a gauge whose needle swings and a steam vent (16x30, `EXTRA_TOP.jar` 14; a
+    lesson picture a little taller than its frame shows at 1x, cut at the top: `drawPic`); the
+    farmhouse's cog, downpipe and gauged tank (0 generations). 90 of 314 spent; 224 and the $2 credit
+    left. The procedural generators go: a sweep listing every name drawn by code (`codeDrawn` in the
+    atlas, `drawn.json`) found only runtime-made ones (`shadow:` at any width, `ib:` belt icons made
+    from the imported icons, `rust:` variants) and the ground painter never called, so `deep`, `home`,
+    `living` and `objects` are deleted, `chars`, `icons`, `structs` and `townworks` keep only the
+    looks and shadows, the belt icons, `EXTRA_TOP`/`structSize` and three heights, `terrain` keeps the
+    ground painter as the renderer's fallback, and `?art=old`, the Compare lineup and its candidate
+    sheets are gone (the JS is 125 KB smaller). Coverage 6991/6991.
+146. **The critic's 2.0 confirmation pass: SHIP WITH FIXES, and the fixes.** Every finding of #143
+    played fixed. Majors: the "where to get it" lines stopped at raw materials, so the gleaner's planks,
+    gears and rope and the second wheel's coils said nothing (sources now cover plank, rope, copper gear,
+    copper coil and copper bar: their recipe and the shop that stocks them, checked against the data by
+    `tests/sources.test.ts`; plant fiber names the axe too; the second wheel's step lists its parts and
+    who sells coils); and a reload at 720p opened at zoom 2, where a day-5 yard read as a farm again
+    (a farm now loads at least at 3x on a window 700+ px tall, and at the steps the player last zoomed
+    by: `settings.zoomStep`). Minors: B6 names the Mercantile's hours (9 to 5, shut Wednesdays) and the
+    Workshop's crocks, and its compass lets go of Marigold once a crock is in the bag; the "meanwhile"
+    tips name things that exist (the yard is kept clear, and only Riverside starts with a rod: cut the
+    weeds past the yard, water the beans); a line fed through a rusted piece says it is rusted, not
+    slower (`starved:rusted`; the source walk stops at a rusted arm or belt); B6's belt note slides a
+    tile or two along the marks' side before dropping below the things under them; no tooltip until
+    the mouse moves when a game starts or loads (`ui.holdTips`: the Begin button sits over the energy
+    bar); toasts that arrive together (loading a farm) roll in 0.6 s apart (`liveToasts`); the patch
+    notes give F's order as the code has it (someone on the faced tile, the tile, a villager near it);
+    Statistics says "Busiest machine kind". Left for 2.0.1: restored belts are charcoal, the coldest
+    surface in the yard (taste).

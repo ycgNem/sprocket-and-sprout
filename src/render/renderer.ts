@@ -18,9 +18,8 @@ import { powerState } from '../sim/systems/power';
 import { curMap } from '../sim/systems/player';
 import { O, T, TileMap, Z } from '../sim/world/tilemap';
 import { GREENHOUSE, SHIPBIN_POS } from '../sim/world/worldgen';
-import { drawSprite, drawItemIcon, hasImage, invalidateSpritePrefix, sprite, Sprite } from './atlas';
-import { charArtHeight, charFrames, compareIds, sheetToolFrame, smokePoints, terrainArt, type TerrainArt } from './art/sheets';
-import { getLook, registerLook } from './art/chars';
+import { drawSprite, drawItemIcon, hasImage, sprite, Sprite } from './atlas';
+import { charArtHeight, charFrames, sheetToolFrame, smokePoints, terrainArt, type TerrainArt } from './art/sheets';
 import { makeCanvas, ctx2d } from './art/pixel';
 import { PRIO, FRINGE_SOURCES, TILE, paintTerrain } from './art/terrain';
 import { PixBuf } from './art/pixbuf';
@@ -40,7 +39,7 @@ import { drawDryDrops, drawRail, pushGantry } from './fieldworks';
 import { MState } from '../sim/mstate';
 import { rusty } from './rust';
 import { STRATA, CHAMBER_BY_KIND, VENT_ON, VENT_TELL } from '../data/deepworks';
-import { deepFrames } from './art/deep';
+import { deepFrames } from './deepframes';
 import type { MineState } from '../sim/systems/mine';
 import { pushTownworks } from './townworks';
 import { drawFairPlate, pushFairground } from './fairground';
@@ -104,7 +103,6 @@ export class Renderer {
   restored = new Map<number, number>();
   drawables: Drawable[] = [];
   /** art overhaul: draw the procedural (1.0) player beside the player, same frame (debug panel) */
-  compareArt = false;
   /** the Screen shake setting: off means no camera kick and no tree/structure wobble */
   shakeOn = true;
   /** world-pixel view rect */
@@ -571,6 +569,13 @@ export class Renderer {
         } else if (o === O.NOTICEBOARD) {
           const s = sprite('board:0');
           D.push({ y: y + 0.9, f: () => drawSprite(ctx, s, x * TILE, y * TILE) });
+        } else if (o === O.WRECK) {
+          // Tinker's Yard's wrecked machines stand up out of the tile (24x24, src/art/ruins.*)
+          const s = sprite(`o:${O.WRECK}:${m.objData[i] % 4}:${season}`);
+          D.push({ y: y + 0.9, f: () => {
+            drawSprite(ctx, sprite('shadow:18'), x * TILE + 8, y * TILE + 14);
+            drawSprite(ctx, s, x * TILE, y * TILE);
+          } });
         }
         // a deck's near railing stands in front of whoever walks its south row (src/render/planks.ts)
         if (m.ground[i] === T.PLANKS) {
@@ -1533,7 +1538,6 @@ export class Renderer {
     const toolFrame = p.anim ? sheetToolFrame('player', p.anim.kind, early ? 0 : 1) : null;
     const sheetTool = !!toolFrame;
     const pf: number | string = p.anim ? toolFrame ?? (early ? 4 : 5) : p.moving ? Math.floor(p.walkT * 1.6) % 4 : 6;
-    const pfOld = typeof pf === 'string' ? (early ? 4 : 5) : pf;
     D.push({ y: p.y, f: () => {
       const sh = sprite('shadow:12');
       drawSprite(ctx, sh, p.x * TILE, p.y * TILE);
@@ -1552,23 +1556,6 @@ export class Renderer {
         }
       }
     } });
-    if (this.compareArt) {
-      const tx = p.x - 1.5;
-      D.push({ y: p.y, f: () => {
-        drawSprite(ctx, sprite('shadow:12'), tx * TILE, p.y * TILE);
-        drawSprite(ctx, sprite(`ch:player:${p.dir}:${pfOld}:old`), tx * TILE, p.y * TILE, 1, p.dir === 3);
-      } });
-      // candidate sheets (art-director imports) in a row to the right, same look and frame
-      const look = getLook('player');
-      compareIds().forEach((id, i) => {
-        if (look && getLook(id) !== look) { registerLook(id, look); invalidateSpritePrefix(`ch:${id}:`); }
-        const cx = p.x + 1.5 * (i + 1);
-        D.push({ y: p.y, f: () => {
-          drawSprite(ctx, sprite('shadow:12'), cx * TILE, p.y * TILE);
-          drawSprite(ctx, sprite(`ch:${id}:${p.dir}:${pf}`), cx * TILE, p.y * TILE, 1, p.dir === 3);
-        } });
-      });
-    }
     // npcs
     const npcs: any[] = m === g.map ? g.sys.npcs?.list ?? [] : [];
     for (const n of npcs) {
@@ -1658,7 +1645,12 @@ export class Renderer {
       const on = !!d?.restore && g.flags.has(d.restore.flag);
       const n = deepFrames(c.kind, on);
       const s = sprite(`deep:${c.kind}:${on ? 1 : 0}:${n > 1 ? Math.floor(this.time * (c.kind === 'star' ? 2 : 3)) % n : 0}`);
-      D.push({ y: c.y + 0.95, f: () => drawSprite(ctx, s, c.x * TILE, (c.y + 1) * TILE) });
+      // a ground shadow under the machine, as under every structure on the farm
+      const sh = sprite(`shadow:${Math.round(c.w * TILE * 0.85)}`);
+      D.push({ y: c.y + 0.95, f: () => {
+        drawSprite(ctx, sh, c.x * TILE + c.w * 8, (c.y + 1) * TILE - 2);
+        drawSprite(ctx, s, c.x * TILE, (c.y + 1) * TILE);
+      } });
     }
     // lamps set down on the floor: the farm's lantern post, lit
     const lampF = Math.floor(this.time * 8) % 4;

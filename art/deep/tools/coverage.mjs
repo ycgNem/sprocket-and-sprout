@@ -12,7 +12,7 @@ const res = await page.evaluate(async () => {
   const mod = (p) => import(performance.getEntriesByType('resource').map((r) => r.name).find((n) => new URL(n).pathname === p) ?? p);
   const A = await mod('/src/render/atlas.ts');
   await A.artReady();
-  const { deepFrames } = await mod('/src/render/art/deep.ts');
+  const { deepFrames } = await mod('/src/render/deepframes.ts');
   const { O } = await mod('/src/sim/world/tilemap.ts');
   const KINDS = ['lift', 'boiler', 'pump', 'lampworks', 'lockers', 'cart', 'star'];
   const names = [];

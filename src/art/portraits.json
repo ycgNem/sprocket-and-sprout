@@ -6,7 +6,8 @@
  "meta": {
   "source": "PixelLab create_1_direction_object size 32 (64 busts, object 2718d67c-a856-42c2-a93c-c6fd321fb5ca, picks in moods.json); moods 1-3: edit_image on the 14 picks (happy 26d1c5d1, sad 1ec435a9, surprised 0f3d88e9), face zone composited onto the neutral bust by moods.mjs",
   "moods": "0 neutral, 1 happy with closed eyes (also the blink), 2 sad, 3 surprised",
-  "notPlayer": "portrait:player:* stays procedural: it follows the player look"
+  "notPlayer": "portrait:player:* stays procedural: it follows the player look",
+  "outfits": "works outfits (Phase 6 round 2) for juniper, bram, sable, thorne, hazel, pip: pixels drawn by outfits.mjs (outfits/<id>.png) and garment recolors in moods.json, pasted over every mood by moods.mjs so the blink never changes clothes; the other villagers are untouched"
  },
  "sprites": [
   {"match":"portrait:marigold:0:*","r":[0,0,32,32],"o":[0,0]},

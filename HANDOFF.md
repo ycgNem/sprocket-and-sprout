@@ -4,25 +4,33 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 11, 2026): 2.0 beta is live, with a beta update; Phase 6 round 1 is done.** Phases
-1-5 of 2.0 "The Works" shipped as the 2.0 beta (GitHub pre-release `v2.0.0-beta`, DECISIONS #135;
-1.1.1 stays the "Latest" release). Since then, on `works` and pushed live (DECISIONS #136-#138):
-Phase 6's first art round (the Deepworks machines, the town works, the thresher, rapeseed, the last
-icons and the state glyphs: coverage 100%; the ground's seam audit at 0), the opening's arm steps
-reworked from the owner's playtest (the objective kind `arm`), item names on hover in the Orders
-board, a Statistics page in the pause menu, and the lost-tool fix (a finished upgrade that didn't
-fit the bag vanished; it now comes by post, and a farm missing a tool gets it back once on load).
-The patch notes have a "Beta update" section inside 2.0 beta's entry; the version is still
-`2.0.0-beta` (the owner: "don't advertise it as a new version").
-**Where it stopped:** nothing is pending. `main` = `d9e25b9` (deployed); `works` is ahead only by
-the wrap-up docs, and `works` is now on origin too. Next: Phase 6 round 2, then Phase 7 ("What's
-next" has the prompt). Keep working on `works`; merge to `main` (fast-forward, in `../sns-p0check`)
-and push only when the owner says ship. Left on disk, safe to delete: `../sns-review` (the critic's
-build copy) and the merged worktrees `../sns-crops`, `../sns-deep`, `../sns-town` (remove their
-node_modules junction first).
+**Status (October 11, 2026): 2.0.0 is ready on `works`; ship it when the owner says so.** This
+session finished Phase 6 and Phase 7's review (DECISIONS #139-#146): the owner's second playtest of
+the opening (an arm tops up a hand-filled crock, the keeper's crock at 8x through B3, B6's last step
+names the arm, the clock slows only while placing), what answers F when several things are there and
+F's tile (the one in front of the tile you stand on), labels that never cover each other, crafting
+names with "where to get it" hints, 1.x farms getting the cogbean oil recipe and a mill, the code
+review (high) on v1.1.1..works, the critic's full review (SHIP WITH FIXES) and its Critical, Majors
+and Minors, the last art (the re-roled villagers, Tinker's Yard wrecks, the Haul's stalls, the Fair's
+plate and banner, gantry wheels, chamber shadows, then by script conveyor belts, the crock and the
+keeper's farmhouse), the procedural generators deleted, version 2.0.0 and its patch notes, and the
+critic's confirmation pass (every earlier finding fixed in play; its two Majors, "where to get" the
+parts and the zoom after a reload, and its Minors fixed: #146).
+**Where it stopped:** committed on `works` (not pushed: the owner says when); `main` = `d9e25b9`
+(the beta update, deployed). **To ship, only on the owner's word:** push `works`; in `../sns-p0check`
+(`main` is checked out there) `git merge --ff-only works` and `git push origin main` (deploys the
+website; the workflow runs the tests first); build the installers there (`Build desktop app.bat`,
+output in `release/`); `node scripts/release-notes.mjs "2.0" > e2e/out/release-notes.md`, add a few
+lines on top (where to play), then `gh release create v2.0.0 --title "Sprocket & Sprout 2.0"
+--notes-file e2e/out/release-notes.md` with the installers (not `--prerelease`: 2.0 becomes Latest).
+Left on disk, safe to delete: `../sns-review` (the critic's frozen build) and the merged worktrees
+`../sns-crops`, `../sns-deep`, `../sns-town` (remove their node_modules junction first).
 The owner's rules since Phase 1: hand farming stays, but the factory is the face (ROADMAP.md 3.2,
 DECISIONS #68); one path for every player, no "pick a direction" card (#72); the Preserves Jar is
 the Preserving Crock (#76). ROADMAP.md is the 2.0 plan; ROADMAP-1.1.md the finished 1.1 overhaul.
+- **2.0 beta and its update** (DECISIONS #135-#138): released October 10 as `v2.0.0-beta` (a GitHub
+  pre-release), then Phase 6's first art round, the opening's arm steps, item names on the Orders
+  board, the Statistics page and the lost-tool fix, pushed live without a version bump.
 - **Phase 5 on `works`** (the build, the critic's fixes and the Fair agent's merge `e7333dc`; the
   owner's playtest `8814e42`..`778fb65`): the done-when checks: `e2e/people.mjs` (real input with
   Pip, Sable and Thorne, Pip's farm question), `e2e/fairs.mjs` (the Fair on the square, the bench
@@ -174,23 +182,22 @@ See `SHARING.md` for the full guide.
 
 ```
 npm run typecheck
-npm test                                   # 361 Vitest tests (the critic's confirmation pass and Housewarming in confirm.test.ts, bridges and fences in planks/fences.test.ts; sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5, the Keeper's Line, orders, eras and the k11-k17 chain, professions, the Deepworks, the town keystones, save v5, the specialists and Trust, the Fair and the Haul, Workshop HQ, the pet, the hamster, the counter, palms)
+npm test                                   # 380 Vitest tests (the critic's confirmation pass and Housewarming in confirm.test.ts, where-to-get lines in sources.test.ts, bridges and fences in planks/fences.test.ts; sim, data, modes, maps, achievements, UI audit, art lookup, juice/prompts, Roxy, pacing bot, lines L1-L5, the Keeper's Line, orders, eras and the k11-k17 chain, professions, the Deepworks, the town keystones, save v5, the specialists and Trust, the Fair and the Haul, Workshop HQ, the pet, the hamster, the counter, palms)
 LONG=1 npx vitest run tests/longrun.test.ts    # bot plays a full in-game year, save round-trip
 npx vite-node scripts/pace.ts story rush   # economy: the bot's 28-day earnings on 8 seeds (a few minutes)
 npx vite-node scripts/accept.ts            # the critic's Phase 2 acceptance: crocks working on days 5-7, day-6 income, the mill
 npx vite-node scripts/mill20.ts            # Phase 3's done-when: the day each main quest finished, per seed (the Mill by day 20)
-npm run build                              # production build, about 1.2 MB JS (386 KB gzipped) + ~520 KB of PNG sheets
+npm run build                              # production build, about 1.57 MB JS (515 KB gzipped) + the PNG sheets
 node e2e/smoke.mjs http://localhost:5173/  # real UI smoke, 0 console errors expected
-npm run screens                            # 96-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected); VIEW=1366x620 or VIEW=960x600 (the web embed) for other sizes
-node e2e/coverage.mjs                      # every sprite name vs imported art (6415/6415 = 100% expected)
-node e2e/sprites.mjs <name> ...            # imported vs procedural sprites side by side
+npm run screens                            # 98-screen sweep + overlap audit -> e2e/out/screens/report.md (0 issues expected), drawn.json (names drawn by code: only shadow:, ib:, rust:); VIEW=1366x620 or VIEW=960x600 (the web embed) for other sizes
+node e2e/coverage.mjs                      # every sprite name vs imported art (6991/6991 = 100% expected)
 BASE=http://localhost:5173/ node e2e/flow.mjs  # real input: two-step new game, farm, house, bed, reload
 BASE=http://localhost:5173/ node e2e/roxy.mjs  # real input: Roxy's door intro -> shop, chat, gift, 2-heart event
 BASE=... node e2e/windows.mjs | qa.mjs | bot.mjs 7 | house.mjs | pet.mjs | guild.mjs | ...
 BASE=http://localhost:5173/ node e2e/shift.mjs     # 185 real shift/ctrl/double-clicks between bags and structures
 BASE=http://localhost:5173/ node e2e/works.mjs     # the automation core on screen: glyphs, inspector (hold I), Lines tab, pole window
 BASE=http://localhost:5173/ node e2e/terrainshots.mjs   # bridges, a farm plot, the square: painted ground transitions
-node e2e/seams.mjs                         # Wang-set seam audit -> e2e/out/seams.md (165 offenders listed for Phase 6)
+node e2e/seams.mjs                         # Wang-set seam audit -> e2e/out/seams.md (0 offenders since Phase 6)
 BASE=http://localhost:5173/ node e2e/perf.mjs      # 1,300 belts / 260 machines: < 1 ms a tick, the night shift < 3 s
 BASE=http://localhost:5173/ node e2e/minex.mjs     # the Deepworks: a level of every stratum, vents, set-down lamps, a chamber card, the lift
 BASE=http://localhost:5173/ node e2e/townworks.mjs # the town keystones on screen: the mill, the lamps on your power, the fountain, the tram
@@ -201,20 +208,23 @@ BASE=http://localhost:5173/ node e2e/bridgefence.mjs # the bridges, the dock, th
 npx vite-node scripts/systems-order.ts     # the systems in tick order (check after adding a system or an import)
 ```
 
-Last results (October 10, 2026, night, the 2.0 beta as released): typecheck, 361 tests, the
-year-long run, `mill20` 8/8 (day 17; seed 7 day 20, as before); `house`, `people`, `fairs`, `pet`,
-`hamster`, `works`, `townworks` and `smoke` pass with 0 console errors; the sweep is clean (0 issues,
-96 shots) at 1280x720, 1366x620 and 960x600; every relative import matches its file's case (CI is
-Linux). (From the Phase 3-4 round, not re-run: `flow`,
-`roxy`, `windows`, `minex`.) (From before Phase 3, not re-run:) `e2e/shift.mjs` 185/185; `e2e/perf.mjs` 0.32 ms a tick, the night shift
-1.5 s. `e2e/qa.mjs` logs "missing sprite i:hoe_0" warnings: its contact sheet asks tools for an
-icon name they don't use (harmless).
+Last results (October 11, 2026, 2.0.0 on `works`, after the critic's confirmation pass): typecheck,
+379 tests (1 skipped), the year-long run and `mill20` 8/8 (the Mill on days 16-18; both from just before
+those fixes, which change no sim behavior, only help text, the compass and the camera); `smoke`, `house`,
+`people`, `fairs`, `pet`, `hamster`, `works`, `townworks`, `roxy`, `bridgefence` and `minex` pass
+with 0 console errors (`smoke` takes the URL as its argument and the others `BASE=`: their default
+`127.0.0.1` is refused when the dev server listens on `localhost`); the sweep is clean (0 issues, 98
+shots) at 1280x720 and 1366x620, every code-drawn name a runtime one; coverage 6991/6991. (The 2.0 beta's run also had the
+960x600 sweep clean; `flow`, `roxy`, `windows`, `minex`, `shift` and `perf` are from earlier rounds.)
+`e2e/qa.mjs` logs "missing sprite i:hoe_0" warnings: its contact sheet asks tools for an icon name
+they don't use (harmless).
 
-Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 10, night, the 2.0 beta; unchanged by the last round):
-- Story: average 66.0k coins (63.7k to 68.1k); Clockwork Rush 65.6k (63.2k to 67.9k); day 1 about
-  2.7k (Story), 4.5k (Rush). Before the owner's playtest: Story 65.0k, Rush 66.5k; after Phases 3-4:
-  Story 65.9k, Rush 66.3k. The Rush
-  medals are 40k / 75k / 110k (DECISIONS #97). Phase 2's numbers, for history:
+Pacing bot, `scripts/pace.ts`, 28 days, 8 seeds (October 11, 2.0.0; B5 no longer stalls behind a full
+crock, and the bot buys B6's crock before its seeds):
+- Story: average 65.9k coins (57.5k to 68.8k); Clockwork Rush 66.5k (62.2k to 72.2k); day 1 about
+  4.1k (Story), 3.7k (Rush). The 2.0 beta: Story 66.0k (63.7k to 68.1k), Rush 65.6k (63.2k to
+  67.9k); before the owner's Phase 5 playtest: Story 65.0k, Rush 66.5k; after Phases 3-4: Story
+  65.9k, Rush 66.3k. The Rush medals are 40k / 75k / 110k (DECISIONS #97). Phase 2's numbers, for history:
 - Story: average 42.2k coins (39.6k to 45.4k). Before Phase 2: 20.9k; 1.1: 10.7k.
 - Clockwork Rush: average 39.9k (38.1k to 43.4k). Before Phase 2: 23.1k; 1.1: 13.0k.
 - Why it doubled: the jar line runs from minute 3 (the Keeper's Line), the bot builds its own
@@ -262,7 +272,8 @@ src/render/   juice.ts (Phase 3 reward layer: sprite effects, confetti, rings, h
               planks.ts (plank decks: direction, railings, the ground under), fences.ts (fences,
               walls, gates and the paddock by neighbour mask),
               art/sheets.ts (loads src/art/*.json: character, sprites, terrain kinds), art/match.ts
-              (pattern + Wang vertex rules), art/* (procedural generators = the ?art=old fallback)
+              (pattern + Wang vertex rules), art/* (the looks and shadows, belt icons, structure
+              heights, the ground painter fallback; the 1.x generators are gone, DECISIONS #145)
 src/art/      imported sprite sheets (PNG + JSON manifest), written by scripts/*-import.mjs
 art/          per-group art sources: raw PixelLab downloads, build scripts, import recipes
 src/ui/       immediate-mode canvas UI kit (ui.ts; records draws for the audit when ui.audit is on),
@@ -325,13 +336,15 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## The art pipeline (Phase 2)
 
-- Every sprite is looked up by name in the atlas; imported sheets (`src/art/*.json` + `.png`) win
-  over the procedural generators in `src/render/art/`, which remain as the `?art=old` fallback.
+- Every sprite is looked up by name in the atlas and comes from an imported sheet (`src/art/*.json`
+  + `.png`); 2.0 deleted the procedural generators (DECISIONS #145). Made at runtime: `shadow:<w>`,
+  the `ib:` belt icons and `rust:` variants; `codeDrawn` in the atlas lists any name drawn by code
+  (the sweep writes it to `e2e/out/screens/drawn.json`).
 - Sheet kinds (loaded by `src/render/art/sheets.ts`): `character` (art-import.mjs), `sprites` (any
   name or `*`/`**` pattern; sprites-import.mjs), `terrain` (dual-grid Wang ground; terrain-import.mjs).
 - Each art group lives in `art/<group>/` with its raw PixelLab downloads, its build scripts and its
-  recipe; `art/README.md` says how to regenerate and import. `node e2e/coverage.mjs` lists anything
-  still procedural; `node e2e/sprites.mjs <names>` draws imported vs procedural side by side.
+  recipe; `art/README.md` says how to regenerate and import. `node e2e/coverage.mjs` checks every
+  name the game can ask for against the sheets.
 - Renderer hooks that only exist for imported art: `emote:*`, `amb:*`, `bot:*`, `fx:*` (letter,
   pennants, fireball, twinkle, nopower, pip), `gh:glass:*`, `armh:*`, `hf:fire|pendulum|gpend|steam|fish`,
   `ui:*` (nine-slice skin, `src/ui/skin.ts`), factory `meta.smoke` chimney points.
@@ -344,50 +357,60 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
     bob, propeller, pennant), winter snow, night portholes; the ground shadow is baked in a key
     colour and recoloured per season (buildings get no renderer shadow).
 - Gotchas: Vite serves hot-updated modules as `?t=` URLs, so page scripts import the app's own
-  instance (see `mod()` in `e2e/sprites.mjs`). Agents' imports trigger full reloads in open pages.
+  instance (see `mod()` in `e2e/coverage.mjs`). Agents' imports trigger full reloads in open pages.
 
 ## What's next
 
-**Phase 6 status (round 1 done October 10-11, DECISIONS #136):** the Deepworks machines (`art/deep`),
-the town works (`art/town`), the thresher, rapeseed, the 11 missing icons and the `fx:state:*`
-glyphs are imported (`node e2e/coverage.mjs`: 6812/6812); `node e2e/seams.mjs` reads 0. 74
-generations were spent; the balance was 314 plus the $2.00 credit on October 11 (2,000 more on
-November 9). The owner is budget-minded: spend only what's needed, draw by script where it looks as
-good (the agents did: half the new art cost 0 generations), Sonnet agents for mechanical work.
+**2.0.0 is ready (Phases 6 and 7 done, DECISIONS #139-#146).** What's left is the owner's: the
+screenshot test by eye, then "ship" (the steps are in the status at the top). PixelLab: 224
+generations plus the $2.00 credit on October 11 (2,000 more on November 9); this session spent 90,
+and everything after the critic's screenshot test was drawn by script for 0.
 
-Round 1's pattern worked: one art-director agent per group in the main tree (no worktrees), each
-writing only in its own `art/<group>/` and `src/art/<group>.*` (art/README.md "Boundaries"), with a
-generation cap in its prompt and a report under 250 words; the dev server on 5173 is shared.
+A prompt to paste for the next session (2.0.1):
 
-A prompt to paste for the next session:
+> Read HANDOFF.md (the status, "What's next") and DECISIONS.md #139-#146. 2.0.0 is on `works`
+> (ship it first if the owner has said so and it isn't live yet: the steps are in the status). Then
+> 2.0.1 from the critic's 2.0 review (its M5 and cut list): the economy (a cogbean earns 34.5 coins a
+> tile a day raw, 85.5 pickled, against 18.6 for the next crop: try price 30 and a 3-day regrow, and
+> two orders before day 10 that need more than one crock), cut the standing orders to 5-6
+> businesses whose orders scale, keep one auction, and hold shortages back; re-baseline the pace bot
+> afterwards (`scripts/pace.ts`, `scripts/mill20.ts`) and let its numbers move. Then the leftovers
+> below. Keep working on `works`; ship only when the owner says.
 
-> Read HANDOFF.md (the status, "What's next"), DECISIONS.md #134-#138, then ROADMAP.md section 9 and
-> Phases 6-7, STYLE.md ("Machines") and art/README.md. 2.0 beta is live; work on `works`. Check
-> the PixelLab balance first and keep spending to what's needed (art by script where it looks as
-> good). Phase 6 round 2: (1) make `e2e/coverage.mjs` list `deep:`, `town:` and `o:52`
-> (`art/deep/tools/coverage.mjs` has the names), find every sprite name still answered by
-> `src/render/art/` during a sweep (instrument the atlas), import or bake what's left, then delete
-> the procedural generators and `?art=old`; (2) a ground shadow under the Deepworks chamber machines
-> (`renderer.ts`) and the field gantry's turning wheels (`src/render/fieldworks.ts` must ask for
-> frames; the art agent can then draw them); (3) as the budget allows, one art-director per group:
-> the re-roled villagers' outfits and portraits, the Tinker's Yard wrecks, the Harvest Haul stalls,
-> the Fair's test bed; (4) qa-screens after each group, the sweep at 1280x720 and 1366x620 with 0
-> issues, and the owner's screenshot test (ROADMAP.md 3).
-> Phase 7, review and release 2.0: `/code-review` (high) on `v1.1.1..works`, the indie-critic's
-> full review, fix the Criticals; README, HANDOFF, PROGRESS, DECISIONS and the patch notes (a "2.0"
-> entry over "2.0 beta" in `src/data/patchnotes.ts` + PATCHNOTES.md, taking in the "Beta update"
-> section); version 2.0.0; merge to `main` and push only when the owner says ship; installers;
-> `gh release create v2.0.0`.
-
-Left over for Phase 6 or 7:
-- The pace bot still stops at the Town Mill (k11 on is covered by `tests/eras.test.ts`).
+Left over:
+- An old-save player's "some stuff didn't transfer" (the owner's friend): ask for the exported save
+  (pause menu, Export save file) and load it with `deserialize` in a probe to see what's missing;
+  #144 already gives 1.x farms the cogbean oil recipe and a mill after Water Power.
+- The pace bot still stops at the Town Mill (k11 on is covered by `tests/eras.test.ts`); seed 4's
+  28 days fell to 57.5k this round (the others 61-69k): worth a look when the economy moves.
 - Fishing's and combat's professions keep Stardew-like effects.
 - The drafting library opens only at the table (the critic, Phase 5).
+- The crock's window shows its recipes' jars alike apart from a small ingredient badge; distinct
+  jar art per preserve would read better (the critic's 2.0 Minor).
+- Restored belts are charcoal, the coldest surface in the yard (the critic's confirmation pass, a
+  matter of taste): a warmer iron in `art/factory/gen/belts.mjs` (`TIER`) if the owner agrees.
 - `art/factory/arms/ref/batch1/` (64 PixelLab arm concepts from before the arms were hand-pixeled,
   Phase 5) is reference only; nothing imports it.
 - Time played (the Statistics page's `play_secs`) only counts from the beta update on.
 - The lost-tool return (#138) gives the best tier among the player's other tools: the game never
   recorded which upgrade was paid for. A player who paid for more can send an exported save.
+- `art/town/tools/bake.mjs` baked the mill and rails from the town generator, which is deleted
+  (#145): the baked PNGs in `art/town/baked/` are what the import uses now.
+
+Patterns from 2.0.0 (DECISIONS #139-#145):
+- What F does at a tile: `interactTile` (actions.ts) and `tilePrompt` (prompts.ts) ask in one order:
+  a villager or animal on the faced tile, then the tile's own things (`tileAnswers` / `ownPrompt`),
+  then a villager within reach; `onTile` lives in the pure `src/sim/near.ts` so no system import
+  reorders the ticks. F's tile is `facingTile` (player.ts): the tile in front of the one you stand on.
+- Screen labels register their boxes in `ui.keepClear` each frame (the key bubble, the guide note,
+  the post timer, the compass and its tag, the I-labels); the tooltip steps around them. Particles'
+  `text()` stacks a line that would land on another.
+- Where a raw material comes from: `SOURCE` in `src/data/sources.ts` (tooltips and crafting read it).
+- A 1.x farm (no `keepers_line`) gets what the chain hands out in `oldFarmUnlocks` (keeper.ts).
+- A sprite's art rising above its footprint: `EXTRA_TOP` (src/render/art/structs.ts); the factory
+  build reads it as text. A lesson picture a little taller than its frame: `drawPic` (atlas.ts).
+- Everything drawn by code at runtime is listed by the sweep in `e2e/out/screens/drawn.json`; it
+  should hold only `shadow:`, `ib:` and `rust:` names.
 
 Owner rules to keep in mind (all in DECISIONS.md): cut old systems freely, but hand farming
 (till, plant, water, harvest) stays (#61); the factory must be apparent and un-Stardew-like at a

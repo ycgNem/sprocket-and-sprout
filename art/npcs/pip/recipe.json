@@ -23,32 +23,32 @@
   ],
   "input": {
     "up": [
-      "walking-4-frames/north/0.png",
-      "walking-4-frames/north/1.png",
-      "walking-4-frames/north/2.png",
-      "walking-4-frames/north/3.png",
-      "rotations/north.png"
+      "prep/north/0.png",
+      "prep/north/1.png",
+      "prep/north/2.png",
+      "prep/north/3.png",
+      "prep/north/0.png"
     ],
     "right": [
-      "walking-4-frames/east/0.png",
-      "walking-4-frames/east/1.png",
-      "walking-4-frames/east/2.png",
-      "walking-4-frames/east/3.png",
-      "rotations/east.png"
+      "prep/east/0.png",
+      "prep/east/1.png",
+      "prep/east/2.png",
+      "prep/east/3.png",
+      "prep/east/0.png"
     ],
     "down": [
-      "walking-4-frames/south/0.png",
-      "walking-4-frames/south/1.png",
-      "walking-4-frames/south/2.png",
-      "walking-4-frames/south/3.png",
-      "rotations/south.png"
+      "prep/south/0.png",
+      "prep/south/1.png",
+      "prep/south/2.png",
+      "prep/south/3.png",
+      "prep/south/0.png"
     ],
     "left": [
-      "walking-4-frames/west/0.png",
-      "walking-4-frames/west/1.png",
-      "walking-4-frames/west/2.png",
-      "walking-4-frames/west/3.png",
-      "rotations/west.png"
+      "prep/west/0.png",
+      "prep/west/1.png",
+      "prep/west/2.png",
+      "prep/west/3.png",
+      "prep/west/0.png"
     ]
   },
   "align": "feet-per-frame",
@@ -57,7 +57,7 @@
     24
   ],
   "meta": {
-    "label": "Pip v3",
+    "label": "Pip, apprentice engineer",
     "kind": "character",
     "ids": [
       "pip"
@@ -71,12 +71,7 @@
       "5": "stand",
       "6": "stand"
     },
-    "source": "PixelLab create_character v3, size 24, low top-down, single color outline (character 76078dd0-90ca-404b-aa4b-318a3f00c81f); walk: walking-4-frames"
-  },
-  "remap": {
-    "#30e1b9": "#2e222f",
-    "#8ff8e2": "#2e222f",
-    "#0eaf9b": "#2e222f",
-    "#313638": "#3e3546"
+    "source": "PixelLab edit_image on the 16 walking-4-frames of character 76078dd0-90ca-404b-aa4b-318a3f00c81f padded to 32 px (pad32/; job 4830711c-762b-4012-bee4-7d1a5d058a88, 10 generations, frames in edit-b/; the first try edit-a/, job e7fa5e8e-3112-430d-9273-74e07e8ebb6d, lost the golden hair), colours mapped and goggles drawn by prep.mjs into prep/; stand = walk0",
+    "notes": "works outfit (ROADMAP 7.6): big leather gloves, green tool satchel with a wrench, goggles on the forehead; golden hair and sky blue t-shirt kept. The 1.x sheet's cyan halo is gone with the redraw"
   }
 }

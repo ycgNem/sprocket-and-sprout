@@ -49,7 +49,7 @@ function rows(play: PlayScreen): [Row[], Row[]] {
     [
       'The works',
       ['Machine batches made', num(sum('made:'))],
-      ['Busiest machine', busiest],
+      ['Busiest machine kind', busiest],
       ['Goods made by hand', num(sum('crafted:'))],
       ['Machines restored', num(c('restored'))],
       ['Arms wound', num(c('arms_wound'))],

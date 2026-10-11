@@ -679,6 +679,40 @@ export function consign(g: Game, bins: Ent[]): { sold: { k: number; n: number; p
   return { sold, total };
 }
 
+/**
+ * What a tagged crate's goods fetch from its customer's open orders at the next post, as consign pays
+ * them (best quality first) but changing nothing: the coins, and what's left of each slot for the
+ * market (the crate's "Worth" counted only market prices: the critic's 2.0 review).
+ */
+export function orderShare(g: Game, b: Ent): { coins: number; left: number[] } {
+  const slots = b.inv?.slots ?? [];
+  const left = slots.map((s) => s?.n ?? 0);
+  const tag = b.st.tag as string | undefined;
+  if (!tag) return { coins: 0, left };
+  const room = new Map<OrderLine, number>();
+  let coins = 0;
+  const idx = slots.map((_, i) => i).sort((x, y) => kQ(slots[y]?.k ?? 0) - kQ(slots[x]?.k ?? 0));
+  for (const i of idx) {
+    const s = slots[i];
+    if (!s) continue;
+    for (const o of ordersFor(g, tag, s.k)) {
+      let took = 0;
+      for (const l of o.lines) {
+        const r = room.get(l) ?? l.n - l.have;
+        if (took >= left[i] || r <= 0 || !matchesSpec(kDef(s.k), l.spec)) continue;
+        const t = Math.min(left[i] - took, r);
+        room.set(l, r - t);
+        took += t;
+      }
+      if (!took) continue;
+      coins += payFor(g, o, s.k, took);
+      left[i] -= took;
+      if (left[i] <= 0) break;
+    }
+  }
+  return { coins, left };
+}
+
 /** who a crate can be tagged for: every customer who has posted, and the Council once it has works open */
 export function tagChoices(g: Game): { cust: string; place: string }[] {
   const os = orders(g);

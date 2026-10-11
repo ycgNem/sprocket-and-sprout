@@ -24,7 +24,7 @@
     "walk3",
     "stand"
   ],
-  "label": "Hazel v3",
+  "label": "Hazel, draughtswoman",
   "kind": "character",
   "ids": [
     "hazel"
@@ -38,30 +38,27 @@
     "5": "stand",
     "6": "stand"
   },
-  "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character 955db650-c070-4187-b9ba-f5b1cffe56ff); walk: walking-4-frames",
-  "notes": "the east walk came out redder (crimson hair shadows, yellow skin light): remapped onto the other directions' colors",
+  "source": "PixelLab edit_image on the 16 walking-4-frames of character 955db650-c070-4187-b9ba-f5b1cffe56ff (job 62975757-1afe-4531-899d-ac1bb74de6c6, 10 generations, raw frames in edit-a/), colours mapped and frames patched by prep.mjs into prep/; stand = walk0",
+  "notes": "works outfit (ROADMAP 7.6): ink-stained cream smock over the lavender shirt, pencil behind the ear, rolled blueprint under the arm; copper hair, rose scarf kept",
   "colors": [
     "#2e222f",
-    "#3e3546",
+    "#323353",
     "#45293f",
-    "#484a77",
-    "#4c3e24",
-    "#676633",
+    "#4d65b4",
+    "#4d9be6",
     "#6b3e75",
     "#6e2727",
-    "#753c54",
     "#7a3045",
     "#7f708a",
-    "#905ea9",
     "#966c6c",
     "#9e4539",
-    "#b33831",
+    "#a24b6f",
+    "#ab947a",
     "#cd683d",
     "#cf657f",
     "#e6904e",
-    "#ed8099",
+    "#f9c22b",
     "#fca790",
-    "#fdcbb0",
-    "#ffffff"
+    "#fdcbb0"
   ]
 }

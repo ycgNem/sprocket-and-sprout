@@ -26,6 +26,10 @@ export class UI {
   private prevBlocks: Rect[] = [];
   tooltip: TipLine[] | null = null;
   tipWidth = 180;
+  /** labels the tooltip steps around (the key bubble, the guide's note), filled each frame */
+  keepClear: Rect[] = [];
+  /** where the mouse stood when tooltips were held (holdTips): none until it moves */
+  private tipsHeldAt: { x: number; y: number } | null = null;
   time = 0;
   /** the stack being dragged with the mouse */
   hand: { k: number; n: number } | null = null;
@@ -58,9 +62,11 @@ export class UI {
     this.h = Math.floor(ctx.canvas.height / scale);
     this.mx = Math.floor(input.mouse.x * (ctx.canvas.width / ctx.canvas.clientWidth || 1) / scale);
     this.my = Math.floor(input.mouse.y * (ctx.canvas.height / ctx.canvas.clientHeight || 1) / scale);
+    if (this.tipsHeldAt && Math.hypot(this.mx - this.tipsHeldAt.x, this.my - this.tipsHeldAt.y) > 2) this.tipsHeldAt = null;
     this.time += dt;
     this.dt = dt;
     this.tooltip = null;
+    this.keepClear = [];
     this.prevBlocks = this.blocks;
     this.blocks = [];
     this.captured = this.prevBlocks.some((b) => this.inside(b));
@@ -230,6 +236,12 @@ export class UI {
     return this.button(id, x, y, 18, 18, '', { icon, tip, active });
   }
 
+  /** no tooltips until the mouse moves (a new screen opened under a resting cursor: the critic's 2.0
+   *  pass, where the Begin button's click left the energy bar's tip over the hotbar) */
+  holdTips() {
+    this.tipsHeldAt = { x: this.mx, y: this.my };
+  }
+
   tip(lines: TipLine[], width = 180) {
     this.tooltip = lines;
     this.tipWidth = width;
@@ -351,7 +363,7 @@ export class UI {
     // dragged stack follows the mouse; it and the tooltip float above the UI on purpose
     this.auditLayer = 'tip';
     if (this.hand) this.itemIcon(this.hand.k, this.mx - 8, this.my - 8, 16, this.hand.n);
-    if (this.tooltip && this.tooltip.length) this.drawTip(this.tooltip);
+    if (this.tooltip && this.tooltip.length && !this.tipsHeldAt) this.drawTip(this.tooltip);
     this.auditLayer = 'ui';
     if (!this.focus) this.input.textFocus = false;
   }
@@ -372,6 +384,13 @@ export class UI {
     if (y + h > this.h) y = this.h - h - 2;
     x = Math.max(2, x);
     y = Math.max(2, y);
+    // over a label (the key bubble under the thing you hover): another corner of the pointer
+    const hits = (tx: number, ty: number) => this.keepClear.some((o) => tx < o.x + o.w + 2 && tx + w + 2 > o.x && ty < o.y + o.h + 2 && ty + h + 2 > o.y);
+    if (hits(x, y)) {
+      const spot = [[this.mx + 12, this.my - h - 4], [this.mx - w - 4, this.my + 12], [this.mx - w - 4, this.my - h - 4]]
+        .find(([sx, sy]) => sx >= 2 && sy >= 2 && sx + w <= this.w - 2 && sy + h <= this.h - 2 && !hits(sx, sy));
+      if (spot) [x, y] = spot;
+    }
     this.fill(x + 2, y + 2, w, h, C.ink, 0.4);
     this.fill(x, y, w, h, C.ink);
     this.fill(x + 1, y + 1, w - 2, h - 2, C.plum);

@@ -40,7 +40,7 @@ function layout(w: number) {
   };
   PATCH_NOTES.forEach((n, i) => {
     if (i) y += 14;
-    line(`${n.version}  -  ${n.date}`, 0, C.amber, 0, 2);
+    line(`${n.version}  -  ${n.date}`, 0, C.brick, 0, 2);
     for (const l of wrapText(n.title, w)) line(l, 0, C.walnut, 1);
     y += 3;
     for (const l of wrapText(n.intro, w)) line(l, 0, C.ink);

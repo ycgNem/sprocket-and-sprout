@@ -5,7 +5,8 @@
 //   node art/buildings/tools/hand.mjs       hand-pixeled sprites (hand.json -> raw/)
 //   node art/buildings/tools/mkconfig.mjs   per-building choices -> buildings.json
 //   node art/buildings/tools/mega.mjs       megaproject stages + construction site -> out/
-//   node art/buildings/tools/compose.mjs    buildings + structures -> out/, sprites.json
+//   node art/buildings/tools/compose.mjs    buildings + structures -> out/, sprites.json (the
+//                                           farmhouse gets art/buildings/keeper.mjs's details, "post")
 //   node scripts/sprites-import.mjs art/buildings/sprites.json   -> src/art/buildings.*
 // Review: node art/buildings/tools/review.mjs e2e/out/x.png [ids] (day | night | winter | fall | spring)
 //
@@ -35,9 +36,11 @@
 //   cutX      [[L, R]...] cut repeating spans out of a wide art (keeps [0,L) + [R,w)), no scaling
 //   seasons   which seasons to build (default all four; [1] = one art for every season)
 //   states    { "0": {overrides}, "1": {...} } for state-art buildings (clocktower, greenhouse)
+//   post      a script in art/buildings whose default export draws over each built frame, in place
+//             (fn(img, season)): the farmhouse's clockwork details, "keeper.mjs"
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { decodePNG, encodePNG } from '../../../scripts/lib/png.mjs';
 import { detectScale, downscale, quantize, bbox, crop, blank, blit, rgbOf, dropStrays } from '../../../scripts/lib/pixel.mjs';
 
@@ -203,6 +206,12 @@ export function build(e, season) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const recipe = { name: 'buildings', kind: 'sprites', sprites: [] };
   const nightOf = (e) => Object.fromEntries((e.glassKey ?? GLASS_DEFAULT).map((g, i) => [g, GLOW[i]]));
+  // "post" scripts, loaded here only (keeper.mjs imports build() from this module)
+  const posts = new Map();
+  const post = async (f) => {
+    if (!posts.has(f)) posts.set(f, (await import(pathToFileURL(path.join(base, f)).href)).default);
+    return posts.get(f);
+  };
   for (const [id, e0] of Object.entries(cfg)) {
     if (id.startsWith('_')) continue;
     const run = !only.length || only.includes(id);
@@ -214,6 +223,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         let info;
         if (run) {
           const r = build(e, s);
+          if (e.post) (await post(e.post))(r.img, s);
           fs.writeFileSync(path.join(base, file), encodePNG(r.img.w, r.img.h, r.img.data));
           info = { frame: [r.img.w, r.img.h], origin: [r.ox, r.oy] };
           fs.writeFileSync(path.join(base, file + '.json'), JSON.stringify(info));

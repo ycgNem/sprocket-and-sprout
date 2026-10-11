@@ -303,7 +303,8 @@ describe('the Sprocket Fair test plate', () => {
     // seed 2024 (seeds 7 and 99 score the same windows alike)
     const g = new Game({ seed: 2024, name: 'Bot', farmName: 'Bolt' });
     const bot = new Bot(g);
-    for (let d = 0; d < 12; d++) bot.playDay();
+    // to the Fair's morning, however the bot's days fall (the opening's quicker arm step moved them)
+    for (let d = 0; d < 14 && g.time.day < 13; d++) bot.playDay();
     expect([g.time.season, g.time.day]).toEqual([0, 13]);
     const [prof, bram, juniper] = fairEntries(1).map((e) => e.score);
     const copy = (x: number, y: number, w = 6, h = 6) => scoreBlueprint(g, copyBlueprint(g, x, y, x + w - 1, y + h - 1));

@@ -17,6 +17,7 @@ import type { NPCLook } from '../data/types';
 import { SEC_PER_MIN, type Game, type GameEvent } from '../sim/Game';
 import { DX, DY, Dir, Ent, entName, entById, HOUSE_IDS } from '../sim/ents';
 import { canPlaceIndoors, hereEnts, placeIndoors } from '../sim/indoors';
+import { onTile } from '../sim/near';
 import { key, kDef, kId, itemName } from '../sim/inventory';
 import { canPlace, deconstruct, place, rotateStruct, structFootprint } from '../sim/build';
 import { eatHeld, interact, useHeld } from '../sim/actions';
@@ -26,7 +27,7 @@ import { drawSprite, sprite } from '../render/atlas';
 import { plannedFenceSprite } from '../render/fences';
 import { TILE } from '../render/art/terrain';
 import { structSize } from '../render/art/structs';
-import { drawHud, HudState, toastLife } from '../ui/hud';
+import { drawHud, HudState, liveToasts, toastLife } from '../ui/hud';
 import { drawLessonCard, queueLesson, type LessonQueue } from '../ui/lessoncard';
 import { drawAskCard } from '../ui/askcard';
 import { pipAsk } from '../sim/people';
@@ -64,6 +65,11 @@ export interface Toast { text: string; t: number; icon?: string; color?: number 
 const KONAMI = 'ArrowUp,ArrowUp,ArrowDown,ArrowDown,ArrowLeft,ArrowRight,ArrowLeft,ArrowRight,KeyB,KeyA';
 /** a keystone's scene (seconds), and the part of it spent gliding back to the player */
 const SCENE_LEN = 5.5, SCENE_BACK = 1.2;
+/** the zoom that fits about 20 tiles in the window's height */
+const fitZoom = (h: number) => Math.max(2, Math.round(h / (16 * 20)));
+/** the zoom a farm loads at: at least 3x on a window 700+ px tall (the critic's 2.0 pass: at 2x a
+ *  day-5 yard read as a farm again after a reload, the works a twentieth of the frame) */
+const homeZoom = (h: number) => Math.max(fitZoom(h), h >= 700 ? 3 : 2);
 
 export class PlayScreen implements Screen {
   app: App;
@@ -134,7 +140,13 @@ export class PlayScreen implements Screen {
     const r = app.renderer;
     r.cam.x = g.player.x;
     r.cam.y = g.player.y - 0.5;
-    r.cam.targetZoom = r.cam.zoom = Math.max(2, Math.round(r.H / (16 * 20)));
+    // a new game opens one step closer, on the keeper's works around you (the critic's 2.0 M2: at
+    // the usual zoom the farmhouse and the trees filled the first frame, the works were small); a
+    // load keeps the steps the player last zoomed by (settings.zoomStep)
+    const fresh = g.flags.has('keepers_line') && g.dayIndex === 0 && !(g.sys.quests?.done?.length);
+    r.cam.targetZoom = r.cam.zoom = fresh ? Math.min(6, fitZoom(r.H) + 1) : Math.max(1, Math.min(6, homeZoom(r.H) + (app.settings.zoomStep ?? 0)));
+    // the click that started the game leaves the cursor where its button was: no tooltip until it moves
+    app.ui.holdTips();
     app.audio.setScene('farm');
     g.sys.ui = this;
     r.juice.sfx = (id, v, p) => app.audio.sfx(id, v, p);
@@ -167,7 +179,7 @@ export class PlayScreen implements Screen {
   }
   private spin = { id: 0, n: 0, t: 0 };
   /** a short line the Keeper's Line draws under the tile it marks (set each frame by the guide marks) */
-  private guideNote: { x: number; y: number; text: string; dy?: number } | null = null;
+  private guideNote: { x: number; y: number; text: string; dy?: number; left?: boolean } | null = null;
 
   cursorKind() {
     if (this.app.ui.overUI) return 'arrow' as const;
@@ -320,11 +332,14 @@ export class PlayScreen implements Screen {
     const app = this.app, g = this.g, input = app.input, r = app.renderer, ui = app.ui;
     this.playtime += dt;
     // time played, for the pause menu's Statistics (a long frame after the tab was hidden counts little)
-    g.count('play_secs', Math.min(dt, 0.25));
-    // building is a planning activity: the clock slows to a quarter while you do it
+    // (the pause menu and other pausing windows don't count)
+    if (!this.paused) g.count('play_secs', Math.min(dt, 0.25));
+    // building is a planning activity: the clock slows to a quarter while you do it. Not while a
+    // machine's window is open: that's watching it work, and its batch crawled at a quarter speed
+    // under the window, which hides the HUD's "x1/4" (the owner's playtest)
     const held = g.player.inv.slots[g.player.sel];
     if (this.placedWith && (this.placedWith.sel !== g.player.sel || this.placedWith.k !== held?.k)) this.placedWith = null;
-    g.slowClock = g.player.where === 'world' && !!(this.mode !== 'normal' || (!this.win && this.heldPlaceable() && !this.placedWith) || this.win?.id === 'struct');
+    g.slowClock = g.player.where === 'world' && !!(this.mode !== 'normal' || (!this.win && this.heldPlaceable() && !this.placedWith));
     // tips belong to the scene they were shown in
     if (g.player.where !== this.lastWhere) {
       this.lastWhere = g.player.where;
@@ -416,8 +431,14 @@ export class PlayScreen implements Screen {
       camY = sc.y;
     }
     r.cam.follow(camX, camY, dt, !sc && Math.hypot(r.cam.x - camX, r.cam.y - camY) > 24);
+    const z0 = r.cam.targetZoom;
     if (!modal && (input.wasPressed('zoomIn') || (input.ctrl && input.mouse.wheel < 0))) r.cam.targetZoom = Math.min(6, r.cam.targetZoom + 1);
     if (!modal && (input.wasPressed('zoomOut') || (input.ctrl && input.mouse.wheel > 0))) r.cam.targetZoom = Math.max(1, r.cam.targetZoom - 1);
+    // the next load opens at the zoom you chose, as steps from the window's own
+    if (r.cam.targetZoom !== z0) {
+      this.app.settings.zoomStep = r.cam.targetZoom - homeZoom(r.H);
+      this.app.saveSettings();
+    }
     if (input.ctrl) input.mouse.wheel = 0;
     if (r.cam.targetZoom <= 1) this.zoomSeen.min = true;
     if (r.cam.targetZoom >= 6) this.zoomSeen.max = true;
@@ -501,7 +522,7 @@ export class PlayScreen implements Screen {
     app.audio.update(dt, g, near);
     // hud timers
     // toasts wait while a window covers the screen, then play out once it closes
-    if (!this.modalOpen && !r.juice.banners.length) for (const t of this.hud.toasts.slice(0, 3)) t.t += dt;
+    if (!this.modalOpen && !r.juice.banners.length) for (const t of liveToasts(this.hud.toasts)) t.t += dt;
     this.hud.toasts = this.hud.toasts.filter((t) => t.t < toastLife(t.text));
     this.tipT += dt;
     if (this.tipT > 0.5) {
@@ -588,6 +609,7 @@ export class PlayScreen implements Screen {
     const y = (below ? belowY : aboveY) + rise;
     const tailX = Math.max(x + 3, Math.min(x + w - 4, Math.round(at.x)));
     this.hud.occupied?.push({ x, y: y - 2, w, h: h + 4 });
+    ui.keepClear.push({ x, y: y - 2, w, h: h + 4 });
     ui.ctx.globalAlpha = Math.min(1, this.promptT / 0.12);
     // bubble with a tail pointing at the thing
     ui.fill(x, y, w, h, C.ink);
@@ -676,8 +698,10 @@ export class PlayScreen implements Screen {
       this.structTip(ui, pe);
       return;
     }
+    // a villager only beside the structure under the mouse doesn't take its tip (as F, src/sim/near.ts)
+    const under = g.ents.rootAt(t.x, t.y);
     const n = g.sys.npcs?.at?.(g, t.fx, t.fy + 0.3);
-    if (n) {
+    if (n && (!under || under.ghost || onTile(n, t.x, t.y))) {
       const d = NPC_BY_ID.get(n.id)!;
       // Trust, as cog pips (hearts under the hood, ROADMAP.md 7.6)
       const h = Math.min(10, Math.floor(n.points / 250));
@@ -685,7 +709,7 @@ export class PlayScreen implements Screen {
       return;
     }
     const a = g.sys.animals?.at?.(g, t.fx, t.fy + 0.3);
-    if (a) {
+    if (a && (!under || under.ghost || onTile(a, t.x, t.y))) {
       ui.tip([{ text: a.name, color: C.amber }, { text: a.petted ? 'Petted today' : 'F or right-click to pet', color: C.pebble }]);
       return;
     }
@@ -1018,6 +1042,8 @@ export class PlayScreen implements Screen {
       if (input.mouse.pressed[2]) {
         const e = hereEnts(g)?.rootAt(t.x, t.y);
         if (e) deconstruct(g, e);
+        // Shift+right-click picks up farmhouse furniture with a structure in hand too
+        else if ((input.press.shift || input.shift) && p.where === 'house' && decorAt(g, t.x, t.y)) pickupDecor(g, t.x, t.y);
         else interact(g, t.x, t.y);
       }
       return;
@@ -1351,10 +1377,22 @@ export class PlayScreen implements Screen {
         if (free(OPENING.jar2Chest)) at(OPENING.jar2Chest);
         if (free(OPENING.jar2Feed)) at(OPENING.jar2Feed);
         break;
-      case 'k6_bottleneck:4':
-        if (free(OPENING.jar2Out)) at(OPENING.jar2Out);
-        for (const [x, y] of OPENING.jar2Belts) if (free([x, y])) mark(x, y);
+      case 'k6_bottleneck:4': {
+        // an arm first (the owner's playtest: the marks read as belts only), then the belts
+        const oa = g.ents.at(OPENING.jar2Out[0], OPENING.jar2Out[1]);
+        const note = (text: string) => (this.guideNote = { x: OPENING.jar2Out[0], y: OPENING.jar2Out[1], text, dy: 4, left: true });
+        if (!oa) {
+          at(OPENING.jar2Out);
+          note('Put a clockwork arm here: it lifts the pickles onto the belt');
+        } else if (oa.arm) {
+          this.drawArmHint(oa);
+          if (oa.rot !== 0) note('R over the arm turns it to face the belt');
+        }
+        const left = OPENING.jar2Belts.filter(([x, y]) => free([x, y]));
+        for (const [x, y] of left) mark(x, y);
+        if (oa?.arm && oa.rot === 0 && left.length) note(`Now belts on the marked tiles, into the crate (${left.length} to go)`);
         break;
+      }
       case 'k7_town:1': {
         // the crate, whose "Ship to" tag the post follows, until it's tagged
         const bin = g.ents.get(g.shipBinId);
@@ -1405,7 +1443,14 @@ export class PlayScreen implements Screen {
     if (this.onScreenUI(at, ui)) {
       if (tg.npc) {
         const tw = textWidth(tg.label) + 8, th = 11;
-        const tx = Math.round(at.x - tw / 2), ty = Math.round(at.y - 34);
+        const tx = Math.round(at.x - tw / 2);
+        let ty = Math.round(at.y - 34);
+        // the key bubble, the post's tag or the HUD there: the tag rises clear of it (or waits)
+        const occ = [...(this.hud.occupied ?? []), ...ui.keepClear];
+        const over = () => occ.find((o: { x: number; y: number; w: number; h: number }) => tx < o.x + o.w + 1 && tx + tw + 1 > o.x && ty < o.y + o.h + 1 && ty + th + 1 > o.y);
+        for (let k = 0, o = over(); o && k < 4; k++, o = over()) ty = o.y - th - 2;
+        if (over() || ty < 2) return;
+        ui.keepClear.push({ x: tx, y: ty, w: tw, h: th });
         ui.fill(tx, ty, tw, th, C.ink, 0.85);
         ui.fill(tx + 1, ty + 1, tw - 2, 1, C.slate);
         ui.text(tg.label, tx + 4, ty + 3, C.butter);
@@ -1429,6 +1474,7 @@ export class PlayScreen implements Screen {
     const x0 = Math.round(x - w / 2), y0 = Math.round(y - h / 2);
     const dir = (Math.round((Math.atan2(dx, -dy) / (Math.PI * 2)) * 8) + 8) % 8;
     const bob = Math.round(Math.sin(this.playtime * 5) * 1.5);
+    ui.keepClear.push({ x: x0, y: y0, w, h });
     ui.fill(x0, y0, w, h, C.ink, 0.85);
     ui.fill(x0 + 1, y0 + 1, w - 2, 1, C.slate);
     drawFx(ui.ctx, 'fx:compass', dir, x0 + 8 + (dir === 1 || dir === 2 || dir === 3 ? bob : dir >= 5 ? -bob : 0), y0 + 7 + (dir === 3 || dir === 4 || dir === 5 ? bob : dir === 7 || dir === 0 || dir === 1 ? -bob : 0));
@@ -1446,9 +1492,16 @@ export class PlayScreen implements Screen {
     const occ = this.hud.occupied ?? [];
     const clear = (p: { x: number; y: number }) => p.x >= 2 && p.x + w <= ui.w - 2 && p.y >= 2 && p.y + h <= ui.h - 2
       && !occ.some((o) => p.x + w + 2 > o.x && p.x - 2 < o.x + o.w && p.y + h > o.y && p.y < o.y + o.h);
-    let p = { x: Math.round(below.x - w / 2), y: Math.round(below.y + 3) };
-    if (!clear(p)) p = { x: Math.round(above.x - w / 2), y: Math.round(above.y - h - 12) };
-    if (!clear(p)) return;
+    // `left`: beside the tile, for a mark with things above and below it (B6's out-arm)
+    const side = this.toUI(n.x, n.y + 0.5);
+    // when a card or the Now strip takes the spot beside it, the note slides a tile or two along the
+    // mark's side before it drops below the things under it (the critic's 2.0 pass: B6's belt note
+    // landed four tiles below the marks)
+    const tile = this.toUI(n.x, n.y + 1.5).y - side.y;
+    const sides = n.left ? [0, 1, -1, 2, -2].map((k) => ({ x: Math.round(side.x - w - 4), y: Math.round(side.y + k * tile - h / 2) })) : [];
+    const p = [...sides, { x: Math.round(below.x - w / 2), y: Math.round(below.y + 3) }, { x: Math.round(above.x - w / 2), y: Math.round(above.y - h - 12) }].find(clear);
+    if (!p) return;
+    ui.keepClear.push({ x: p.x, y: p.y, w, h });
     ui.fill(p.x, p.y, w, h, C.ink);
     ui.fill(p.x + 1, p.y + 1, w - 2, h - 2, C.walnut);
     ui.fill(p.x + 1, p.y + 1, w - 2, 1, C.oak);
@@ -1483,6 +1536,7 @@ export class PlayScreen implements Screen {
     const pos = place(left2);
     if (!clear(pos)) return;
     const { x, y } = pos;
+    ui.keepClear.push({ x: x - 2, y, w: w + 4, h });
     ui.fill(left2 ? x + w : x - 2, y + 4, 2, 5, C.ink);
     ui.fill(left2 ? x + w : x - 1, y + 5, 1, 3, C.walnut);
     ui.fill(x, y, w, h, C.ink);
@@ -1600,7 +1654,11 @@ export class PlayScreen implements Screen {
   private noticeLooked(e: Ent | null) {
     if (!e) return;
     this.g.flags.add('observed:' + e.def.id);
-    if (this.g.flags.has('keepers_line') && (e.state === MState.Starved || e.state === MState.Blocked)) this.g.flags.add('read:starved');
+    // B6's "find out why it stopped": the second crock's stop, hovered or read with I held (an arm
+    // starved the moment it lands under the cursor ticked the step unread: the critic's 2.0 M1)
+    const stopped = e.state === MState.Starved || e.state === MState.Blocked;
+    const b6 = (this.g.sys.quests?.active as { id: string }[] | undefined)?.some((q) => q.id === 'k6_bottleneck');
+    if (stopped && b6 && (this.app.input.isDown('inspect') || (e.def.id === 'jar' && !e.st.keeper))) this.g.flags.add('read:starved');
   }
 
   /** world tile coordinates -> UI px */

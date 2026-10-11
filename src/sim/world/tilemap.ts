@@ -23,6 +23,9 @@ export enum O {
   // Workshop HQ (src/sim/systems/house.ts): the drafting table (the blueprint library, objData 0 on
   // its first tile), the wing's workbench, and the tool wall on the wing's back wall
   DRAFTING, WORKBENCH, TOOLWALL,
+  // Tinker's Yard: a wrecked machine in the ruined halls (objData: its look, 0-3); a pickaxe breaks
+  // it for salvage
+  WRECK,
 }
 
 export const WATER_TERRAIN = new Set([T.RIVER, T.DEEP, T.LAKE, T.POND, T.OCEAN, T.MINEWATER, T.LAVA]);
@@ -32,7 +35,7 @@ export const SOLID_OBJ = new Set([
   O.TREE, O.STUMP, O.LOG, O.ROCK, O.BOULDER, O.BUSH, O.ORE_ROCK, O.FENCE, O.BUILDING, O.LAMPPOST,
   O.BENCH, O.BARREL, O.GEM_ROCK, O.SIGNPOST, O.WELL, O.NOTICEBOARD, O.MAILBOX, O.HEDGE, O.CRATE, O.STALAGMITE, O.ICE_ROCK, O.CRYSTAL,
   O.BED, O.STOVE, O.TABLE, O.FIREPLACE, O.SHELF, O.HOUSEPLANT, O.ALMANAC, O.DRESSER, O.CLOCK, O.TREASURE,
-  O.CHAMBER, O.DRAFTING, O.WORKBENCH,
+  O.CHAMBER, O.DRAFTING, O.WORKBENCH, O.WRECK,
 ]);
 
 /** Ore types stored in objData for ORE_ROCK / ORE_VEIN tiles. */

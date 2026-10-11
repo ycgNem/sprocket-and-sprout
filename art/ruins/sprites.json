@@ -1,0 +1,31 @@
+{
+ "name": "ruins",
+ "kind": "sprites",
+ "meta": {
+  "note": "Tinker's Yard wrecks (o:56:<v>:<season>): PixelLab candidates graded and given their seasons by art/ruins/build.mjs (raw/batches.json); do not edit by hand."
+ },
+ "scale": 1,
+ "defaults": {
+  "file": "sheet.png",
+  "place": "none",
+  "keepStrays": true
+ },
+ "sprites": [
+  {"match":"o:56:0:0","rect":[0,0,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:0:1","rect":[25,0,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:0:2","rect":[50,0,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:0:3","rect":[75,0,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:1:0","rect":[100,0,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:1:1","rect":[125,0,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:1:2","rect":[150,0,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:1:3","rect":[175,0,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:2:0","rect":[0,25,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:2:1","rect":[25,25,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:2:2","rect":[50,25,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:2:3","rect":[75,25,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:3:0","rect":[100,25,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:3:1","rect":[125,25,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:3:2","rect":[150,25,24,24],"frame":[24,24],"origin":[4,8]},
+  {"match":"o:56:3:3","rect":[175,25,24,24],"frame":[24,24],"origin":[4,8]}
+ ]
+}

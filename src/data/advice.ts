@@ -60,6 +60,10 @@ export const ADVICE: Record<string, Advice> = {
     gap: 'The {name} waited for {item} {pct}% of the time: the {src} upstream is slower.',
     fix: 'A second {src} doubles the supply.',
   },
+  'starved:rusted': {
+    gap: 'The {name} waited for {item} {pct}% of the time: the {src} that feeds it is rusted.',
+    fix: 'Restore the {src}: F at it.',
+  },
   'starved:none': {
     gap: 'Nothing feeds the {name} ({pct}% of the time waiting).',
     fix: 'Aim an arm at it from a chest, or end a belt at it.',

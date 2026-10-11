@@ -25,13 +25,13 @@
     "stand"
   ],
   "keys": {
-    "cloth": [
+    "apron": [
+      "#966c6c",
       "#ab947a",
-      "#fdcbb0",
-      "#ffffff"
+      "#fdcbb0"
     ]
   },
-  "label": "Juniper v3",
+  "label": "Juniper, millwright",
   "kind": "character",
   "ids": [
     "juniper"
@@ -45,30 +45,23 @@
     "5": "stand",
     "6": "stand"
   },
-  "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character 34b75c17-e755-4533-af61-7507836b2041); walk: walking-4-frames",
+  "source": "PixelLab edit_image on the 16 walking-4-frames of character 34b75c17-e755-4533-af61-7507836b2041 (job 51941db4-bb55-495f-88d4-d726704d258d, 10 generations, frames in edit-a/); stand = walk0",
+  "notes": "works outfit (ROADMAP 7.6): tan leather apron with a neck strap, mallet on the belt, wood shavings; the apron is mapped onto the cream-leather ramp (apron part) because the plain snap made it the colour of their skin",
   "colors": [
     "#2e222f",
     "#374e4a",
     "#3e3546",
     "#45293f",
-    "#4d65b4",
     "#547e64",
+    "#625565",
     "#676633",
     "#6e2727",
-    "#7f708a",
-    "#92a984",
-    "#9babb2",
+    "#966c6c",
     "#9e4539",
     "#a2a947",
     "#ab947a",
-    "#b2ba90",
-    "#b33831",
     "#cd683d",
-    "#cddf6c",
     "#e6904e",
-    "#fbb954",
-    "#fca790",
-    "#fdcbb0",
-    "#ffffff"
+    "#fdcbb0"
   ]
 }

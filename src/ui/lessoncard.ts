@@ -4,7 +4,7 @@
 // Keeper's Notebook keeps every card seen.
 import { C } from '../data/palette';
 import { LESSON_BY_ID } from '../data/lessons';
-import { drawFit, sprite } from '../render/atlas';
+import { drawPic, sprite } from '../render/atlas';
 import { drawGlyph } from '../render/glyphs';
 import type { PlayScreen } from '../app/play';
 import { textWidth, wrapText } from './font';
@@ -52,7 +52,7 @@ export function drawLessonCard(ui: UI, play: PlayScreen, dt: number): number {
   // the picture: a sprite in a 24x24 frame, a state glyph on its corner
   ui.fill(x + 5, y + 6, 26, 26, C.ink);
   ui.fill(x + 6, y + 7, 24, 24, C.plum);
-  drawFit(ui.ctx, sprite(def.pic), x + 6, y + 7, 24, 24);
+  drawPic(ui.ctx, sprite(def.pic), x + 6, y + 7, 24, 24);
   if (def.glyph) drawGlyph(ui.ctx, def.glyph, x + 27, y + 9, ui.time);
   ui.text(def.title, x + 36, y + 4, C.amber);
   const tag = 'Lesson';

@@ -21,6 +21,8 @@
 //   rail:0 (north-south), rail:1 (east-west)               16x16 [0,0]
 //   gantry:car:0[:full]  112x28 [0,12]    gantry:car:1[:full]  20x124 [2,12]
 //   gantry:beam:0        112x24 [0,20]    gantry:beam:1        32x124 [8,12]
+//   gantry:beam:<axis>:<f>  the bridge with its wheels turned (f 0-3, same size and origin; f 0 is the
+//                        idle pose and equals the un-numbered name): art/fieldworks/wheels.mjs
 //   gantry:head:<0-3>    16x16  [0,12]  (trolley meets the girder; see head())
 //   i:/ib: gleaner, rail, gantry, cogbean_oil; aliases i:/ib:field_gantry (the item id),
 //   st:field_gantry:*:*:* (= car:0, build ghost) and st:rail:*:*:* (= rail:0)
@@ -29,6 +31,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Img, INK, WOOD, BRASS, COPPER, IRON } from '../factory/gen/lib.mjs';
 import { thresher } from './thresher.mjs';
+import { sideWheel, edgeWheel } from './wheels.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
@@ -321,8 +324,9 @@ function carNS(full) {
   return outlineSel(im);
 }
 
-// ---- gantry:beam:0  112x24, origin [0,20]: the bridge spans east-west, legs on the two rail tiles
-function beamEW() {
+// ---- gantry:beam:0  112x24, origin [0,20]: the bridge spans east-west, legs on the two rail tiles.
+// gantry:beam:0:<f>: the wheels turn (art/fieldworks/wheels.mjs), nothing else moves; f 0 is idle.
+function beamEW(f = 0) {
   const im = new Img(112, 24);
   // legs: tapered lattice towers from under the girder to the wheel truck
   for (const t of [0, 96]) {
@@ -331,9 +335,10 @@ function beamEW() {
     im.line(t + 10, 8, t + 12, 16, BRASS[1]); im.line(t + 9, 8, t + 11, 16, BRASS[2]);
     im.line(t + 6, 9, t + 9, 12, BRASS[1]); im.line(t + 9, 9, t + 6, 12, BRASS[2]);
     im.hline(t + 5, t + 10, 13, BRASS[3]); im.hline(t + 5, t + 10, 14, BRASS[1]);
-    // wheel truck and wheels on the rail lines
+    // wheel truck, and a flanged wheel on each rail line seen edge-on (flanges inside the track)
     im.rect(t + 3, 17, 10, 2, IRON[1]); im.hline(t + 3, t + 12, 17, IRON[2]);
-    for (const r of RAIL_LINES) { im.vline(t + r, 19, 22, IRON[2]); im.vline(t + r + 1, 19, 22, IRON[0]); im.set(t + r, 19, IRON[3]); }
+    im.draw(edgeWheel(f, 'r'), t + RAIL_LINES[0], 19);
+    im.draw(edgeWheel(f, 'l'), t + RAIL_LINES[1] - 1, 19);
   }
   // girder: Warren truss, lit top chord, open lattice, bottom chord the trolley runs under
   im.hline(0, 111, 1, BRASS[4]); im.hline(0, 111, 2, BRASS[2]);
@@ -359,19 +364,18 @@ function beamEW() {
   return outlineSel(im);
 }
 
-// ---- gantry:beam:1  32x124, origin [8,12]: the bridge spans north-south, A-frame legs on the rails
-function beamNS() {
+// ---- gantry:beam:1  32x124, origin [8,12]: the bridge spans north-south, A-frame legs on the rails.
+// gantry:beam:1:<f>: the wheels turn (art/fieldworks/wheels.mjs), nothing else moves; f 0 is idle.
+function beamNS(f = 0) {
   const im = new Img(32, 124);
   const legs = (yTop, yFoot) => {
-    // two splayed legs, seen face-on from the south, a cross bar, wheel trucks on the rail lines
+    // two splayed legs, seen face-on from the south, a cross bar, a spoked wheel at each foot on the
+    // near rail line (its hub on the leg's foot, its tyre resting on the rail's head)
     im.line(10, yTop, 3, yFoot, BRASS[3]); im.line(11, yTop, 4, yFoot, BRASS[2]); im.line(12, yTop, 5, yFoot, BRASS[1]);
     im.line(19, yTop, 26, yFoot, BRASS[3]); im.line(20, yTop, 27, yFoot, BRASS[2]); im.line(21, yTop, 28, yFoot, BRASS[1]);
     const yb = Math.round((yTop + yFoot) / 2);
     im.hline(8, 23, yb, BRASS[2]); im.hline(8, 23, yb + 1, BRASS[1]);
-    for (const x0 of [1, 24]) {
-      im.rect(x0, yFoot, 7, 2, IRON[1]); im.hline(x0, x0 + 6, yFoot, IRON[2]);
-      for (const dx of [1, 4]) { im.rect(x0 + dx, yFoot + 2, 2, 2, IRON[2]); im.set(x0 + dx, yFoot + 2, IRON[3]); im.set(x0 + dx + 1, yFoot + 3, IRON[0]); }
-    }
+    for (const x0 of [1, 24]) im.draw(sideWheel(f), x0, yFoot - 3);
   };
   legs(5, 18);     // north rail: lines at frame y 17 and 22
   // girder seen from above: two chords with rungs and diagonals between (open lattice)
@@ -391,8 +395,8 @@ function beamNS() {
   im.set(15, G0 + 6, BRASS[4]); im.set(16, G0 + 6, BRASS[3]);
   im.rect(8, G1 - 3, 16, 4, BRASS[2]); im.hline(8, 23, G1 - 3, BRASS[3]); im.hline(8, 23, G1, BRASS[1]);
   legs(G1 - 2, 114); // south rail: lines at frame y 113 and 118
-  // cogbean vine on the south-east leg
-  for (const [x, y, c] of [[26, 113, LEAF[1]], [25, 111, LEAF[2]], [26, 109, LEAF[3]], [24, 108, LEAF[2]], [25, 106, LEAF[1]], [27, 111, COG]]) im.set(x, y, c);
+  // cogbean vine on the south-east leg, above the wheel
+  for (const [x, y, c] of [[24, 110, LEAF[1]], [23, 108, LEAF[2]], [24, 106, LEAF[3]], [22, 105, LEAF[2]], [23, 103, LEAF[1]], [25, 108, COG]]) im.set(x, y, c);
   return outlineSel(im);
 }
 
@@ -433,8 +437,25 @@ add('gantry:car:0', carEW(false), [0, 12]);
 add('gantry:car:0:full', carEW(true), [0, 12]);
 add('gantry:car:1', carNS(false), [2, 12]);
 add('gantry:car:1:full', carNS(true), [2, 12]);
-add('gantry:beam:0', beamEW(), [0, 20]);
-add('gantry:beam:1', beamNS(), [8, 12]);
+// the bridge: the un-numbered names are frame 0 (the renderer's fallback); frames 0-3 turn the wheels
+add('gantry:beam:0', beamEW(0), [0, 20]);
+add('gantry:beam:1', beamNS(0), [8, 12]);
+for (let f = 0; f < 4; f++) add(`gantry:beam:0:${f}`, beamEW(f), [0, 20]);
+for (let f = 0; f < 4; f++) add(`gantry:beam:1:${f}`, beamNS(f), [8, 12]);
+// nothing but the wheels moves: every frame equals frame 0 outside the wheel boxes
+{
+  const boxes = { 0: [0, 96].flatMap((t) => [[t + 5, 19, 3, 4], [t + 9, 19, 3, 4]]), 1: [15, 111].flatMap((y) => [[1, y, 7, 7], [24, y, 7, 7]]) };
+  for (const axis of [0, 1]) {
+    const f0 = out.find((o) => o.name === `gantry:beam:${axis}:0`).im;
+    for (let f = 1; f < 4; f++) {
+      const im = out.find((o) => o.name === `gantry:beam:${axis}:${f}`).im;
+      for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) {
+        const inWheel = boxes[axis].some(([bx, by, bw, bh]) => x >= bx && y >= by && x < bx + bw && y < by + bh);
+        if (!inWheel && im.get(x, y) !== f0.get(x, y)) throw new Error(`gantry:beam:${axis}:${f} differs from frame 0 outside the wheels at ${x},${y}`);
+      }
+    }
+  }
+}
 for (let f = 0; f < 4; f++) add(`gantry:head:${f}`, head(f), [0, 12]);
 
 // ================================================================ ITEM ICONS (16x16) and belt icons (10x10)

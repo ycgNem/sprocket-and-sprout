@@ -1,4 +1,7 @@
 // Belt family, drawn pixel by pixel (exact lane geometry, seamless 4-frame treads, palette only).
+// Since the 2.0 screenshot test every belt is framed like a machine: rails on both edges with axle
+// caps, rollers under the belt every 8 px (ends in the gap, a ridge across), the belt and its
+// chevron moving over them (TIER below).
 // Writes art/factory/belts/belts.png (grid of 16x16 cells + 32x16 splitters) and belts.json, the
 // rect of every sprite name, which art/factory/gen/recipe.mjs turns into sprites.json entries.
 //
@@ -40,56 +43,94 @@ function rotate(im, rot) {
 }
 
 // ---------- tiers ----------
-// rail: [outer, top, bolt]  surf: [base, edge, seamA (dark, once per tile), seamB, chevron, chevronShade]
+// Every tier is the same machine, so a run reads as a conveyor and not a path (the critic's 2.0
+// screenshot test): a 2 px rail on each side, lit on its upper-left edge in world space; a roller
+// under the belt every 8 px, its end showing in the 1 px gap inside each rail, an axle cap on the
+// rail and a ridge across the belt; the 8 px belt between, one chevron per tile.
+//   rail [shade, mid, lit]  stripe: the same for tier 3's hazard stripes  cap [shade, lit] (axle caps)
+//   roller [lit, shade] (its end in the gap)  surf  ridge [lit, shade]  chev [front, back]
+//   rim: the underground hood's mouth rim
 const TIER = {
-  1: { // Woven Belt: canvas on wooden rollers
-    rail: [INK, '#9e4539', '#e6904e'], railAlt: '#9e4539',
-    surf: ['#ab947a', '#966c6c', '#694f62', '#966c6c', '#fdcbb0', '#ab947a'],
+  1: { // Woven Belt: canvas over iron rollers in a dark iron frame, brass axle caps
+    rail: ['#3e3546', '#3e3546', '#625565'], cap: ['#cd683d', '#f9c22b'], roller: ['#9babb2', '#625565'],
+    surf: '#694f62', ridge: ['#966c6c', '#45293f'], chev: ['#fdcbb0', '#966c6c'], rim: '#e6904e',
     hood: ['#7a3045', '#9e4539', '#cd683d', '#e6904e'], mouth: ['#2e222f', '#45293f'],
   },
-  2: { // Brass Belt: brass rollers, oiled leather
-    rail: [INK, '#f79617', '#fbff86'], railAlt: '#cd683d',
-    surf: ['#7a3045', '#45293f', '#2e222f', '#45293f', '#f9c22b', '#cd683d'],
+  2: { // Brass Belt: oiled leather over brass rollers, brass rails
+    rail: ['#9e4539', '#cd683d', '#f79617'], cap: ['#cd683d', '#fbff86'], roller: ['#f9c22b', '#9e4539'],
+    surf: '#7a3045', ridge: ['#9e4539', '#45293f'], chev: ['#f9c22b', '#cd683d'], rim: '#fbff86',
     hood: ['#9e4539', '#cd683d', '#f79617', '#f9c22b'], mouth: ['#2e222f', '#45293f'],
   },
-  3: { // Gilded Express: gold trim, plum velvet, hazard-striped rails
-    rail: [INK, '#f9c22b', '#fbff86'], railAlt: '#6b3e75',
-    surf: ['#6b3e75', '#45293f', '#2e222f', '#45293f', '#fbff86', '#f9c22b'],
+  3: { // Gilded Express: plum velvet over gold rollers, gold rails with plum hazard stripes
+    rail: ['#cd683d', '#f79617', '#f9c22b'], stripe: ['#45293f', '#6b3e75', '#905ea9'], cap: null, roller: ['#fbff86', '#f79617'],
+    surf: '#6b3e75', ridge: ['#905ea9', '#45293f'], chev: ['#fbff86', '#f9c22b'], rim: '#fbff86',
     hood: ['#cd683d', '#f79617', '#f9c22b', '#fbff86'], mouth: ['#2e222f', '#45293f'],
   },
 };
+const PITCH = 8, ROLL = 2; // a roller every 8 px along the frame: its first row at a % 8 == 2, the second at 3
 
 /**
- * Straight belt texture, local frame heading north. x across (0..15), y along (0 = front/exit).
- * `s` is the along coordinate already shifted by the frame (pattern period 16).
+ * The belt's parts in its local frame heading north: x across (0..15), `s` along the moving belt
+ * (y + frame, pattern period 16, 0 = front/exit), `a` along the static frame. Labels: O outline,
+ * R rail (r: tier 3's stripe), K axle cap, G gap, L1/L2 roller end, S belt, Q1/Q2 ridge over a
+ * roller, C/D chevron front/back. Colours come later, in world space (`paintBelt`).
  */
-function beltTex(t, x, s, yStatic) {
+function beltPart(t, x, s, a) {
   const T = TIER[t];
-  const [base, edge, seamA, seamB, chev, chevSh] = T.surf;
-  if (x === 0 || x === 15) return T.rail[0];
-  if (x === 1 || x === 14) {
-    // rails don't move: bolts every 4 px; tier 3 gets dashed hazard stripes
-    if (t === 3) return Math.floor(yStatic / 2) % 2 ? T.railAlt : T.rail[1];
-    return yStatic % 4 === 1 ? T.rail[2] : yStatic % 4 === 3 && t === 2 ? T.railAlt : T.rail[1];
+  if (x === 0 || x === 15) return 'O';
+  const ra = ((a % PITCH) + PITCH) % PITCH;
+  const roller = ra === ROLL ? 1 : ra === ROLL + 1 ? 2 : 0;
+  if (x <= 2 || x >= 13) {
+    if (roller === 1 && T.cap) return 'K';
+    return T.stripe && Math.floor((((a % 16) + 16) % 16) / 2) % 2 ? 'r' : 'R';
   }
+  if (x === 3 || x === 12) return roller ? 'L' + roller : 'G';
   const p = ((s % 16) + 16) % 16;
-  // chevron pointing north, tip at p=3 (rows 3..5), two pixels thick on the arms
+  // chevron pointing north, tip at p=3 (rows 3..6), two pixels thick on the arms
   const cx = x < 8 ? 7 - x : x - 8; // 0 at the center pair
   const row = p - 3;
-  if (row >= 0 && row <= 3 && x >= 4 && x <= 11) {
-    if (cx === row) return chev;
-    if (cx === row - 1 && row >= 1) return chevSh;
+  if (row >= 0 && row <= 3) {
+    if (cx === row) return 'C';
+    if (cx === row - 1 && row >= 1) return 'D';
   }
-  if (p % 4 === 0) return p === 8 ? seamA : seamB; // the dark seam once per tile shows the motion
-  if (x === 2 || x === 13) return edge;
-  return base;
+  return roller ? 'Q' + roller : 'S';
+}
+
+/** colour the parts after rotation, so the light stays upper left on every heading */
+function paintBelt(t, lab, rot) {
+  const T = TIER[t];
+  const out = img(16, 16);
+  // a rail continues past the tile's edge
+  const isRail = (x, y) => { if (x < 0 || y < 0 || x > 15 || y > 15) return true; const v = get(lab, x, y); return v === 'R' || v === 'r' || v === 'K'; };
+  // which of a roller's two rows faces the light: the upper one (heading N or S) or the left one (E or W)
+  const litRow = rot === 0 || rot === 3 ? '1' : '2';
+  for (let y = 0; y < 16; y++)
+    for (let x = 0; x < 16; x++) {
+      const v = get(lab, x, y);
+      if (!v) continue;
+      const lit = !isRail(x - 1, y) || !isRail(x, y - 1), shade = !isRail(x + 1, y) || !isRail(x, y + 1);
+      const tone = (ramp) => (lit && !shade ? ramp[2] : shade && !lit ? ramp[0] : ramp[1]);
+      let c;
+      if (v === 'O') c = INK;
+      else if (v === 'R') c = tone(T.rail);
+      else if (v === 'r') c = tone(T.stripe);
+      else if (v === 'K') c = lit ? T.cap[1] : T.cap[0];
+      else if (v === 'G') c = INK;
+      else if (v[0] === 'L') c = v[1] === litRow ? T.roller[0] : T.roller[1];
+      else if (v[0] === 'Q') c = v[1] === litRow ? T.ridge[0] : T.ridge[1];
+      else if (v === 'S') c = T.surf;
+      else if (v === 'C') c = T.chev[0];
+      else if (v === 'D') c = T.chev[1];
+      put(out, x, y, c);
+    }
+  return out;
 }
 
 function drawBelt(t, rot, curve, frame) {
   const im = img(16, 16);
   for (let y = 0; y < 16; y++)
     for (let x = 0; x < 16; x++) {
-      if (curve === 0) { put(im, x, y, beltTex(t, x, y + frame, y)); continue; }
+      if (curve === 0) { put(im, x, y, beltPart(t, x, y + frame, y)); continue; }
       // quarter ring around a top corner: curve 1 = from the left (corner 0,0), 2 = from the right (16,0)
       const cx = curve === 1 ? 0 : 16;
       const dx = Math.abs(x + 0.5 - cx), dy = y + 0.5;
@@ -98,9 +139,9 @@ function drawBelt(t, rot, curve, frame) {
       const th = Math.atan2(dy, dx); // 0 at the top edge (exit) .. pi/2 at the side edge (entry)
       const along = Math.min(15.999, (th / (Math.PI / 2)) * 16);
       const across = curve === 1 ? Math.floor(d) : 15 - Math.floor(d);
-      put(im, x, y, beltTex(t, across, Math.floor(along) + frame, Math.floor(along)));
+      put(im, x, y, beltPart(t, across, Math.floor(along) + frame, Math.floor(along)));
     }
-  return rotate(im, rot);
+  return paintBelt(t, rotate(im, rot), rot);
 }
 
 /** shade a solid region in world space: light from the upper left */
@@ -119,7 +160,6 @@ function shadeRegion(im, mask, [dark, base, light, hi]) {
 
 function drawUnder(t, rot, isIn, frame) {
   const T = TIER[t];
-  const belt = drawBelt(t, 0, 0, frame);
   // hood in local coordinates: entrance hood at the front (y 0..8), exit hood at the back (y 7..15).
   // It is a half-cylinder tunnel roof along the belt with a dark arched mouth facing the belt.
   const loc = img(16, 16);
@@ -140,7 +180,8 @@ function drawUnder(t, rot, isIn, frame) {
   }
   void inward;
   const w = rotate(loc, rot);
-  const out = rotate(belt, rot);
+  // the belt under the hood, lit in world space like every other belt
+  const out = drawBelt(t, rot, 0, frame);
   const [dk, base, lt, hi] = T.hood;
   const vertical = rot % 2 === 0; // tunnel axis runs up/down on screen
   for (let i = 0; i < 256; i++) {
@@ -154,7 +195,7 @@ function drawUnder(t, rot, isIn, frame) {
     if (a >= 5 && a <= 10) c = base;
     if (a >= 11) c = dk;
     if (v === 'R') c = c === hi || c === lt ? base : dk;
-    if (v === 'E') c = T.rail[1] === '#9e4539' ? '#e6904e' : '#fbff86';
+    if (v === 'E') c = T.rim;
     if (v === 'm') c = T.mouth[1];
     if (v === 'M') c = T.mouth[0];
     // outline where the hood meets the belt or the tile edge on the sides (the mouth stays open)

@@ -59,10 +59,20 @@ export class WorksView {
   labels(play: PlayScreen, ui: any, hover: Ent | null) {
     if (!hover || !play.app.input.isDown('inspect')) return;
     const L = this.lineAt(play.g, hover);
-    // boxes hang below their structure (y is the box's top), clear of the glyphs above it
+    // boxes hang below their structure (y is the box's top), clear of the glyphs above it; one that
+    // would land on another box steps below it (or above, near the hotbar)
+    const drawn: { x: number; y: number; w: number; h: number }[] = [];
     const box = (text: string[], x: number, y: number, col: number) => {
       const w = Math.max(...text.map((t) => textWidth(t))) + 8, h = text.length * 9 + 4;
-      const bx = Math.round(Math.max(2, Math.min(ui.w - w - 2, x - w / 2))), by = Math.round(Math.max(2, Math.min(ui.h - 70 - h, y)));
+      const bx = Math.round(Math.max(2, Math.min(ui.w - w - 2, x - w / 2)));
+      let by = Math.round(Math.max(2, Math.min(ui.h - 70 - h, y)));
+      for (let k = 0; k < 6; k++) {
+        const o = drawn.find((d) => bx < d.x + d.w + 2 && bx + w + 2 > d.x && by < d.y + d.h + 1 && by + h + 1 > d.y);
+        if (!o) break;
+        by = o.y + o.h + 2 + h <= ui.h - 70 ? o.y + o.h + 2 : o.y - h - 2;
+      }
+      drawn.push({ x: bx, y: by, w, h });
+      ui.keepClear.push({ x: bx, y: by, w, h });
       ui.fill(bx, by, w, h, C.ink, 0.88);
       ui.fill(bx, by, w, 1, col);
       text.forEach((t, i) => ui.text(t, bx + 4, by + 3 + i * 9, i === 0 ? col : C.cream));

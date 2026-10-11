@@ -10,7 +10,7 @@
     20,
     38
   ],
-  "artHeight": 30,
+  "artHeight": 29,
   "rows": [
     "up",
     "right",
@@ -24,24 +24,7 @@
     "walk3",
     "stand"
   ],
-  "keys": {
-    "cardigan": [
-      "#323353",
-      "#484a77",
-      "#4d65b4"
-    ],
-    "tone": [
-      "#7a3045",
-      "#9e4539",
-      "#cd683d"
-    ],
-    "cloth": [
-      "#ab947a",
-      "#fdcbb0",
-      "#ffffff"
-    ]
-  },
-  "label": "Sable v3",
+  "label": "Sable, archivist",
   "kind": "character",
   "ids": [
     "sable"
@@ -55,28 +38,22 @@
     "5": "stand",
     "6": "stand"
   },
-  "source": "PixelLab create_character v3, size 32, low top-down, single color outline (character cdd08326-9af1-4c0c-9cb5-af7802022f7b); walk: walking-4-frames",
-  "notes": "down walk2 reuses frame 0: the template drew frame 2 from behind",
+  "source": "PixelLab edit_image on the 16 walking-4-frames of character cdd08326-9af1-4c0c-9cb5-af7802022f7b (south slot 2: the south rotation; job 1cea4522-6278-49f4-a8f9-1312105e90ad, 10 generations, raw frames in edit-a/), colours mapped by prep.mjs into prep/; stand = walk0",
+  "notes": "works outfit (ROADMAP 7.6): long archivist coat on the 1.x cardigan blue, satchel strap, rolled drawings at the hip; spectacles, purple hair and lavender scarf kept. Down walk2 reuses walk0 (the original walk drew frame 2 from behind)",
   "colors": [
     "#2e222f",
     "#323353",
-    "#3e3546",
     "#45293f",
     "#484a77",
     "#4d65b4",
     "#6b3e75",
     "#6e2727",
-    "#753c54",
     "#7a3045",
-    "#7f708a",
     "#905ea9",
     "#9e4539",
     "#a884f3",
     "#ab947a",
-    "#ae2334",
-    "#b33831",
     "#cd683d",
-    "#e83b3b",
     "#fdcbb0",
     "#ffffff"
   ]

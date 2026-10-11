@@ -371,6 +371,8 @@ function postCollect(g: Game, label: string) {
   g.earned += res.total;
   const day = (g.sys.postDay ??= { sold: [], total: 0 });
   day.sold.push(...res.sold);
+  // Statistics counts the goods as the post takes them, not at day's end (the critic's 2.0 review)
+  g.count('shipped', res.sold.reduce((n: number, x: { n: number }) => n + x.n, 0));
   day.total += res.total;
   const bin = g.ents.get(g.shipBinId);
   if (bin) {
@@ -417,7 +419,7 @@ registerSystem({
     if (summary.sold.length) summary.sold[0].coins! += summary.total - summary.sold.reduce((a, r) => a + (r.coins ?? 0), 0);
     g.sys.postDay = { sold: [], total: 0 };
     g.sys.postLast = -1;
-    g.count('shipped', summary.sold.reduce((a, s) => a + s.n, 0));
+    g.count('shipped', res.sold.reduce((a: number, s: { n: number }) => a + s.n, 0));
     summary.best = g.counters.best_day ?? 0;
     if (summary.total > (g.counters.best_day ?? 0)) g.counters.best_day = summary.total;
     g.player.money += res.total;

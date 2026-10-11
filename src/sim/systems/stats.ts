@@ -113,7 +113,11 @@ export class StateLog {
     if (this.head === 0) for (const m of [this.ring, this.inRing, this.outRing]) for (const id of m.keys()) if (!stores.some((s) => s.map.has(id))) m.delete(id);
   }
 
-  /** items per minute over the sampled part of the last minute: what arrived (in) or what it made/moved (out) */
+  /**
+   * items per minute over the sampled part of the last minute: what arrived (in) or what it made/moved
+   * (out); over at least 20 s, so a load or a fresh placement doesn't read one item in two seconds
+   * as 30 a minute (the critic's 2.0 review)
+   */
   rate(e: Ent, which: 'in' | 'out'): number {
     const id = (e.parent ?? e).id;
     const r = (which === 'in' ? this.inRing : this.outRing).get(id);
@@ -125,7 +129,7 @@ export class StateLog {
       n++;
       sum += r[i];
     }
-    return n ? (sum / n) * 60 : 0;
+    return n ? (sum / Math.max(n, 20)) * 60 : 0;
   }
 
   /** share of the sampled seconds (up to the last 60) that e spent in each state */
