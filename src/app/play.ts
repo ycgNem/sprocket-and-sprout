@@ -13,7 +13,8 @@ import { ICON } from '../ui/font';
 import { ITEM_BY_ID, matchesSpec } from '../data/items';
 import { TREE_BY_ID } from '../data/trees';
 import { SEASON_NAMES } from '../data/types';
-import type { NPCLook } from '../data/types';
+import type { NPCLook, StructureDef } from '../data/types';
+import { REACH_KINDS, reachTiles } from '../ui/reach';
 import { SEC_PER_MIN, type Game, type GameEvent } from '../sim/Game';
 import { DX, DY, Dir, Ent, entName, entById, HOUSE_IDS } from '../sim/ents';
 import { canPlaceIndoors, hereEnts, placeIndoors } from '../sim/indoors';
@@ -1240,6 +1241,7 @@ export class PlayScreen implements Screen {
         // an arm's take/drop squares show on hover while placing too (ROADMAP.md 4.4)
         const he = g.ents.rootAt(t.x, t.y);
         if (he && !he.ghost && (he.def.kind === 'arm' || he.def.kind === 'drill')) this.drawArmHint(he);
+        if (he && !he.ghost && REACH_KINDS.has(he.def.kind)) this.drawReach(he.def, he.x, he.y);
         return;
       }
       // tool target highlight
@@ -1257,7 +1259,7 @@ export class PlayScreen implements Screen {
       // hover info for structures
       const e = g.player.where === 'world' ? g.ents.rootAt(t.x, t.y) : null;
       if (e && !e.ghost && (e.def.kind === 'arm' || e.def.kind === 'drill')) this.drawArmHint(e);
-      if (e && !e.ghost && (e.def.kind === 'pole')) this.drawPoleArea(e);
+      if (e && !e.ghost && REACH_KINDS.has(e.def.kind)) this.drawReach(e.def, e.x, e.y);
     });
   }
 
@@ -1612,12 +1614,8 @@ export class PlayScreen implements Screen {
       ctx.strokeStyle = PALETTE[C.amber];
       ctx.strokeRect(dx * TILE + 1.5, dy * TILE + 1.5, TILE - 3, TILE - 3);
     }
-    if (def.kind === 'pole' || def.kind === 'sprinkler' || def.kind === 'harvester' || def.kind === 'planter' || def.kind === 'gleaner' || def.kind === 'scarecrow' || def.kind === 'hive') {
-      const field = def.kind === 'harvester' || def.kind === 'planter' || def.kind === 'gleaner';
-      const r = def.kind === 'pole' ? def.supply ?? 2 : def.kind === 'sprinkler' ? Math.max(1, def.reach ?? 0) : (def.reach ?? 3) + (field && this.g.hasPerk('rancher') ? 1 : 0);
-      const [w, h] = def.size;
-      ctx.fillStyle = rgba(def.kind === 'pole' ? C.sky : C.leaf, 0.14);
-      ctx.fillRect((x - r) * TILE, (y - r) * TILE, (w + r * 2) * TILE, (h + r * 2) * TILE);
+    if (REACH_KINDS.has(def.kind)) {
+      this.drawReach(def, x, y);
       if (def.kind === 'pole') {
         // show wire reach circle loosely + nearby poles
         for (const pole of this.g.ents.poles) {
@@ -1642,11 +1640,21 @@ export class PlayScreen implements Screen {
     }
   }
 
-  private drawPoleArea(e: Ent) {
+  /** a structure's reach (src/ui/reach.ts), shaded, with a line along its edge so it reads on any ground */
+  private drawReach(def: StructureDef, x: number, y: number) {
     const ctx = this.app.renderer.ctx;
-    const s = e.def.supply ?? 2;
-    ctx.fillStyle = rgba(C.sky, 0.12);
-    ctx.fillRect((e.x - s) * TILE, (e.y - s) * TILE, (e.w + s * 2) * TILE, (e.h + s * 2) * TILE);
+    const tiles = reachTiles(this.g, def, x, y);
+    const col = def.kind === 'pole' ? C.sky : C.leaf;
+    ctx.fillStyle = rgba(col, 0.16);
+    for (const t of tiles) ctx.fillRect((t % 4096) * TILE, Math.floor(t / 4096) * TILE, TILE, TILE);
+    ctx.fillStyle = rgba(col === C.leaf ? C.lime : C.sky, 0.95);
+    for (const t of tiles) {
+      const tx = t % 4096, ty = Math.floor(t / 4096), px = tx * TILE, py = ty * TILE;
+      if (!tiles.has(t - 4096)) ctx.fillRect(px, py, TILE, 1);
+      if (!tiles.has(t + 4096)) ctx.fillRect(px, py + TILE - 1, TILE, 1);
+      if (!tiles.has(t - 1)) ctx.fillRect(px, py, 1, TILE);
+      if (!tiles.has(t + 1)) ctx.fillRect(px + TILE - 1, py, 1, TILE);
+    }
   }
 
   /** the structure under the mouse in the world (null indoors, in windows or over UI) */

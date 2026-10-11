@@ -1068,3 +1068,11 @@ recommendations are the decisions.
     art/factory/crane/facings.mjs (which art/factory/gen/structs.mjs calls on a full rebuild). The
     rest that don't turn face the camera like buildings (chests, crocks, kilns, looms, sprinklers,
     the scarecrow), so turning them would change nothing. `tests/facings.test.ts`.
+157. **A placed structure's reach shows on hover (the owner: "in order to see the radius for the
+    scarecrow or harvest crane i need to break it and hover before i put it down").** The shaded
+    reach showed only while placing one (and a pole's on hover). Now sprinklers, scarecrows,
+    cranes, sowers, gleaners, poles and hives show it both ways, in the shape the game uses
+    (reachTiles, src/ui/reach.ts): a tin sprinkler's four tiles (it was a 3x3), the scarecrow's
+    circle of 8 (it was a 17x17 square), the field machines' square with Long Reach. drawReach
+    (src/app/play.ts) shades it lightly and draws a line along its edge, so the circle reads on
+    grass and soil alike. `tests/reach.test.ts`.
