@@ -102,6 +102,8 @@
 - Beach palms grow one or two coconuts at a time.
 - You can pull up a crop by swinging your axe or pickaxe at it twice. A ripe one drops its harvest.
 - Crops planted right against the greenhouse's back wall can be harvested.
+- New music: three songs, Clockwork Morning, Sprout Lane Waltz and Lamplight, that take turns. They sound darker in the mine and softer at home and late at night.
+- Press N, or Next under the music slider in Settings, to skip to the next song.
 
 ## 2.0 beta (October 2026)
 
