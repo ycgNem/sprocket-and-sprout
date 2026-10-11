@@ -136,6 +136,7 @@ export const PATCH_NOTES: PatchNote[] = [
           `Quests that ask for sprout bundles mention the quick way: a plant fiber with a coconut or anything else from the beach.`,
           `A fish trap that's already baited no longer takes another bait. Walk up to one to see whether it's baited.`,
           `Hover over a crop to see what it is, how many days until it's ripe, whether it's been watered today and which seasons it grows in.`,
+          `You can fuel a steam drill yourself: hold coal or wood and press F, or open it and shift-click fuel in from your bag. Before, only arms could fuel one.`,
         ],
       },
     ],
