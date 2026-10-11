@@ -1,5 +1,7 @@
 // Hand-pixeled FX sprites (emote bubbles, critters, mail, bunting, fireball), drawn at their exact
 // in-game size from the designs in raw/b16 (PixelLab create_1_direction_object, see batches.json).
+// The state glyphs (fx:state:<kind>, ROADMAP 4.3) have no batch: they are 9x9 badges drawn from rules
+// in the BADGE helper below (0 generations).
 // The batch came back at 14-16 px for sprites the renderer draws at 5-9 px, and shrinking pixel art
 // ruins it, so each sprite is re-drawn here by hand at 1x in the batch's colors and shapes.
 // Color variants (butterfly colors, gray bird, pennant colors) are `recolor`s in sprites.json.
@@ -263,6 +265,92 @@ S['fx:twinkle:2'] = { rows: [
   '.chc.',
   '..c..',
   '.....',
+] };
+
+// ---- state glyphs (ROADMAP 4.3): 9x9, origin (0,0) = the top-left of the box src/render/glyphs.ts
+// hangs over a structure. A rounded badge with a plum rim, lit from the upper left (a light top row
+// and left column, a darker bottom row and right column), and a mark inside: an item missing, a
+// bar, a bolt, a flame gone grey, a sprout. The faint dot is only a small bead, low in the box.
+// Warm colors, nothing that shouts: amber (starved: waiting), brick (blocked), blue (unpowered),
+// grey-plum (needs fuel), cream (a field machine waiting for its crops).
+const BADGE = (fill, light, shade, symbol, legend) => {
+  // h lit top row and left column, x shaded bottom row and right column, f the fill; `symbol` is a
+  // 7x7 grid stamped over the inside of the badge
+  const grid = [
+    '.ooooooo.',
+    'ohhhhhhfo',
+    'ohfffffxo',
+    'ohfffffxo',
+    'ohfffffxo',
+    'ohfffffxo',
+    'ohfffffxo',
+    'ofxxxxxxo',
+    '.ooooooo.',
+  ].map((r) => r.split(''));
+  symbol.forEach((r, j) => r.split('').forEach((ch, i) => { if (ch !== '.') grid[1 + j][1 + i] = ch; }));
+  return { legend: { f: fill, h: light, x: shade, ...legend }, rows: grid.map((r) => r.join('')) };
+};
+// waiting: an hourglass, its sand half down, deep wine on amber
+S['fx:state:starved'] = BADGE('#fbb954', '#fbff86', '#e6904e', [
+  '.......',
+  '.ppppp.',
+  '..psp..',
+  '...p...',
+  '..pdp..',
+  '.ppppp.',
+  '.......',
+], { p: '#7a3045', d: '#cd683d', s: '#fbff86' });
+// blocked: a cream bar across a brick badge, a plain "no way through" (no exclamation mark)
+S['fx:state:blocked'] = BADGE('#b33831', '#ea4f36', '#6e2727', [
+  '.......',
+  '.......',
+  '.wwwww.',
+  '.vvvvv.',
+  '.......',
+  '.......',
+  '.......',
+], { w: '#fdcbb0', v: '#fca790' });
+// unpowered: a pale-yellow bolt on blue
+S['fx:state:power'] = BADGE('#4d9be6', '#8fd3ff', '#4d65b4', [
+  '...yy..',
+  '..yy...',
+  '.yy....',
+  '.yyyyy.',
+  '...yy..',
+  '..yy...',
+  '.yy....',
+], { y: '#fbff86' });
+// needs fuel: the flame gone grey, one ember left at its foot
+S['fx:state:fuel'] = BADGE('#625565', '#7f708a', '#3e3546', [
+  '.......',
+  '....g..',
+  '...gg..',
+  '..gggg.',
+  '.ggGggg',
+  '.gGGGgg',
+  '..gGeg.',
+], { g: '#9babb2', G: '#c7dcd0', e: '#fb6b1d' });
+// a field machine with nothing ripe yet: a seedling on a mound, on a pale badge
+S['fx:state:sprout'] = BADGE('#fdcbb0', '#ffffff', '#ab947a', [
+  '.......',
+  '.LL.qq.',
+  '..LSq..',
+  '...S...',
+  '...S...',
+  '.mmmmm.',
+  '.MMMMM.',
+], { L: '#1ebc73', q: '#91db69', S: '#239063', m: '#cd683d', M: '#9e4539' });
+// the faint dot: this stage only suffers from its neighbour's problem (no badge, a small bead)
+S['fx:state:dot'] = { legend: { d: '#625565', c: '#c7dcd0' }, rows: [
+  '.........',
+  '.........',
+  '.........',
+  '.........',
+  '.........',
+  '....d....',
+  '...dcd...',
+  '....d....',
+  '.........',
 ] };
 
 // ---- write ----

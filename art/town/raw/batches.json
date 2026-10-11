@@ -1,0 +1,33 @@
+{
+  "_note": "PixelLab generations for the town works sheet (art/town/build.mjs -> src/art/town.*), 2026-10-10. 24 generations in all. Style images for the batches: art/town/raw/style/<size>/ (cut from src/art/factory.png and buildings.png by tools/styleref.mjs).",
+  "b32": {
+    "object": "d3a36762-feb9-445b-bfa9-36b978533962",
+    "tool": "create_1_direction_object, style_images 32x32 (st:lamp, st:compost_bin, st:cheese_press, st:spring_battery)",
+    "cost": 10,
+    "slots": "0-15 lit street lamps (4 designs x4), 16-23 unlit, 24-27 bare posts, 28-39 ore hoppers on legs (3 designs x4), 40-47 tram stop signs, 48-53 telegraph posts, 54-57 beam engines, 58-59 steam pumps, 60-61 stone pier with ivy, 62-63 hanging ivy",
+    "used": "8 (hexagonal lantern under a verdigris hood: town:lamp, all three states derived from it), 32 (copper hopper on braced stilts: st:tram_bin), 40 (brass roundel sign: town:sign); references only: 48 (town:townline, hand-pixeled at the procedural geometry so the renderer's wire meets its insulator), 53-57 (the pump house's walking beam), 60-63 (ivy on the wheel's pier and the pump house)",
+    "rejected": "0-3 and 12-15 (side-bracket lanterns, too close to the farm's st:lamp), 4-7 (glass too small to read lit at 1x), 24-27 (bare posts of a different design than the lit lamp), 28-31 and 36-39 (wider than the 1-tile bin), 52 (white insulators)"
+  },
+  "b24": {
+    "object": "44b7f08c-eea9-4d5d-afd2-29815a599932",
+    "tool": "create_1_direction_object, style_images 24x24 (st:keg, st:chest_brass, st:crate_out, st:sign)",
+    "cost": 10,
+    "slots": "0-15 cart side views (empty, loaded, planked), 16-27 cart end views, 24-31 buffer stops, 32-35 ore heaps, 36-39 brass roundels, 40-55 boxy and tipping carts (side and end), 56-63 wheels, milestones, bells, spools",
+    "used": "40 (long side) and 48 (end) of the boxy cart, generated from matching descriptions: town:cart:h/v (the ore heap is scripted to fit each opening); reference only: 24 (town:buffer, hand-pixeled at 12x14)",
+    "rejected": "0-11 and 16-23 (came out in 3/4 view with hidden wheels, or a different bucket than their partner view), 24-31 as finals (20x24, larger than the track end allows; 24-27's bumper is alarm red #e83b3b)"
+  },
+  "wheel": {
+    "tool": "create_map_object 72x72, view side, selective outline, detailed shading, high detail",
+    "cost": 3,
+    "objects": { "w1": "13a32236-ec80-415d-85f0-7ce8b79b4480", "w2": "b4e4f664-27b8-4c8b-8f61-f521f8799e77", "w3": "95257f38-943a-48a8-8ad2-c06ef3e9f304" },
+    "used": "w2 as the design reference for tools/wheel.mjs (thick bolted felloe rim, brass dome hub, ivy on the idle wheel). The frames are drawn by rule: a 4-frame loop only reads as turning when every repeating part shares one period, and rotating generated pixels breaks the outline.",
+    "rejected": "w1 (busy, reads as a gear, carries its own A-frame stand), w3 (drawn in perspective with the rim's thickness showing, can't turn in place), w2 as a final (a cartwheel: no floats, irregular spokes)"
+  },
+  "fountain": {
+    "tool": "create_map_object 48x58, view low top-down, selective outline, detailed shading, high detail",
+    "cost": 1,
+    "objects": { "f1": "e6eca3c5-94df-48a8-a9d5-e3576f192bc6" },
+    "used": "f1, generated dry: the stone of every town:fountain frame (graded by lightness onto #2e222f #45293f #753c54 #966c6c #ab947a #fdcbb0; the plain snap went salmon, STYLE's stone ramp vanished on the cobbles), water scripted per frame by tools/fountain.mjs",
+    "rejected": "a second take (high top-down) was refused for concurrency and not retried: f1 was already a clear step up"
+  }
+}

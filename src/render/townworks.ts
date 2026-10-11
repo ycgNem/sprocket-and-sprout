@@ -103,7 +103,8 @@ export function pushTownworks(g: Game, r: Renderer, D: Drawable[]) {
   // ---- the Waterworks: the pump house shuttered, the fountain dry, until `waterworks` ----
   const water = g.flags.has('waterworks');
   if (vis(PUMP_HOUSE.x, PUMP_HOUSE.y - PUMP_TOP / T - 2, PUMP_HOUSE.x + PUMP_HOUSE.w, PUMP_HOUSE.y + PUMP_HOUSE.h)) {
-    const s = sprite(`town:pump:${season}:${water ? (night ? 2 : 1) : 0}`);
+    // the imported art's walking beam rocks on the roof while it pumps (frame 0 = at rest)
+    const s = sprite(`town:pump:${season}:${water ? (night ? 2 : 1) : 0}:${water ? Math.floor(time * 4) % 4 : 0}`);
     D.push({ y: PUMP_HOUSE.y + PUMP_HOUSE.h - 0.05, f: () => drawSprite(ctx, s, PUMP_HOUSE.x * T, PUMP_HOUSE.y * T) });
     if (water) {
       // the boiler's smoke from the stack, a breath of steam from the roof vent

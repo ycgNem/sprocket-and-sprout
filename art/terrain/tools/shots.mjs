@@ -1,6 +1,11 @@
 // In-game terrain screenshots: farm in four seasons, beach, town, a mine floor, the farmhouse, and the
 // farm with ?art=old for comparison. Needs the dev server (http://localhost:5173/).
 // Usage: node art/terrain/tools/shots.mjs [out dir = e2e/out/terrain/game] [name …]
+// `lab` is a test patch cut into the map beside the farm: eight 9x9 plots, each a blob of one ground in
+// another (soil, watered soil, dirt, sand, water in grass; water in dirt and sand; a flagstone path in sand), so
+// every kind of seam of the Wang sets shows in one shot. TERRAIN_PNG=<file> serves that file instead of
+// src/art/terrain.png (a sheet from before a change: `git show HEAD:src/art/terrain.png > old.png`), so the
+// same scene can be shot with the old and the new tiles.
 import fs from 'node:fs';
 import { chromium } from 'playwright';
 
@@ -14,6 +19,8 @@ async function open(url) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push('[pageerror] ' + e.message));
+  // (Vite also answers `terrain.png?import&url` with a module that names the image; only the image itself is swapped)
+  if (process.env.TERRAIN_PNG) await page.route((u) => u.pathname === '/src/art/terrain.png' && !u.search.includes('import'), (r) => r.fulfill({ path: process.env.TERRAIN_PNG, contentType: 'image/png' }));
   await page.goto(url);
   await page.waitForFunction(() => window.__app?.screen?.demo);
   await page.evaluate(async () => {
@@ -45,6 +52,20 @@ const SCENES = {
     const d = find(2), gr = find(1);
     for (const p of [d, gr]) if (p) for (let y = p[1]; y < p[1] + H; y++) for (let x = p[0]; x < p[0] + W; x++) g.soil.set(m.idx(x, y), { water: x >= p[0] + 3, fert: null, crop: null, idle: 3 });
     g.player.x = d ? d[0] + 3 : 54; g.player.y = d ? d[1] + 5 : 31; window.__plots = [d, gr];`,
+  // ground ids: 1 grass, 2 dirt, 3 sand, 4 river, 6 path (src/sim/world/tilemap.ts T); soil lives in g.soil
+  lab: `g.time.season = 0; g.player.where = 'world'; g.weather = 'sun'; g.time.min = 10 * 60; g.player.x = 48; g.player.y = 39;
+    const m = g.map, LX = 30, LY = 30, R = [[1, 'soil'], [1, 'wet'], [1, 2], [1, 3], [1, 4], [2, 4], [3, 4], [3, 6]];
+    let sd = 12345; const rnd = () => (sd = (sd * 1664525 + 1013904223) >>> 0) / 4294967296;
+    const G = 4, gr = Array.from({ length: 9 }, () => Array.from({ length: 12 }, rnd)), sm = (t) => t * t * (3 - 2 * t);
+    const noise = (x, y) => { const gx = x / G, gy = y / G, ix = Math.floor(gx), iy = Math.floor(gy), fx = sm(gx - ix), fy = sm(gy - iy); const a = gr[iy][ix], b = gr[iy][ix + 1], c = gr[iy + 1][ix], d = gr[iy + 1][ix + 1]; return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy; };
+    for (let ry = 0; ry < 2; ry++) for (let rx = 0; rx < 4; rx++) {
+      const [base, blob] = R[ry * 4 + rx];
+      for (let y = 0; y < 9; y++) for (let x = 0; x < 9; x++) {
+        const i = m.idx(LX + rx * 9 + x, LY + ry * 9 + y), u = noise(rx * 9 + x + ry * 3, ry * 9 + y + rx * 2) > 0.5 || (y === 7 && x > 2) || (x === 7 && y < 3);
+        m.ground[i] = base; m.obj[i] = 0; m.objData[i] = 0; m.trees.delete(i); m.forage.delete(i); g.soil.delete(i);
+        if (u && (blob === 'soil' || blob === 'wet')) g.soil.set(i, { water: blob === 'wet', fert: null, crop: null, idle: 3 }); else if (u) m.ground[i] = blob;
+      }
+    }`,
   beach: `g.time.season = 1; g.player.where = 'world'; g.weather = 'sun'; g.time.min = 11 * 60; g.player.x = 128; g.player.y = 126;`,
   town: `g.time.season = 0; g.player.where = 'world'; g.weather = 'sun'; g.time.min = 11 * 60; g.player.x = 133; g.player.y = 64;`,
   river: `g.time.season = 0; g.player.where = 'world'; g.weather = 'sun'; g.time.min = 11 * 60; g.player.x = 90; g.player.y = 40;`,

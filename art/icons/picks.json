@@ -1,4 +1,5 @@
 {
+  "external": ["cogbean_oil", "gleaner", "rail", "field_gantry"],
  "about": "Item icon picks: item id -> raw candidate (art/icons/raw/<batch>/<slot>.png) or a recolor of another icon. Built by art/icons/tools/build.mjs. Batches: art/icons/batches/log.json. raw/hand/<id>.png are hand-pixeled icons drawn by art/icons/hand.mjs.",
  "icons": {
   "radish": "t16/7",
@@ -260,6 +261,17 @@
   "f_tapestry": "F/59",
   "f_banner": "F/60",
   "f_hamster_cage": {"src": "hand/f_hamster_cage", "ink": false, "trim": false},
+  "canvas": {"src": "hand/canvas", "ink": false, "trim": false},
+  "lubricant": {"src": "hand/lubricant", "ink": false, "trim": false},
+  "grain": {"src": "hand/grain", "ink": false, "trim": false},
+  "straw": {"src": "hand/straw", "ink": false, "trim": false},
+  "starch_paste": {"src": "hand/starch_paste", "ink": false, "trim": false},
+  "pigment": {"src": "hand/pigment", "ink": false, "trim": false},
+  "spirit": {"src": "hand/spirit", "ink": false, "trim": false},
+  "rapeseed": {"src": "hand/rapeseed", "ink": false, "trim": false},
+  "rapeseed_seed": {"src": "hand/rapeseed_seed", "ink": false, "trim": false},
+  "thresher": {"src": "hand/thresher", "ink": false, "trim": false},
+  "tram_bin": {"src": "hand/tram_bin", "ink": false, "trim": false},
   "chest_iron": "J/1",
   "chest_brass": "I/52",
   "hive": "H/36",

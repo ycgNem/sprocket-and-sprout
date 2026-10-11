@@ -234,6 +234,26 @@ shadows, particles, smoke, water shimmer, progress pips, wires.
 
 4. **Prove it**: screenshot old and new side by side, run `npm run screens`, then the critic.
 
+## Machines (2.0, the art direction pass)
+
+**Industrial botany.** Brass, copper, iron, ceramic and dark timber; silhouettes the farm never
+had (gantries, pipes, hoists, kilns, rails, a water tower); plants growing on and around the
+works (vines on a wheel, moss on a pump house, cogbeans up a gantry). The screenshot test
+(ROADMAP.md 3): with the logo hidden, a screenshot is recognisable by its machines. Three rules
+for every machine, field machine and works building:
+
+1. **A readable moving part**: a wheel, piston, hopper, claw, bellows, flywheel or lamp that is
+   visibly the thing that moves, big enough to read at 1× (at least 4 × 4 px of contrast).
+2. **Idle and working frames**: idle is still (or a slow 2-frame tick); working is a loop of
+   2-4 frames where the moving part moves and the rest stays pixel-identical (same ground line,
+   same silhouette center), plus a working tell (glow, steam vent, turning spokes).
+3. **A marked output side**: a chute, spout, hatch or lip on the side items leave from, so a
+   player can tell which way a machine faces without opening it.
+
+Restored vs. derelict (the Deepworks, the Tinker's Yard): the same silhouette, rusted (rust,
+berry and plum blotches, a missing plate, no glow) against restored (clean brass, lit). Light
+stays upper left, outline plum; warm brass, never grey.
+
 ## Readability checks (reject if any fails)
 
 - The silhouette reads at 1× against grass, soil and a wooden floor.

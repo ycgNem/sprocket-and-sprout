@@ -13,5 +13,12 @@
     "cost": 10,
     "slots": "0-13 gleaner icon, 14-23 rail icon, 24-37 gantry icon, 38-51 cogbean oil bottle, 52-63 gantry picker head",
     "used": "5-9 (spring disc on a post, read as the drum), 38-44 (green-gold oil bottle; the final keeps the i:oil family silhouette). Rejected: rails 14-23 (noisy, no outline), gantry 24-37 (reads as a table), heads 52-63 (muddy)."
+  },
+  "F3": {
+    "object": "2a5274d0-8a69-42d6-9daf-5e2c90454e61",
+    "tool": "create_1_direction_object size 42, no style images (8 descriptions x 8 takes)",
+    "cost": 15,
+    "slots": "0-7 box body with a brass-ringed porthole, funnel hopper with a sheaf, flywheel on the right, copper chute; 8-15 steam-age thresher on skids with a sloped feed table; 16-23 open timber frame with a horizontal drum; 24-31 hopper, drum window, two small wheels, copper straw pipe, spout and sack; 32-39 compact tall mill with a spoked wheel in a brass ring; 40-47 long body, hopper left, chute right; 48-55 open frame, big drum, grain trickling from a spout; 56-63 barrel-bodied thresher with a crank",
+    "used": "2 (hopper full of golden grain over a frame, a big spoked flywheel, a spout), 0 and 32 (porthole with a wheel in a brass ring, a straw chute and grain heap), 48 (the sheaf in a funnel, a drum window, a spout). None imported: art/fieldworks/thresher.mjs draws the thresher by hand (sheaf in the hopper, a copper-ringed porthole with a three-blade beater, the flywheel, the chute with straw, a grain spout over a basket). Rejected as finals: 16-23 and 40-47 (readable, but long bodies that don't fit a 2x2 footprint), 56-63 (a barrel with no moving part you can see)."
   }
 }

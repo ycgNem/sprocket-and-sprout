@@ -8,6 +8,7 @@
 // hopper wagon heaped with beans (F1 42), A-frame wheeled leg (F1 44), wheeled trolley with a claw
 // (F1 50), oil bottles (F2 38-51; the final keeps the i:oil family silhouette instead).
 //
+// The thresher (st:thresher:*) is drawn in art/fieldworks/thresher.mjs, which this script imports.
 // Usage: node --experimental-transform-types art/fieldworks/build.mjs (it reads src/data/palette.ts)
 //   -> art/fieldworks/sheet.png + art/fieldworks/sprites.json (recipe for scripts/sprites-import.mjs)
 //   -> e2e/out/fieldworks-build.png (x4 preview on grass and soil)
@@ -16,6 +17,7 @@
 //
 // Names (frame, origin):
 //   st:gleaner:*:0:* idle, st:gleaner:<0-3>:1:* working   16x26 [0,10]
+//   st:thresher:*:0:* idle, st:thresher:<0-3>:1:* working 32x42 [0,10] (art/fieldworks/thresher.mjs)
 //   rail:0 (north-south), rail:1 (east-west)               16x16 [0,0]
 //   gantry:car:0[:full]  112x28 [0,12]    gantry:car:1[:full]  20x124 [2,12]
 //   gantry:beam:0        112x24 [0,20]    gantry:beam:1        32x124 [8,12]
@@ -26,6 +28,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Img, INK, WOOD, BRASS, COPPER, IRON } from '../factory/gen/lib.mjs';
+import { thresher } from './thresher.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
@@ -178,6 +181,12 @@ function gleaner(f) {
 }
 add('st:gleaner:*:0:*', gleaner('idle'), [0, 10]);
 for (let f = 0; f < 4; f++) add(`st:gleaner:${f}:1:*`, gleaner(f), [0, 10]);
+
+// ================================================================ THRESHER (32x42, origin [0,10])
+// A 2x2 powered machine drawn in art/fieldworks/thresher.mjs: idle is still, working turns the drum
+// (a three-blade beater in its window), the flywheel and the straw on the chute, and lights the lantern.
+add('st:thresher:*:0:*', thresher('idle'), [0, 10]);
+for (let f = 0; f < 4; f++) add(`st:thresher:${f}:1:*`, thresher(f), [0, 10]);
 
 // ================================================================ RAIL (16x16 floor piece, origin [0,0])
 // Two iron rails on dark timber sleepers, 10 px wide so the soil rows beside it keep their edge.

@@ -1,0 +1,19 @@
+{
+  "_note": "PixelLab batches for the Deepworks machines (deep:<kind>:<on>:<frame>). Raw downloads: raw/<batch>/<slot>.png. Style references: art/deep/style/*.png, cut from src/art/factory.png by tools/style.mjs and padded by tools/pad.mjs. One candidate per machine is the restored machine; art/deep/build.mjs derives every frame (working loop, derelict) from it. The gallery doorways are hand-pixeled (art/deep/gallery.mjs, 0 generations).",
+  "D1": {
+    "object": "3f74a498-80e6-4044-a563-2abe40092083",
+    "tool": "create_1_direction_object, style_images 42x42 (steam_engine, drill_steam, waterwheel, blast_furnace, steam_loom)",
+    "cost": 15,
+    "slots": "0-5 headframes with an arched wheel, 6-7 and 14-18 barred cage under a sheave wheel with winch and lantern, 8-13 posts with a hanging lantern cage, 19-25 A-frame hoists with a lantern, 26-30 beam engines (cylinder right), 31-37 beam engines with a flywheel, 38-41 beam engines with water troughs, 42-44 ore carts with a lantern, 45 coal cart, 46-51 and 56-57 empty tubs, 52-55 starmetal lumps in a crater, 58-63 crystal clusters in a crater",
+    "used": "15 lift (cage reads as something you ride; spoked wheel; winch and lantern), 33 pump (beam, pivot, two rods and a flywheel: every part can move), 42 cart (heap and lantern; the sim lights the cart), 53 star (a lump, not crystals: the Crystal stratum's decor is crystals)",
+    "rejected": "17 and 14 (white highlights in the cage), 16 (solid disc wheel), 19-25 (a lantern where the cage should be), 0-5 (no cage), 58-63 (read as the Crystal stratum's crystals), 46-51 (empty tub: the heap gives the derelict its rubble and the restored its reward)"
+  },
+  "D2": {
+    "object": "f8279ac8-1d72-4d88-be05-96a51394a0af",
+    "tool": "create_1_direction_object, style_images 56x56 (D1 lift 15, pump 33, cart 42; factory steam_engine, sunlens, brick_kiln)",
+    "cost": 10,
+    "slots": "0-2 seized boilers, 3-5 boilers with a glowing firebox, 6-8 lamp benches with four globes and a dynamo, 9-10 lamp workshops with a big flywheel, 11-13 sage lockers with the middle door open, 14-15 dark green lockers with a lantern on top",
+    "used": "5 boiler (fire in the firebox and the ash pit, gauges, stack), 7 lampworks (aqua sparks in the globes match i:spark_coil and the sim's aqua light), 11 lockers (one hanging lamp: the sim's 'miner's lamp left hanging')",
+    "rejected": "0 (porthole firebox, no fire to animate), 2 and 13 (already derelict: a clean base derives both states), 3 (black stack), 8 (flat globes), 9-10 (busy bench), 14-15 (dark paint vanishes in the Crystal stratum's dark)"
+  }
+}

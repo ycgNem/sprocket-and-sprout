@@ -1,5 +1,5 @@
 {
-  "_": "Small FX sprites: emote bubbles, ambient critters, mailbox letter and flag, festival bunting, the ember wisp's fireball. Art: hand/*.png, drawn at 1x by art/fx/hand.mjs from the PixelLab batch in raw/b16 (batches.json). Origins match the hooks in src/render/renderer.ts (drawEmote, drawTownExtras, mine bolts) and src/render/ambient.ts.",
+  "_": "Small FX sprites: emote bubbles, ambient critters, mailbox letter and flag, festival bunting, the ember wisp's fireball, the state glyphs (fx:state:<kind>, 9x9, src/render/glyphs.ts). Art: hand/*.png, drawn at 1x by art/fx/hand.mjs from the PixelLab batch in raw/b16 (batches.json). Origins match the hooks in src/render/renderer.ts (drawEmote, drawTownExtras, mine bolts) and src/render/ambient.ts.",
   "name": "fx",
   "kind": "sprites",
   "defaults": { "place": "none" },
@@ -48,6 +48,13 @@
 
     { "match": "fx:twinkle:0", "file": "hand/fx_twinkle_0.png", "frame": [5, 5], "origin": [2, 2] },
     { "match": "fx:twinkle:1", "file": "hand/fx_twinkle_1.png", "frame": [5, 5], "origin": [2, 2] },
-    { "match": "fx:twinkle:2", "file": "hand/fx_twinkle_2.png", "frame": [5, 5], "origin": [2, 2] }
+    { "match": "fx:twinkle:2", "file": "hand/fx_twinkle_2.png", "frame": [5, 5], "origin": [2, 2] },
+
+    { "match": "fx:state:starved", "file": "hand/fx_state_starved.png", "frame": [9, 9], "origin": [0, 0] },
+    { "match": "fx:state:blocked", "file": "hand/fx_state_blocked.png", "frame": [9, 9], "origin": [0, 0] },
+    { "match": "fx:state:power", "file": "hand/fx_state_power.png", "frame": [9, 9], "origin": [0, 0] },
+    { "match": "fx:state:fuel", "file": "hand/fx_state_fuel.png", "frame": [9, 9], "origin": [0, 0] },
+    { "match": "fx:state:sprout", "file": "hand/fx_state_sprout.png", "frame": [9, 9], "origin": [0, 0] },
+    { "match": "fx:state:dot", "file": "hand/fx_state_dot.png", "frame": [9, 9], "origin": [0, 0] }
   ]
 }

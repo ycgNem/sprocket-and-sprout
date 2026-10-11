@@ -440,7 +440,7 @@ steam_engine	Steam Engine	placeable	struct			steam_engine
 sunlens	Sun Lens Array	placeable	struct			sunlens
 spring_battery	Spring Coil Battery	placeable	struct			spring_battery
 keg	Keg	placeable	struct			keg
-jar	Preserves Jar	placeable	struct			jar
+jar	Preserving Crock	placeable	struct			jar
 furnace	Stone Furnace	placeable	struct			furnace
 oven	Brick Oven	placeable	struct			oven
 cheese_press	Cheese Press	placeable	struct			cheese_press
@@ -477,7 +477,7 @@ lamp	Lantern Post	placeable	struct			lamp
 fence_wood	Wood Fence	placeable	struct			fence_wood
 fence_stone	Stone Wall	placeable	struct			fence_stone
 gate	Garden Gate	placeable	struct			gate
-path_stone	Cobble Path	placeable	struct			path_stone
+path_stone	Flagstone Path	placeable	struct			path_stone
 path_brick	Brick Path	placeable	struct			path_brick
 path_wood	Plank Walk	placeable	struct			path_wood
 sign	Wooden Sign	placeable	struct			sign
@@ -531,4 +531,19 @@ card_stuffed_peppers	Recipe Card: Ember Peppers	misc	scroll		#ffffff,#cf657f
 card_roast_yam	Recipe Card: Roast Yam	misc	scroll		#ffffff,#cf657f	
 card_pumpkin_pie	Recipe Card: Pumpkin Pie	misc	scroll		#ffffff,#cf657f	
 card_honey_bun	Recipe Card: Honey Bun	misc	scroll		#ffffff,#cf657f	
+cogbean_oil	Cogbean Oil	artisan	bottle		#cddf6c,#f79617	
+gleaner	Gleaner	placeable	struct			gleaner
+rail	Gantry Rail	placeable	struct			rail
+field_gantry	Field Gantry	placeable	struct			field_gantry
+canvas	Canvas	component	cloth		#ab947a,#ffffff	
+lubricant	Lubricant	component	flask		#fbb954,#4c3e24	
+grain	Threshed Grain	component	beans		#fdcbb0,#fbb954	
+straw	Straw	resource	hay		#fdcbb0,#fbb954	
+starch_paste	Starch Paste	artisan	jar		#ffffff,#c7dcd0	
+pigment	Pigment	artisan	jar		#cf657f,#6b3e75	
+spirit	Grain Spirit	artisan	bottle		#c7dcd0,#8fd3ff	
+rapeseed	Rapeseed	crop	grain		#fdcbb0,-,-,#91db69	
+rapeseed_seed	Rapeseed Seeds	seed	seeds		#fdcbb0,#91db69	
+thresher	Thresher	placeable	struct			thresher
+tram_bin	Tram Cart Bin	placeable	struct			tram_bin
 f_hamster_cage	Hamster Cage	furniture	furn	hamstercage:0		

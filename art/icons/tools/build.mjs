@@ -185,7 +185,9 @@ function resolve(id, stack = []) {
   resolved.set(id, r);
   return r;
 }
-for (const id of items) resolve(id);
+// items whose icon another sheet draws (the Field Works': art/fieldworks/build.mjs) need no pick here
+const external = new Set(P.external ?? []);
+for (const id of items) if (!external.has(id)) resolve(id);
 for (const id of Object.keys(picks)) if (!items.includes(id)) notes.push(`pick for unknown item ${id}`);
 
 // ---- quality stars (hand-pixeled 7x7, see stars.txt) ----
@@ -244,7 +246,7 @@ fs.writeFileSync(path.join(ROOT, 'e2e/out/icons-build.png'), encodePNG(big.w, bi
 const nOwn = own.length, nLike = entries.filter((e) => e.like).length;
 for (const n of notes) console.log('  note: ' + n);
 for (const p of problems) console.log('  PROBLEM: ' + p);
-console.log(`${items.length} items: ${nOwn} own frames, ${nLike} recolors, ${items.length - nOwn - nLike} missing; art/icons/src.png ${sheet.w}x${sheet.h}; review e2e/out/icons-build.png (24 per row, item order)`);
+console.log(`${items.length} items: ${nOwn} own frames, ${nLike} recolors, ${external.size} drawn by another sheet, ${items.length - nOwn - nLike - external.size} missing; art/icons/src.png ${sheet.w}x${sheet.h}; review e2e/out/icons-build.png (24 per row, item order)`);
 if (problems.length) process.exit(1);
 
 function parseStars(txt) {

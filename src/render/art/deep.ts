@@ -226,7 +226,12 @@ export function registerDeepSprites() {
   void FOOT;
 }
 
-/** how many animation frames a machine's sprite has (restored or not) */
+/** how many animation frames a machine's sprite has (restored or not); the imported sheet
+ *  (art/deep/build.mjs) draws a 4-frame working loop, the derelict lamp works' glimmer and the
+ *  lockers' hanging lamp in 2, the star's twinkle in 4 */
 export function deepFrames(kind: string, on: boolean): number {
-  return kind === 'star' || (on && (kind === 'pump' || kind === 'lift' || kind === 'boiler')) || kind === 'lampworks' ? 2 : 1;
+  if (kind === 'star') return 4;
+  if (kind === 'lockers') return 2;
+  if (kind === 'lampworks') return on ? 4 : 2;
+  return on && (kind === 'pump' || kind === 'lift' || kind === 'boiler' || kind === 'cart') ? 4 : 1;
 }

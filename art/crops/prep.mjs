@@ -42,6 +42,26 @@ export function mapColor(rgb, plain = false) {
   return rgbOf(PAL[nearest(rgb[0], rgb[1], rgb[2]).i]);
 }
 
+// Rapeseed (batch r1): PixelLab drew canola's blue-green leaves with dark blue-green "blacks" for
+// the outline and brown shading on the flowers, which the plain snap sends to cold grey-green
+// (#313638, #374e4a, #323353) and to pale oranges. This grade keeps what makes canola canola:
+// every very dark pixel becomes the plum outline; the flower heads go onto the brass-yellow ramp by
+// lightness (#fbff86 #f9c22b #f79617 #cd683d #9e4539); the leaves keep their glaucous blue-green on
+// the teal ramp (#0b5e65 #0b8a8f #0eaf9b, pale veins #8ff8e2); stems and buds stay on the foliage
+// ramp like every other crop.
+export function mapRape(rgb) {
+  const { h, s } = hsv(rgb);
+  const L = lab(rgb)[0];
+  if (L < 22) return OUTLINE;
+  if (h >= 15 && h < 58 && s >= 0.35) {
+    return rgbOf(L >= 86 ? '#fbff86' : L >= 70 ? '#f9c22b' : L >= 50 ? '#f79617' : L >= 36 ? '#cd683d' : '#9e4539');
+  }
+  if (s < 0.14 && L >= 70) return rgbOf('#8ff8e2');
+  if (h >= 160 && h <= 215 && s >= 0.2) return rgbOf(L < 44 ? '#0b5e65' : L < 58 ? '#0b8a8f' : '#0eaf9b');
+  return mapColor(rgb);
+}
+const MAPPERS = { r1: mapRape };
+
 // fertilizer specks keep their own lime/sky/amber: plain snap, no foliage remap
 const PLAIN = new Set(Object.values(FERT));
 const RIPE = new Set(Object.values(PICKS).flatMap((p) => p.ripe ?? []));
@@ -189,7 +209,7 @@ for (const batch of process.argv.slice(2).filter((a) => !a.startsWith('--'))) {
     const d = img.data, plain = PLAIN.has(batch + '/' + f.replace('.png', ''));
     for (let i = 0; i < d.length; i += 4) {
       if (d[i + 3] < 128) { d.fill(0, i, i + 4); continue; }
-      d.set([...mapColor([d[i], d[i + 1], d[i + 2]], plain), 255], i);
+      d.set([...(MAPPERS[batch] ?? mapColor)([d[i], d[i + 1], d[i + 2]], plain), 255], i);
     }
     const ref = batch + '/' + f.replace('.png', '');
     if (RIPE.has(ref)) {

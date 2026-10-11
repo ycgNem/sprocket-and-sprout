@@ -4,7 +4,7 @@
 // through the list). A take may also be { ref, recolor } for a runtime palette swap.
 // `dead` (optional) picks the stage withered plants are recolored from (default: stage N-1, take 0).
 //
-// Pipeline: node art/crops/prep.mjs b1 t1 w2 b3 b5 g1 && node art/crops/build.mjs
+// Pipeline: node art/crops/prep.mjs b1 t1 w2 b3 b5 g1 r1 && node art/crops/build.mjs
 //           && node scripts/sprites-import.mjs art/crops/sprites.json
 // Batches: PixelLab create_1_direction_object, 64 candidates per call at size 24 (16 at size 48),
 // item_descriptions per slot; fetch with node scripts/pl-fetch.mjs frames <frame_0 url> 64 raw/<b>.
@@ -15,6 +15,10 @@
 //   b5 3338b574-fa82-4b12-b55e-14044b02a6f5  corn/barley/hops fixes, second and third takes
 //                                            (style_images: raw w2/18, b1/30, t1/12)
 //   g1 a9e69f45-ac60-4969-94bd-3109fbb3a8e5  giant crops, size 48
+//   r1 9e4c1ebe-ba09-4ce2-8da7-b5b673d26109  rapeseed (2.0 Phase 6), size 24 with style_images (raw b1/42, t1/20,
+//                                            b1/41, b1/40, t1/24); slots 0-11 sprouts, 12-27 rosettes, 28-43 budding,
+//                                            44-63 in bloom; graded by prep.mjs mapRape (plum outline, brass-yellow
+//                                            flowers, teal leaves)
 // Rejected, not kept: w1 531b3133-… (size 20: noisy, outlines missing) and b4 c86d3d49-… (same
 // prompt as b5 without style images: art filled the canvas edge to edge, no outline).
 export const SEEDS = ['b3/36', 'b3/35', 'b1/1'];
@@ -38,6 +42,7 @@ export const PICKS = {
   blueberry: { 1: ['b3/6'], 2: ['b3/7'], 3: ['b3/8'], 4: ['b3/9', 'b3/45'], ripe: ['b3/10', 'b3/11'] },
   emberpepper: { 1: ['b3/12'], 2: ['b3/13'], 3: ['b3/14'], 4: ['b3/15', 'b5/16'], ripe: ['b3/16', 'b3/17', 'b5/46'] },
   sunflower: { 1: ['t1/18'], 2: ['b3/31'], 3: ['b3/32', 'b3/33'], ripe: ['t1/20', 't1/60', 'b5/55'] },
+  rapeseed: { 1: ['r1/3', 'r1/8', 'r1/9'], 2: ['r1/17', 'r1/18', 'r1/16'], 3: ['r1/36', 'r1/38', 'r1/42'], ripe: ['r1/54', 'r1/52', 'r1/48'] },
   wheat: { 1: ['t1/21'], 2: ['t1/22', 'b5/62'], 3: ['t1/24', 'b3/43'], ripe: ['t1/25', 'b3/53', 'b5/43'] },
   hops: { 1: ['t1/26'], 2: ['t1/27'], 3: ['t1/28', 'b5/4', 'b5/5'], 4: ['b5/6', 't1/29'], ripe: ['t1/31', 't1/62', 'b5/37'] },
   sweetcane: { 1: ['t1/32'], 2: ['t1/33'], 3: ['t1/34'], 4: ['t1/35', 'b5/17'], ripe: ['t1/36', 'b3/55', 'b5/38'] },

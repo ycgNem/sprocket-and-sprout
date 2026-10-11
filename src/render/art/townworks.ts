@@ -435,7 +435,7 @@ function drawWheel(on: boolean, f: number): Px {
 
 // ---------- the Waterworks ----------
 export const PUMP_TOP = 34;
-/** town:pump:<season>:<state 0 shuttered, 1 running, 2 running at night> (80 x 98) */
+/** town:pump:<season>:<state 0 shuttered, 1 running, 2 running at night>[:<frame 0-3>] (80 x 98; this art ignores the frame, the imported sheet rocks its beam) */
 function drawPump(season: number, state: number): Px {
   const W = 80, T = PUMP_TOP, H = 64 + T;
   const p = new Px(W, H);
