@@ -1087,3 +1087,13 @@ recommendations are the decisions.
     (its axe never rises facing away); bun keeps its own pick frames but raises with a better take
     (south/1, the head tagged metal); frames that were fine stay. Only those frames changed in the
     nine sheets.
+159. **Later research costs less and climbs evenly (the owner: "some seem expensive, and not even
+    requiring 50 of each even though some are way harder").** A desk takes one of each of the era's
+    bundles per unit, and each era's bundle costs more to make: in its inputs' sale value a sprout
+    bundle is about 31, a tinker 82, a harvest 206, a brass 114, a starlight 598. So era 5 at 60-80
+    of each was 52-82k, four times era 4, and within eras the counts didn't follow the topics' weight
+    (Brass Belts, which double belt speed, cost less than Long Rails). Eras 3-5 now count from 20, 30
+    and 35 of each, +5 for a topic that changes how the farm runs, +5 to +10 for a keystone, -5 for a
+    convenience, Grand Works 50 at the top: era 5 is 36-52k. Eras 1 and 2 are as they were (the
+    Keeper's Line quotes them). Giving each bundle its own count would need the desk to take
+    different bundles per unit; left for now.

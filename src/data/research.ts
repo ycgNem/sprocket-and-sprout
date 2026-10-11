@@ -7,6 +7,12 @@ import type { ResearchDef, ResearchEffect, Stack } from './types';
 const G = 'bundle_green', CU = 'bundle_copper', R = 'bundle_rose', B = 'bundle_brass', S = 'bundle_star';
 const cost = (n: number, ...b: string[]): Stack[] => b.map((item) => ({ item, n }));
 const E1 = [G], E2 = [G, CU], E3 = [G, CU, R], E4 = [G, CU, R, B], E5 = [G, CU, R, B, S];
+// Eras 3-5 count from a base per era (20, 30, 35 of each), +5 for a topic that changes how the farm
+// runs (Brass Arms and Belts, Assembly, Drills, Bulk Arms), +5 to +10 for a keystone, -5 for a
+// convenience (Dawn Shift); Grand Works caps it at 50. Each era's bundle costs more to make than the
+// last (a starlight bundle's inputs sell for about 20 sprout bundles'), so the counts climb slowly:
+// before, the last era asked 60-80 of each, four times the era before it (the owner after 2.0: "some
+// seem expensive, and not even requiring 50 of each even though some are way harder").
 
 export const ERA_NAMES = ['', 'Spring', 'Water', 'Steam', 'Clockwork', 'Starlight'] as const;
 /** the town keystone(s) each era builds toward, for the research window's era headers */
@@ -66,10 +72,10 @@ export const RESEARCH: ResearchDef[] = [
       observe: { flag: 'observed:boiler', label: 'Study the seized boiler in the Deepworks (level 10)' },
       experiment: [{ t: 'count', key: 'made:charcoal_kiln', n: 5, label: 'Make 5 coal in a charcoal kiln' }],
     } },
-  { id: 'r_towers', name: 'Copper Towers', desc: 'Tall poles whose wires stretch 26 tiles.', icon: 'pole_tower', cost: cost(25, ...E3), unitTime: 15, prereq: ['r_steam'], era: 3, row: 0 },
-  { id: 'r_battery', name: 'Spring Batteries', desc: 'Wind spare power into springs for later.', icon: 'spring_battery', cost: cost(25, ...E3), unitTime: 15, prereq: ['r_steam'], era: 3, row: 1 },
+  { id: 'r_towers', name: 'Copper Towers', desc: 'Tall poles whose wires stretch 26 tiles.', icon: 'pole_tower', cost: cost(20, ...E3), unitTime: 15, prereq: ['r_steam'], era: 3, row: 0 },
+  { id: 'r_battery', name: 'Spring Batteries', desc: 'Wind spare power into springs for later.', icon: 'spring_battery', cost: cost(20, ...E3), unitTime: 15, prereq: ['r_steam'], era: 3, row: 1 },
   { id: 'r_wind', name: 'Wind Power', desc: 'Windmills that turn breeze into power.', icon: 'windmill', cost: cost(20, ...E3), unitTime: 12, prereq: ['r_power'], era: 3, row: 2 },
-  { id: 'r_fast_arm', name: 'Brass Arms', desc: 'Powered arms, three times quicker than spring arms.', icon: 'arm_fast', cost: cost(20, ...E3), unitTime: 12, prereq: ['r_power', 'r_brass'], era: 3, row: 3 },
+  { id: 'r_fast_arm', name: 'Brass Arms', desc: 'Powered arms, three times quicker than spring arms.', icon: 'arm_fast', cost: cost(25, ...E3), unitTime: 12, prereq: ['r_power', 'r_brass'], era: 3, row: 3 },
   { id: 'r_assembly', name: 'Assembly', desc: 'A tinker\'s bench that crafts parts, bundles and machines by itself.', icon: 'assembler', cost: cost(25, ...E3), unitTime: 12, prereq: ['r_brass'], era: 3, row: 4 },
   { id: 'r_spark', name: 'Spark Coils', desc: 'Capture a spark in glass. The heart of advanced machines, and a lantern for the deep.', icon: 'spark_coil', cost: cost(25, ...E3), unitTime: 15, prereq: ['r_glass', 'r_assembly'], era: 3, row: 4,
     keystone: {
@@ -77,14 +83,14 @@ export const RESEARCH: ResearchDef[] = [
       experiment: [{ t: 'count', key: 'crafted:copper_coil', n: 6, label: 'Wind 6 copper coils (C)' }],
       validate: { item: 'glass', perMin: 1, minutes: 2, label: 'Keep a kiln making a glass a minute for 2 minutes' },
     } },
-  { id: 'r_bottling', name: 'Bottling', desc: 'Bottlers for juice, tea and coffee, plus bean roasters.', icon: 'bottler', cost: cost(25, ...E3), unitTime: 15, prereq: ['r_assembly', 'r_glass'], era: 3, row: 5 },
+  { id: 'r_bottling', name: 'Bottling', desc: 'Bottlers for juice, tea and coffee, plus bean roasters.', icon: 'bottler', cost: cost(20, ...E3), unitTime: 15, prereq: ['r_assembly', 'r_glass'], era: 3, row: 5 },
   { id: 'r_drills', name: 'Ore Drilling', desc: 'Steam drills that dig ore veins in the quarry.', icon: 'drill_steam', cost: cost(25, ...E3), unitTime: 12, prereq: ['r_logistics', 'r_brass'], era: 3, row: 6 },
-  { id: 'r_crusher', name: 'Rock Crushing', desc: 'Rock crushers make gravel, sand and stray ore.', icon: 'crusher', cost: cost(25, ...E3), unitTime: 15, prereq: ['r_drills'], era: 3, row: 6 },
+  { id: 'r_crusher', name: 'Rock Crushing', desc: 'Rock crushers make gravel, sand and stray ore.', icon: 'crusher', cost: cost(20, ...E3), unitTime: 15, prereq: ['r_drills'], era: 3, row: 6 },
   { id: 'r_sprinkler2', name: 'Brass Sprinklers', desc: 'Sprinklers that water a 3x3 square.', icon: 'sprinkler_2', cost: cost(20, ...E3), unitTime: 15, prereq: ['r_sprinklers', 'r_brass'], era: 3, row: 7 },
   { id: 'r_gantry', name: 'Field Gantry', desc: 'A brass gantry on rails that waters, picks and resows a whole strip.', icon: 'field_gantry', cost: cost(30, ...E3), unitTime: 15, prereq: ['r_planter', 'r_assembly'], era: 3, row: 8 },
-  { id: 'r_threshing', name: 'Threshing', desc: 'A powered thresher: a sheaf of wheat, barley or corn becomes two grain and some straw.', icon: 'thresher', cost: cost(25, ...E3), unitTime: 15, prereq: ['r_milling', 'r_assembly'], era: 3, row: 9 },
+  { id: 'r_threshing', name: 'Threshing', desc: 'A powered thresher: a sheaf of wheat, barley or corn becomes two grain and some straw.', icon: 'thresher', cost: cost(20, ...E3), unitTime: 15, prereq: ['r_milling', 'r_assembly'], era: 3, row: 9 },
   { id: 'r_cooking', name: 'Hearth Cooking', desc: 'A brick oven for bread, pies and hearty meals.', icon: 'oven', cost: cost(20, ...E3), unitTime: 12, prereq: ['r_masonry'], era: 3, row: 10 },
-  { id: 'r_steam_loom', name: 'Steam Weaving', desc: 'A loom four times faster than by hand.', icon: 'steam_loom', cost: cost(25, ...E3), unitTime: 15, prereq: ['r_weaving', 'r_steam'], era: 3, row: 11 },
+  { id: 'r_steam_loom', name: 'Steam Weaving', desc: 'A loom four times faster than by hand.', icon: 'steam_loom', cost: cost(20, ...E3), unitTime: 15, prereq: ['r_weaving', 'r_steam'], era: 3, row: 11 },
 
   // ---- Era 4, Clockwork: + brass bundles ----
   { id: 'r_assembly2', name: 'Clockwork Assembly', desc: 'Clockwork cores and the faster clockwork assembler.', icon: 'clockwork_core', cost: cost(40, ...E4), unitTime: 20, prereq: ['r_spark', 'r_steam'], era: 4, row: 0,
@@ -93,27 +99,27 @@ export const RESEARCH: ResearchDef[] = [
       experiment: [{ t: 'count', key: 'made:assembler', n: 10, label: 'Have an assembler finish 10 jobs' }],
       validate: { item: 'brass_gear', perMin: 2, minutes: 3, label: 'Keep a line making 2 brass gears a minute for 3 minutes' },
     } },
-  { id: 'r_blast', name: 'Blast Furnace', desc: 'Smelts fast without fuel.', icon: 'blast_furnace', cost: cost(40, ...E4), unitTime: 20, prereq: ['r_steam', 'r_spark'], era: 4, row: 1 },
-  { id: 'r_solar', name: 'Sun Lenses', desc: 'Lens arrays that turn sunlight into power.', icon: 'sunlens', cost: cost(40, ...E4), unitTime: 20, prereq: ['r_spark', 'r_steam'], era: 4, row: 2 },
-  { id: 'r_bulk_arm', name: 'Bulk Arms', desc: 'Arms that grab six items at once.', icon: 'arm_bulk', cost: cost(40, ...E4), unitTime: 20, prereq: ['r_filter_arm', 'r_spark'], era: 4, row: 3 },
-  { id: 'r_belt2', name: 'Brass Belts', desc: 'Belts, splitters and burrows twice as fast.', icon: 'belt_2', cost: cost(30, ...E4), unitTime: 15, prereq: ['r_logistics', 'r_brass'], era: 4, row: 4 },
-  { id: 'r_brass_drill', name: 'Brass Drills', desc: 'Powered drills, twice as fast.', icon: 'drill_brass', cost: cost(40, ...E4), unitTime: 20, prereq: ['r_crusher', 'r_steam'], era: 4, row: 5 },
-  { id: 'r_sprinkler3', name: 'Gilded Sprinklers', desc: 'Sprinklers that water a 5x5 square.', icon: 'sprinkler_3', cost: cost(35, ...E4), unitTime: 20, prereq: ['r_sprinkler2'], era: 4, row: 6 },
-  { id: 'r_long_rails', name: 'Long Rails', desc: 'Gantry rails up to 24 tiles long.', icon: 'rail', cost: cost(40, ...E4), unitTime: 20, prereq: ['r_gantry'], era: 4, row: 7 },
-  { id: 'r_dawn', name: 'Dawn Shift', desc: 'A switch on field machines to pick from 6am instead of noon.', icon: 'harvester', cost: cost(30, ...E4), unitTime: 20, prereq: ['r_gantry'], era: 4, row: 8 },
-  { id: 'r_kitchen', name: 'Steam Kitchen', desc: 'Cooks fast without fuel.', icon: 'kitchen', cost: cost(35, ...E4), unitTime: 20, prereq: ['r_steam', 'r_cooking'], era: 4, row: 9 },
+  { id: 'r_blast', name: 'Blast Furnace', desc: 'Smelts fast without fuel.', icon: 'blast_furnace', cost: cost(35, ...E4), unitTime: 20, prereq: ['r_steam', 'r_spark'], era: 4, row: 1 },
+  { id: 'r_solar', name: 'Sun Lenses', desc: 'Lens arrays that turn sunlight into power.', icon: 'sunlens', cost: cost(30, ...E4), unitTime: 20, prereq: ['r_spark', 'r_steam'], era: 4, row: 2 },
+  { id: 'r_bulk_arm', name: 'Bulk Arms', desc: 'Arms that grab six items at once.', icon: 'arm_bulk', cost: cost(35, ...E4), unitTime: 20, prereq: ['r_filter_arm', 'r_spark'], era: 4, row: 3 },
+  { id: 'r_belt2', name: 'Brass Belts', desc: 'Belts, splitters and burrows twice as fast.', icon: 'belt_2', cost: cost(35, ...E4), unitTime: 15, prereq: ['r_logistics', 'r_brass'], era: 4, row: 4 },
+  { id: 'r_brass_drill', name: 'Brass Drills', desc: 'Powered drills, twice as fast.', icon: 'drill_brass', cost: cost(35, ...E4), unitTime: 20, prereq: ['r_crusher', 'r_steam'], era: 4, row: 5 },
+  { id: 'r_sprinkler3', name: 'Gilded Sprinklers', desc: 'Sprinklers that water a 5x5 square.', icon: 'sprinkler_3', cost: cost(30, ...E4), unitTime: 20, prereq: ['r_sprinkler2'], era: 4, row: 6 },
+  { id: 'r_long_rails', name: 'Long Rails', desc: 'Gantry rails up to 24 tiles long.', icon: 'rail', cost: cost(30, ...E4), unitTime: 20, prereq: ['r_gantry'], era: 4, row: 7 },
+  { id: 'r_dawn', name: 'Dawn Shift', desc: 'A switch on field machines to pick from 6am instead of noon.', icon: 'harvester', cost: cost(25, ...E4), unitTime: 20, prereq: ['r_gantry'], era: 4, row: 8 },
+  { id: 'r_kitchen', name: 'Steam Kitchen', desc: 'Cooks fast without fuel.', icon: 'kitchen', cost: cost(30, ...E4), unitTime: 20, prereq: ['r_steam', 'r_cooking'], era: 4, row: 9 },
 
   // ---- Era 5, Starlight: + star bundles ----
-  { id: 'r_bots', name: 'Bumblebots', desc: 'Clockwork bees, hives and bee crates. Logistics on wings!', icon: 'bumblebot', cost: cost(60, ...E5), unitTime: 25, prereq: ['r_assembly2'], era: 5, row: 0,
+  { id: 'r_bots', name: 'Bumblebots', desc: 'Clockwork bees, hives and bee crates. Logistics on wings!', icon: 'bumblebot', cost: cost(40, ...E5), unitTime: 25, prereq: ['r_assembly2'], era: 5, row: 0,
     keystone: {
       observe: { flag: 'observed:airship', label: "Look over Roxy's airship on Skyhook Field: a machine that flies" },
       experiment: [{ t: 'count', key: 'made:assembler_2', n: 5, label: 'Have a clockwork assembler finish 5 jobs' }],
       validate: { item: 'clockwork_core', perMin: 0.5, minutes: 4, label: 'Keep making a clockwork core every 2 minutes, for 4 minutes' },
     } },
-  { id: 'r_belt3', name: 'Gilded Belts', desc: 'The fastest belts in the valley.', icon: 'belt_3', cost: cost(60, ...E5), unitTime: 25, prereq: ['r_belt2', 'r_assembly2'], era: 5, row: 1 },
-  { id: 'r_mist', name: 'Mist Towers', desc: 'Powered towers that keep a 9x9 area watered, on the Waterworks\' pressure.', icon: 'mist_tower', cost: cost(50, ...E5), unitTime: 25, prereq: ['r_sprinkler3', 'r_assembly2'], needFlag: 'waterworks', era: 5, row: 2 },
-  { id: 'r_starmetal', name: 'Starmetal Smelting', desc: 'Smelt the ore of fallen stars.', icon: 'starmetal_bar', cost: cost(60, ...E5), unitTime: 25, prereq: ['r_blast'], era: 5, row: 3 },
-  { id: 'r_grandworks', name: 'Grand Works', desc: 'Foundations for the valley\'s great megaprojects.', icon: 'construction_site', cost: cost(80, ...E5), unitTime: 30, prereq: ['r_bots', 'r_starmetal'], era: 5, row: 3,
+  { id: 'r_belt3', name: 'Gilded Belts', desc: 'The fastest belts in the valley.', icon: 'belt_3', cost: cost(40, ...E5), unitTime: 25, prereq: ['r_belt2', 'r_assembly2'], era: 5, row: 1 },
+  { id: 'r_mist', name: 'Mist Towers', desc: 'Powered towers that keep a 9x9 area watered, on the Waterworks\' pressure.', icon: 'mist_tower', cost: cost(35, ...E5), unitTime: 25, prereq: ['r_sprinkler3', 'r_assembly2'], needFlag: 'waterworks', era: 5, row: 2 },
+  { id: 'r_starmetal', name: 'Starmetal Smelting', desc: 'Smelt the ore of fallen stars.', icon: 'starmetal_bar', cost: cost(40, ...E5), unitTime: 25, prereq: ['r_blast'], era: 5, row: 3 },
+  { id: 'r_grandworks', name: 'Grand Works', desc: 'Foundations for the valley\'s great megaprojects.', icon: 'construction_site', cost: cost(50, ...E5), unitTime: 30, prereq: ['r_bots', 'r_starmetal'], era: 5, row: 3,
     keystone: {
       observe: { flag: 'observed:star', label: 'Stand before the fallen star in the Deepworks (level 30)' },
       experiment: [{ t: 'count', key: 'made:blast_furnace', n: 10, label: 'Have a blast furnace finish 10 smelts' }],
