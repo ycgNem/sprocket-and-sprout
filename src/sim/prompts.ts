@@ -11,7 +11,7 @@ import { kDef } from './inventory';
 import { buildingFaced, onTile } from './near';
 import { cartHere } from './systems/cart';
 import { canTill } from './systems/farming';
-import { loadChoices, machAccept, stationRecipes } from './systems/machines';
+import { fuelValue, loadChoices, machAccept, stationRecipes } from './systems/machines';
 import { wouldGift } from './systems/npcs';
 import { petAt } from './systems/pet';
 import { tockAt } from './systems/tock';
@@ -178,6 +178,12 @@ function structPrompt(g: Game, e: Ent): Prompt | null {
     const hd = held ? kDef(held.k) : null;
     if (held && hd && !hd.tool && !hd.weapon && machAccept(g, e, held.k, true) > 0) return { ...at('Load ' + hd.name), hint: choice };
     return loadChoices(g, e).length ? { ...at('Load...'), hint: choice ?? 'Pick from your bag' } : at('Open');
+  }
+  // a steam drill: F with coal or wood in hand fuels it (after taking its ore, the same press)
+  if (d.kind === 'drill' && d.fuel) {
+    const ore = !!e.inv && !e.inv.isEmpty();
+    if (held && fuelValue(held.k) > 0) return ore ? { ...at('Collect'), hint: `and load ${kDef(held.k).name}` } : at('Load ' + kDef(held.k).name);
+    if (!ore && !e.st.fuel && e.st.burn <= 0) return { ...at('Open'), hint: 'Needs fuel: hold coal or wood' };
   }
   if ((d.kind === 'tapper' || d.kind === 'fishtrap' || d.kind === 'harvester' || d.kind === 'drill') && e.inv && !e.inv.isEmpty()) return at('Collect');
   // a trap says whether it's baited, so bait in hand isn't fed to one that already has some

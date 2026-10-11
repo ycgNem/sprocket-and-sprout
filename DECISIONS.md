@@ -1045,3 +1045,13 @@ recommendations are the decisions.
     withered crop says F clears it. The countdown comes from daysToRipe (src/sim/systems/farming.ts),
     which shares growRate with the night's growth, so speed fertilizer, farming 6 and Agriculturist
     are counted the way the crop actually grows. `tests/croptip.test.ts`.
+155. **A steam drill takes fuel by hand (the owner after 2.0: "need to patch the steam drill, it takes
+    coal but it wont take any, just open up the ui to pull ore out").** The drill burns wood or coal
+    from its own fuel store, which only an arm's port filled: F collected its ore or opened its
+    window, and the window showed the ore slot alone, read-only, so a drill fed by hand sat at
+    "Needs fuel" for good. Now F with fuel in hand loads it (after taking the ore, the same press, as
+    a machine's collect-and-load), its key bubble says "Load Coal" or, with nothing in hand and
+    nothing burning, "Needs fuel: hold coal or wood", and its window leads with the state line and
+    has a fuel slot beside the ore: click fuel in or out, or shift-click it from the bag. Hands and
+    arms share one cap (DRILL_FUEL, 20, src/sim/ports.ts), and a second kind of fuel waits for the
+    first to be taken out, as before. `tests/drill.test.ts`.

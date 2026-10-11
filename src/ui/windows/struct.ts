@@ -4,7 +4,7 @@ import { ITEM_BY_ID } from '../../data/items';
 import type { RecipeDef } from '../../data/types';
 import { entById, entName, type Ent } from '../../sim/ents';
 import { Inventory, key, kDef, kId } from '../../sim/inventory';
-import { availableRecipes, machInsert, setRecipe, stationRecipes } from '../../sim/systems/machines';
+import { availableRecipes, fuelValue, machInsert, setRecipe, stationRecipes } from '../../sim/systems/machines';
 import { gridSentence, POLE_SWITCH, powerState, togglePole } from '../../sim/systems/power';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
@@ -15,7 +15,7 @@ import { ICON, ellipsize, textWidth } from '../font';
 import { structStateLine } from '../statelines';
 import { RESEARCH_BY_ID } from '../../data/research';
 import { deconstruct } from '../../sim/build';
-import { PORT_HANDLERS } from '../../sim/ports';
+import { DRILL_FUEL, PORT_HANDLERS, portInsert } from '../../sim/ports';
 import { orderShare, ordersFor, tagChoices } from '../../sim/systems/orders';
 
 /** Extra struct panels registered by later systems (labs, buildings, hives, megaprojects...). */
@@ -69,13 +69,36 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
     if (kind === 'shipbin') ui.text('The post takes it at noon, 6pm and overnight.', x + 14, top + 2, C.walnut);
     else if (kind === 'planter') ui.text('Seeds and fertilizer for sowing. Arms can refill it.', x + 14, top + 2, C.walnut);
     else if (kind === 'fishtrap') ui.text(e.st.bait ? 'Baited: it catches overnight. Click a catch to take it.' : g.hasPerk('steady') ? 'No bait: it still catches. Bait adds to the haul.' : 'No bait: hold bait and press F at the trap.', x + 14, top + 2, e.st.bait ? C.moss : C.walnut);
-    else if (field) {
+    else if (kind === 'drill') {
+      // a drill leads with its state line ("Drilling", "Needs fuel: wood or coal")
+      const sl = structStateLine(g, e, true);
+      ui.text(ellipsize(sl?.text ?? '', w - 28), x + 14, top + 2, sl?.color ?? C.walnut);
+    } else if (field) {
       // field machines lead with their state line (what they're picking, or when the next crop ripens)
       const sl = structStateLine(g, e, true);
       ui.text(ellipsize((sl?.text ?? '') + (kind === 'gantry' ? `  -  seeds: shift-click them in` : ''), w - 120), x + 14, top + 2, sl?.color ?? C.walnut);
       if (g.research.done.has('r_dawn') && ui.button('dawn', x + w - 104, top - 1, 90, 12, e.st.dawn ? 'Picks from 6am' : 'Picks from noon', { style: 'flat', active: !!e.st.dawn, tip: 'Dawn Shift: pick newly ripe crops from 6am (off: the morning is left to your hands)' })) e.st.dawn = !e.st.dawn;
     } else ui.text(readonly ? 'Collected goods. Click to take, or use an arm.' : `${e.inv.slots.filter(Boolean).length}/${e.inv.size} stacks used. Shift-click to move.`, x + 14, top + 2, C.walnut);
     invGrid(ui, play, e.inv, x + 14, top + 14, 12, { target: inv, readonly, accept: kind === 'shipbin' ? (k) => kDef(k).price > 0 : undefined });
+    // a steam drill's fuel sits beside its ore: click or shift-click coal or wood in, click to take it
+    // out (the owner after 2.0: its window only let you take the ore, never give it coal)
+    if (kind === 'drill' && e.def.fuel) {
+      const fx = x + 14 + SLOT + 26, fy = top + 14;
+      ui.text('Fuel', fx - 22, fy + 6, C.oak);
+      const r = ui.slot(fx, fy, e.st.fuel);
+      if (r.hover) ui.tip([{ text: 'Fuel: coal, wood, sawdust, driftwood...' }, { text: `Holds ${DRILL_FUEL}. Burn left: ${Math.ceil(Math.max(0, e.st.burn))}s`, color: C.pebble }]);
+      if ((r.click || r.rclick) && e.st.fuel && !ui.hand) {
+        const left = g.player.inv.add(e.st.fuel.k, e.st.fuel.n);
+        e.st.fuel.n = left;
+        if (!left) e.st.fuel = null;
+      } else if (r.click && ui.hand && fuelValue(ui.hand.k) > 0) {
+        const n = portInsert(g, e, ui.hand.k, ui.hand.n, 0);
+        ui.hand.n -= n;
+        if (ui.hand.n <= 0) ui.hand = null;
+      }
+      ui.text(ellipsize('Shift-click coal or wood in from your bag.', w - (fx - x) - SLOT - 22), fx + SLOT + 8, fy + 6, C.walnut);
+      target = (k, n) => (fuelValue(k) > 0 ? portInsert(g, e, k, n, 0) : 0);
+    }
     // the crate takes only what the post will buy, by shift-click as by hand
     if (kind === 'gantry') target = (k, n) => PORT_HANDLERS.gantry.insert!(g, e, k, n);
     else if (!readonly) target = kind === 'shipbin' ? (k, n) => (kDef(k).price > 0 ? n - e.inv!.add(k, n) : 0) : e.inv;

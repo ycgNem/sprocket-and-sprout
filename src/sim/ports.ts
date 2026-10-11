@@ -19,6 +19,9 @@ export interface PortHandler {
 }
 export const PORT_HANDLERS: Record<string, PortHandler> = {};
 
+/** fuel a steam drill holds, from an arm or your hands */
+export const DRILL_FUEL = 20;
+
 /** How many of k can `e` accept from an arm facing `dir` (towards e). */
 export function portAccept(g: Game, e: Ent, k: ItemKey, dir: Dir): number {
   if (e.ghost || e.st.rust) return 0;
@@ -36,7 +39,7 @@ export function portAccept(g: Game, e: Ent, k: ItemKey, dir: Dir): number {
       if (e.def.fuel && fuelValue(k) > 0 && (!e.gen!.fuel || e.gen!.fuel.k === k)) return 20 - (e.gen!.fuel?.n ?? 0);
       return 0;
     case 'drill':
-      if (e.def.fuel && fuelValue(k) > 0 && (!e.st.fuel || e.st.fuel.k === k)) return 20 - (e.st.fuel?.n ?? 0);
+      if (e.def.fuel && fuelValue(k) > 0 && (!e.st.fuel || e.st.fuel.k === k)) return DRILL_FUEL - (e.st.fuel?.n ?? 0);
       return 0;
   }
   return 0;

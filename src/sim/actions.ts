@@ -20,10 +20,10 @@ import { deconstruct } from './build';
 import { isRusted, restore } from './rust';
 import { buildingFaced, onTile } from './near';
 import { lesson } from './lessons';
-import { availableRecipes, loadChoices, machAccept, machInsert, setRecipe } from './systems/machines';
+import { availableRecipes, fuelValue, loadChoices, machAccept, machInsert, setRecipe } from './systems/machines';
 import { curMap } from './systems/player';
 import { Ent } from './ents';
-import { portInsert } from './ports';
+import { DRILL_FUEL, portInsert } from './ports';
 
 export const TOOL_POWER = [1, 1.6, 2.4, 3.4, 5];
 const BASE_COST: Record<string, number> = { hoe: 2, can: 2, axe: 2, pick: 2, scythe: 0, rod: 3, sword: 0 };
@@ -857,6 +857,7 @@ export function interactStruct(g: Game, e: Ent): boolean {
   }
   if (d.kind === 'tapper' || d.kind === 'fishtrap' || d.kind === 'harvester' || d.kind === 'drill') {
     // collect contents directly
+    let collected = false;
     if (e.inv && !e.inv.isEmpty()) {
       for (let i = 0; i < e.inv.slots.length; i++) {
         const s = e.inv.slots[i];
@@ -866,8 +867,27 @@ export function interactStruct(g: Game, e: Ent): boolean {
         if (s.n <= 0) e.inv.slots[i] = null;
       }
       g.emit({ t: 'sfx', id: 'collect' });
-      return true;
+      collected = true;
     }
+    // a steam drill burns what you hold: F with coal or wood fuels it, in the same press as a collect
+    // (the owner after 2.0: "it takes coal but it wont take any"; only arms could fuel it)
+    const fuel = p.inv.slots[p.sel];
+    if (d.kind === 'drill' && d.fuel && fuel && fuelValue(fuel.k) > 0) {
+      const n = portInsert(g, e, fuel.k, fuel.n, 0);
+      if (n > 0) {
+        p.inv.remove(fuel.k, n);
+        g.emit({ t: 'hop', ent: e.id });
+        g.emit({ t: 'sfx', id: 'insert' });
+        g.emit({ t: 'float', text: `+${n}`, x: e.x + e.w / 2, y: e.y, c: C.cream });
+        return true;
+      }
+      if (!collected) {
+        const f = e.st.fuel;
+        g.toast(f && f.k !== fuel.k ? `It's burning ${kDef(f.k).name.toLowerCase()}. To switch, F with empty hands and take it out.` : `It holds ${DRILL_FUEL} fuel at a time.`);
+        return true;
+      }
+    }
+    if (collected) return true;
     // one bait a night: a baited trap opens instead of taking another (the owner's playtest: F again
     // said "Trap baited." and ate a second bait the trap never used)
     if (d.kind === 'fishtrap' && held && kDef(held.k).cat === 'bait' && !e.st.bait) {
