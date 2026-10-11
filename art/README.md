@@ -17,6 +17,7 @@ import can be rerun. Rules: `STYLE.md`. Plan: `ROADMAP.md`.
 | `ruins/` | the Tinker's Yard wrecks (`o:56:<v>:<season>`): one PixelLab wreck each (`raw/batches.json`), graded and given its four seasons by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/ruins.*` |
 | `fairs/` | the Harvest Haul stalls and podium (`haul:stall:<k>:<f>`, `haul:podium:<f>`), the Fair's test plate and banner (`fair:plate`, `fair:banner:<f>`), hand-pixeled by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/fairs.*` |
 | `buildings/` | town buildings and farm structures (`bld:*`, `st:*`) composed from PixelLab picks by `tools/compose.mjs` (config `buildings.json` from `tools/mkconfig.mjs`); the farmhouse's clockwork (gable cog, copper downpipe into a gauge tank, roof vent) pixeled over it by `keeper.mjs`, which compose runs as its `post` step (0 generations) | `scripts/sprites-import.mjs` | `src/art/buildings.*` |
+| `promo/` | the "then and now" screenshots in What's new, PATCHNOTES.md and the README: the first build (v0.9, commit `9a72b2a`) and 2.0 at a new game's first morning, by `promo/capture.mjs` (its header says how to build the old version) | (imported by `src/data/patchnotes.ts`) | the WebPs themselves |
 | everything else | sprites by name (crops, objects, trees, buildings, machines, icons…) | `scripts/sprites-import.mjs` | `src/art/<group>.*` |
 
 ## How a sheet names its sprites

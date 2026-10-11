@@ -301,6 +301,11 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## Patterns to follow
 
+- **Patch notes are for players** (the owner on 2.0's first draft: "genuinely gibberish"). Say what
+  the game does now, in its own words, one short sentence a line; never the steps of a fix, a quest
+  step's name, or the review that found it. A release's entry describes the game; a short "Since
+  the beta" (or the last version) covers what changed for returning players. `src/data/patchnotes.ts`
+  (UI font: printable ASCII, no `$` or `_`) and PATCHNOTES.md say the same thing.
 - **Sim code never touches the DOM.** It emits events (`g.emit({t:'sfx'|'toast'|'ui'|'fx'|'ach'...})`)
   and `PlayScreen.processEvents` turns them into sound and UI.
 - **Cross-system calls go through `g.sys.<name>` hooks**, which avoids import cycles. For example,

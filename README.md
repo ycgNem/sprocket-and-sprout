@@ -8,6 +8,12 @@ inn's standing order fills by the post, and the keeper's water wheel turns the g
 river. With Professor Cogwhistle's research you add belts, mills, water wheels and little brass
 bumblebots, until the farm runs itself like a music box.
 
+| Then: the first build (v0.9) | Now: 2.0 |
+|---|---|
+| ![The first build of Sprocket & Sprout, v0.9: a plain farm drawn in code](art/promo/then-0.9.webp) | ![Sprocket & Sprout 2.0: the keeper's yard, with its crock, belts and gleaner](art/promo/now-2.0.webp) |
+
+The same moment in both: a new game's first morning.
+
 **New in 2.0 ("The Works": on the website, and for Windows on the Releases page; the full patch
 notes are under "What's new" on the title screen and in [PATCHNOTES.md](PATCHNOTES.md)):**
 - **The Keeper's Line**, a new opening on every map: rusted works to restore (F), one step at a

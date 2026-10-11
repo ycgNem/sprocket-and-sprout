@@ -1,6 +1,7 @@
 // The patch notes on the title screen ("What's new"): every version's notes from
-// src/data/patchnotes.ts, newest first, in one scrolling column. The button glows until this
-// version's notes have been opened once (per browser).
+// src/data/patchnotes.ts, newest first, in one scrolling column, an entry's pictures side by side
+// under its intro (2.0's "then and now"). The button glows until this version's notes have been
+// opened once (per browser).
 import { PATCH_NOTES } from '../data/patchnotes';
 import { C } from '../data/palette';
 import { LINE_H, wrapText } from './font';
@@ -25,7 +26,19 @@ function markSeen() {
   }
 }
 
-interface Row { text: string; x: number; y: number; c: number; scale?: number; dot?: boolean }
+interface Row { text: string; x: number; y: number; c: number; scale?: number; dot?: boolean; pic?: { src: string; w: number; h: number } }
+
+const pics = new Map<string, HTMLImageElement>();
+/** a note's picture, fetched the first time the notes open (never with the game); null until loaded */
+function picture(src: string): HTMLImageElement | null {
+  let img = pics.get(src);
+  if (!img) {
+    img = new Image();
+    img.src = src;
+    pics.set(src, img);
+  }
+  return img.complete && img.naturalWidth ? img : null;
+}
 
 let laid: { w: number; rows: Row[]; h: number } | null = null;
 
@@ -44,6 +57,14 @@ function layout(w: number) {
     for (const l of wrapText(n.title, w)) line(l, 0, C.walnut, 1);
     y += 3;
     for (const l of wrapText(n.intro, w)) line(l, 0, C.ink);
+    // screenshots in a row, 16:9, each with its caption under it
+    if (n.pics?.length) {
+      const gap = 8, k = n.pics.length;
+      const pw = Math.floor((w - gap * (k - 1)) / k), ph = Math.round((pw * 9) / 16);
+      y += 6;
+      n.pics.forEach((p, j) => rows.push({ text: p.caption, x: j * (pw + gap), y, c: C.oak, pic: { src: p.src, w: pw, h: ph } }));
+      y += ph + 4 + LINE_H;
+    }
     for (const s of n.sections) {
       line(s.title, 0, C.rust, 7);
       for (const it of s.items) wrapText(it, w - 9).forEach((l, j) => line(l, 9, C.ink, j ? 0 : 2, undefined, !j));
@@ -66,7 +87,21 @@ export function drawNotes(ui: UI, t: number): boolean {
   ui.clip(ax, ay, aw - 4, ah);
   for (const r of L.rows) {
     const ry = ay + r.y - off;
-    if (ry < ay - 20 || ry > ay + ah) continue;
+    if (ry < ay - (r.pic ? r.pic.h + 20 : 20) || ry > ay + ah) continue;
+    if (r.pic) {
+      // a screenshot, so it's smoothed when scaled (sprites never are)
+      const px = ax + r.x, img = picture(r.pic.src);
+      ui.fill(px - 1, ry - 1, r.pic.w + 2, r.pic.h + 2, C.walnut);
+      if (img) {
+        ui.ctx.save();
+        ui.ctx.imageSmoothingEnabled = true;
+        ui.ctx.imageSmoothingQuality = 'high';
+        ui.ctx.drawImage(img, px, ry, r.pic.w, r.pic.h);
+        ui.ctx.restore();
+      } else ui.fill(px, ry, r.pic.w, r.pic.h, C.tan);
+      ui.text(r.text, px, ry + r.pic.h + 4, r.c);
+      continue;
+    }
     if (r.dot) ui.fill(ax + r.x - 6, ry + 3, 2, 2, C.oak);
     ui.text(r.text, ax + r.x, ry, r.c, r.scale ? { scale: r.scale } : {});
   }

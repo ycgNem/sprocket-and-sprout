@@ -954,3 +954,11 @@ recommendations are the decisions.
     release `v2.0.0` made Latest with PATCHNOTES.md's 2.0 section under a few lines on where to play
     and what carries over (1.x and beta farms load as they are). The in-game "What's new" leads with
     the same 2.0 entry. 1.1.1 and the 2.0 beta stay as older releases.
+148. **The 2.0 patch notes rewritten for players, with "then and now" (the owner: "rewrite the patch
+    notes, they are genuinely gibberish ... show people what the very first version of the game looked
+    like").** The 2.0 entry is one plain list of what 2.0 is, 48 lines in 12 sections (2.0 and the
+    beta had about 150 between them), ending with a short "Since the 2.0 beta"; the beta's entry now
+    points to it, and 1.x's notes are as they were. Under 2.0's intro, What's new shows the first
+    playable build (v0.9, commit `9a72b2a`, every sprite drawn in code) beside 2.0 at the same moment,
+    a new game's first morning (`art/promo/`, made by `art/promo/capture.mjs` from both builds served
+    from disk, loaded only when the notes open); PATCHNOTES.md and the README show the pair too.
