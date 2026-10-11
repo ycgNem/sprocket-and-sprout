@@ -97,6 +97,10 @@
 ### Updates
 
 - The Milling step that asks you to keep a mill grinding is clearer: it shows how fast your mill is going and how to pass it, and cornmeal now counts as meal.
+- The beach washes up two or three new finds every morning, however much is lying around in the woods.
+- Kelp turns up a bit more often, on the beach and in fish traps set in the sea, and its tooltip says where to look.
+- Beach palms grow one or two coconuts at a time.
+- You can pull up a crop by swinging your axe or pickaxe at it twice. A ripe one drops its harvest.
 
 ## 2.0 beta (October 2026)
 
