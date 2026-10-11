@@ -948,3 +948,9 @@ recommendations are the decisions.
     notes give F's order as the code has it (someone on the faced tile, the tile, a villager near it);
     Statistics says "Busiest machine kind". Left for 2.0.1: restored belts are charcoal, the coldest
     surface in the yard (taste).
+147. **2.0.0 released (October 11, 2026; the owner: "yes push live and add patch notes").** Every phase
+    of ROADMAP.md is done. `works` pushed, `main` fast-forwarded to it and pushed (the website, after
+    the workflow's tests), the Windows installer and portable exe built from `main`, and the GitHub
+    release `v2.0.0` made Latest with PATCHNOTES.md's 2.0 section under a few lines on where to play
+    and what carries over (1.x and beta farms load as they are). The in-game "What's new" leads with
+    the same 2.0 entry. 1.1.1 and the 2.0 beta stay as older releases.

@@ -4,8 +4,10 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 11, 2026): 2.0.0 is ready on `works`; ship it when the owner says so.** This
-session finished Phase 6 and Phase 7's review (DECISIONS #139-#146): the owner's second playtest of
+**Status (October 11, 2026): 2.0.0 "The Works" is released, and every phase of ROADMAP.md is done.**
+The website runs 2.0.0 and the GitHub release `v2.0.0` (Latest) has the notes and the Windows
+installers (DECISIONS #147); next is 2.0.1 ("What's next"). The last session finished Phase 6 and
+Phase 7 (DECISIONS #139-#147): the owner's second playtest of
 the opening (an arm tops up a hand-filled crock, the keeper's crock at 8x through B3, B6's last step
 names the arm, the clock slows only while placing), what answers F when several things are there and
 F's tile (the one in front of the tile you stand on), labels that never cover each other, crafting
@@ -16,13 +18,15 @@ plate and banner, gantry wheels, chamber shadows, then by script conveyor belts,
 keeper's farmhouse), the procedural generators deleted, version 2.0.0 and its patch notes, and the
 critic's confirmation pass (every earlier finding fixed in play; its two Majors, "where to get" the
 parts and the zoom after a reload, and its Minors fixed: #146).
-**Where it stopped:** committed on `works` (not pushed: the owner says when); `main` = `d9e25b9`
-(the beta update, deployed). **To ship, only on the owner's word:** push `works`; in `../sns-p0check`
-(`main` is checked out there) `git merge --ff-only works` and `git push origin main` (deploys the
-website; the workflow runs the tests first); build the installers there (`Build desktop app.bat`,
-output in `release/`); `node scripts/release-notes.mjs "2.0" > e2e/out/release-notes.md`, add a few
-lines on top (where to play), then `gh release create v2.0.0 --title "Sprocket & Sprout 2.0"
---notes-file e2e/out/release-notes.md` with the installers (not `--prerelease`: 2.0 becomes Latest).
+**Where it stopped:** `works` and `main` are the same commit, both pushed (the release). **To
+release the next version, only on the owner's word:** bump `package.json` (and the lock file), add
+its entry on top of `src/data/patchnotes.ts` and PATCHNOTES.md, commit on `works` and push it; in
+`../sns-p0check` (`main` is checked out there) `git merge --ff-only works` and `git push origin main`
+(deploys the website; the workflow runs the tests first); build the installers there (`npm run
+dist:win`, or `Build desktop app.bat`; output in `release/`); `node scripts/release-notes.mjs "<version>"
+> e2e/out/release-notes.md`, add a few lines on top (where to play), then `gh release create
+v<version> --title "Sprocket & Sprout <version>" --notes-file e2e/out/release-notes.md` with the two
+installers (`--prerelease` only for a beta).
 Left on disk, safe to delete: `../sns-review` (the critic's frozen build) and the merged worktrees
 `../sns-crops`, `../sns-deep`, `../sns-town` (remove their node_modules junction first).
 The owner's rules since Phase 1: hand farming stays, but the factory is the face (ROADMAP.md 3.2,
@@ -361,15 +365,13 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
-**2.0.0 is ready (Phases 6 and 7 done, DECISIONS #139-#146).** What's left is the owner's: the
-screenshot test by eye, then "ship" (the steps are in the status at the top). PixelLab: 224
+**2.0.0 is released (every phase done, DECISIONS #139-#147).** Next is 2.0.1. PixelLab: 224
 generations plus the $2.00 credit on October 11 (2,000 more on November 9); this session spent 90,
 and everything after the critic's screenshot test was drawn by script for 0.
 
 A prompt to paste for the next session (2.0.1):
 
-> Read HANDOFF.md (the status, "What's next") and DECISIONS.md #139-#146. 2.0.0 is on `works`
-> (ship it first if the owner has said so and it isn't live yet: the steps are in the status). Then
+> Read HANDOFF.md (the status, "What's next") and DECISIONS.md #139-#147. 2.0.0 is released. Now
 > 2.0.1 from the critic's 2.0 review (its M5 and cut list): the economy (a cogbean earns 34.5 coins a
 > tile a day raw, 85.5 pickled, against 18.6 for the next crop: try price 30 and a 3-day regrow, and
 > two orders before day 10 that need more than one crock), cut the standing orders to 5-6

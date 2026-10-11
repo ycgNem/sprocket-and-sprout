@@ -5,6 +5,10 @@ overhaul; `PLAN.md` the original architecture; `PROGRESS.md` what's built; `HAND
 run and verify everything. This file is the plan for the next version, and it is a different
 kind of plan: not "add features", but "make the game its own thing".
 
+**Status (October 11, 2026): every phase is done, and 2.0.0 "The Works" is released** (the website
+and the GitHub release `v2.0.0` with the Windows installers; DECISIONS #147). What comes next is
+2.0.1 (HANDOFF.md, "What's next").
+
 Work one phase per session (some phases take two or three). Start every session with
 "Read ROADMAP.md and HANDOFF.md", end it with tests, `npm run screens`, the `indie-critic`
 agent where the phase says so, a commit, and a push only when the owner says so (pushing
@@ -981,7 +985,7 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
   within 15% of 1.1's numbers; the `indie-critic` approves the loop (3.1) and the spec (section 4)
   before the build, and its short automation-only review of the build finds no "I can't tell why
   it stopped".
-### Phase 2 — The Keeper's Line (2 sessions + a finish) — BUILT; the critic's end review FAILED on day 5 (2026-10-10); its must-fix list is mostly done on `works`; not merged (the owner deferred the 2.0 beta)
+### Phase 2 — The Keeper's Line (2 sessions + a finish) — DONE 2026-10-10, RELEASED in the 2.0 beta and 2.0; the critic's end review failed on day 5, and its must-fix list, the re-check and its Minors are done (DECISIONS #82, #92)
 - **Session 1** (2026-10-09): the re-spec (6.0) and the critic's quick read; rust and restore
   (`src/sim/rust.ts`, `src/render/rust.ts`); the keeper's yard (`buildYard` in
   `src/sim/opening.ts`); the chain in `src/data/goals.ts`; the Professor's visit
@@ -1054,7 +1058,7 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
   2.0.0-beta.1; `main` fast-forwards in `C:\Users\jacks\Documents\sns-p0check`; the owner pushes;
   the installers stay 1.1.1).
 
-### Phase 3 — Orders, research stages, the Mill (2 sessions) — BUILT 2026-10-10 on `works` with Phase 4; the critic's end review failed narrowly (the path ended at k10), its fixes are in (DECISIONS #93-#98); the re-check and its confirmation pass PASSED WITH FIXES and those are in too (DECISIONS #99; the last few fixes await the critic's Phase 5 review); not merged
+### Phase 3 — Orders, research stages, the Mill (2 sessions) — DONE 2026-10-10 with Phase 4, RELEASED in the 2.0 beta and 2.0; the critic's end review failed narrowly (the path ended at k10), its fixes are in (DECISIONS #93-#98); the re-check and its confirmation pass PASSED WITH FIXES and those are in too (DECISIONS #99, and the rest with Phase 5's review)
 - 7.4 the Orders board (unifying requests, contracts, projects; consignment; per-business
   reputation); 7.3 research stages, era columns, era rewards, the 12 nodes pruned; 7.1 crop
   numbers and rapeseed; **4.10 the crop intermediates and the thresher** (moved here from Phase 1 by
@@ -1065,7 +1069,7 @@ a commit on `works`. Phases 2, 5 and 7 end with the `indie-critic`.
 - Done when: a bot run reaches the Mill by day 20 on 6 of 8 seeds; `data.test.ts` validates
   every order's items and every keystone's stages; sweep.
 
-### Phase 4 — The Deepworks (2 sessions) — BUILT 2026-10-10 on `works` with Phase 3 (see Phase 3's line)
+### Phase 4 — The Deepworks (2 sessions) — DONE 2026-10-10 with Phase 3, RELEASED in the 2.0 beta and 2.0 (see Phase 3's line)
 - 7.2: strata, the three chambers (lift, pump, rail cart), pests, hazards, the flooded Frost
   stratum tied to the Waterworks keystone, the Tram keystone's cart (sim + a moving sprite on
   the quarry road), Lamplighting (the farm-gate pole links the square's lamps).
@@ -1365,25 +1369,27 @@ chest and a crock placed indoors, fed, saved and reloaded), the checks, the swee
 1366x620 and 960x600, then the critic's full review (it also covers the fixes made after its
 Phase 3+4 confirmation pass, `928a07c`..`72ff71b`).
 
-### Phase 6 — The art direction pass (3-4 sessions, after Nov 9)
+### Phase 6 — The art direction pass (3-4 sessions, after Nov 9) — DONE 2026-10-11 in two rounds (DECISIONS #136, #145), RELEASED in 2.0
 - **Round 1 done (October 10-11, DECISIONS #136):** the Deepworks machines, the town works, the
   last procedural names (coverage 100%), the seam audit at 0, STYLE.md "Machines"; 74 generations.
 - **Round 2 done (October 11, DECISIONS #145):** the re-roled villagers' work clothes and portraits,
   the Tinker's Yard wrecks, the Haul's stalls and podium, the Fair's plate and banner, the gantry's
   wheel frames, chamber shadows (90 generations); then by script, from the critic's screenshot test:
   conveyor belts, the crock with a lid, gauge and vent, the keeper's farmhouse. `?art=old` and the
-  Compare lineup are gone. Coverage 6991/6991. The owner's screenshot test is the last check.
+  Compare lineup are gone. Coverage 6991/6991. The critic's screenshot test passed (minute 0, and
+  day 5 once a farm loads at 3x: #146), and the owner gave the go-ahead to ship.
 - Section 9, one `art-director` agent per group in parallel (the Phase 2 pattern from 1.1,
   `art/README.md`); `STYLE.md` "Machines" section; the seam audit at 0; `coverage.mjs` 100%;
   delete `src/render/art/` generators and `?art=old`.
 - Done when: the screenshot test (section 3) passes by the owner's eye; sweep 0 issues at
   1280x720 and 1366x620; `qa-screens` finds no regressions.
 
-### Phase 7 — Review and release 2.0 (1 session)
-- **Done on `works` (October 11, DECISIONS #139-#146):** the code review (high) on v1.1.1..works and
-  its fixes, the critic's full review (SHIP WITH FIXES) and its Critical, Majors and Minors, its
-  confirmation pass and those fixes, the owner's playtest fixes, version 2.0.0 and the 2.0 patch notes. Left: the merge, the installers
-  and the release, when the owner says ship.
+### Phase 7 — Review and release 2.0 (1 session) — DONE, RELEASED 2026-10-11 as 2.0.0
+- **Done (October 11, DECISIONS #139-#147):** the code review (high) on v1.1.1..works and its fixes,
+  the critic's full review (SHIP WITH FIXES) and its Critical, Majors and Minors, its confirmation
+  pass and those fixes, the owner's playtest fixes, version 2.0.0 and the 2.0 patch notes; then, on
+  the owner's "push live", `main` fast-forwarded to `works` and pushed (the website), the Windows
+  installers, and the GitHub release `v2.0.0` (Latest) with the notes.
 - `/code-review` (high) on `main..works`; the critic's full review; fix the Criticals.
 - README, HANDOFF, PROGRESS, DECISIONS updated; version 2.0.0; merge to `main`;
   `Build desktop app.bat`; `gh release create v2.0.0`.

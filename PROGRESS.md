@@ -382,6 +382,9 @@
   own line after B6); coverage 6812/6812; seams 0; the deploy ran green.
 
 ## 2.0: Phase 6 round 2, Phase 7, the owner's playtest and the critic's review (October 11, 2026)
+- **Released October 11, 2026** (the owner: "yes push live and add patch notes"): the website runs
+  2.0.0, and the GitHub release `v2.0.0` (Latest) carries the 2.0 notes and the Windows installers.
+  Every phase of ROADMAP.md is done (#147).
 - The owner's playtest of the opening (DECISIONS #139): an arm tops up a crock your hands filled, the
   keeper's crock runs at 8x through B3, B6's last step names the arm (a note beside its tile, a spare
   if needed), the clock slows only while placing. F's priority with several things there (#140): the
@@ -409,8 +412,8 @@
   65.9k (57.5k to 68.8k), Rush 66.5k (62.2k to 72.2k).
 
 ## Next
-- Ship 2.0.0 when the owner says so (HANDOFF.md has the steps), then 2.0.1: the critic's economy
-  (cogbean), the cut list and the bot's re-baseline (HANDOFF.md "What's next").
+- 2.0.1: the critic's economy (cogbean), the cut list and the bot's re-baseline (HANDOFF.md "What's
+  next"); an old-save player's "some stuff didn't transfer", once their exported save comes in.
 - Older ideas: more interior variety, farmhouse expansion tiers; more depth for mid-game automation
   goals and late-game megaprojects.
 
