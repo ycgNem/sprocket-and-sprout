@@ -13,7 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { load, save, mapRamps, outlineInner, outlineOuter, snowcap, stamp, trunkBase, place, recolor, bbox, crop, blank, blit, at, get, set, hash, clone, colorsOf } from './lib.mjs';
-import { TREES, LEAF, FALL, SPRING, WOOD, BARK, OBJECTS, STONE, MOSS, WOOD5, PLANT, DRY, SEED, LAMP, BOARD, STICKS, STICK_KEY } from './spec.mjs';
+import { TREES, LEAF, FALL, SPRING, WOOD, BARK, OBJECTS, STONE, MOSS, WOOD5, PLANT, DRY, SEED, LAMP, BOARD, STICKS, STICK_KEY, LADDERS, LADDER_KEY } from './spec.mjs';
 import { ALL, cleanCanopy } from './lib.mjs';
 import { dropStrays } from '../../scripts/lib/pixel.mjs';
 
@@ -295,6 +295,12 @@ function objFrame(src, mat, tag, extraRamp) {
     img = outlineOuter(img);
     return src.flipX ? flip(img) : img;
   }
+  if (src.ladder) {
+    // hand-pixeled with its outline (the floor shows between the up ladder's rungs): copied as drawn
+    const img = blank(16, 16);
+    stamp(img, 0, 0, LADDERS[src.ladder], LADDER_KEY);
+    return img;
+  }
   const ref = typeof src === 'string' ? src : src.ref;
   mat = src.mat ?? mat;
   let fams = MATS[mat];
@@ -339,7 +345,7 @@ for (const [oname, spec] of Object.entries(OBJECTS)) {
   const vs = spec.byData || spec.v.length >= 3 ? spec.v : [0, 1, 2].map((k) => spec.v[k % spec.v.length]);
   vs.forEach((ref, v) => {
     const id = `o-${oname.toLowerCase()}-v${v}`;
-    const img = objFrame(ref, spec.mat, `${oname} v${v} ${ref.ref ?? ref.draw ?? ref}`, spec.ramp);
+    const img = objFrame(ref, spec.mat, `${oname} v${v} ${ref.ref ?? ref.draw ?? ref.ladder ?? ref}`, spec.ramp);
     const file = writeFrame(id, img);
     const add = (match, f, extra = {}) => entries.push({ match, file: f, frame: [16, 16], origin: [0, 0], place: 'none', ...extra });
     // winter

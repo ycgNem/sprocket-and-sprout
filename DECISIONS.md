@@ -1097,3 +1097,11 @@ recommendations are the decisions.
     convenience, Grand Works 50 at the top: era 5 is 36-52k. Eras 1 and 2 are as they were (the
     Keeper's Line quotes them). Giving each bundle its own count would need the desk to take
     different bundles per unit; left for now.
+160. **The mine's ladders, redrawn (the owner: "redo the ladder drawing in the cave").** The ladder
+    down and the ladder up were generated tiles that read as a squiggle and a lump at 1x. Both are
+    drawn by hand now as 16x16 grids in art/nature/spec.mjs (LADDERS), which art/nature/build.mjs
+    copies into the frames it rebuilds: the way down is a dark shaft with a band of lit far wall and
+    the ladder's rails and top rung standing out of it, its rungs fading into the dark; the way up
+    is the same ladder standing on the floor, running off the top of the tile and palest at the top
+    where the daylight is. Same names, size and anchor, so no game code changed, only the
+    six frames. No PixelLab credits.

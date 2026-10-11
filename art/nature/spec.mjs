@@ -128,6 +128,57 @@ export const STICKS = {
   ],
 };
 export const STICK_KEY = { e: '#e6904e', h: '#e6904e', L: '#cd683d', M: '#9e4539', D: '#7a3045', g: '#239063', G: '#91db69' };
+/**
+ * The Deepworks' two ladders, hand-pixeled with their outline (the build copies them as drawn): the
+ * generated ones read as a dark mound and a faint outline at 1x. Both share one ladder (rails lit on
+ * the left, 4 px rungs). down: a square shaft whose far wall catches the light at the top, the
+ * ladder's top standing out of it, its rungs fading into the dark. up: the ladder standing on the
+ * floor, running off the top edge, pale where the daylight from the way out falls on it; a shadow
+ * line under each rung, the floor shows between the rungs.
+ * O outline / the dark; c e w far wall (lit to dark); x m l h wood (dark to lit); y p Y daylight.
+ */
+export const LADDERS = {
+  down: [
+    '................',
+    '....OO....OO....',
+    '...OhlOOOOhlO...',
+    '..OOhlhhhhhlOO..',
+    '.OcchlcccchlccO.',
+    'OeeehmeeeehmeeeO',
+    'OwwwhmllllhmwwwO',
+    'OOOOlmOOOOlmOOOO',
+    'OOOOlxOOOOlxOOOO',
+    'OOOOlxmmmmlxOOOO',
+    'OOOOmxOOOOmxOOOO',
+    '.OOOxwOOOOxwOOO.',
+    '.OOOxwxxxxxwOOO.',
+    '..OOwOOOOOwOOO..',
+    '...OOOOOOOOOO...',
+    '................',
+  ],
+  up: [
+    '...OYpO..OYpO...',
+    '...OYpOOOOYpO...',
+    '...OpypppppyO...',
+    '...OpyOOOOpyO...',
+    '...OyhO...yhO...',
+    '...OyhO...yhO...',
+    '...OyhyyyyyhO...',
+    '...OyhOOOOyhO...',
+    '...OhlO...hlO...',
+    '...OhlO...hlO...',
+    '...OhlhhhhhlO...',
+    '...OhlOOOOhlO...',
+    '...OlmO...lmO...',
+    '...OlmO...lmO...',
+    '...OxwO...xwO...',
+    '....OO....OO....',
+  ],
+};
+export const LADDER_KEY = {
+  O: '#2e222f', w: '#45293f', e: '#3e3546', c: '#625565',
+  x: '#7a3045', m: '#9e4539', l: '#cd683d', h: '#e6904e', y: '#fbb954', p: '#fdcbb0', Y: '#fbff86',
+};
 const PLANT_SEASONS = (fall = 'amber') => ({ fall, winter: 'dry' });
 export const OBJECTS = {
   ROCK: { mat: 'stone', v: ['a2/0', 'a2/2', 'a2/3'], ...SNOW },
@@ -173,10 +224,11 @@ export const OBJECTS = {
     { ref: 'b16/17', accent: ['#45293f', '#6b3e75', '#905ea9', '#a884f3', '#eaaded'], flipX: true },
   ] },
   STALAGMITE: { mat: 'stone', v: ['b16/19', 'b16/20', 'b16/19'] },
-  LADDER: { mat: 'free', v: ['b16/21'] },
+  // hand-pixeled (LADDERS above): the generated b16/21 and b16/26 didn't read as ladders
+  LADDER: { v: [{ ladder: 'down' }] },
   SHAFT: { mat: 'free', v: ['b16/23'] },
   ELEVATOR: { mat: 'free', v: ['b16/24'] },
-  MINE_EXIT: { mat: 'free', v: ['b16/26'] },
+  MINE_EXIT: { v: [{ ladder: 'up' }] },
   TREASURE: { mat: 'free', byData: true, v: ['b16/28', 'b16/29', 'b16/30'] },
   // ---- town and farm props ----
   FLOWERBED: { mat: 'bed', byData: true, v: [
