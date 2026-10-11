@@ -88,7 +88,7 @@
       "clean/bun/hoe/south/3.png",
       "clean/bun/axe/south/2.png",
       "clean/bun/axe/south/3.png",
-      "clean/bun/pick/south-old/1.png",
+      "clean/bun/pick/south/1.png",
       "clean/bun/pick/south/4.png",
       "clean/bun/can/south/3.png",
       "clean/bun/can/south/4.png",
@@ -756,6 +756,128 @@
           20,
           28,
           "wood"
+        ]
+      ],
+      "bun/pick/south/1.png": [
+        [
+          19,
+          8,
+          24,
+          8,
+          "metal",
+          "all"
+        ],
+        [
+          26,
+          8,
+          27,
+          8,
+          "metal",
+          "all"
+        ],
+        [
+          17,
+          9,
+          24,
+          9,
+          "metal",
+          "all"
+        ],
+        [
+          26,
+          9,
+          29,
+          9,
+          "metal",
+          "all"
+        ],
+        [
+          16,
+          10,
+          18,
+          10,
+          "metal",
+          "all"
+        ],
+        [
+          28,
+          10,
+          30,
+          10,
+          "metal",
+          "all"
+        ],
+        [
+          15,
+          11,
+          16,
+          11,
+          "metal",
+          "all"
+        ],
+        [
+          29,
+          11,
+          31,
+          11,
+          "metal",
+          "all"
+        ],
+        [
+          14,
+          12,
+          15,
+          12,
+          "metal",
+          "all"
+        ],
+        [
+          31,
+          12,
+          32,
+          12,
+          "metal",
+          "all"
+        ],
+        [
+          14,
+          13,
+          15,
+          13,
+          "metal",
+          "all"
+        ],
+        [
+          32,
+          13,
+          32,
+          13,
+          "metal",
+          "all"
+        ],
+        [
+          14,
+          14,
+          14,
+          14,
+          "metal",
+          "all"
+        ],
+        [
+          32,
+          14,
+          33,
+          14,
+          "metal",
+          "all"
+        ],
+        [
+          33,
+          15,
+          33,
+          15,
+          "metal",
+          "all"
         ]
       ]
     }

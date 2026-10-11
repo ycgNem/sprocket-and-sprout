@@ -437,6 +437,40 @@
         "metal",
         "all-dark"
       ]
+    ],
+    "ponytail/pick/north-axe/2.png": [
+      [
+        17,
+        10,
+        23,
+        10,
+        "metal",
+        "all"
+      ],
+      [
+        15,
+        11,
+        19,
+        11,
+        "metal",
+        "all"
+      ],
+      [
+        21,
+        11,
+        25,
+        11,
+        "metal",
+        "all"
+      ],
+      [
+        20,
+        11,
+        20,
+        11,
+        "wood",
+        "all"
+      ]
     ]
   },
   "colors": [

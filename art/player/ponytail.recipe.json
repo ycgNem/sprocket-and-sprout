@@ -46,7 +46,7 @@
       "clean/ponytail/hoe/north/3.png",
       "clean/ponytail/axe/north/2.png",
       "clean/ponytail/axe/north/4.png",
-      "clean/ponytail/pick/north-b/1.png",
+      "clean/ponytail/pick/north-axe/2.png",
       "clean/ponytail/pick/north-b/4.png",
       "clean/ponytail/can/north/3.png",
       "clean/ponytail/can/north/4.png",
@@ -709,6 +709,40 @@
           33,
           "metal",
           "all-dark"
+        ]
+      ],
+      "ponytail/pick/north-axe/2.png": [
+        [
+          17,
+          10,
+          23,
+          10,
+          "metal",
+          "all"
+        ],
+        [
+          15,
+          11,
+          19,
+          11,
+          "metal",
+          "all"
+        ],
+        [
+          21,
+          11,
+          25,
+          11,
+          "metal",
+          "all"
+        ],
+        [
+          20,
+          11,
+          20,
+          11,
+          "wood",
+          "all"
         ]
       ]
     }

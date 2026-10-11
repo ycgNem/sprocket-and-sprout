@@ -1076,3 +1076,14 @@ recommendations are the decisions.
     circle of 8 (it was a 17x17 square), the field machines' square with Long Reach. drawReach
     (src/app/play.ts) shades it lightly and draws a line along its edge, so the circle reads on
     grass and soil alike. `tests/reach.test.ts`.
+158. **The pickaxe's up and down swings, drawn from the axe's (the owner: "the pickaxe animation the
+    up and down on is botched").** PixelLab never managed a front or back pick swing: facing up,
+    most looks' raise was a halo of two arcs; facing down, the default look's was antlers and its
+    strike held the pick sideways across the body, and bun, curly and hat had arcs or a crossed X.
+    Every look's axe swing up and down is clean, so art/player/pickfix.py takes it, clears the axe
+    head (found by its greys, or by hand where it hid) and draws a pick head across the handle's end
+    in that frame's metal and outline colours, with exactly those pixels tagged metal (and the
+    handle wood) for clean.mjs, so the looks never recolour them. Hat's raise comes from its hoe
+    (its axe never rises facing away); bun keeps its own pick frames but raises with a better take
+    (south/1, the head tagged metal); frames that were fine stay. Only those frames changed in the
+    nine sheets.
