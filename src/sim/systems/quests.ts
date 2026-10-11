@@ -10,6 +10,7 @@ import { STRUCT_BY_ID } from '../../data/structures';
 import { RESEARCH_BY_ID } from '../../data/research';
 import type { ObjectiveDef, QuestDef } from '../../data/types';
 import { Game, registerSystem } from '../Game';
+import { DX, DY, type Ent } from '../ents';
 import { key, kDef } from '../inventory';
 import { addPoints, hearts, npcSys } from './npcs';
 import { portGraph } from '../lines';
@@ -105,10 +106,9 @@ export function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
       return prog >= 1;
     // a rusted structure brought back: the one at a tile, or no rusted one of the kind left
     case 'restore': {
-      if (o.at) {
-        const e = g.ents.rootAt(o.at[0], o.at[1]);
-        return !!e && !e.st.rust;
-      }
+      // the piece at a tile: restored, even if it has been picked up and moved since (a rusted one
+      // can't be moved, so an empty tile was restored first)
+      if (o.at) return !g.ents.rootAt(o.at[0], o.at[1])?.st.rust;
       if (o.rect) return rustedIn(g, o.rect).left === 0;
       const of = g.ents.all().filter((e) => !e.ghost && e.def.id === o.struct);
       return of.length > 0 && of.every((e) => !e.st.rust);
@@ -119,6 +119,7 @@ export function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
     case 'count': return (g.counters[o.key] ?? 0) >= o.n;
     case 'stage': return g.research.done.has(o.id) || stages(g, o.id)[o.stage] !== false;
     case 'gleaned': return gleanedCount(g, o.crop) >= o.n;
+    case 'arm': return !!armBetween(g, o.from, o.to);
     case 'feeds': {
       const nodes = portGraph(g);
       return g.ents.all().some((e) => !e.ghost && !e.st.rust && e.def.id === o.struct && (!o.other || !e.st.keeper) && (nodes.get(e.id)?.ins.length ?? 0) > 0);
@@ -144,6 +145,21 @@ export function gleanedCount(g: Game, crop: string): number {
 }
 
 /** structures in a rect (x, y, w, h): how many there are and how many are still rusted */
+/**
+ * A working arm that takes from a structure of `from` and drops into one of `to` (an id or a kind,
+ * either may be left out), or null. Inline rather than src/sim/systems/arms.ts's armTiles: importing
+ * a system from here would move it in the tick order.
+ */
+export function armBetween(g: Game, from?: string, to?: string): Ent | null {
+  const is = (e: Ent | null, want?: string) => !want || (!!e && !e.ghost && !e.st.rust && (e.def.id === want || e.def.kind === want));
+  for (const e of g.ents.arms) {
+    if (e.ghost || e.st.rust || !e.arm) continue;
+    const r = e.arm.reach;
+    if (is(g.ents.rootAt(e.x - DX[e.rot] * r, e.y - DY[e.rot] * r), from) && is(g.ents.rootAt(e.x + DX[e.rot] * r, e.y + DY[e.rot] * r), to)) return e;
+  }
+  return null;
+}
+
 export function rustedIn(g: Game, r: [number, number, number, number]): { all: number; left: number } {
   const seen = new Set<number>();
   let all = 0, left = 0;
@@ -229,6 +245,10 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
     case 'made': return `Make ${o.n} batches in a ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct} (${Math.min(prog, o.n)}/${o.n})`;
     case 'feeds': return `Feed a ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct} with an arm`;
     case 'armload': return `An arm feeds the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct} (${Math.min(prog, o.n)}/${o.n})`;
+    case 'arm': {
+      const nm = (id: string | undefined, or: string) => (id ? STRUCT_BY_ID.get(id)?.name.toLowerCase() ?? id : or);
+      return `Put an arm from the ${nm(o.from, 'chest')} to the ${nm(o.to, 'machine')}`;
+    }
     case 'order': return `Fill the order: ${o.id}`;
     case 'grid': return `Enough power for the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct}'s grid`;
     case 'count': return `${o.key} (${Math.min(o.n, Math.floor(g.counters[o.key] ?? 0))}/${o.n})`;

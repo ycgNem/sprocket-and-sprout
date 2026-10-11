@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import '../src/sim';
 import { Game } from '../src/sim/Game';
 import { interactStruct } from '../src/sim/actions';
-import { canPlace, deconstruct, place } from '../src/sim/build';
+import { canPlace, deconstruct, place, rotateStruct } from '../src/sim/build';
 import { key } from '../src/sim/inventory';
 import { MState } from '../src/sim/mstate';
 import { OPENING, RIVER } from '../src/sim/opening';
@@ -409,5 +409,61 @@ describe("the critic's end-of-Phase-2 fixes", () => {
     for (const [id, xy, rot] of [['jar', OPENING.jar2, 0], ['chest_wood', OPENING.jar2Chest, 0], ['arm_basic', OPENING.jar2Feed, 0]] as [string, [number, number], Dir][]) put(g, id, xy, rot);
     secs(g, 60);
     expect(at(g, OPENING.jar2).why).toBe('Waiting for cogbean');
+  });
+});
+
+describe("the owner's notes on the opening (Phase 6)", () => {
+  it('B3 counts an arm that takes from the cellar chest into the crock, not an arm anywhere', () => {
+    const g = new Game({ seed: 71 });
+    skipTo(g, 'k3_hands');
+    // an arm put down elsewhere doesn't do B3's job
+    put(g, 'arm_basic', OPENING.shareArm, 1);
+    secs(g, 1);
+    expect(step(g)).toBe('k3_hands:0');
+    // on the tile but facing away from the crock, nor does it
+    const a = put(g, 'arm_basic', OPENING.feedArm, 2)!;
+    secs(g, 1);
+    expect(step(g)).toBe('k3_hands:0');
+    // turned to face the crock (R), it does
+    rotateStruct(g, a);
+    rotateStruct(g, a);
+    secs(g, 1);
+    expect(step(g)).toBe('k3_hands:1');
+  });
+
+  it("B3's arm drops into a crock filled by hand at once, not minutes later", () => {
+    const g = new Game({ seed: 72 });
+    skipTo(g, 'k3_hands');
+    at(g, OPENING.jar).mach!.inBuf.set(key('cogbean'), 8);
+    put(g, 'arm_basic', OPENING.feedArm, 0);
+    secs(g, 10);
+    const a = questSys(g).active.find((x) => x.id === 'k3_hands')!;
+    expect(a.prog[1]).toBeGreaterThanOrEqual(2);
+  });
+
+  it('B3 with every arm placed elsewhere: a spare comes, once a day', () => {
+    const g = new Game({ seed: 73 });
+    skipTo(g, 'k3_hands');
+    g.player.inv.removeSpec('arm_basic', g.player.inv.countId('arm_basic'));
+    secs(g, 1);
+    expect(g.player.inv.countId('arm_basic')).toBe(1);
+    g.player.inv.removeSpec('arm_basic', 1);
+    secs(g, 2);
+    expect(g.player.inv.countId('arm_basic')).toBe(0);
+  });
+
+  it("B5: the gleaner's arm restored and then moved still counts as restored", () => {
+    const g = new Game({ seed: 74 });
+    for (const xy of OPENING.belts) interactStruct(g, at(g, xy));
+    g.player.inv.add(key('spring'), 1);
+    interactStruct(g, at(g, OPENING.gleanArm));
+    expect(at(g, OPENING.gleanArm).st.rust).toBeFalsy();
+    deconstruct(g, at(g, OPENING.gleanArm));
+    skipTo(g, 'k5_desk');
+    interactStruct(g, at(g, OPENING.desk));
+    g.sys.quests.notify(g, 'craft', 1, 'bundle_green');
+    g.flags.add('study:r_belts');
+    secs(g, 2);
+    expect(step(g)).toBe('k5_desk:6');
   });
 });

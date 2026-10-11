@@ -23,6 +23,7 @@ import { eatHeld, interact, useHeld } from '../sim/actions';
 import { facingTile, curMap } from '../sim/systems/player';
 import { saveGame, freeSlot, exportSaveJSON } from '../sim/save';
 import { drawSprite, sprite } from '../render/atlas';
+import { plannedFenceSprite } from '../render/fences';
 import { TILE } from '../render/art/terrain';
 import { structSize } from '../render/art/structs';
 import { drawHud, HudState, toastLife } from '../ui/hud';
@@ -165,6 +166,8 @@ export class PlayScreen implements Screen {
     }
   }
   private spin = { id: 0, n: 0, t: 0 };
+  /** a short line the Keeper's Line draws under the tile it marks (set each frame by the guide marks) */
+  private guideNote: { x: number; y: number; text: string; dy?: number } | null = null;
 
   cursorKind() {
     if (this.app.ui.overUI) return 'arrow' as const;
@@ -443,6 +446,7 @@ export class PlayScreen implements Screen {
     if (!this.modalOpen) this.works.labels(this, ui, this.hoverEnt());
     if (!this.modalOpen && !ui.overUI) this.noticeLooked(this.hoverEnt());
     this.drawPostTimer(ui);
+    this.drawGuideNote(ui);
     this.drawCompass(ui);
     this.worldHover(ui);
     // the blueprint tool's copy box: its size by the cursor, in green when it fits the Sprocket Fair's plate
@@ -1125,7 +1129,10 @@ export class PlayScreen implements Screen {
     const now = (g.sys.quests?.now?.(g, 1) ?? [])[0] as { id: string; index: number } | undefined;
     const step = now ? `${now.id}:${now.index}` : '';
     const out: { x: number; y: number; rot: Dir | null }[] = [];
-    if (step === 'k3_hands:0') out.push({ x: OPENING.feedArm[0], y: OPENING.feedArm[1], rot: 0 });
+    // an arm put there before B3 asks for it turns itself too, so it never needs turning or moving later
+    if (step === 'k3_hands:0' || step.startsWith('k1_line:') || step.startsWith('k2_springs:')) out.push({ x: OPENING.feedArm[0], y: OPENING.feedArm[1], rot: 0 });
+    // B5: the gleaner's arm, if it was picked up after its restore (it lifts from the gleaner onto the belts)
+    if (step === 'k5_desk:5' || step === 'k5_desk:6') out.push({ x: OPENING.gleanArm[0], y: OPENING.gleanArm[1], rot: 3 });
     if (step === 'k6_bottleneck:1') out.push({ x: OPENING.jar2Feed[0], y: OPENING.jar2Feed[1], rot: null });
     if (step === 'k6_bottleneck:4') out.push({ x: OPENING.jar2Out[0], y: OPENING.jar2Out[1], rot: null });
     // B8: Bram's Brass Arms load the mill from the grain bin and empty it into the meal chest
@@ -1172,9 +1179,10 @@ export class PlayScreen implements Screen {
       }
       if (this.mode === 'paste' && this.blueprint) {
         const cost = blueprintCost(this.blueprint);
+        const planned = new Map(this.blueprint.items.map((it) => [`${t.x + it.dx},${t.y + it.dy}`, it.def]));
         for (const it of this.blueprint.items) {
           const ok = canPlace(g, it.def, t.x + it.dx, t.y + it.dy, it.rot, { ghostOk: true }).ok;
-          this.drawGhostStruct(it.def, t.x + it.dx, t.y + it.dy, it.rot, ok);
+          this.drawGhostStruct(it.def, t.x + it.dx, t.y + it.dy, it.rot, ok, planned);
         }
         void cost;
         return;
@@ -1184,10 +1192,11 @@ export class PlayScreen implements Screen {
         if (grid) this.drawGrid(t.x, t.y);
         const sn = this.armSnap(t) ?? t;
         const line = this.drag ? this.dragLine(placeable, this.drag.x, this.drag.y, sn.x, sn.y) : [{ x: sn.x, y: sn.y, rot: this.rot }];
+        const planned = new Map(line.map((L) => [`${L.x},${L.y}`, placeable]));
         for (const L of line) {
           const chk = this.canPlaceHere(placeable, L.x, L.y, L.rot);
           const inReach = this.reachOk(L.x, L.y, 9 + g.mods.reach);
-          this.drawGhostStruct(placeable, L.x, L.y, L.rot, chk.ok && inReach);
+          this.drawGhostStruct(placeable, L.x, L.y, L.rot, chk.ok && inReach, planned);
         }
         this.drawPlacementHints(placeable, t.x, t.y);
         // an arm's take/drop squares show on hover while placing too (ROADMAP.md 4.4)
@@ -1253,6 +1262,7 @@ export class PlayScreen implements Screen {
       if (!near) drawFx(ctx, 'fx:arrow', Math.floor(this.playtime * 8), ax * TILE, y * TILE - 3 + bob);
     };
     // the Keeper's Line marks where its current step happens (ROADMAP.md 6)
+    this.guideNote = null;
     const now = (g.sys.quests?.now?.(g, 1) ?? [])[0] as { id: string; index: number } | undefined;
     const at = (xy: [number, number]) => mark(xy[0], xy[1]);
     const free = (xy: [number, number]) => !g.ents.at(xy[0], xy[1]);
@@ -1281,9 +1291,23 @@ export class PlayScreen implements Screen {
       case 'k2_springs:1':
         if (rusted(OPENING.armTile)) at(OPENING.armTile);
         break;
-      case 'k3_hands:0':
-        if (free(OPENING.feedArm)) at(OPENING.feedArm);
+      case 'k3_hands:0': {
+        const fa = g.ents.at(OPENING.feedArm[0], OPENING.feedArm[1]);
+        at(OPENING.feedArm);
+        if (!fa) this.guideNote = { x: OPENING.feedArm[0], y: OPENING.feedArm[1], text: 'Put an arm here', dy: 2 };
+        else if (fa.def.kind === 'arm') this.guideNote = { x: OPENING.feedArm[0], y: OPENING.feedArm[1], text: 'R over the arm turns it to face the crock', dy: 2 };
+        else this.guideNote = { x: OPENING.feedArm[0], y: OPENING.feedArm[1], text: 'Pick this up (X): the arm goes here', dy: 2 };
         break;
+      }
+      case 'k3_hands:1':
+      case 'k3_hands:2': {
+        // the squares each arm takes from (green) and drops on (gold): the line, drawn
+        const fa = g.ents.at(OPENING.feedArm[0], OPENING.feedArm[1]);
+        if (fa?.arm) this.drawArmHint(fa);
+        const ka = g.ents.at(OPENING.armTile[0], OPENING.armTile[1]);
+        if (now?.index === 2 && ka?.arm) this.drawArmHint(ka);
+        break;
+      }
       case 'k4_grow:0':
         for (const xy of OPENING.bed) if (!soilAt(xy)) at(xy);
         break;
@@ -1309,6 +1333,15 @@ export class PlayScreen implements Screen {
       case 'k5_desk:5':
         if (rusted(OPENING.gleanArm)) at(OPENING.gleanArm);
         break;
+      case 'k5_desk:6': {
+        // nothing lifts the gleaner's beans onto the belts (its arm was moved): say where one goes
+        const ga = g.ents.at(OPENING.gleanArm[0], OPENING.gleanArm[1]);
+        if (!ga) {
+          at(OPENING.gleanArm);
+          this.guideNote = { x: OPENING.gleanArm[0], y: OPENING.gleanArm[1], text: 'An arm here lifts beans onto the belts' };
+        } else if (ga.arm) this.drawArmHint(ga);
+        break;
+      }
       case 'k6_bottleneck:0':
         if (g.player.inv.countId('jar') > 0 && free(OPENING.jar2)) at(OPENING.jar2);
         break;
@@ -1400,6 +1433,26 @@ export class PlayScreen implements Screen {
     ui.text(tg.label, x0 + 16, y0 + 4, C.cream);
   }
 
+  /** a short line under the tile the Keeper's Line marks, when the mark alone doesn't say what to do */
+  private drawGuideNote(ui: any) {
+    const n = this.guideNote;
+    if (!n || this.modalOpen || this.win || this.g.player.where !== 'world' || this.app.renderer.juice.banners.length) return;
+    const w = textWidth(n.text) + 8, h = 13;
+    // `dy` tiles down: under whatever the step names below the mark (B3's cellar chest)
+    const below = this.toUI(n.x + 0.5, n.y + (n.dy ?? 1));
+    const above = this.toUI(n.x + 0.5, n.y);
+    const occ = this.hud.occupied ?? [];
+    const clear = (p: { x: number; y: number }) => p.x >= 2 && p.x + w <= ui.w - 2 && p.y >= 2 && p.y + h <= ui.h - 2
+      && !occ.some((o) => p.x + w + 2 > o.x && p.x - 2 < o.x + o.w && p.y + h > o.y && p.y < o.y + o.h);
+    let p = { x: Math.round(below.x - w / 2), y: Math.round(below.y + 3) };
+    if (!clear(p)) p = { x: Math.round(above.x - w / 2), y: Math.round(above.y - h - 12) };
+    if (!clear(p)) return;
+    ui.fill(p.x, p.y, w, h, C.ink);
+    ui.fill(p.x + 1, p.y + 1, w - 2, h - 2, C.walnut);
+    ui.fill(p.x + 1, p.y + 1, w - 2, 1, C.oak);
+    ui.text(n.text, p.x + 4, p.y + 3, C.butter);
+  }
+
   /** a countdown over the shipping crate to the next post collection (noon, 6pm) */
   private drawPostTimer(ui: any) {
     const g = this.g;
@@ -1447,7 +1500,8 @@ export class PlayScreen implements Screen {
     for (let x = cx - 8; x <= cx + 8; x++) ctx.fillRect(x * TILE, (cy - 8) * TILE, 1, 17 * TILE);
   }
 
-  drawGhostStruct(defId: string, x: number, y: number, rot: Dir, ok: boolean) {
+  /** `planned`: the tiles placed along with this one ("x,y" -> structure id), so fences preview joined */
+  drawGhostStruct(defId: string, x: number, y: number, rot: Dir, ok: boolean, planned?: Map<string, string>) {
     const ctx = this.app.renderer.ctx;
     const def = STRUCT_BY_ID.get(defId)!;
     ctx.globalAlpha = 0.6;
@@ -1467,7 +1521,7 @@ export class PlayScreen implements Screen {
       ctx.rotate((rot * Math.PI) / 2);
       ctx.drawImage(box.img, box.x, box.y, 32, 16, -16, -8, 32, 16);
       ctx.restore();
-    } else drawSprite(ctx, sprite(`st:${defId}:0:0:${this.g.time.season}`), x * TILE, y * TILE);
+    } else drawSprite(ctx, sprite(plannedFenceSprite(hereEnts(this.g) ?? this.g.ents, defId, x, y, planned) ?? `st:${defId}:0:0:${this.g.time.season}`), x * TILE, y * TILE);
     ctx.globalAlpha = 1;
     ctx.fillStyle = rgba(ok ? C.leaf : C.rose, 0.3);
     for (const t of structFootprint(def, x, y, def.rotatable ? rot : 0)) ctx.fillRect(t.x * TILE, t.y * TILE, TILE, TILE);

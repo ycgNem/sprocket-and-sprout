@@ -365,6 +365,9 @@ export type ObjectiveDef = ObjectiveBase & (
   | { t: 'feeds'; struct: string; other?: boolean }
   /** items an arm has put into a machine of a kind (B3: the arm, not the hands, fed the jar) */
   | { t: 'armload'; struct: string; n: number }
+  /** a working arm that takes from a structure of `from` and drops into one of `to` (an id or a
+   *  kind; either may be left out): what the layout does, not which tile it's on (B3) */
+  | { t: 'arm'; from?: string; to?: string }
   /** a standing order filled (src/sim/systems/orders.ts), by hand or by the post */
   | { t: 'order'; id: string }
   /** a machine of this kind (switched on) whose grid can power everything on it at once: no brownout */

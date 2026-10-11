@@ -681,6 +681,9 @@ export class Bot {
       return g.player.inv.countId(id) >= n;
     };
     if (!g.research.done.has('r_arms') || !g.research.done.has('r_preserves')) return;
+    // the Keeper's Line's second crock comes first: built before B6, the bot's own line would count
+    // for B6's "a second crock, fed by an arm" and leave the keeper's second-crock tile empty
+    if (g.flags.has('keepers_line') && !questSys(g).done.includes('k6_bottleneck')) return;
     // the parts' parts: planks from wood, rope from fiber
     while (g.player.inv.countId('plank') < 10 && g.player.inv.countId('wood') >= 30 && tryCraft('plank'));
     while (g.player.inv.countId('rope') < 4 && g.player.inv.countId('fiber') >= 12 && tryCraft('rope'));
@@ -1127,6 +1130,21 @@ export class Bot {
     return true;
   }
 
+  /** B6's second crock from the Mercantile on its tile; false while it can't be had yet (shop hours) */
+  private secondJar(town: boolean): boolean {
+    const g = this.g;
+    if (g.ents.at(OPENING.jar2[0], OPENING.jar2[1])) return true;
+    if (g.player.inv.countId('jar') === 0) {
+      if (!town || !shopOpen(g, 'general').open) return false;
+      const e = shopStock(g, 'general').find((x) => x.item === 'jar');
+      if (!e || !buy(g, e, 1)) return false;
+      this.notes.push('bought the second jar');
+      this.walkTo(OPENING.jar2[0], OPENING.jar2[1] + 1);
+    }
+    this.put('jar', OPENING.jar2, 0);
+    return true;
+  }
+
   private put(id: string, xy: [number, number], rot: 0 | 1 | 2 | 3) {
     if (this.g.ents.at(xy[0], xy[1])) return null;
     this.walkTo(xy[0], xy[1] + 1);
@@ -1253,17 +1271,9 @@ export class Bot {
         case 'k5_desk:6':
           this.waitPast(s, 120);
           break;
-        case 'k6_bottleneck:0': {
-          if (g.player.inv.countId('jar') === 0) {
-            if (!town || !shopOpen(g, 'general').open) return;
-            const e = shopStock(g, 'general').find((x) => x.item === 'jar');
-            if (!e || !buy(g, e, 1)) return;
-            this.notes.push('bought the second jar');
-            this.walkTo(OPENING.jar2[0], OPENING.jar2[1] + 1);
-          }
-          this.put('jar', OPENING.jar2, 0);
+        case 'k6_bottleneck:0':
+          if (!this.secondJar(town)) return;
           break;
-        }
         case 'k6_bottleneck:1':
           if (g.player.inv.countId('chest_wood') === 0) {
             const r = RECIPES.find((x) => x.station === 'hand' && x.out[0].item === 'chest_wood');

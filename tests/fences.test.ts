@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { Ents } from '../src/sim/ents';
 import { O, TileMap } from '../src/sim/world/tilemap';
-import { fenceMask, fenceSprite, gateVertical, mapFenceSprite, FENCE_N as N, FENCE_E as E, FENCE_S as S, FENCE_W as W } from '../src/render/fences';
+import { fenceMask, fenceSprite, gateVertical, mapFenceSprite, plannedFenceSprite, FENCE_N as N, FENCE_E as E, FENCE_S as S, FENCE_W as W } from '../src/render/fences';
 
 /** a layout: w wood fence, s stone wall, g gate, . nothing; returns the structures by position */
 function lay(rows: string[]) {
@@ -71,6 +71,18 @@ describe('connected fences', () => {
     ents.add('fence_wood', 0, 0, 0);
     ents.add('fence_wood', 1, 0, 0, true);
     expect(fenceSprite(ents, ents.at(0, 0)!)).toBe('fence:wood:0');
+  });
+  it('a ghost or a preview joins what stands and what is planned with it', () => {
+    const ents = new Ents(3, 4);
+    ents.add('fence_wood', 1, 0, 0);
+    ents.add('fence_wood', 1, 1, 0, true);
+    // the blueprint ghost at (1, 1) meets the fence north of it
+    expect(plannedFenceSprite(ents, 'fence_wood', 1, 1)).toBe(`fence:wood:${N}`);
+    // a drag line south from it previews as a north-south run, its end open
+    const planned = new Map([['1,2', 'fence_wood'], ['1,3', 'fence_wood']]);
+    expect(plannedFenceSprite(ents, 'fence_wood', 1, 2, planned)).toBe(`fence:wood:${N | S}`);
+    expect(plannedFenceSprite(ents, 'fence_wood', 1, 3, planned)).toBe(`fence:wood:${N}`);
+    expect(plannedFenceSprite(ents, 'chest_wood', 1, 2, planned)).toBeNull();
   });
   it('only fences have fence pieces', () => {
     const ents = new Ents(2, 1);

@@ -34,7 +34,7 @@ import { Ambient } from './ambient';
 import { camShakeOffset, wobbleOffset } from './shake';
 import { drawStateGlyphs } from './glyphs';
 import { drawPlanks, plankFront, plankVertex, PLANK_UNDER } from './planks';
-import { fenceSprite, mapFenceSprite } from './fences';
+import { fenceSprite, mapFenceSprite, plannedFenceSprite } from './fences';
 import { blendVertex, needsBlend } from './blend';
 import { drawDryDrops, drawRail, pushGantry } from './fieldworks';
 import { MState } from '../sim/mstate';
@@ -852,7 +852,7 @@ export class Renderer {
         if (seen.has(e.id)) continue;
         seen.add(e.id);
         if (e.ghost) {
-          D.push({ y: e.y + e.h - 0.1, f: () => this.drawGhost(e) });
+          D.push({ y: e.y + e.h - 0.1, f: () => this.drawGhost(e, ents) });
           continue;
         }
         const d = e.def;
@@ -1017,12 +1017,12 @@ export class Renderer {
     }
   }
 
-  private drawGhost(e: Ent) {
+  private drawGhost(e: Ent, ents: Ents) {
     const ctx = this.ctx;
     ctx.globalAlpha = 0.45;
     if (e.def.kind === 'belt' || e.def.kind === 'underground') drawSprite(ctx, sprite(`belt:${e.def.tier}:${e.rot}:0:0`), e.x * TILE, e.y * TILE);
     else if (e.def.kind === 'arm') drawSprite(ctx, sprite(`armb:${e.def.id}`), e.x * TILE, e.y * TILE);
-    else if (e.def.kind !== 'splitter') drawSprite(ctx, sprite(`st:${e.def.id}:0:0:1`), e.x * TILE, e.y * TILE);
+    else if (e.def.kind !== 'splitter') drawSprite(ctx, sprite(plannedFenceSprite(ents, e.def.id, e.x, e.y) ?? `st:${e.def.id}:0:0:1`), e.x * TILE, e.y * TILE);
     ctx.globalAlpha = 1;
     ctx.fillStyle = rgba(C.sky, 0.25);
     ctx.fillRect(e.x * TILE, e.y * TILE, e.w * TILE, e.h * TILE);

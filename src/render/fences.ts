@@ -14,6 +14,8 @@
 //                        is the weathered look (as `o:14:1` was)
 // mask = N 1 | E 2 | S 4 | W 8. Footprints, solidity and the y-sorting are the structures' own: only
 // the sprite changes.
+import { STRUCT_BY_ID } from '../data/structures';
+import type { StructureDef } from '../data/types';
 import type { Ent, Ents } from '../sim/ents';
 import { O, type TileMap } from '../sim/world/tilemap';
 
@@ -21,34 +23,40 @@ export const FENCE_N = 1, FENCE_E = 2, FENCE_S = 4, FENCE_W = 8;
 const DX = [0, 1, 0, -1], DY = [-1, 0, 1, 0], BIT = [FENCE_N, FENCE_E, FENCE_S, FENCE_W];
 
 type Family = 'wood' | 'stone' | 'gate';
-function familyOf(e: Ent | null): Family | null {
-  if (!e || e.ghost) return null;
-  if (e.def.kind === 'gate') return 'gate';
-  if (e.def.kind !== 'fence') return null;
-  return e.def.id === 'fence_stone' ? 'stone' : 'wood';
+/** what stands at a tile, as far as fences go */
+type FamAt = (x: number, y: number) => Family | null;
+
+function familyOfDef(def: StructureDef | undefined): Family | null {
+  if (!def) return null;
+  if (def.kind === 'gate') return 'gate';
+  if (def.kind !== 'fence') return null;
+  return def.id === 'fence_stone' ? 'stone' : 'wood';
 }
+function familyOf(e: Ent | null): Family | null {
+  return !e || e.ghost ? null : familyOfDef(e.def);
+}
+/** placed structures only: a blueprint ghost does not join */
+const placed = (ents: Ents): FamAt => (x, y) => familyOf(ents.at(x, y));
 
 /** neighbours' families, north, east, south, west */
-function around(ents: Ents, x: number, y: number): (Family | null)[] {
-  return BIT.map((_, d) => familyOf(ents.at(x + DX[d], y + DY[d])));
+function around(at: FamAt, x: number, y: number): (Family | null)[] {
+  return BIT.map((_, d) => at(x + DX[d], y + DY[d]));
 }
 
-/** A gate hangs north-south when a fence, wall or gate stands north or south of it and none east or west. */
-export function gateVertical(ents: Ents, x: number, y: number): boolean {
-  const nb = around(ents, x, y);
+function vertical(at: FamAt, x: number, y: number): boolean {
+  const nb = around(at, x, y);
   return (!!nb[0] || !!nb[2]) && !(nb[1] || nb[3]);
 }
 
-/** The connection mask of a wood fence or stone wall at (x, y) of family `fam`. */
-export function fenceMask(ents: Ents, x: number, y: number, fam: 'wood' | 'stone'): number {
-  const nb = around(ents, x, y);
+function maskOf(at: FamAt, x: number, y: number, fam: 'wood' | 'stone'): number {
+  const nb = around(at, x, y);
   let mask = 0;
   nb.forEach((f, d) => {
     if (!f) return;
     const ns = d === 0 || d === 2;
     let joins = f === fam;
     if (f === 'gate') {
-      const vert = gateVertical(ents, x + DX[d], y + DY[d]);
+      const vert = vertical(at, x + DX[d], y + DY[d]);
       // a gate joins along the way it hangs; a wall takes one only east-west
       joins = fam === 'wood' ? ns === vert : !ns && !vert;
     }
@@ -57,14 +65,46 @@ export function fenceMask(ents: Ents, x: number, y: number, fam: 'wood' | 'stone
   return mask;
 }
 
+function pieceOf(at: FamAt, fam: Family, x: number, y: number): string {
+  if (fam !== 'gate') return `fence:${fam}:${maskOf(at, x, y, fam)}`;
+  if (!vertical(at, x, y)) return 'fence:gate:h';
+  const nb = around(at, x, y);
+  return `fence:gate:v${nb[0] ? 1 : 0}${nb[2] === 'wood' || nb[2] === 'gate' ? 1 : 0}`;
+}
+
+/** A gate hangs north-south when a fence, wall or gate stands north or south of it and none east or west. */
+export function gateVertical(ents: Ents, x: number, y: number): boolean {
+  return vertical(placed(ents), x, y);
+}
+
+/** The connection mask of a wood fence or stone wall at (x, y) of family `fam`. */
+export function fenceMask(ents: Ents, x: number, y: number, fam: 'wood' | 'stone'): number {
+  return maskOf(placed(ents), x, y, fam);
+}
+
 /** The connected sprite for a fence, wall or gate structure, or null for anything else. */
 export function fenceSprite(ents: Ents, e: Ent): string | null {
   const fam = familyOf(e);
+  return fam ? pieceOf(placed(ents), fam, e.x, e.y) : null;
+}
+
+/**
+ * The piece a fence, wall or gate not built yet would show at (x, y): a blueprint ghost, or the
+ * placement preview, where `planned` holds the other tiles being placed with it (a drag line or a
+ * pasted blueprint, keyed "x,y", to their structure ids). Placed structures, blueprint ghosts and the
+ * planned tiles all count as neighbours, so a north-south line previews as one. Null for anything
+ * that isn't a fence.
+ */
+export function plannedFenceSprite(ents: Ents, defId: string, x: number, y: number, planned?: Map<string, string>): string | null {
+  const fam = familyOfDef(STRUCT_BY_ID.get(defId));
   if (!fam) return null;
-  if (fam !== 'gate') return `fence:${fam}:${fenceMask(ents, e.x, e.y, fam)}`;
-  if (!gateVertical(ents, e.x, e.y)) return 'fence:gate:h';
-  const nb = around(ents, e.x, e.y);
-  return `fence:gate:v${nb[0] ? 1 : 0}${nb[2] === 'wood' || nb[2] === 'gate' ? 1 : 0}`;
+  const at: FamAt = (tx, ty) => {
+    const p = planned?.get(`${tx},${ty}`);
+    if (p) return familyOfDef(STRUCT_BY_ID.get(p));
+    const e = ents.at(tx, ty);
+    return e ? familyOfDef(e.def) : null;
+  };
+  return pieceOf(at, fam, x, y);
 }
 
 /** The connected sprite for the map's fence object at (x, y) (it is baked into the ground). */

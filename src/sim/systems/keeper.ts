@@ -7,7 +7,7 @@ import { key, kDef } from '../inventory';
 import { lesson } from '../lessons';
 import { MState } from '../mstate';
 import { buildRiverWorks, OPENING, RIVER } from '../opening';
-import { questSys } from './quests';
+import { armBetween, questSys } from './quests';
 import { npcSys, type NPCState } from './npcs';
 
 const PROF = 'ottoline';
@@ -27,6 +27,8 @@ interface KeeperState {
   riverDay?: number;
   /** the day the cellar last tipped beans into an empty crock for B2's arm (once a day at most) */
   beanDay?: number;
+  /** the day the Professor last sent a spare arm for B3 (once a day at most) */
+  armDay?: number;
 }
 
 function keeper(g: Game): KeeperState {
@@ -190,9 +192,21 @@ registerSystem({
     const k = keeper(g);
     const q = questSys(g);
     if (k.visit === 0 && active(g, 'k2_springs') && g.player.where === 'world') startVisit(g);
-    // the keeper's jar runs at 4x until the line is whole (B3)
+    // the keeper's jar runs at 4x until the line is whole (B3), and an arm may fill it as hands do
     const jar = g.ents.at(OPENING.jar[0], OPENING.jar[1]);
     if (jar?.st.keeper && jar.st.quick > 3 && q.done.includes('k3_hands')) jar.st.quick = 0;
+    if (jar?.st.keeper) {
+      if (!q.done.includes('k3_hands')) jar.st.handfeed = 1;
+      else delete jar.st.handfeed;
+    }
+    // B3 with every arm placed somewhere else: a spare comes, once a day, rather than a puzzle of
+    // picking one up again (the owner's playtest)
+    if (active(g, 'k3_hands') && !g.ents.at(OPENING.feedArm[0], OPENING.feedArm[1]) && g.player.inv.countId('arm_basic') === 0
+      && !armBetween(g, 'chest', 'jar') && k.armDay !== g.dayIndex) {
+      k.armDay = g.dayIndex;
+      g.give(key('arm_basic'), 1);
+      g.toast('Prof. Cogwhistle sent a spare arm over for the cellar chest.', 'i:arm_basic');
+    }
     // safety nets: a mainspring sold or dropped before its arm was restored comes again, and so do
     // seeds planted somewhere other than the gleaner's bed
     const armNeedsSpring = (xy: [number, number]) => !!g.ents.at(xy[0], xy[1])?.st.rust;

@@ -79,10 +79,13 @@ export function machAccept(g: Game, e: Ent, k: ItemKey, manual = false): number 
   let best = 0;
   // in auto mode keep at most 2 distinct inputs buffered
   if (!m.locked && m.inBuf.size >= 2 && !m.inBuf.has(k)) return 0;
+  // until the keeper's line is whole an arm may fill the keeper's crock as far as hands can: an arm
+  // placed after a hand load would otherwise stand holding a bean for minutes (st.handfeed, keeper.ts)
+  const deep = manual || !!e.st.handfeed;
   for (const r of recipes) {
     for (const i of r.in) {
       if (!specMatch(k, i.item)) continue;
-      const cap = i.n * (manual ? handBatches(r) : 2);
+      const cap = i.n * (deep ? handBatches(r) : 2);
       const cur = bufCountSpec(m, i.item);
       best = Math.max(best, cap - cur);
     }
