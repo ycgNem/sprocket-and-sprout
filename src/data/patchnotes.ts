@@ -9,6 +9,18 @@ export const PATCH_NOTES: PatchNote[] = [
     intro: "Sprocket & Sprout 2.0 rebuilds the game around its works. You arrive to find the old keeper's clockwork farm rusted around one crock that still runs, bring it back machine by machine, then restore the town's mill, pumps, lamps, tram and clock with lines of your own. Hand farming stays, and your 1.x farms come with you. This is a beta: things may still change, and balance is still settling.",
     sections: [
       {
+        title: 'Beta update',
+        items: [
+          '"Hands Free" is clearer: the arm step only counts an arm between the cellar chest and the crock. An arm put there faces the crock by itself, a note tells you to press R if one faces away, and it starts feeding the crock right away.',
+          `"Restore the gleaner's arm" ticks off even if you moved the arm after restoring it.`,
+          `Hover any item on the Orders board, or the clocktower's Works tab, to see its name.`,
+          'A Statistics page in the pause menu: time played, coins earned, your busiest machine and a few oddities.',
+          `New art for the Deepworks machines, the town's waterwheel, fountain, lamps, pump house and tram, the thresher, rapeseed and the last missing item icons.`,
+          'Ground tiles meet cleanly at their edges, and fence previews show north-south runs the right way.',
+          `Fixed: a tool upgrade that finished while your bag was full could vanish. It now comes by post, and if one went missing, Bram returns it the next time you load your farm.`,
+        ],
+      },
+      {
         title: 'The big change',
         items: [
           'Automation is the heart of the game. From the first second something on your farm is running, and every step of the story ends with a machine doing something.',

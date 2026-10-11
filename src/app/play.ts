@@ -319,6 +319,8 @@ export class PlayScreen implements Screen {
   frame(dt: number) {
     const app = this.app, g = this.g, input = app.input, r = app.renderer, ui = app.ui;
     this.playtime += dt;
+    // time played, for the pause menu's Statistics (a long frame after the tab was hidden counts little)
+    g.count('play_secs', Math.min(dt, 0.25));
     // building is a planning activity: the clock slows to a quarter while you do it
     const held = g.player.inv.slots[g.player.sel];
     if (this.placedWith && (this.placedWith.sel !== g.player.sel || this.placedWith.k !== held?.k)) this.placedWith = null;

@@ -13,6 +13,7 @@ import { drawMenu } from './menu';
 import { drawStruct } from './struct';
 import { centered, frame } from './common';
 import { settingsPanel } from './settings';
+import { drawStatistics } from './statistics';
 import { ICON, ellipsize, textWidth, wrapText } from '../font';
 import { DEBUG_KEYS, keyLabel } from '../../engine/input';
 import { applyResearchMods } from '../../sim/save';
@@ -62,8 +63,12 @@ function drawPause(ui: UI, play: PlayScreen, st: WinState): boolean {
     return true;
   }
   if (st.data.help) return drawHelp(ui, play, st);
+  if (st.data.stats) {
+    if (!drawStatistics(ui, play)) st.data.stats = false;
+    return true;
+  }
   ui.fill(0, 0, ui.w, ui.h, C.ink, 0.35);
-  const w = 170, h = 196;
+  const w = 170, h = 218;
   const { x, y } = centered(ui, w, h);
   if (!frame(ui, x, y, w, h, 'Paused')) return false;
   const bw = w - 40;
@@ -78,6 +83,7 @@ function drawPause(ui: UI, play: PlayScreen, st: WinState): boolean {
   if (btn('export', 'Export save file')) play.exportSave();
   if (btn('settings', 'Settings')) st.data.settings = true;
   if (btn('help', 'Controls & tips')) st.data.help = true;
+  if (btn('stats', 'Statistics')) st.data.stats = true;
   if (btn('quit', 'Save & quit to title', 'red')) {
     play.save(true);
     play.app.toTitle();

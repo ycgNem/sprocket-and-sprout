@@ -277,6 +277,41 @@ export function startUpgrade(g: Game, opt: ReturnType<typeof upgradeOptions>[num
   return null;
 }
 
+/** a tool from Bram's forge by post (mail keeps it until it's read and taken) */
+function postTool(g: Game, id: string, text: string) {
+  g.sys.mail?.send?.(g, `smithy_post_${id}_${g.dayIndex}`, { from: 'bram', title: 'From the Smithy', text: `${text} - Bram`, items: [{ item: id, n: 1 }] });
+}
+
+/**
+ * Tools lost to a full bag: before this fix a finished upgrade that didn't fit went to a list that
+ * was never handed out or saved. Once per farm, a tool kind the player owns nowhere (bag, chests,
+ * unread mail, at the forge) comes back from Bram, at the best tier among their other tools and at
+ * least Copper (an upgrade was paid for).
+ */
+function returnLostTools(g: Game) {
+  if (g.flags.has('tools_found') || g.map.w < 100) return;
+  g.flags.add('tools_found');
+  const best = new Map<string, number>();
+  const note = (id: string | undefined) => {
+    const t = id ? ITEM_BY_ID.get(id)?.tool : undefined;
+    if (t && TOOL_KINDS.includes(t.kind)) best.set(t.kind, Math.max(best.get(t.kind) ?? 0, t.tier));
+  };
+  const slots = (inv: { slots: ({ k: number } | null)[] } | undefined) => inv?.slots.forEach((sl) => sl && note(kDef(sl.k).id));
+  slots(g.player.inv);
+  for (const e of [...g.ents.all(), ...(g.houseEnts?.all() ?? [])]) slots(e.inv);
+  for (const m of (g.sys.goals?.mail ?? []) as { read: boolean; items?: { item: string }[] }[]) if (!m.read) m.items?.forEach((it) => note(it.item));
+  for (const m of (g.sys.goals?.queue ?? []) as { items?: { item: string }[] }[]) m.items?.forEach((it) => note(it.item));
+  if (g.player.upgrading) note(g.player.upgrading.tool);
+  const tier = Math.max(1, ...best.values());
+  for (const kind of TOOL_KINDS) {
+    if (best.has(kind)) continue;
+    const id = `${kind}_${Math.min(4, tier)}`;
+    if (!ITEM_BY_ID.has(id)) continue;
+    if (g.player.inv.add(key(id), 1)) postTool(g, id, `I found your ${ITEM_BY_ID.get(id)!.name.toLowerCase()} at the back of the forge. Sorry it went missing!`);
+    else g.toast(`Bram found your ${ITEM_BY_ID.get(id)!.name} at the back of the forge. Sorry it went missing!`, `i:${id}`);
+  }
+}
+
 export function crackGeode(g: Game): string | null {
   const p = g.player;
   if (p.money < 25) return 'It costs 25 coins.';
@@ -350,6 +385,9 @@ function postCollect(g: Game, label: string) {
 
 registerSystem({
   name: 'economy',
+  afterLoad(g) {
+    returnLostTools(g);
+  },
   tick(g) {
     if (g.map.w < 100 || g.sleeping) return;
     const last = g.sys.postLast ?? -1;
@@ -400,8 +438,9 @@ registerSystem({
         const to = p.upgrading.to;
         p.upgrading = null;
         g.sys.mail?.send?.(g, 'smithy_done', { tool: to });
-        const left = p.inv.add(key(to), 1);
-        if (left) g.sys.pendingGifts = [...(g.sys.pendingGifts ?? []), to];
+        // a full bag: Bram posts it (the mailbox is saved; the old list it went to was never handed
+        // out or saved, so the tool was lost)
+        if (p.inv.add(key(to), 1)) postTool(g, to, `Your bag was full when I finished your ${ITEM_BY_ID.get(to)!.name.toLowerCase()}, so here it is by post.`);
         g.toast(`Your ${ITEM_BY_ID.get(to)!.name} is ready! (${TIER_NAMES[+to.split('_')[1]]})`);
       }
     }

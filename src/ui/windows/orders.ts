@@ -25,9 +25,12 @@ import { specIcon } from './menu';
 type Tab = 'today' | 'standing' | 'works';
 const TABS: [Tab, string][] = [['today', 'Today'], ['standing', 'Standing'], ['works', 'Works']];
 
-/** an order's lines: icon, have/n, name (as many as fit on a row) */
-function drawLines(ui: UI, o: Order, x: number, y: number, w: number) {
-  let lx = x;
+/**
+ * An order's lines: icon, have/n, name (as many as fit on a row). Hovering one names it (three or
+ * more lines show only their counts): true when a line is hovered, so the row's own tip stays away.
+ */
+function drawLines(ui: UI, o: Order, x: number, y: number, w: number): boolean {
+  let lx = x, hovered = false;
   const each = o.lines.length === 1 ? w - 16 : o.lines.length === 2 ? Math.floor(w / 2) - 16 : 64;
   for (const l of o.lines) {
     const label = `${Math.min(l.have, l.n)}/${l.n} ${o.lines.length > 2 ? '' : specLabel(l.spec)}`.trim();
@@ -35,8 +38,19 @@ function drawLines(ui: UI, o: Order, x: number, y: number, w: number) {
     if (lx + lw > x + w) break;
     ui.itemIcon(key(l.spec[0] === '#' ? specIcon(l.spec) : l.spec), lx, y - 3, 12);
     ui.text(ellipsize(label, lw - 16), lx + 14, y, l.have >= l.n ? C.moss : C.oak);
+    if (ui.hover(lx - 1, y - 4, lw - 2, 14)) {
+      const left = lineLeft(l);
+      const item = l.spec[0] === '#' ? null : ITEM_BY_ID.get(l.spec);
+      ui.tip([
+        { text: specLabel(l.spec).replace(/^./, (ch) => ch.toUpperCase()), color: C.amber },
+        { text: left > 0 ? `${Math.min(l.have, l.n)} of ${l.n} in: ${left} to go` : `All ${l.n} in`, color: left > 0 ? C.cream : C.leaf },
+        ...(item?.desc ? [{ text: item.desc, color: C.pebble }] : []),
+      ], 180);
+      hovered = true;
+    }
     lx += lw;
   }
+  return hovered;
 }
 
 /** the reputation strip of a customer: its rank, and how far to the next */
@@ -70,10 +84,10 @@ function drawToday(ui: UI, play: PlayScreen, x: number, y: number, w: number): n
     const biz = BUSINESS_BY_ID.get(npc);
     ui.text(villagerName(npc) + (biz ? `, ${biz.name}` : ''), tx, yy + 4, C.ink);
     ui.text(ellipsize(`"${o.text ?? ''}"`, w - 120), tx, yy + 14, C.walnut);
-    drawLines(ui, o, tx, yy + 27, w - 170);
+    const onLine = drawLines(ui, o, tx, yy + 27, w - 170);
     ui.text(`${ICON.coin}${o.pay} + Trust${o.rep ? ', reputation' : ''}`, x + w - 12, yy + 27, C.oak, { align: 'right' });
     ui.text(o.done ? 'Done!' : dueText(g, o), x + w - 12, yy + 4, o.done ? C.moss : C.oak, { align: 'right' });
-    if (ui.hover(x + 4, yy, w - 8, 40)) {
+    if (!onLine && ui.hover(x + 4, yy, w - 8, 40)) {
       ui.tip([
         { text: `${villagerName(npc)}: ${orderTitle(o)}`, color: C.amber },
         { text: `By hand: hold them and press F at ${villagerName(npc)}.` },
@@ -130,12 +144,12 @@ function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number)
       ui.text(dueText(g, o), x + w - 10, yy + 4, C.oak, { align: 'right' });
       // a shortage week (Mags' cart has the goods, at a price)
       if (o.short) ui.text('Shortage', x + w - 10, yy + 14, C.brick, { align: 'right' });
-      drawLines(ui, o, tx, yy + 39, tw - 120);
+      const onLine = drawLines(ui, o, tx, yy + 39, tw - 120);
       // what it pays now: a shortage's 25% is in the order's unit, the Haul doubles it today
       const unit = (o.unit ?? def.unit) * (haul ? 2 : 1);
       const pay = unit ? `${ICON.coin}${unit} each${def.silver ? `, silver ${unit * 2}` : ''}${haul ? ' today' : ''}` : def.reward?.text ?? '';
       ui.text(ellipsize(pay, 140), x + w - 10, yy + 39, orderFull(o) ? C.moss : haul ? C.amber : C.oak, { align: 'right' });
-      if (ui.hover(x + 4, yy, w - 8, 52)) {
+      if (!onLine && ui.hover(x + 4, yy, w - 8, 52)) {
         ui.tip([
           { text: `${custName(cust)}: ${ITEM_BY_ID.get(def.spec)?.name ?? specLabel(def.spec)}`, color: C.amber },
           ...(o.short ? [{ text: `A shortage: this week's order is twice the size and pays 25% more an item. Mags' cart has some, at a price.`, color: C.rose }] : []),
