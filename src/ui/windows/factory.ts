@@ -5,7 +5,7 @@ import { ERA_KEYSTONE, ERA_NAMES, RESEARCH, RESEARCH_BY_ID, eraCol } from '../..
 import { key } from '../../sim/inventory';
 import { QUEST_BY_ID } from '../../data/goals';
 import { nowLines } from '../../sim/systems/quests';
-import { canResearch, researchUnits, setResearch, stageNext, stageObjMet, stageObjText, stages, unlocksOf } from '../../sim/systems/research';
+import { canResearch, researchUnits, setResearch, stageNext, stageObjMet, stageObjText, stages, unlocksOf, validateText } from '../../sim/systems/research';
 import { keystoneOpen, keystoneQuest, townEra } from '../../sim/keystones';
 import { powerState } from '../../sim/systems/power';
 import { RES } from '../../sim/systems/stats';
@@ -284,7 +284,11 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     };
     line(s.observe, k.observe?.label ?? '');
     if (k.experiment) for (const o of k.experiment) line(stageObjMet(g, o, sel.id), stageObjText(g, o, sel.id));
-    if (k.validate) line(s.validate, `${k.validate.label} (${Math.floor(s.held / 60)}:${String(Math.floor(s.held % 60)).padStart(2, '0')})`);
+    if (k.validate) {
+      // the rate now beside the clock: "(0:00)" alone read as a recipe to find (the owner)
+      line(s.validate, s.validate ? k.validate.label : `${k.validate.label} (${validateText(g, sel.id)})`);
+      if (!s.validate && s.observe !== false && s.experiment !== false && k.validate.how) yy += ui.para(k.validate.how, px + 14, yy, pw - 20, C.pebble) + 1;
+    }
     yy += 2;
   }
   const units = researchUnits(sel.id, g);

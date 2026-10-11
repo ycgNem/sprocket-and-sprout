@@ -293,7 +293,7 @@ art('barley_flour', 'Barley Meal', 55, { t: 'sack', c: [C.tan, C.oak] }, 'Nutty,
 art('starch_paste', 'Starch Paste', 70, { t: 'jar', c: [C.cream, C.frost] }, 'Boiled-down potato, yam or corn. Glue for labels, crates and the town works.');
 art('pigment', 'Pigment', 90, { t: 'jar', c: [C.rose, C.violet] }, 'Ground colour from beets, mooncaps or starpetals. For paint, dye and livery.');
 it('spirit', 'Grain Spirit', 'artisan', 140, { t: 'bottle', c: [C.frost, C.aqua] }, 'Clear, strong and very flammable: a steam engine burns it for twice a coal.', { tags: ['artisan'], quality: true, fuel: 80 });
-art('cornmeal', 'Cornmeal', 80, { t: 'sack', c: [C.amber, C.tan] }, 'Golden and gritty.');
+art('cornmeal', 'Cornmeal', 80, { t: 'sack', c: [C.amber, C.tan] }, 'Golden and gritty.', ['flour']);
 art('sugar', 'Sugar', 60, { t: 'sack', c: [C.cream, C.pebble] }, 'Sweet crystals from cane or beets.');
 art('oil', 'Sunflower Oil', 120, { t: 'bottle', c: [C.butter, C.amber] }, 'Pressed from sunflower seeds.', ['oil']);
 art('truffle_oil', 'Truffle Oil', 1100, { t: 'bottle', c: [C.tan, C.walnut] }, 'A few drops transform a dish.');

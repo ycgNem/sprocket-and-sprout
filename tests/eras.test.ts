@@ -17,6 +17,7 @@ import { STANDING_BY_ID } from '../src/data/orders';
 import { RESEARCH_BY_ID } from '../src/data/research';
 import { townEra } from '../src/sim/keystones';
 import { serialize, deserialize } from '../src/sim/save';
+import { place } from '../src/sim/build';
 import { Bot } from './bot';
 
 const secs = (g: Game, s: number) => { for (let i = 0; i < s * 60; i++) g.tick(); };
@@ -41,6 +42,28 @@ describe('a keystone counts from its quest', () => {
     expect(stages(g, 'r_milling').experiment).toBe(false);
     g.counters['made:mill'] += 1;
     expect(stages(g, 'r_milling').experiment).toBe(true);
+  });
+
+  it("Milling's run counts any meal or flour, cornmeal too (the owner: stuck at 0:00)", () => {
+    const g = new Game({ seed: 1, blank: { w: 40, h: 40 } });
+    g.player.x = 39.5;
+    g.player.y = 39.5;
+    g.research.done.add('r_power');
+    g.flags.add('observed:town_mill');
+    g.counters['made:mill'] = 25;
+    const mill = place(g, 'mill', 10, 10, 0);
+    place(g, 'pole_wood', 12, 12, 0);
+    g.wind = 1;
+    place(g, 'windmill', 12, 13, 0);
+    // corn tipped in at once (barley doesn't grow in summer): about 11 a minute on this wind
+    mill.mach!.inBuf.set(key('corn'), 40);
+    secs(g, 60);
+    expect(g.flags.has('validated:r_milling')).toBe(false);
+    expect(g.research.valid.r_milling).toBeGreaterThan(30);
+    secs(g, 90);
+    expect(g.flags.has('validated:r_milling')).toBe(true);
+    // the stage says it's a rate of meal or flour, not a recipe that makes 3
+    expect(RESEARCH_BY_ID.get('r_milling')!.keystone!.validate!.label).toMatch(/meal or flour a minute/);
   });
 
   it('the validate step shows the rate and the clock in the Now strip, and a run that breaks says so', () => {

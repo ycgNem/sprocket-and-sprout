@@ -962,3 +962,12 @@ recommendations are the decisions.
     playable build (v0.9, commit `9a72b2a`, every sprite drawn in code) beside 2.0 at the same moment,
     a new game's first morning (`art/promo/`, made by `art/promo/capture.mjs` from both builds served
     from disk, loaded only when the notes open); PATCHNOTES.md and the README show the pair too.
+149. **Milling's "keep it running" stage reads as a rate, and cornmeal is meal (the owner, stuck at
+    0:00: "says make three a minute but there isn't any recipe that makes 3 things").** The stage is
+    a rate held for two minutes, and "Keep a mill making 3 a minute" read as a recipe to find. It now
+    says "Keep a mill grinding for 2 minutes straight, at least 3 meal or flour a minute"; the
+    research window shows the rate now beside the clock (it showed "(0:00)" alone) and, while it's
+    the open stage, how (`validate.how`: two dozen barley, wheat or corn into a powered mill at once).
+    Cornmeal carries the `flour` tag: corn ground in summer (barley grows only in spring and fall)
+    counted for "Grind 20" but never for the run, and it now also fills bread and the Town Mill's
+    meal. `tests/eras.test.ts` grinds corn through the stage.

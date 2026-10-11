@@ -472,7 +472,8 @@ export interface KeystoneDef {
   observe?: { flag: string; label: string };
   experiment?: ObjectiveDef[];
   /** an item (or #tag) made at perMin or more, held for `minutes` sim minutes */
-  validate?: { item: string; perMin: number; minutes: number; label: string };
+  /** `how`: the research window's tip while this is the open stage (what to do, in one line) */
+  validate?: { item: string; perMin: number; minutes: number; label: string; how?: string };
 }
 
 export interface ShopEntry {

@@ -40,7 +40,7 @@ export const RESEARCH: ResearchDef[] = [
     keystone: {
       observe: { flag: 'observed:town_mill', label: "Look at the town's silent mill (on the river, west of Main Street)" },
       experiment: [{ t: 'count', key: 'made:mill', n: 20, label: 'Grind 20 meal or flour' }],
-      validate: { item: '#flour', perMin: 3, minutes: 2, label: 'Keep a mill making 3 a minute for 2 minutes' },
+      validate: { item: '#flour', perMin: 3, minutes: 2, label: 'Keep a mill grinding for 2 minutes straight, at least 3 meal or flour a minute', how: 'Tip two dozen barley, wheat or corn into a powered mill at once: it grinds about 15 a minute.' },
     } },
   { id: 'r_sawmill', name: 'Sawmilling', desc: 'A powered sawmill: twice the planks from every log.', icon: 'sawmill', cost: cost(20, ...E2), unitTime: 12, prereq: ['r_power', 'r_woodworking'], era: 2, row: 1 },
   { id: 'r_logistics', name: 'Logistics', desc: 'Splitters and burrow belts for tidy factories.', icon: 'splitter_1', cost: cost(15, ...E2), unitTime: 10, prereq: ['r_arms', 'r_metallurgy'], era: 2, row: 2 },
