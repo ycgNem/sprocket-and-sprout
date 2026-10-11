@@ -10,6 +10,8 @@ import { choosePerk } from '../src/sim/perks';
 import { stockPond } from '../src/sim/systems/ponds';
 import { mine, minePrompt, BEAMS_TO_SHORE, DEEP_FLAGS, LAMP_LIGHT, PROP_PLANKS } from '../src/sim/systems/mine';
 import { unitPrice } from '../src/sim/systems/economy';
+import { interactStruct } from '../src/sim/actions';
+import { promptAt } from '../src/sim/prompts';
 
 const look = { skin: 1, hair: 2, hairStyle: 'short' as const, shirt: 3, pants: 4 };
 const reload = (g: Game) => deserialize(JSON.parse(JSON.stringify(serialize(g, look)))).game;
@@ -57,6 +59,27 @@ describe('fishing: hands or works', () => {
     expect(haul(['steady'], 0)).toBe(1);
     expect(haul(['steady'], 1)).toBe(2);
     expect(haul(['steady', 'trapper'], 0)).toBe(2);
+  });
+
+  it('a baited trap keeps the bait in your hand (it used to eat a second one), and says so', () => {
+    const g = new Game({ seed: 9 });
+    const e = g.ents.add('fish_trap', 5, 5, 0);
+    g.player.inv.slots[g.player.sel] = { k: key('bait'), n: 5 };
+    expect(promptAt(g, 5, 5)?.verb).toBe('Bait the trap');
+    interactStruct(g, e);
+    expect(e.st.bait).toBe(1);
+    expect(g.player.inv.countId('bait')).toBe(4);
+    expect(promptAt(g, 5, 5)?.hint).toMatch(/Baited/);
+    interactStruct(g, e);
+    interactStruct(g, e);
+    expect(g.player.inv.countId('bait')).toBe(4);
+    // the night's catch takes it; the next bait goes in
+    dayEnd(g, 'automation');
+    interactStruct(g, e);
+    expect(e.st.bait).toBe(0);
+    interactStruct(g, e);
+    expect(e.st.bait).toBe(1);
+    expect(g.player.inv.countId('bait')).toBe(3);
   });
 });
 

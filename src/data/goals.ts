@@ -48,7 +48,7 @@ export const QUESTS: QuestDef[] = [
   { id: 'k5_desk', title: 'The Study Desk', giver: 'ottoline', tutorial: true, main: true, after: ['k4_grow'], needFlag: 'keepers_line',
     why: "You don't research what you haven't touched.",
     desc: "The keeper's study desk still holds their notes. Conveyance, the belts, is the first thing worth learning: look at the old belt run, get it moving, then study it.",
-    hint: 'F at the desk restores it. C opens crafting (a sprout bundle is 3 crops). F at the desk loads the bundles, T picks the topic.',
+    hint: 'F at the desk restores it. C opens crafting: a sprout bundle is 3 crops, or a plant fiber with one crop, a coconut or anything from the beach. F at the desk loads the bundles, T picks the topic.',
     objectives: [
       { t: 'restore', struct: 'lab', label: "Restore the keeper's study desk (F)", why: "The keeper's notes are still in it." },
       { t: 'craft', item: 'bundle_green', n: 1, fresh: true, label: 'Craft a sprout bundle (C)', why: '3 cogbeans make one: the cellar chest has some.' },
@@ -67,7 +67,7 @@ export const QUESTS: QuestDef[] = [
       { t: 'build', struct: 'jar', n: 2, label: 'Buy a second crock (Mercantile) and place it', why: "The day's posts paid for it. The Mercantile, east over the bridge, is open 9 to 5 (not Wednesdays); the Workshop sells crocks too.", goto: 'marigold' },
       { t: 'feeds', struct: 'jar', other: true, label: 'Your chest below it, an arm between them', why: 'Face the arm with R: it takes from behind and drops in front.' },
       { t: 'flag', flag: 'read:starved', label: 'Find out why it stopped (hover it, or hold I)', why: 'An amber mark means it waits for its input.' },
-      { t: 'made', struct: 'jar', n: 3, other: true, label: 'Get the second crock making pickles', why: "Beans in its chest, a third arm from the cellar chest, the gleaner's belt: any fix works. While it pickles, cut the weeds past the yard: their fiber makes sprout bundles." },
+      { t: 'made', struct: 'jar', n: 3, other: true, label: 'Get the second crock making pickles', why: "Beans in its chest, a third arm from the cellar chest, the gleaner's belt: any fix works. While it pickles, cut the weeds past the yard: a fiber and a coconut or a shell from the beach make a sprout bundle." },
       { t: 'flag', flag: 'belt_into:shipping_crate', label: 'Add an arm by the crock, then belts to the crate', why: 'Place a clockwork arm on the marked tile above the second crock: it lifts the pickles onto a belt, and the belts carry them into the crate.' },
     ],
     reward: { money: 300 } },
@@ -95,9 +95,9 @@ export const QUESTS: QuestDef[] = [
   { id: 'k9_bed', title: 'A Second Bed', giver: 'ottoline', tutorial: true, main: true, after: ['k8_river'], needFlag: 'keepers_line',
     why: 'Each crock wants about 17 beans a day: two beds of 8, with the keeper\'s, feed one crock.',
     desc: "The keeper's cellar is nearly empty: it sends its last beans in the second week. The Professor's advice: two more gleaners, each in a bed of cogbeans, so the field feeds the works, not your hands. Marigold sells cogbean seeds at the Mercantile.",
-    hint: 'Gleaning is studied at the desk (8 sprout bundles). A gleaner is crafted (C): 3 planks, 2 copper gears (the Workshop sells them) and a rope. It picks the 3x3 around it.',
+    hint: 'Gleaning is studied at the desk (8 sprout bundles). The quickest bundle is a plant fiber and something from the beach, south of town: shells and kelp wash up every morning, and in summer you can shake coconuts from the palms. A gleaner is crafted (C): 3 planks, 2 copper gears (the Workshop sells them) and a rope. It picks the 3x3 around it.',
     objectives: [
-      { t: 'research', id: 'r_gleaning', label: 'Study Gleaning at the desk (T)', why: '8 sprout bundles (C): 3 crops each, or a crop and a plant fiber (cut weeds with the scythe or the axe).' },
+      { t: 'research', id: 'r_gleaning', label: 'Study Gleaning at the desk (T)', why: '8 sprout bundles (C): a plant fiber (cut weeds) with a crop, a coconut or a beach find, or 3 crops. The beach, south of town, washes up shells and kelp every morning.' },
       { t: 'build', struct: 'gleaner', n: 3, label: 'Build two more gleaners (C)', why: '3 planks, 2 copper gears (the Workshop sells them) and a rope each.' },
       { t: 'gleaned', crop: 'cogbean', n: 16, label: 'Plant 16 cogbeans in reach of the new gleaners', why: 'A gleaner picks the 8 tiles around it. A bean plant gives about 3 every 4 days: two beds of 8 and the keeper\'s feed one crock.' },
     ],
@@ -107,7 +107,7 @@ export const QUESTS: QuestDef[] = [
     desc: "The keeper's worn wheel can't keep up with the mill and its arms, and Rowan wants barley meal every week. A second wheel would: that's Water Power, studied at the desk after Metalwork, with copper bundles (a copper gear and 2 planks each: the Workshop sells gears, or smelt the mine's copper ore). Then the town's own mill is next.",
     hint: "Copper bundles are crafted (C). A new water wheel goes on the river with its land side on your farm, near the keeper's poles.",
     objectives: [
-      { t: 'research', id: 'r_metallurgy', label: 'Study Metalwork at the desk', why: 'Water Power builds on it: 5 sprout bundles.' },
+      { t: 'research', id: 'r_metallurgy', label: 'Study Metalwork at the desk', why: 'Water Power builds on it: 5 sprout bundles (a fiber and a beach find or coconut each is quickest).' },
       { t: 'research', id: 'r_power', label: 'Study Water Power at the desk', why: 'Copper bundles: a copper gear and 2 planks each. The Workshop sells copper gears.' },
       { t: 'build', struct: 'waterwheel', n: 2, label: 'Build a second water wheel on the river', why: "20 planks, 6 copper gears and 4 copper coils (the Workshop sells coils), or the Joinery sells one. It makes 60 sparks: wire it into the keeper's poles." },
       { t: 'plant', n: 10, crop: 'barley', label: 'Sow 10 barley for the mill', why: "The granary sent its last sack on day 7. Ten barley a week covers Rowan's ten sacks of meal." },

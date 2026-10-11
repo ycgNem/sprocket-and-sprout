@@ -40,7 +40,7 @@ export const TIPS: Tip[] = [
     id: 'lab', big: true, title: 'The Study Desk',
     // the Keeper's Line teaches the desk with its lesson cards; this is for saves from before it
     when: (p) => !p.g.flags.has('keepers_line') && p.g.ents.others.some((e) => e.def.kind === 'lab' && !e.st.rust),
-    text: 'Research turns farm goods into know-how. Put Sprout Bundles (1 fiber + 1 crop, or 3 crops) in the desk, then pick a topic in the research tree (T).',
+    text: 'Research turns farm goods into know-how. Put Sprout Bundles (1 fiber + 1 crop, coconut or beach find, or 3 crops) in the desk, then pick a topic in the research tree (T).',
   },
   {
     id: 'belts', big: true, title: 'Belts and Arms',

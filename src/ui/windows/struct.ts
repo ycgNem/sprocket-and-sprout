@@ -68,6 +68,7 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
     const field = kind === 'harvester' || kind === 'gleaner' || kind === 'gantry';
     if (kind === 'shipbin') ui.text('The post takes it at noon, 6pm and overnight.', x + 14, top + 2, C.walnut);
     else if (kind === 'planter') ui.text('Seeds and fertilizer for sowing. Arms can refill it.', x + 14, top + 2, C.walnut);
+    else if (kind === 'fishtrap') ui.text(e.st.bait ? 'Baited: it catches overnight. Click a catch to take it.' : g.hasPerk('steady') ? 'No bait: it still catches. Bait adds to the haul.' : 'No bait: hold bait and press F at the trap.', x + 14, top + 2, e.st.bait ? C.moss : C.walnut);
     else if (field) {
       // field machines lead with their state line (what they're picking, or when the next crop ripens)
       const sl = structStateLine(g, e, true);

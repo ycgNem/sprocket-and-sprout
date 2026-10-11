@@ -868,7 +868,9 @@ export function interactStruct(g: Game, e: Ent): boolean {
       g.emit({ t: 'sfx', id: 'collect' });
       return true;
     }
-    if (d.kind === 'fishtrap' && held && kDef(held.k).cat === 'bait') {
+    // one bait a night: a baited trap opens instead of taking another (the owner's playtest: F again
+    // said "Trap baited." and ate a second bait the trap never used)
+    if (d.kind === 'fishtrap' && held && kDef(held.k).cat === 'bait' && !e.st.bait) {
       p.inv.remove(held.k, 1);
       e.st.bait = kId(held.k) === 'deluxe_bait' ? 2 : 1;
       g.emit({ t: 'sfx', id: 'insert' });

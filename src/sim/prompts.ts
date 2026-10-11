@@ -180,6 +180,12 @@ function structPrompt(g: Game, e: Ent): Prompt | null {
     return loadChoices(g, e).length ? { ...at('Load...'), hint: choice ?? 'Pick from your bag' } : at('Open');
   }
   if ((d.kind === 'tapper' || d.kind === 'fishtrap' || d.kind === 'harvester' || d.kind === 'drill') && e.inv && !e.inv.isEmpty()) return at('Collect');
+  // a trap says whether it's baited, so bait in hand isn't fed to one that already has some
+  if (d.kind === 'fishtrap') {
+    if (e.st.bait) return { ...at('Open'), hint: 'Baited: catches overnight' };
+    if (held && kDef(held.k).cat === 'bait') return at('Bait the trap');
+    if (!g.hasPerk('steady')) return { ...at('Open'), hint: 'No bait yet' };
+  }
   if (d.kind === 'belt' || d.kind === 'underground' || d.kind === 'splitter' || d.kind === 'path' || d.kind === 'fence' || d.kind === 'rail') return null;
   return at('Open');
 }

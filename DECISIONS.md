@@ -1022,3 +1022,16 @@ recommendations are the decisions.
     above the old music and under the sound effects, and a song renders at 6-8x real time, so it
     costs little. Settings saved before this keep their binds: an action new to the save gets its
     default keys only when no saved action already uses them. `tests/songs.test.ts`.
+153. **The bundle quests point at the beach, and a baited trap keeps your bait (the owner after 2.0:
+    "give a hint that coconuts can be used and they on the beach because if they dont realize that
+    they could waste hella time", and "for the fish traps it says baited but still takes more bait
+    and wastes it").** A sprout bundle has always taken a plant fiber with any fruit or forage
+    (src/data/recipes.ts), and the beach washes up shells, coral, sea glass and kelp every morning,
+    but the quests only named 3 crops or a fiber and a crop. The Study Desk's tip, the Bottleneck's
+    weed step, A Second Bed (8 bundles) and Metalwork (5) now name a coconut or a beach find; the
+    palms set coconuts only in summer, so the steps lead with the beach's daily finds and a coconut's
+    tooltip says where and when (src/data/sources.ts). F with bait at a trap that already had some
+    took a second bait and set the same one-bait night, so the first was lost; arms already refused.
+    Now a baited trap opens its window instead, its key bubble says "Baited: catches overnight" or
+    "No bait yet" (with Net Rigger an unbaited trap still catches, so no warning), and the window
+    leads with the same. `tests/perks.test.ts`.
