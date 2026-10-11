@@ -971,3 +971,26 @@ recommendations are the decisions.
     Cornmeal carries the `flour` tag: corn ground in summer (barley grows only in spring and fall)
     counted for "Grind 20" but never for the run, and it now also fills bread and the Town Mill's
     meal. `tests/eras.test.ts` grinds corn through the stage.
+150. **Kelp, the beach, coconuts and pulling up crops (the owner after 2.0: "check into the logistics
+    of kelp ... see if its balanced"; then "give it forage allowance and up rates a lil, also add 1-2
+    coconuts per tree slight buff" and "make it possible to get rid of crops ... i tried and
+    couldnt").** Kelp's one real use is the fish pond's 4 (deep mulch takes 1 for 2, but Thorne and
+    Ines sell deep mulch), and nothing sells kelp. The beach shared one forage cap of 60 with the woods
+    and the town's lawns, forage stays until it's picked, and the woods have three times the beach's
+    open ground: the map filled within a week, and from then on the beach refilled only as forage was
+    picked somewhere (about one kelp per 25 picks anywhere). A year on 8 seeds: picking up everything
+    every day, 47 kelp; the beach alone, 3 (one short of a pond, all in the first week); the beach and
+    the town, 4. Now the beach keeps its own count (`BEACH_CAP` 15; the rest of the map keeps its 60):
+    2-3 finds wash up on open sand every morning. Kelp is one beach find in four (`BEACH` weighs
+    shell, coral, sea glass and kelp 7/4/4/5; it was one in five), and a trap set in the sea brings up
+    kelp for half its junk (`SEA_JUNK`: 1 catch in 20, was 1 in 40), the hands-off way to it; the rod
+    is as it was (about 1 bite in 60). A daily beachcomber finds about 0.6 kelp a day (a pond a week),
+    a weekly one nearly 4. Kelp's "Get it" line names the beach and sea traps. Palms set one or two
+    coconuts every other summer day and hold two (`PALM_FRUIT` 2; #129 had one), and the hover counts
+    them. No tool removed a living crop (the axe, pickaxe and scythe cleared only dead ones): two
+    swings of the axe or pickaxe within four seconds now pull one up (`swingAtCrop`, `PULL_SWINGS`).
+    The first shakes it and says to swing again, so a stray swing costs nothing; a ripe crop drops its
+    harvest (a giant one all of it); the soil stays tilled (another pickaxe swing untills it, as
+    before); a structure on the tile still takes the hit. A hoe or scythe swing that does nothing at a
+    living crop says how, once a day. Left as it is: the compost bin's 2 kelp into 3 damp mulch, which
+    fiber and clay make by hand. `tests/kelp.test.ts`, `tests/pull.test.ts`, `tests/palms.test.ts`.

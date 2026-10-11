@@ -268,6 +268,11 @@ function tapperTick(g: Game, e: Ent, dt: number) {
   }
 }
 
+const JUNK = ['old_boot', 'tin_can', 'driftwood', 'kelp'];
+/** a trap in the sea brings up kelp for half its junk (the kelp check: shore traps are the hands-off
+ * way to it) */
+export const SEA_JUNK = ['old_boot', 'tin_can', 'driftwood', 'kelp', 'kelp', 'kelp'];
+
 function trapDay(g: Game, e: Ent) {
   // Net Rigger (fishing 10): a trap catches without bait; bait still adds to the haul
   const rigger = g.hasPerk('steady');
@@ -278,7 +283,7 @@ function trapDay(g: Game, e: Ent) {
   const pool = FISH.filter((f) => f.trap && (ocean ? f.where.includes('ocean') : !f.where.includes('ocean') || f.where.length > 1)).filter((f) => ocean === f.where.includes('ocean'));
   const n = (e.st.bait >= 2 ? 2 : 1) + (rigger && e.st.bait ? 1 : 0) + (g.hasPerk('trapper') ? 1 : 0);
   for (let i = 0; i < n; i++) {
-    if (g.rng.next() < 0.1) e.inv!.add(key(g.rng.pick(['old_boot', 'tin_can', 'driftwood', 'kelp'])), 1);
+    if (g.rng.next() < 0.1) e.inv!.add(key(g.rng.pick(ocean ? SEA_JUNK : JUNK)), 1);
     else {
       const f = g.rng.pick(pool.length ? pool : FISH.filter((x) => x.trap));
       e.inv!.add(key(f.id), 1);

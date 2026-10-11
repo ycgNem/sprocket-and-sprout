@@ -15,6 +15,7 @@ export const SOURCE: Record<string, string> = {
   tin_ore: 'Break ore rocks with the pickaxe in the Deepworks, levels 6-10 (the Clayworks).',
   iron_ore: 'Break ore rocks with the pickaxe in the Deepworks, levels 11-15 (the Frost).',
   gold_ore: 'Break ore rocks with the pickaxe in the Deepworks, levels 16-20 (the Ember).',
+  kelp: 'Washes up on the beach every morning. Fish traps set in the sea catch some too.',
   // parts
   plank: 'Craft it from 2 wood (C), or buy it at the Joinery.',
   rope: 'Craft it from 3 plant fiber (C), or buy it at the Workshop.',

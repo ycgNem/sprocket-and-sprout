@@ -246,6 +246,44 @@ export function hitStructure(g: Game, e: Ent): boolean {
   return deconstruct(g, root);
 }
 
+/** swings of the axe or pickaxe that pull up a living crop (the owner: there was no way to get rid
+ * of one); the first only shakes it, so a stray swing never costs a crop */
+export const PULL_SWINGS = 2;
+
+/**
+ * An axe or pickaxe swing at a living crop. The second swing within a few seconds pulls it up: a ripe
+ * one drops its harvest (a giant one all of it), an unripe one is lost, and the soil stays tilled.
+ */
+export function swingAtCrop(g: Game, i: number, x: number, y: number) {
+  const s = g.soil.get(i);
+  const c = s?.crop;
+  if (!s || !c) return;
+  const at = c.giant >= 0 ? c.giant : i;
+  const hits: Map<number, { n: number; at: number }> = (g.sys.cropHits ??= new Map());
+  const h = hits.get(at);
+  const n = (h && g.tickN - h.at < 240 ? h.n : 0) + 1;
+  if (n < PULL_SWINGS) {
+    hits.set(at, { n, at: g.tickN });
+    g.emit({ t: 'hop', tile: i });
+    g.emit({ t: 'sfx', id: 'rustle' });
+    g.toast(`Swing again to pull up the ${(CROP_BY_ID.get(c.id)?.name ?? 'crop').toLowerCase()}.`);
+    return;
+  }
+  hits.delete(at);
+  if (c.ready) harvest(g, i)?.forEach((st) => spawnDrop(g, st.k, st.n, x + 0.5, y + 0.5));
+  s.crop = null;
+  fx(g, 'dirt', x, y);
+  g.emit({ t: 'sfx', id: 'cut' });
+}
+
+/** the hoe or scythe did nothing at a living crop: say how to pull one up (once a day) */
+function pullHint(g: Game, x: number, y: number) {
+  const c = g.soil.get(g.map.idx(x, y))?.crop;
+  if (!c || c.dead || g.sys.pullHint === g.dayIndex) return;
+  g.sys.pullHint = g.dayIndex;
+  g.toast('To pull up a crop, swing the axe or pickaxe at it twice.');
+}
+
 function rockDrops(g: Game, x: number, y: number, o: O, data: number) {
   const m = g.map;
   const quarry = m.z(x, y) === Z.QUARRY;
@@ -315,7 +353,10 @@ export function useTool(g: Game, kind: string, tier: number, tx: number, ty: num
         }
       }
       if (did) g.emit({ t: 'sfx', id: 'hoe' });
-      else g.emit({ t: 'sfx', id: 'thud' });
+      else {
+        g.emit({ t: 'sfx', id: 'thud' });
+        pullHint(g, tx, ty);
+      }
       g.spend(cost);
       if (did) g.addXp('farming', 1);
       return true;
@@ -378,14 +419,13 @@ export function useTool(g: Game, kind: string, tier: number, tx: number, ty: num
         clearPlant(g, tx, ty);
       } else {
         const s = g.soil.get(i);
+        const e = g.ents.at(tx, ty);
         if (s?.crop?.dead) s.crop = null;
+        else if (e && !e.ghost) hitStructure(g, e);
+        else if (s?.crop) swingAtCrop(g, i, tx, ty);
         else {
-          const e = g.ents.at(tx, ty);
-          if (e && !e.ghost) hitStructure(g, e);
-          else {
-            g.emit({ t: 'sfx', id: 'swing' });
-            g.count('air_swings');
-          }
+          g.emit({ t: 'sfx', id: 'swing' });
+          g.count('air_swings');
         }
       }
       return true;
@@ -430,6 +470,10 @@ export function useTool(g: Game, kind: string, tier: number, tx: number, ty: num
         s.crop = null;
         return true;
       }
+      if (s?.crop) {
+        swingAtCrop(g, i, tx, ty);
+        return true;
+      }
       const gr = m.g(tx, ty);
       if (m.z(tx, ty) === Z.FARM && (gr === T.PATH || gr === T.PLANKS)) {
         const pathItem = gr === T.PATH ? (m.objData[i] === 2 ? 'path_brick' : 'path_stone') : 'path_wood';
@@ -467,6 +511,7 @@ export function useTool(g: Game, kind: string, tier: number, tx: number, ty: num
           }
         }
       g.emit({ t: 'sfx', id: any ? 'cut' : 'swing' });
+      if (!any) pullHint(g, tx, ty);
       return true;
     }
   }

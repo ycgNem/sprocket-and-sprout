@@ -1,7 +1,7 @@
 // The beach palms after the owner's playtest ("nerf coconut trees, they can be abused"): a wild tree
-// gives its seed to one shake a day (a palm's seed is a coconut), a palm holds one coconut and sets
-// the next every other summer day, planted palms need the open space fruit trees do, and no palm
-// fruits under the greenhouse glass.
+// gives its seed to one shake a day (a palm's seed is a coconut), a palm sets one or two coconuts
+// every other summer day (the owner after 2.0: "1-2 coconuts per tree"), planted palms need the open
+// space fruit trees do, and no palm fruits under the greenhouse glass.
 import { describe, expect, it } from 'vitest';
 import '../src/sim';
 import { DAY_END, Game } from '../src/sim/Game';
@@ -36,22 +36,44 @@ describe('beach palms', () => {
     expect(interact(g, x, y)).toBe(true);
   });
 
-  it('in summer a palm holds one coconut and sets the next every other day', () => {
+  it('in summer a palm sets one or two coconuts every other day', () => {
     const g = new Game({ seed: 7 });
     g.time.season = 1;
     const i = palmOf(g);
     const t = g.map.trees.get(i)!;
     t.fruit = 0;
-    let set = 0;
-    for (let d = 0; d < 8; d++) {
+    let sets = 0, twos = 0, coconuts = 0;
+    for (let d = 0; d < 40; d++) {
       sleep(g);
       g.time.season = 1;
       expect(t.fruit).toBeLessThanOrEqual(PALM_FRUIT);
-      set += t.fruit;
+      if (t.fruit) sets++;
+      if (t.fruit === 2) twos++;
+      coconuts += t.fruit;
       t.fruit = 0;
     }
-    expect(set).toBeGreaterThanOrEqual(3);
-    expect(set).toBeLessThanOrEqual(5);
+    expect(PALM_FRUIT).toBe(2);
+    expect(sets).toBeGreaterThanOrEqual(19);
+    expect(sets).toBeLessThanOrEqual(21);
+    // about half the sets are two
+    expect(twos).toBeGreaterThanOrEqual(4);
+    expect(twos).toBeLessThanOrEqual(16);
+    expect(coconuts).toBe(sets + twos);
+  });
+
+  it('a palm left alone holds two at most, and one shake takes them both', () => {
+    const g = new Game({ seed: 7 });
+    const i = palmOf(g);
+    const t = g.map.trees.get(i)!;
+    t.fruit = 0;
+    for (let d = 0; d < 10; d++) {
+      g.time.season = 1;
+      sleep(g);
+    }
+    expect(t.fruit).toBe(PALM_FRUIT);
+    const got = shakeTree(g, i).reduce((a, o) => a + o.n, 0);
+    expect(got).toBe(2);
+    expect(t.fruit).toBe(0);
   });
 
   it('a coconut planted on the farm needs open space around it, as a fruit tree does; an acorn does not', () => {

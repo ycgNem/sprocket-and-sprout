@@ -297,26 +297,49 @@ const FORAGE: Record<number, string[]> = {
   2: ['chestnut', 'chanterelle', 'rosehip', 'field_mushroom'],
   3: ['holly', 'snow_lichen', 'ice_crocus'],
 };
-const BEACH = ['seashell', 'coral', 'sea_glass', 'kelp', 'seashell'];
+/** what washes up on the beach, by weight: kelp is one find in four (a fish pond takes four kelp,
+ * and no shop sells it) */
+export const BEACH: [string, number][] = [['seashell', 7], ['coral', 4], ['sea_glass', 4], ['kelp', 5]];
+/** the beach keeps its own count: 2-3 finds wash up each morning, up to this many on the sand at once
+ * (the kelp check: with one cap of 60 for the whole map, the woods filled it within a week and the
+ * beach stayed bare for good) */
+export const BEACH_CAP = 15;
 
 function spawnForage(g: Game) {
   const m = g.map;
-  let count = 0;
-  for (const [, id] of m.forage) if (id) count++;
-  const want = 60;
-  for (let n = 0; n < 30 && count < want; n++) {
+  let inland = 0, beach = 0;
+  for (const [i, id] of m.forage) {
+    if (!id) continue;
+    if (m.zone[i] === Z.BEACH) beach++;
+    else inland++;
+  }
+  // the woods, the wilds and the town's lawns
+  for (let n = 0; n < 30 && inland < 60; n++) {
     const x = g.rng.int(1, m.w - 2), y = g.rng.int(14, m.h - 14);
     const i = m.idx(x, y);
     if (m.obj[i] || m.buildingAt[i] || g.ents.at(x, y)) continue;
     const z = m.zone[i], gr = m.ground[i];
     let id: string | null = null;
-    if (gr === T.SAND && z === Z.BEACH) id = g.rng.pick(BEACH);
-    else if ((z === Z.FOREST || z === Z.WILD) && gr === T.GRASS) id = g.rng.pick(FORAGE[g.time.season]);
+    if ((z === Z.FOREST || z === Z.WILD) && gr === T.GRASS) id = g.rng.pick(FORAGE[g.time.season]);
     else if (z === Z.TOWN && gr === T.TOWNGRASS && g.rng.next() < 0.2) id = g.rng.pick(FORAGE[g.time.season]);
     if (!id) continue;
     m.setO(x, y, O.FORAGE);
     m.forage.set(i, id);
-    count++;
+    inland++;
+  }
+  // the beach: 2-3 finds on open sand, whatever the woods hold
+  let wash = Math.min(BEACH_CAP - beach, 2 + (g.rng.next() < 0.5 ? 1 : 0));
+  if (wash <= 0) return;
+  const sand: number[] = [];
+  for (let y = 14; y <= m.h - 14; y++)
+    for (let x = 1; x <= m.w - 2; x++) {
+      const i = m.idx(x, y);
+      if (m.zone[i] === Z.BEACH && m.ground[i] === T.SAND && !m.obj[i] && !m.buildingAt[i] && !g.ents.at(x, y)) sand.push(i);
+    }
+  while (wash-- > 0 && sand.length) {
+    const i = sand.splice(g.rng.int(0, sand.length - 1), 1)[0];
+    m.setO(i % m.w, Math.floor(i / m.w), O.FORAGE);
+    m.forage.set(i, g.rng.weighted(BEACH, (b) => b[1])[0]);
   }
 }
 
@@ -361,19 +384,20 @@ function treesDay(g: Game) {
       t.days++;
     }
     if (t.stage < 4) continue;
-    // a beach palm (wild, its coconut its seed) holds one coconut, sets the next every other day,
-    // and only by the sea air of its season, never under the greenhouse glass (the owner's playtest:
-    // coconuts were abused); the palms take turns, so the beach is never bare all at once (critic)
+    // a beach palm (wild, its coconut its seed) sets one or two coconuts every other day (the owner,
+    // after 2.0: "1-2 coconuts per tree"), and only by the sea air of its season, never under the
+    // greenhouse glass (the owner's playtest: coconuts were abused); the palms take turns, so the
+    // beach is never bare all at once (critic)
     if (def.fruit && (def.season === season || (inGreenhouse(g, i) && !def.wild))) {
       if (!def.wild) {
         if (t.fruit < 3) t.fruit++;
-      } else if (t.fruit < PALM_FRUIT && palmSets(t.days, i)) t.fruit++;
+      } else if (t.fruit < PALM_FRUIT && palmSets(t.days, i)) t.fruit = Math.min(PALM_FRUIT, t.fruit + (g.rng.next() < 0.5 ? 2 : 1));
     } else if (def.fruit && def.season !== season) t.fruit = 0;
   }
 }
 
-/** coconuts a beach palm holds at once */
-export const PALM_FRUIT = 1;
+/** coconuts a beach palm holds at once: it sets one or two at a time */
+export const PALM_FRUIT = 2;
 /** does a beach palm set its coconut tonight? every other day, its turn by its tile */
 export const palmSets = (days: number, i: number) => (days + i) % 2 === 0;
 

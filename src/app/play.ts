@@ -726,7 +726,8 @@ export class PlayScreen implements Screen {
       const fruitName = ITEM_BY_ID.get(td.fruit)?.name ?? td.fruit;
       const inSeason = g.time.season === td.season;
       const sn = ((SEASON_NAMES as readonly string[])[td.season ?? 1] ?? 'summer').toLowerCase();
-      ui.tip([{ text: td.name, color: C.amber }, tr.fruit > 0 ? { text: `A ${fruitName.toLowerCase()} up top: F to shake it down`, color: C.lime } : { text: inSeason ? `No ${fruitName.toLowerCase()} today: one sets every other ${sn} day` : `Its ${fruitName.toLowerCase()}s set only in ${sn}`, color: C.pebble }]);
+      const fruit = fruitName.toLowerCase();
+      ui.tip([{ text: td.name, color: C.amber }, tr.fruit > 0 ? { text: tr.fruit > 1 ? `${tr.fruit} ${fruit}s up top: F to shake them down` : `A ${fruit} up top: F to shake it down`, color: C.lime } : { text: inSeason ? `No ${fruit}s today: one or two set every other ${sn} day` : `Its ${fruit}s set only in ${sn}`, color: C.pebble }]);
       return;
     }
     // the town keystones' landmarks (the Town Mill, the Waterworks, the airship): hovering one is
