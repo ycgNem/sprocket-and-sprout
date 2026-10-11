@@ -1035,3 +1035,13 @@ recommendations are the decisions.
     Now a baited trap opens its window instead, its key bubble says "Baited: catches overnight" or
     "No bait yet" (with Net Rigger an unbaited trap still catches, so no warning), and the window
     leads with the same. `tests/perks.test.ts`.
+154. **Hovering a crop says what it is (the owner after 2.0: "make it so you know what you have
+    planted if you hover over plant").** A planted bed showed only its sprite: no name anywhere, so
+    a row of young seedlings could be anything. src/ui/croptip.ts gives the world hover (after
+    structures, before palms) a crop's tip: its name (Giant for a giant crop), then ripe and how to
+    pick it (the scythe for grain), or "Ripe in N days if watered" ("Grows back in N days" after a
+    regrower's harvest) with "Watered today" or "Needs water today", then its seasons ("Under glass:
+    grows all year" in the working greenhouse) and how often it regrows, and its fertilizer; a
+    withered crop says F clears it. The countdown comes from daysToRipe (src/sim/systems/farming.ts),
+    which shares growRate with the night's growth, so speed fertilizer, farming 6 and Agriculturist
+    are counted the way the crop actually grows. `tests/croptip.test.ts`.

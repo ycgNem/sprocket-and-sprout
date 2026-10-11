@@ -45,6 +45,7 @@ import { O, T } from '../sim/world/tilemap';
 import { MState } from '../sim/mstate';
 import { isSpringArm, isWindable, windArm } from '../sim/systems/arms';
 import { structRateLine, structStateLine } from '../ui/statelines';
+import { cropTip } from '../ui/croptip';
 import { WorksView } from './worksview';
 import { PULSE_COL, pulseEnts, pulseOf } from '../ui/pulse';
 import { checkTips } from './tips';
@@ -717,6 +718,12 @@ export class PlayScreen implements Screen {
     const e = g.ents.rootAt(t.x, t.y);
     if (e && !e.ghost) {
       this.structTip(ui, e);
+      return;
+    }
+    // a crop: what it is, when it's ripe, whether it's watered (src/ui/croptip.ts)
+    const ct = g.map.inb(t.x, t.y) ? cropTip(g, g.map.idx(t.x, t.y)) : null;
+    if (ct) {
+      ui.tip(ct);
       return;
     }
     // a beach palm: its coconut, or when the next sets (the critic's re-check: a bare palm said nothing)

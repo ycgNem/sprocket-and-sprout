@@ -176,14 +176,27 @@ export function harvest(g: Game, i: number, rng = g.rng, machine = false): { k: 
   return out;
 }
 
+/** a crop's growth per watered day: 1, plus speed fertilizer, farming 6 and Agriculturist */
+export function growRate(g: Game, s: Soil): number {
+  const sp = (s.fert && ITEM_BY_ID.get(s.fert)?.fertilizer?.speed) || 0;
+  return 1 + sp + (g.player.skills.farming >= 6 ? 0.1 : 0) + (g.hasPerk('agriculturist') ? 0.1 : 0);
+}
+
+/** watered days until a growing crop ripens (0 when ripe, dead or bare) */
+export function daysToRipe(g: Game, s: Soil): number {
+  const c = s.crop;
+  const cr = c && CROP_BY_ID.get(c.id);
+  if (!c || !cr || c.dead || c.ready) return 0;
+  return Math.max(1, Math.ceil((cropTotal(cr) - c.days - c.frac) / growRate(g, s) - 1e-9));
+}
+
 function growDay(g: Game, i: number, s: Soil) {
   const c = s.crop;
   if (!c || c.dead || c.ready) return;
   const cr = CROP_BY_ID.get(c.id);
   if (!cr) return;
   if (!s.water) return;
-  const sp = (s.fert && ITEM_BY_ID.get(s.fert)?.fertilizer?.speed) || 0;
-  c.frac += 1 + sp + (g.player.skills.farming >= 6 ? 0.1 : 0) + (g.hasPerk('agriculturist') ? 0.1 : 0);
+  c.frac += growRate(g, s);
   while (c.frac >= 1) {
     c.frac -= 1;
     c.days++;
