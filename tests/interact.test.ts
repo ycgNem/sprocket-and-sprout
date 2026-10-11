@@ -9,6 +9,9 @@ import { interact } from '../src/sim/actions';
 import { key } from '../src/sim/inventory';
 import { RIVER } from '../src/sim/opening';
 import { tilePrompt } from '../src/sim/prompts';
+import { CROP_BY_ID } from '../src/data/crops';
+import { plant, till } from '../src/sim/systems/farming';
+import { GREENHOUSE } from '../src/sim/world/worldgen';
 
 const secs = (g: Game, s: number) => { for (let i = 0; i < s * 60; i++) g.tick(); };
 const prof = (g: Game) => (g.sys.npcs as any).byId.get('ottoline');
@@ -53,5 +56,36 @@ describe('one F, several answers', () => {
     expect([tx, ty]).not.toEqual([wx, wy + 1]);
     expect(g.map.walkable(tx, ty)).toBe(true);
     expect(g.ents.at(tx, ty)?.def.solid ?? false).toBe(false);
+  });
+});
+
+describe('the greenhouse back wall', () => {
+  // the owner after 2.0: hops planted against the greenhouse wall couldn't be picked. The wall is a
+  // two-row building and F counted the row under it as its door's step, since the first build.
+  it('a ripe crop in a bed along the wall is picked with F, by the door too; an empty bed by the door still says why the roof matters', () => {
+    const g = new Game({ seed: 7 });
+    g.player.where = 'world';
+    g.time.season = 1;
+    const y = GREENHOUSE.y + 2;
+    const door = GREENHOUSE.x + Math.floor(GREENHOUSE.w / 2);
+    const hops = CROP_BY_ID.get('hops')!;
+    for (const x of [GREENHOUSE.x + 1, door]) {
+      const i = g.map.idx(x, y);
+      expect(till(g, x, y)).toBe(true);
+      expect(plant(g, hops, i)).toBe(true);
+      const c = g.soil.get(i)!.crop!;
+      c.ready = true;
+      c.days = 11;
+      c.stage = 4;
+      expect(tilePrompt(g, x, y)?.verb).toBe('Harvest');
+      const had = g.player.inv.countId('hops');
+      expect(interact(g, x, y)).toBe(true);
+      expect(g.player.inv.countId('hops')).toBeGreaterThan(had);
+      // hops regrow: the plant stays on its trellis
+      expect(g.soil.get(i)!.crop?.id).toBe('hops');
+    }
+    g.events.length = 0;
+    expect(interact(g, door + 1, y)).toBe(true);
+    expect(g.events.some((e: any) => e.t === 'toast' && /glass roof is broken/.test(e.text))).toBe(true);
   });
 });

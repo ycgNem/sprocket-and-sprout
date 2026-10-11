@@ -18,7 +18,7 @@ import { canTill, fertilize, harvest, harvestStreak, plant, plantSapling, shakeT
 import { spawnDrop } from './systems/drops';
 import { deconstruct } from './build';
 import { isRusted, restore } from './rust';
-import { onTile } from './near';
+import { buildingFaced, onTile } from './near';
 import { lesson } from './lessons';
 import { availableRecipes, loadChoices, machAccept, machInsert, setRecipe } from './systems/machines';
 import { curMap } from './systems/player';
@@ -645,7 +645,7 @@ function tileAnswers(g: Game, tx: number, ty: number): boolean {
     return true;
   }
   // buildings (doors)
-  const b = m.buildingAtTile(tx, ty) ?? m.buildingAtTile(tx, ty - 1);
+  const b = buildingFaced(g, m, tx, ty);
   if (b && (ty === b.y + b.h - 1 || ty === b.y + b.h) && Math.abs(tx - b.door[0]) <= 1) {
     g.sys.town?.door?.(g, b);
     return true;

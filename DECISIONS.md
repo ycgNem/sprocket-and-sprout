@@ -994,3 +994,11 @@ recommendations are the decisions.
     before); a structure on the tile still takes the hit. A hoe or scythe swing that does nothing at a
     living crop says how, once a day. Left as it is: the compost bin's 2 kelp into 3 damp mulch, which
     fiber and clay make by hand. `tests/kelp.test.ts`, `tests/pull.test.ts`, `tests/palms.test.ts`.
+151. **Crops along the greenhouse's back wall can be picked (the owner: "how to harvest hops, i cant
+    for some reason ... its on the wall on the greenhouse").** The greenhouse is a two-row building
+    (its back wall), and F took the row under any building as its door's step. For the greenhouse
+    that row is the first row of beds, and F there went to the wall (nothing, or by the door the
+    broken-roof note) since the first build, so nothing planted against the wall could be picked by
+    hand; hops, a trellis crop, is the one you'd plant there. `buildingFaced` (src/sim/near.ts, used
+    by F and its key bubble) gives a bed along the wall with a crop or a structure on it to the bed;
+    an empty bed by the door still says why the roof matters. `tests/interact.test.ts`.
