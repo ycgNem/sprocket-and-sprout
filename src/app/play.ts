@@ -1587,7 +1587,7 @@ export class PlayScreen implements Screen {
       ctx.rotate((rot * Math.PI) / 2);
       ctx.drawImage(box.img, box.x, box.y, 32, 16, -16, -8, 32, 16);
       ctx.restore();
-    } else drawSprite(ctx, sprite(plannedFenceSprite(hereEnts(this.g) ?? this.g.ents, defId, x, y, planned) ?? `st:${defId}:0:0:${this.g.time.season}`), x * TILE, y * TILE);
+    } else drawSprite(ctx, sprite(plannedFenceSprite(hereEnts(this.g) ?? this.g.ents, defId, x, y, planned) ?? `st:${def.facings && rot ? `${defId}_r${rot}` : defId}:0:0:${this.g.time.season}`), x * TILE, y * TILE);
     ctx.globalAlpha = 1;
     ctx.fillStyle = rgba(ok ? C.leaf : C.rose, 0.3);
     for (const t of structFootprint(def, x, y, def.rotatable ? rot : 0)) ctx.fillRect(t.x * TILE, t.y * TILE, TILE, TILE);

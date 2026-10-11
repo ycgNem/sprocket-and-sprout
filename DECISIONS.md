@@ -1055,3 +1055,16 @@ recommendations are the decisions.
     has a fuel slot beside the ore: click fuel in or out, or shift-click it from the bag. Hands and
     arms share one cap (DRILL_FUEL, 20, src/sim/ports.ts), and a second kind of fuel waits for the
     first to be taken out, as before. `tests/drill.test.ts`.
+156. **The Harvest Crane turns (the owner after 2.0: "there are a couple items that cant be rotated
+    ... im specifically concerned about the harvest crane").** Rotation was only for things it
+    changes (belts, arms, drills, splitters, the gantry); every structure drew one sprite whatever
+    its `rot`, so even a drill showed its way only by an arrow. The crane's boom gave it a way to
+    face that R couldn't turn. A structure can now have `facings` (src/data/types.ts): R turns its
+    look, drawn from `st:<id>_r<rot>` art (rot 0 the plain `st:<id>`), in the world and in the
+    placing ghost, and what it does stays the same (the crane still picks all around it). The
+    crane's facings: 0 the PixelLab boom to the right, 2 its mirror (flipped around the tile's
+    center), 1 the boom toward you and 3 away, hand-pixeled from its own colours and parts with the
+    claw's bob (art/factory/crane/build.py), added to the factory recipe by
+    art/factory/crane/facings.mjs (which art/factory/gen/structs.mjs calls on a full rebuild). The
+    rest that don't turn face the camera like buildings (chests, crocks, kilns, looms, sprinklers,
+    the scarecrow), so turning them would change nothing. `tests/facings.test.ts`.

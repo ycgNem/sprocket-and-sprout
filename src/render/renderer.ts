@@ -953,7 +953,9 @@ export class Renderer {
           d.kind === 'lamp' || d.kind === 'hive' || d.kind === 'sprinkler' || d.kind === 'lab');
         // on a short grid machines animate slower (ROADMAP.md 4.7)
         const f = d.id === 'waterwheel' ? Math.floor(this.time * 6) % 4 : animated ? (d.powerUse && e.sat < 0.99 ? Math.floor(this.time * 8 * Math.max(0.15, e.sat) + e.id) % 4 : frame) : 0;
-        const sname = e.st.rust ? `st:${d.id}:0:0:${season}` : `st:${d.id}:${f}:${on ? 1 : 0}:${season}`;
+        // a structure with facings (the Harvest Crane) draws the art for the way R turned it
+        const sid = d.facings && e.rot ? `${d.id}_r${e.rot}` : d.id;
+        const sname = e.st.rust ? `st:${sid}:0:0:${season}` : `st:${sid}:${f}:${on ? 1 : 0}:${season}`;
         const s = sprite(e.st.rust ? rusty(sname) : sname);
         if (d.kind === 'fence' || d.kind === 'gate') {
           // the piece for the way it meets its neighbours (src/render/fences.ts)

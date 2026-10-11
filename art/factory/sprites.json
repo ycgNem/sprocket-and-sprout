@@ -3451,6 +3451,191 @@
     8,
     14
    ]
+  },
+  {
+   "match": "st:harvester_r1:0:1:*",
+   "file": "crane/r1-f0.png",
+   "frame": [
+    17,
+    30
+   ],
+   "origin": [
+    1,
+    14
+   ],
+   "place": "none",
+   "keepStrays": true
+  },
+  {
+   "match": "st:harvester_r1:1:1:*",
+   "file": "crane/r1-f1.png",
+   "frame": [
+    17,
+    30
+   ],
+   "origin": [
+    1,
+    14
+   ],
+   "place": "none",
+   "keepStrays": true
+  },
+  {
+   "match": "st:harvester_r1:2:1:*",
+   "file": "crane/r1-f2.png",
+   "frame": [
+    17,
+    30
+   ],
+   "origin": [
+    1,
+    14
+   ],
+   "place": "none",
+   "keepStrays": true
+  },
+  {
+   "match": "st:harvester_r1:3:1:*",
+   "file": "crane/r1-f1.png",
+   "frame": [
+    17,
+    30
+   ],
+   "origin": [
+    1,
+    14
+   ],
+   "place": "none",
+   "keepStrays": true
+  },
+  {
+   "match": "st:harvester_r1:*:0:*",
+   "file": "crane/r1-f0.png",
+   "frame": [
+    17,
+    30
+   ],
+   "origin": [
+    1,
+    14
+   ],
+   "place": "none",
+   "keepStrays": true
+  },
+  {
+   "match": "st:harvester_r3:0:1:*",
+   "file": "crane/r3-f0.png",
+   "frame": [
+    17,
+    30
+   ],
+   "origin": [
+    1,
+    14
+   ],
+   "place": "none",
+   "keepStrays": true
+  },
+  {
+   "match": "st:harvester_r3:1:1:*",
+   "file": "crane/r3-f1.png",
+   "frame": [
+    17,
+    30
+   ],
+   "origin": [
+    1,
+    14
+   ],
+   "place": "none",
+   "keepStrays": true
+  },
+  {
+   "match": "st:harvester_r3:2:1:*",
+   "file": "crane/r3-f2.png",
+   "frame": [
+    17,
+    30
+   ],
+   "origin": [
+    1,
+    14
+   ],
+   "place": "none",
+   "keepStrays": true
+  },
+  {
+   "match": "st:harvester_r3:3:1:*",
+   "file": "crane/r3-f1.png",
+   "frame": [
+    17,
+    30
+   ],
+   "origin": [
+    1,
+    14
+   ],
+   "place": "none",
+   "keepStrays": true
+  },
+  {
+   "match": "st:harvester_r3:*:0:*",
+   "file": "crane/r3-f0.png",
+   "frame": [
+    17,
+    30
+   ],
+   "origin": [
+    1,
+    14
+   ],
+   "place": "none",
+   "keepStrays": true
+  },
+  {
+   "match": "st:harvester_r2:0:1:*",
+   "like": "st:harvester:0:1:*",
+   "flipX": true,
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "st:harvester_r2:1:1:*",
+   "like": "st:harvester:1:1:*",
+   "flipX": true,
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "st:harvester_r2:2:1:*",
+   "like": "st:harvester:2:1:*",
+   "flipX": true,
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "st:harvester_r2:3:1:*",
+   "like": "st:harvester:3:1:*",
+   "flipX": true,
+   "origin": [
+    0,
+    14
+   ]
+  },
+  {
+   "match": "st:harvester_r2:*:0:*",
+   "like": "st:harvester:*:0:*",
+   "flipX": true,
+   "origin": [
+    0,
+    14
+   ]
   }
  ]
 }

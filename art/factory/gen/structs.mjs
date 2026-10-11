@@ -11,6 +11,7 @@ import { Img, preview } from './lib.mjs';
 import { animate, FX } from './fx.mjs';
 import { SPECS } from './specs.mjs';
 import { loadArt, dropStrays } from '../../../scripts/lib/pixel.mjs';
+import { craneFacings } from '../crane/facings.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ART = path.resolve(HERE, '..');
@@ -156,6 +157,8 @@ for (const b of built) {
     entry(`st:${b.id}:*:0:*`, `${n}:off`, b);
   }
 }
+// the Harvest Crane's other facings (art/factory/crane/): R turns its look
+sprites.push(...craneFacings());
 const recipe = {
   name: 'factory',
   kind: 'sprites',

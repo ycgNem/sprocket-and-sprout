@@ -124,7 +124,7 @@ const defs: S[] = [
     desc: 'Roasts coffee and dries tea leaves. Needs power.' },
   { id: 'kitchen', name: 'Steam Kitchen', kind: 'machine', size: [2, 2], solid: true, station: 'oven', speed: 2, powerUse: 80, powerIdle: 3, light: { r: 3, color: C.apricot }, price: 1400,
     desc: 'Cooks without fuel, twice as fast as an oven. Needs power.' },
-  { id: 'harvester', name: 'Harvest Crane', kind: 'harvester', size: [1, 1], solid: true, reach: 3, speed: 1, powerUse: 25, powerIdle: 1, price: 800,
+  { id: 'harvester', name: 'Harvest Crane', kind: 'harvester', size: [1, 1], solid: true, rotatable: true, facings: true, reach: 3, speed: 1, powerUse: 25, powerIdle: 1, price: 800,
     desc: 'Picks ripe crops in a 7x7 area and keeps them for arms to collect. Needs power.' },
   { id: 'planter', name: 'Seed Sower', kind: 'planter', size: [1, 1], solid: true, reach: 3, speed: 1, powerUse: 20, powerIdle: 1, price: 700,
     desc: 'Tills and plants seeds from its hopper in a 7x7 area. Needs power.' },

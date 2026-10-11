@@ -131,6 +131,9 @@ export interface StructureDef {
   /** item that places it (and is refunded on removal) */
   item: string;
   rotatable?: boolean;
+  /** R turns its look only: each facing is drawn from `st:<id>_r<rot>` art (rot 0 is the plain
+   * `st:<id>`), and what it does stays the same (the Harvest Crane picks all around it) */
+  facings?: boolean;
   solid?: boolean;
   /** drawn flat on the ground under actors */
   floor?: boolean;

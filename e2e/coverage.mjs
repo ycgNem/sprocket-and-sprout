@@ -48,6 +48,8 @@ const res = await page.evaluate(async () => {
     if (d.kind === 'arm') { add('structure', `armb:${d.id}`); continue; }
     if (d.kind === 'megaproject' || d.kind === 'path') continue;
     for (const f of R(4)) for (const on of [0, 1]) for (const s of R(4)) add('structure', `st:${d.id}:${f}:${on}:${s}`);
+    // a structure with facings (the Harvest Crane): its art for each way R turns it
+    if (d.facings) for (const r of [1, 2, 3]) for (const f of R(4)) for (const on of [0, 1]) add('structure', `st:${d.id}_r${r}:${f}:${on}:0`);
   }
   // fences that join their neighbours (src/render/fences.ts): a piece per side mask, the gate's
   // turns, and the map's paddock fence per mask, weathering and season
