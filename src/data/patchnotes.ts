@@ -142,6 +142,8 @@ export const PATCH_NOTES: PatchNote[] = [
           `The pickaxe swing facing up or down no longer looks broken, for every look.`,
           `The ladders in the mine are redrawn: the way down is a dark shaft with the ladder going into it, and the way up is a ladder you can see climbing out.`,
           `Later research costs less and climbs more evenly: the last era's topics ask 35 to 50 of each bundle instead of 50 to 80, and a few topics now cost more or less to match how much they change your farm.`,
+          `A keystone's "keep a line making ... a minute" step now counts as soon as the line runs, even before you've done the steps listed above it. Before, its clock sat at 0:00 until they were done.`,
+          `A field gantry rides its rails whichever end of them you put it at. Before, one placed at the top or the right-hand end of its rails didn't move unless you turned it around.`,
         ],
       },
     ],
