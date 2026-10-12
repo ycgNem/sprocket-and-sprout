@@ -132,15 +132,14 @@ export function ratePerMin(g: Game, spec: string): number {
 }
 
 /**
- * Once a second: each available keystone whose earlier stages are done counts the time its item
- * keeps up the rate; dropping below it starts the count again.
+ * Once a second: each available keystone counts the time its item keeps up the rate; dropping below
+ * it starts the count again. It counts whatever the other stages say, as the experiment's count does
+ * (a player's line ran 23 brass gears a minute at "0:00 of 3:00" because the lockers were still shut).
  */
 function tickValidate(g: Game) {
   for (const r of RESEARCH) {
     const v = r.keystone?.validate;
     if (!v || g.research.done.has(r.id) || g.flags.has('validated:' + r.id) || !keystoneOpen(g, r.id)) continue;
-    const s = stages(g, r.id);
-    if (s.observe === false || s.experiment === false) continue;
     if (ratePerMin(g, v.item) >= v.perMin) g.research.valid[r.id] = (g.research.valid[r.id] ?? 0) + 1;
     else {
       // say so when a run that was well under way breaks (the count starts again)

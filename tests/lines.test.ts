@@ -333,6 +333,38 @@ describe('the field gantry (ROADMAP.md 4.9.1)', () => {
     expect([MState.Starved, MState.Idle]).toContain(gan.state);
   });
 
+  it('rides rails laid behind it: a car facing north at the top of rails run south turns to them (a player)', () => {
+    const g = blank();
+    g.research.done.add('r_gantry');
+    place(g, 'waterwheel', 20, 10, 0);
+    place(g, 'pole_wood', 13, 9, 0);
+    place(g, 'pole_wood', 19, 9, 0);
+    // facing north (rot 0), the way it's placed unrotated, but the rails run south from it
+    const gan = place(g, 'field_gantry', 10, 10, 0);
+    for (let y = 11; y <= 16; y++) {
+      place(g, 'rail', 10, y, 0);
+      place(g, 'rail', 16, y, 0);
+    }
+    gan.inv!.add(key('cogbean_seed'), 30);
+    run(g, 3);
+    expect(gan.rot).toBe(2);
+    expect(gan.st.len).toBe(6);
+    expect(gan.strip!.every(([, y]) => y > 10)).toBe(true);
+    run(g, 20);
+    expect(gan.strip!.filter(([x, y]) => g.soil.get(g.map.idx(x, y))?.crop).length).toBe(30);
+    // and across: a car facing east with its rails run west
+    const g2 = blank();
+    g2.research.done.add('r_gantry');
+    const gan2 = place(g2, 'field_gantry', 20, 10, 1);
+    for (let x = 14; x <= 19; x++) {
+      place(g2, 'rail', x, 10, 1);
+      place(g2, 'rail', x, 16, 1);
+    }
+    run(g2, 3);
+    expect(gan2.rot).toBe(3);
+    expect(gan2.st.len).toBe(6);
+  });
+
   it('parks instead of shuttling when all it could do is sow out of season or over a dead plant', async () => {
     const { CROP_BY_ID } = await import('../src/data/crops');
     const { till, plant } = await import('../src/sim/systems/farming');

@@ -1105,3 +1105,19 @@ recommendations are the decisions.
     is the same ladder standing on the floor, running off the top of the tile and palest at the top
     where the daylight is. Same names, size and anchor, so no game code changed, only the
     six frames. No PixelLab credits.
+161. **A keystone's validate clock runs whatever the other stages say (a player on Discord:
+    "can't do this challenge cuz it's not counting the time").** Clockwork Assembly's desk read
+    "23 a minute now, 0:00 of 3:00": the experiment was done, but the look (the Deepworks' lockers,
+    level 25) wasn't, and `tickValidate` only counted once the stages before it were done, while the
+    desk showed the live rate and clock as if it were counting. The experiment's count never waited
+    on the look, so validate doesn't either: it counts from the moment the keystone is open, the
+    ring over the machines and the desk's "how" hint show from then too, and the desk still waits
+    for every stage before it takes bundles. The same player called 40 brass bundles "120 brass
+    gears"; a brass bundle takes one gear (and an arm, two belts and a glass), so 40 is 40 gears.
+    Costs stay as #159 set them.
+162. **A field gantry rides rails laid behind it (the same player: "I can do it one way but not the
+    other").** The car travels the way it faces, but facing north and facing south (or east and
+    west) it looks the same: a car put at the top of rails run south, unturned, found no rails north
+    and sat idle. When a car's rails run only behind it, it turns to them (`gantryTick`): the
+    footprint is the same either way, so only its direction of travel changes, and a car with rails
+    on both sides keeps the way it was placed.

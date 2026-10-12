@@ -5,7 +5,7 @@
 import { CROPS, CROP_BY_SEED, CROP_BY_ID } from '../../data/crops';
 import { SEASON_NAMES, type CropDef } from '../../data/types';
 import type { CropState, Game } from '../Game';
-import { DX, DY, Ent } from '../ents';
+import { DX, DY, Ent, type Dir } from '../ents';
 import { key, kDef, kStack, ItemKey } from '../inventory';
 import { takersOf } from '../lines';
 import { MState, offText, setState } from '../mstate';
@@ -134,12 +134,12 @@ export const GANTRY_HOPPER = 60;
 export const GANTRY_SEEDS = 40;
 
 /** The gantry's rails: how far the strip runs from the car, and its tiles (ROADMAP.md 4.9.1). */
-export function gantryStrip(g: Game, e: Ent): { len: number; rows: [number, number][][] } {
+export function gantryStrip(g: Game, e: Ent, rot: Dir = e.rot): { len: number; rows: [number, number][][] } {
   const maxLen = g.research.done.has('r_long_rails') ? 24 : 12;
   // the car spans 7 tiles across the direction of travel; rails run from both outer tiles
-  const fx = DX[e.rot], fy = DY[e.rot];
+  const fx = DX[rot], fy = DY[rot];
   const across: [number, number][] = [];
-  for (let k = 0; k < 7; k++) across.push(e.rot % 2 === 0 ? [e.x + k, e.y] : [e.x, e.y + k]);
+  for (let k = 0; k < 7; k++) across.push(rot % 2 === 0 ? [e.x + k, e.y] : [e.x, e.y + k]);
   const rows: [number, number][][] = [];
   for (let r = 1; r <= maxLen; r++) {
     const [ax, ay] = across[0], [bx, by] = across[6];
@@ -241,7 +241,21 @@ function gantryRow(g: Game, e: Ent, row: [number, number][]) {
 
 export function gantryTick(g: Game, e: Ent, dt: number) {
   const now = g.simTime;
-  const { len, rows } = gantryStrip(g, e);
+  let { len, rows } = gantryStrip(g, e);
+  // rails behind the car and none ahead: it turns to ride them. Facing north and facing south (or
+  // east and west) the car looks the same, and a player's car at the top of rails laid south sat
+  // idle; the footprint is the same either way, so only the direction of travel changes
+  if (!len) {
+    const back = ((e.rot + 2) % 4) as Dir;
+    const behind = gantryStrip(g, e, back);
+    if (behind.len) {
+      e.rot = back;
+      e.st.pos = 0;
+      e.st.dir = 0;
+      g.ents.version++;
+      ({ len, rows } = behind);
+    }
+  }
   e.strip = rows.flat();
   e.st.len = len;
   e.st.pos = Math.min(e.st.pos ?? 0, len);

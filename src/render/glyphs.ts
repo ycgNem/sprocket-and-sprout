@@ -120,7 +120,7 @@ function drawValidateRings(ctx: CanvasRenderingContext2D, g: Game, visible: (e: 
     const v = r.keystone?.validate;
     if (!v || g.flags.has('validated:' + r.id) || !keystoneOpen(g, r.id)) continue;
     const s = stages(g, r.id);
-    if (s.observe === false || s.experiment === false || !s.need) continue;
+    if (!s.need) continue;
     const k = s.held / s.need;
     for (const e of g.ents.machines) {
       const out = e.mach?.recipe?.out[0]?.item;

@@ -287,7 +287,7 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     if (k.validate) {
       // the rate now beside the clock: "(0:00)" alone read as a recipe to find (the owner)
       line(s.validate, s.validate ? k.validate.label : `${k.validate.label} (${validateText(g, sel.id)})`);
-      if (!s.validate && s.observe !== false && s.experiment !== false && k.validate.how) yy += ui.para(k.validate.how, px + 14, yy, pw - 20, C.pebble) + 1;
+      if (!s.validate && k.validate.how) yy += ui.para(k.validate.how, px + 14, yy, pw - 20, C.pebble) + 1;
     }
     yy += 2;
   }

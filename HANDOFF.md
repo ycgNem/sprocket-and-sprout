@@ -19,8 +19,10 @@ at the beach and a baited fish trap keeps its bait (#153); a crop's hover tip (#
 `facings` on a structure, `art/factory/crane/`); reach shown on hover in its real shape (#157,
 `src/ui/reach.ts`); the pickaxe's up and down swings for all nine looks (#158,
 `art/player/pickfix.py`); later research cheaper and even (#159); the mine's ladders hand-drawn
-(#160, `LADDERS` in `art/nature/spec.mjs`). 408 tests (1 skipped). No PixelLab generations since
-the release.
+(#160, `LADDERS` in `art/nature/spec.mjs`); from a player's Discord report, a keystone's validate
+clock counts before its earlier stages are done (#161, `tickValidate`) and a field gantry rides rails
+laid behind it (#162, `gantryTick`). 410 tests (1 skipped). No PixelLab generations since the
+release.
 Before that, the last release session finished Phase 6 and
 Phase 7 (DECISIONS #139-#147): the owner's second playtest of
 the opening (an arm tops up a hand-filled crock, the keeper's crock at 8x through B3, B6's last step

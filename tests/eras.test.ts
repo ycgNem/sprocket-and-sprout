@@ -66,6 +66,27 @@ describe('a keystone counts from its quest', () => {
     expect(RESEARCH_BY_ID.get('r_milling')!.keystone!.validate!.label).toMatch(/meal or flour a minute/);
   });
 
+  it("the clock runs before the look and the experiment are done (a player: 23 a minute at 0:00 of 3:00)", () => {
+    const g = new Game({ seed: 1, blank: { w: 40, h: 40 } });
+    g.player.x = 39.5;
+    g.player.y = 39.5;
+    g.research.done.add('r_power');
+    // neither the town mill looked at nor the 20 jobs done
+    const mill = place(g, 'mill', 10, 10, 0);
+    place(g, 'pole_wood', 12, 12, 0);
+    g.wind = 1;
+    place(g, 'windmill', 12, 13, 0);
+    mill.mach!.inBuf.set(key('corn'), 40);
+    secs(g, 60);
+    const s = stages(g, 'r_milling');
+    expect(s.observe).toBe(false);
+    expect(g.research.valid.r_milling).toBeGreaterThan(30);
+    secs(g, 90);
+    expect(g.flags.has('validated:r_milling')).toBe(true);
+    // validated, but the desk still waits for the look and the experiment
+    expect(stages(g, 'r_milling').ready).toBe(false);
+  });
+
   it('the validate step shows the rate and the clock in the Now strip, and a run that breaks says so', () => {
     const g = new Game({ seed: 6 });
     g.research.done.add('r_power');
