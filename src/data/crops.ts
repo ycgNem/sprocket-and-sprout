@@ -51,7 +51,7 @@ export const CROPS: CropDef[] = [
     look: { style: 'pod', leaf: C.grass, fruit: C.lime }, desc: 'Fragrant cones. Brewers want every one.', tags: ['brew'] }),
   crop({ id: 'sweetcane', name: 'Sweetcane', seasons: [SU], stages: [1, 2, 2, 2, 2], scythe: true, price: 55, seedPrice: 30, icon: 'cane',
     look: { style: 'cane', leaf: C.leaf, fruit: C.lime }, desc: 'Chewy reeds full of sugar. A mill crushes them sweet.', tags: ['sugar'] }),
-  crop({ id: 'cotton', name: 'Cotton', seasons: [SU, FA], stages: [2, 2, 2, 2], regrow: 3, price: 18, seedPrice: 45, icon: 'cotton',
+  crop({ id: 'cotton', name: 'Cotton', seasons: [SU, FA], stages: [1, 2, 2, 2], regrow: 3, price: 18, seedPrice: 45, icon: 'cotton',
     look: { style: 'bush', leaf: C.moss, fruit: C.cream }, desc: 'Soft white bolls. A loom spins it into cloth.', tags: ['fiber'] }),
   crop({ id: 'coffee', name: 'Coffee Cherry', seasons: [SU], stages: [1, 2, 2, 2, 3], regrow: 2, yield: [2, 4], price: 15, seedPrice: 120, icon: 'beans',
     look: { style: 'bush', leaf: C.pine, fruit: C.brick }, desc: 'Roast the beans for a morning that sparkles.', tags: ['brew'] }),

@@ -1121,3 +1121,7 @@ recommendations are the decisions.
     and sat idle. When a car's rails run only behind it, it turns to them (`gantryTick`): the
     footprint is the same either way, so only its direction of travel changes, and a car with rails
     on both sides keeps the way it was placed.
+163. **Cotton ripens in 7 days, not 8 (the owner: "make cotton take less days to mature", then
+    "change it to 7").** Its stages go from 2, 2, 2, 2 to 1, 2, 2, 2, like flax; regrowth stays 3
+    days. The price stays 18: a day sooner to the first pick can add one more over a summer and fall
+    (17, not 16), and the Crop numbers formula (ROADMAP.md) still gives 18 (17.6).
