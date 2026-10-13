@@ -118,6 +118,7 @@
 - Cotton ripens in 7 days instead of 8.
 - You can track orders: press Track on any order on the Orders board and a small checklist of it shows under your quest at the top left, ticking off each item as it goes in. Click it to open the board, or x to stop tracking. Up to four at once.
 - Orders ask for things that are in season: no bread or flour in winter, when no grain grows, and no pickled cogbeans in fall or winter. A shop's weekly order takes a break until its season comes back, and the Orders board says when.
+- On the website, the title screen has a Download for Windows button that opens the download page (when your browser offers to install the game, it says Install as an app instead).
 
 ## 2.0 beta (October 2026)
 
