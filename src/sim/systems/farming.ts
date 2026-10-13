@@ -304,7 +304,8 @@ function crows(g: Game) {
   if (chased) g.toast(`${pet!.name} chased the crows off ${chased} crop${chased > 1 ? 's' : ''} by the house overnight.`);
 }
 
-const FORAGE: Record<number, string[]> = {
+/** what the woods grow each season (also which seasons a forage item is in: src/sim/seasonal.ts) */
+export const FORAGE: Record<number, string[]> = {
   0: ['wild_garlic', 'morel', 'meadow_daisy', 'field_mushroom'],
   1: ['raspberry', 'elderflower', 'sea_fennel'],
   2: ['chestnut', 'chanterelle', 'rosehip', 'field_mushroom'],

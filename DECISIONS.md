@@ -1135,3 +1135,18 @@ recommendations are the decisions.
     for about that many, and past what fits above the hotbar a "+N more tracked" line stands in. The
     uids are saved with the orders (`tracked`), so no save version change. Guild rows grew 4 px and a
     project row is at least 46 px tall to fit Track over Hand in.
+165. **Orders ask for goods in season (the owner: "make sure they ask for items in season like bread
+    needs wheat which is seasonal").** `src/sim/seasonal.ts` works out once which seasons each item
+    can be had in: a crop's produce its crop's seasons, a fruit tree's fruit its season, a fish its
+    seasons, forage the season the woods grow it; anything made, the seasons any one of its recipes
+    has all its inputs in (a tag such as "#flour" counts when anything it takes does), worked to a
+    fixed point so a loop of recipes adds nothing; everything else (ore, wood, coal, eggs, milk,
+    wool, honey) all year. So bread is spring to fall (barley meal in spring, wheat and corn later)
+    and never winter, pickled cogbeans spring and summer, cloth all year (wool). Today's asks take
+    only goods in season (an ask that names its own seasons keeps them: cherry wine is asked for in
+    summer and fall, once the spring's cherries have aged), the Guild's contracts the same, and a
+    business's weekly renewal waits for the first Monday its goods are in season (seasons start on
+    a Monday). A first order never waits: the Keeper's Line and the Mill count on them. The Standing
+    tab lists the regulars waiting ("Out of season: The Copper Kettle orders Country Loaf again in
+    spring"). Stored goods carry over, but the board doesn't count on them. The town works are
+    untouched (no due date). Not counted: the greenhouse's year-round crops.

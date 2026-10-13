@@ -33,6 +33,8 @@ import { addPoints, hearts, npcSys } from './npcs';
 import { send } from './goals';
 import { canResearch } from '../keystones';
 import { FOUNTAIN, MILL_WHEEL, TRAM } from '../world/townworks';
+import { inSeason, specMask } from '../seasonal';
+import { SEASON_NAMES } from '../../data/types';
 
 /** where the camera goes to watch each town keystone come alive (tiles) */
 const SCENE_AT: Record<string, [number, number]> = {
@@ -315,8 +317,22 @@ function postDue(g: Game, monday: boolean) {
     if (os.open.some((o) => o.def === def.id) || !available(g, def)) continue;
     const n = filled(g, def.id);
     if (n === 0 && !os.seen.includes(def.id)) postStanding(g, def);
-    else if (def.weekly && n > 0 && monday) postStanding(g, def);
+    // a weekly order waits for its goods' season (bread for the grain); a first order never waits:
+    // the Keeper's Line and the keystones count on them
+    else if (def.weekly && n > 0 && monday && inSeason(def.spec, g.time.season)) postStanding(g, def);
   }
+}
+
+/** the weekly orders waiting for their season: a business's regulars whose goods don't grow now */
+export function offSeason(g: Game): StandingDef[] {
+  const os = orders(g);
+  return STANDING.filter((d) => d.weekly && filled(g, d.id) > 0 && !os.open.some((o) => o.def === d.id) && available(g, d) && !inSeason(d.spec, g.time.season));
+}
+
+/** "spring and summer": the seasons a spec is in, in words */
+export function seasonsText(spec: string): string {
+  const names = SEASON_NAMES.filter((_, s) => specMask(spec) & (1 << s)).map((n) => n.toLowerCase());
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] ?? '';
 }
 
 /** about one week in three, once the Town Mill turns */
@@ -361,7 +377,12 @@ function postToday(g: Game) {
   os.open = os.open.filter((o) => o.kind !== 'today');
   if (g.map.w < 100 || g.mode === 'sandbox' || g.mode === 'rush') return;
   if (g.flags.has('keepers_line') && !g.sys.quests?.done?.includes('k9_bed')) return;
-  const pool = REQUEST_POOL.filter((r) => (!r.seasons || r.seasons.includes(g.time.season)) && ITEM_BY_ID.has(r.item));
+  // asks for goods in season: an ask's own seasons when it names them (a cherry wine is asked for
+  // once the spring's cherries have aged), otherwise its goods' (no loaf in winter, when no grain grows)
+  const pool = REQUEST_POOL.filter((r) => {
+    const a = askNow(g, r);
+    return ITEM_BY_ID.has(a.item) && (r.seasons ? r.seasons.includes(g.time.season) : inSeason(a.item, g.time.season));
+  });
   const used = new Set<string>();
   for (let tries = 0; tries < 30 && used.size < 3; tries++) {
     const r = askNow(g, g.rng.pick(pool));
@@ -381,7 +402,7 @@ export function postContracts(g: Game) {
   os.open = os.open.filter((o) => o.kind !== 'guild');
   const r = rank(g, 'guild');
   const maxTier = r >= 4 ? 2 : r >= 2 ? 1 : 0;
-  const pool = CONTRACT_POOL.filter((c) => c.tier <= maxTier && specValid(c.spec) && (c.after ?? []).every((w) => holds(g, w)));
+  const pool = CONTRACT_POOL.filter((c) => c.tier <= maxTier && specValid(c.spec) && (c.after ?? []).every((w) => holds(g, w)) && inSeason(c.spec, g.time.season));
   const top = pool.filter((c) => c.tier === maxTier);
   const picks: ContractDef[] = [];
   // one from the newest tier, the rest from anything unlocked

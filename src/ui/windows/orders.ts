@@ -11,8 +11,10 @@ import { GUILD_BONUS_PER_RANK } from '../../data/contracts';
 import { key } from '../../sim/inventory';
 import {
   bagHelps, boardHandIn, custName, custNpc, daysLeftInWeek, dueText, fits, guildRank, haulToday, isTracked, keystoneWait, lineLeft, MAX_TRACKED, orderFull, orderTitle, orders, payWorks, rank,
-  repOf, shareIn, steadyOf, specLabel, toggleTrack, villagerName, type Order,
+  offSeason, repOf, seasonsText, shareIn, steadyOf, specLabel, toggleTrack, villagerName, type Order,
 } from '../../sim/systems/orders';
+import { inSeason } from '../../sim/seasonal';
+import { SEASON_NAMES } from '../../data/types';
 import { festivalNotice } from '../../sim/systems/festivals';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
@@ -61,6 +63,13 @@ function repStrip(ui: UI, g: PlayScreen['g'], cust: string, x: number, y: number
   const label = next ? `${REP_RANKS[r].name}  ${rep}/${next.rep}` : REP_RANKS[r].name;
   ui.text(label, x + w, y, C.ink, { align: 'right' });
   if (next) ui.bar(x + w - textWidth(label) - 48, y + 2, 40, 3, (rep - REP_RANKS[r].rep) / (next.rep - REP_RANKS[r].rep), C.moss);
+}
+
+/** the next season a spec is in ("spring") */
+function nextSeason(g: PlayScreen['g'], spec: string): string {
+  const now = g.time.season;
+  for (let i = 1; i <= 4; i++) if (inSeason(spec, (now + i) % 4)) return SEASON_NAMES[(now + i) % 4].toLowerCase();
+  return 'its season';
 }
 
 /** Track: the order's checklist under the Now strip at the top left (src/ui/ordertrack.ts) */
@@ -129,7 +138,9 @@ function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number)
   // the businesses whose orders the bag can fill first, and their fillable orders first
   const standing = os.open.filter((o) => o.kind === 'standing').sort((a, b) => readiness(g, a) - readiness(g, b));
   const custs = [...new Set(standing.map((o) => o.cust))];
-  if (!custs.length && !os.guild.unlocked) {
+  // the regulars waiting for their goods' season (no loaf in winter, when no grain grows)
+  const waiting = offSeason(g);
+  if (!custs.length && !os.guild.unlocked && !waiting.length) {
     ui.panel(x + 4, yy, w - 8, 34, 'paper', false);
     ui.para('No standing orders yet. The businesses in town post them here as they get to know your works.', x + 12, yy + 8, w - 24, C.walnut, 9);
     yy += 38;
@@ -172,6 +183,13 @@ function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number)
       yy += 55;
     }
   }
+  for (const d of waiting) {
+    const line = `Out of season: ${custName(d.biz)} orders ${specLabel(d.spec)} again in ${nextSeason(g, d.spec)}.`;
+    ui.text(ellipsize(line, w - 16), x + 8, yy + 1, C.oak);
+    if (ui.hover(x + 4, yy - 1, w - 8, 11)) ui.tip([{ text: line, color: C.amber }, { text: `${specLabel(d.spec)} can be made in ${seasonsText(d.spec)}, from what grows then. The order comes back on the first Monday it's in season.` }], 230);
+    yy += 11;
+  }
+  if (waiting.length) yy += 3;
   // the Trading Guild's contracts
   if (os.guild.unlocked) {
     const r = guildRank(g);
