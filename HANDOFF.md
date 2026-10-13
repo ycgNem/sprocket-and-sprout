@@ -6,9 +6,9 @@ music and most sound are procedural, some SFX come from a jsfxr bank.
 
 **Status (October 11, 2026, evening): 2.0.0 "The Works" is released, every phase of ROADMAP.md is
 done, and the owner's notes since have gone live as small updates without a version bump**
-(DECISIONS #148-#160, "Since 2.0.0" below). The website runs `works` at its latest push; the GitHub
-release `v2.0.0` (Latest) has the notes and Windows installers as of the music update (#152), so its
-body and installers lack #153-#160 (see "Where it stopped"). Next is 2.0.1 ("What's next").
+(DECISIONS #148-#163, "Since 2.0.0" below). The website runs `works` at its latest push; the GitHub
+release `v2.0.0` (Latest) has the notes and Windows installers as of cotton's 7 days (#163, October
+13). Next is 2.0.1 ("What's next").
 **Since 2.0.0** (each an owner's note, a change commit ending "DECISIONS #N" and a "Patch notes:"
 commit adding a line to 2.0's "Updates" in `src/data/patchnotes.ts` and PATCHNOTES.md): the patch
 notes rewritten for players (#148); Milling's rate stage and cornmeal (#149); the beach's own forage,
@@ -21,7 +21,7 @@ at the beach and a baited fish trap keeps its bait (#153); a crop's hover tip (#
 `art/player/pickfix.py`); later research cheaper and even (#159); the mine's ladders hand-drawn
 (#160, `LADDERS` in `art/nature/spec.mjs`); from a player's Discord report, a keystone's validate
 clock counts before its earlier stages are done (#161, `tickValidate`) and a field gantry rides rails
-laid behind it (#162, `gantryTick`). 410 tests (1 skipped). No PixelLab generations since the
+laid behind it (#162, `gantryTick`); cotton ripens in 7 days, not 8 (#163). 410 tests (1 skipped). No PixelLab generations since the
 release.
 Before that, the last release session finished Phase 6 and
 Phase 7 (DECISIONS #139-#147): the owner's second playtest of
@@ -35,13 +35,13 @@ plate and banner, gantry wheels, chamber shadows, then by script conveyor belts,
 keeper's farmhouse), the procedural generators deleted, version 2.0.0 and its patch notes, and the
 critic's confirmation pass (every earlier finding fixed in play; its two Majors, "where to get" the
 parts and the zoom after a reload, and its Minors fixed: #146).
-**Where it stopped:** `works` and `main` on origin are the same commit (the ladders' patch notes,
-`432d25c`, plus this docs commit), pushed with `git push origin works:main` and `git push origin
-works`; the Pages deploy passed. The worktree `../sns-p0check` still has `main` at `314d9f2`: run
-`git -C ../sns-p0check pull --ff-only` before building installers there. Not done (the owner hasn't
-asked): add #153-#160's Updates lines to the v2.0.0 release body (`gh release edit v2.0.0
---notes-file ...`, from `node scripts/release-notes.mjs`) and rebuild and re-upload the installers
-(`gh release upload v2.0.0 release/*.exe --clobber`), as was done for #149-#151. **To
+**Where it stopped:** `works` and `main` on origin are the same commit (cotton's patch notes,
+`4951ecf`, plus this docs commit), pushed with `git push origin works:main` and `git push origin
+works`. `../sns-p0check` has `main` at `4951ecf`; the v2.0.0 installers were rebuilt there and
+re-uploaded (`gh release upload v2.0.0 release/*.exe --clobber`), and the release body got every
+Updates line through #163 (the live body has absolute image links: splice in only the "### Updates"
+section from `node scripts/release-notes.mjs "2.0"`, then `gh release edit v2.0.0 --notes-file`).
+For the next live update, pull `../sns-p0check` with `--ff-only` before building there. **To
 release the next version, only on the owner's word:** bump `package.json` (and the lock file), add
 its entry on top of `src/data/patchnotes.ts` and PATCHNOTES.md, commit on `works` and push it; in
 `../sns-p0check` (`main` is checked out there) `git merge --ff-only works` and `git push origin main`
