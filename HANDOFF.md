@@ -21,7 +21,9 @@ at the beach and a baited fish trap keeps its bait (#153); a crop's hover tip (#
 `art/player/pickfix.py`); later research cheaper and even (#159); the mine's ladders hand-drawn
 (#160, `LADDERS` in `art/nature/spec.mjs`); from a player's Discord report, a keystone's validate
 clock counts before its earlier stages are done (#161, `tickValidate`) and a field gantry rides rails
-laid behind it (#162, `gantryTick`); cotton ripens in 7 days, not 8 (#163). 410 tests (1 skipped). No PixelLab generations since the
+laid behind it (#162, `gantryTick`); cotton ripens in 7 days, not 8 (#163); Track on an order
+puts its checklist under the Now strip (#164, `src/ui/ordertrack.ts`); orders ask only for goods in
+season (#165, `src/sim/seasonal.ts`; the year bot earns 186k, was 204k). 416 tests (1 skipped). No PixelLab generations since the
 release.
 Before that, the last release session finished Phase 6 and
 Phase 7 (DECISIONS #139-#147): the owner's second playtest of
@@ -35,9 +37,11 @@ plate and banner, gantry wheels, chamber shadows, then by script conveyor belts,
 keeper's farmhouse), the procedural generators deleted, version 2.0.0 and its patch notes, and the
 critic's confirmation pass (every earlier finding fixed in play; its two Majors, "where to get" the
 parts and the zoom after a reload, and its Minors fixed: #146).
-**Where it stopped:** `works` and `main` on origin are the same commit (cotton's patch notes,
-`4951ecf`, plus this docs commit), pushed with `git push origin works:main` and `git push origin
-works`. `../sns-p0check` has `main` at `4951ecf`; the v2.0.0 installers were rebuilt there and
+**Where it stopped:** origin's `works` and `main` are at `318840d` (cotton, #163). #164 and #165
+and their patch notes are committed on local `works` only, not pushed (waiting on the owner's word),
+so the website and installers don't have them yet. `../sns-p0check` has its own node_modules now:
+it was a junction to this repo's, and `npm ci` there emptied this one (fixed with `npm ci` here); never
+run `npm ci` in a worktree whose node_modules is a junction. `../sns-p0check` has `main` at `4951ecf`; the v2.0.0 installers were rebuilt there and
 re-uploaded (`gh release upload v2.0.0 release/*.exe --clobber`), and the release body got every
 Updates line through #163 (the live body has absolute image links: splice in only the "### Updates"
 section from `node scripts/release-notes.mjs "2.0"`, then `gh release edit v2.0.0 --notes-file`).
