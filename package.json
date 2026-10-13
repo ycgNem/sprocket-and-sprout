@@ -11,7 +11,7 @@
     "test": "vitest run",
     "e2e": "node e2e/smoke.mjs",
     "desktop": "npm run build && electron .",
-    "dist:win": "npm run build && electron-builder --win nsis portable",
+    "dist:win": "npm run build && electron-builder --win nsis",
     "screens": "node e2e/screens.mjs"
   },
   "devDependencies": {
@@ -41,8 +41,7 @@
     ],
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        "nsis"
       ],
       "icon": "build/icon.png",
       "signAndEditExecutable": false
@@ -52,9 +51,6 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "artifactName": "Sprocket-and-Sprout-Setup-${version}.exe"
-    },
-    "portable": {
-      "artifactName": "Sprocket-and-Sprout-Portable-${version}.exe"
     },
     "mac": {
       "target": "dmg",

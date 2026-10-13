@@ -2,7 +2,6 @@
 rem Builds the Windows desktop version of Sprocket & Sprout.
 rem Result (in the release folder):
 rem   Sprocket-and-Sprout-Setup-<version>.exe     an installer (Start menu + desktop shortcut)
-rem   Sprocket-and-Sprout-Portable-<version>.exe  a single exe that runs without installing
 title Build Sprocket ^& Sprout for Windows
 cd /d "%~dp0"
 
@@ -24,6 +23,6 @@ if errorlevel 1 (
   exit /b 1
 )
 echo.
-echo Done! Your installers are in the "release" folder.
+echo Done! Your installer is in the "release" folder.
 explorer release
 pause

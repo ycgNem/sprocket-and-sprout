@@ -43,7 +43,8 @@ notes, plus this docs commit), pushed with `git push origin works:main` and `git
 `../sns-p0check` has `main` at `adf12f9` and its own node_modules now: it was a junction to this
 repo's, and `npm ci` there emptied this one (fixed with `npm ci` here); never run `npm ci` in a
 worktree whose node_modules is a junction. The v2.0.0 installers were rebuilt there and
-re-uploaded (`gh release upload v2.0.0 release/*.exe --clobber`), and the release body got every
+re-uploaded (`gh release upload v2.0.0 release/Sprocket-and-Sprout-Setup-2.0.0.exe --clobber`; not
+`release/*.exe`: the folder still holds old Portable builds, and there is no Portable download since #167), and the release body got every
 Updates line through #166 (#166 is web-only: the installers were not rebuilt for it; the live body has absolute image links: splice in only the "### Updates"
 section from `node scripts/release-notes.mjs "2.0"`, then `gh release edit v2.0.0 --notes-file`).
 For the next live update, pull `../sns-p0check` with `--ff-only` before building there. **To
@@ -53,8 +54,8 @@ its entry on top of `src/data/patchnotes.ts` and PATCHNOTES.md, commit on `works
 (deploys the website; the workflow runs the tests first); build the installers there (`npm run
 dist:win`, or `Build desktop app.bat`; output in `release/`); `node scripts/release-notes.mjs "<version>"
 > e2e/out/release-notes.md`, add a few lines on top (where to play), then `gh release create
-v<version> --title "Sprocket & Sprout <version>" --notes-file e2e/out/release-notes.md` with the two
-installers (`--prerelease` only for a beta).
+v<version> --title "Sprocket & Sprout <version>" --notes-file e2e/out/release-notes.md` with the Setup
+installer (`--prerelease` only for a beta).
 Left on disk, safe to delete: `../sns-review` (the critic's frozen build) and the merged worktrees
 `../sns-crops`, `../sns-deep`, `../sns-town` (remove their node_modules junction first).
 The owner's rules since Phase 1: hand farming stays, but the factory is the face (ROADMAP.md 3.2,
@@ -202,7 +203,8 @@ See `SHARING.md` for the full guide.
   `main`. It is on and live at https://ycgnem.github.io/sprocket-and-sprout/. **Pushing = deploying.**
 - **Desktop.**
   - `Build desktop app.bat` (`npm run dist:win`) runs electron-builder and puts these in `release/`:
-    `Sprocket-and-Sprout-Setup-<version>.exe` (NSIS installer) and `...-Portable-<version>.exe`.
+    `Sprocket-and-Sprout-Setup-<version>.exe` (NSIS installer). No portable .exe since October 13
+    (DECISIONS #167): one download, so players don't have to choose.
   - `electron/main.cjs` serves `dist/` over a private `app://` scheme, so modules, saves and relative
     paths behave like the website.
   - `npm run desktop` runs it from source.

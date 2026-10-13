@@ -1157,3 +1157,10 @@ recommendations are the decisions.
     release's page (`releases/latest`) in a new tab, with a tip naming the Setup and Portable .exe.
     Hidden in the desktop app (`app://`) and in the installed web app (display-mode standalone).
     Same row as before, so the menu still fits 480x300 UI px with Continue showing.
+167. **One Windows download: the Setup installer, no Portable .exe (the owner: "which one is the
+    person supposed to download ... why is there 2 options", then "drop portable").** Two files on
+    the release made every player choose, and the portable one is the odd case (no shortcut, slower
+    start, for USB sticks and locked-down PCs). electron-builder makes only the NSIS installer now
+    (`dist:win`, `build.win.target`); the Portable asset is gone from the v2.0.0 release, its body
+    says "the installer below", and the title screen's Download for Windows tip names only Setup.
+    Older releases keep theirs.

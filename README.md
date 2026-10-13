@@ -58,7 +58,7 @@ Then open the URL Vite prints (usually http://localhost:5173).
 - **Your own website:** `Package for web.bat` makes a static site. Host it on GitHub Pages (a
   workflow is included), Netlify or Cloudflare Pages. Visitors can press **Install as an app** to keep
   it as an offline app.
-- **A Windows download:** `Build desktop app.bat` makes an installer and a portable `.exe` in
+- **A Windows download:** `Build desktop app.bat` makes a Windows installer (`.exe`) in
   `release/` (Electron). `npm run desktop` runs the desktop version from source. If PowerShell says `npm` is not
 recognized, Node isn't on your PATH: use `Play.bat`, or install Node.js LTS from nodejs.org.
 See `HANDOFF.md` for details.

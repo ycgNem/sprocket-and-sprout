@@ -5,7 +5,7 @@ There are three ways to get the game to people:
 | | What people get | You run | Cost |
 |---|---|---|---|
 | **1. Your own website** | Play in the browser at your link, and press **Install** to keep it as an offline app | `Package for web.bat` | Free (a custom domain is about $10/year) |
-| **2. A Windows download** | An installer `.exe` (Start menu + desktop shortcut) or a portable `.exe` | `Build desktop app.bat` | Free |
+| **2. A Windows download** | An installer `.exe` (Start menu + desktop shortcut) | `Build desktop app.bat` | Free |
 | **3. itch.io** | A game page with the browser version and/or the download | either | Free |
 
 You can do all three. They are built from the same code.
@@ -82,10 +82,8 @@ same, but the game needs a keyboard and mouse.
 
 ### Build it
 
-Double-click **`Build desktop app.bat`** (or run `npm run dist:win`). After a minute the `release` folder holds:
-
-- **`Sprocket-and-Sprout-Setup-1.0.0.exe`**: a normal installer (about 80 MB). It asks where to install and adds Start-menu and desktop shortcuts. It uninstalls from Windows Settings like any app.
-- **`Sprocket-and-Sprout-Portable-1.0.0.exe`**: one file that runs without installing. Good for a USB stick.
+Double-click **`Build desktop app.bat`** (or run `npm run dist:win`). After a minute the `release` folder holds
+**`Sprocket-and-Sprout-Setup-<version>.exe`**: a normal installer (about 80 MB). It asks where to install and adds Start-menu and desktop shortcuts. It uninstalls from Windows Settings like any app.
 
 It's the same game in its own window (press F11 for fullscreen). Saves are stored per Windows user,
 and you can move them with **Pause → Export save** / **Import Save**.
@@ -95,11 +93,11 @@ To run the desktop version straight from the code without building an installer:
 ### Where to put the download
 
 - **GitHub Releases (free, recommended).** On your repo page, go to **Releases → Draft a new release**.
-  Tag it `v1.0.0`, drag in the Setup (and Portable) `.exe`, and publish. Link people to
+  Tag it `v1.0.0`, drag in the Setup `.exe`, and publish. Link people to
   `https://github.com/<you>/sprocket-and-sprout/releases/latest`. From the terminal:
 
   ```bash
-  gh release create v1.0.0 "release/Sprocket-and-Sprout-Setup-1.0.0.exe" "release/Sprocket-and-Sprout-Portable-1.0.0.exe" --title "Sprocket & Sprout 1.0" --notes "First release"
+  gh release create v1.0.0 "release/Sprocket-and-Sprout-Setup-1.0.0.exe" --title "Sprocket & Sprout 1.0" --notes "First release"
   ```
 
 - **Your website.** Put a "Download for Windows" link on your site that points at the GitHub release, so you don't serve 80 MB files yourself.

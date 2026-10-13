@@ -294,7 +294,7 @@ class TitleScreen implements Screen {
       }
     } else if (onSite) {
       y += bh + 6;
-      if (ui.button('download', cx - bw / 2, y, bw, bh, 'Download for Windows', { style: 'green', tip: [{ text: 'Download for Windows', color: C.amber }, { text: 'Opens the download page. Under Assets: the Setup .exe installs it with a desktop shortcut, the Portable .exe runs without installing.' }] })) {
+      if (ui.button('download', cx - bw / 2, y, bw, bh, 'Download for Windows', { style: 'green', tip: [{ text: 'Download for Windows', color: C.amber }, { text: 'Opens the download page. Under Assets, the Setup .exe installs it with a desktop shortcut.' }] })) {
         window.open(DOWNLOAD_URL, '_blank', 'noopener');
       }
     }
@@ -357,7 +357,7 @@ const SHIRTS = [C.moss, C.river, C.rose, C.amber, C.violet, C.sky, C.terracotta,
 const PANTS = [C.river, C.walnut, C.slate, C.bark, C.moss, C.deepsea, C.wine, C.tan];
 
 /** farm names offered before you type your own */
-/** the newest release's page: its Windows installer and portable .exe */
+/** the newest release's page: its Windows installer */
 const DOWNLOAD_URL = 'https://github.com/ycgNem/sprocket-and-sprout/releases/latest';
 
 const FARM_NAMES = ['Willowbrook', 'Copperleaf', 'Thistledown', 'Gearwood', 'Mossbell', 'Hollyhock', 'Brasswick', 'Cogsbury', 'Sweetwater', 'Ambervale'];
