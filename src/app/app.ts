@@ -281,13 +281,21 @@ class TitleScreen implements Screen {
     }
     y += bh + 6;
     if (ui.button('import', cx - bw / 2, y, bw, bh, 'Import Save (.json)')) this.importFile();
-    // the browser offers to install the site as an app (Chrome/Edge): put that one click away
+    // on the website (not the desktop app, not the installed app): the way onto the desktop. The
+    // browser's own install when it offers one (Chrome/Edge), otherwise the Windows download page
+    // (the owner looked for it and found nothing: the browser hadn't offered to install)
     const prompt = (window as any).__installPrompt;
+    const onSite = location.protocol.startsWith('http') && !window.matchMedia?.('(display-mode: standalone)').matches;
     if (prompt) {
       y += bh + 6;
       if (ui.button('install', cx - bw / 2, y, bw, bh, 'Install as an app', { style: 'green', tip: 'Adds Sprocket & Sprout to your desktop and Start menu. Works offline.' })) {
         prompt.prompt();
         (window as any).__installPrompt = null;
+      }
+    } else if (onSite) {
+      y += bh + 6;
+      if (ui.button('download', cx - bw / 2, y, bw, bh, 'Download for Windows', { style: 'green', tip: [{ text: 'Download for Windows', color: C.amber }, { text: 'Opens the download page. Under Assets: the Setup .exe installs it with a desktop shortcut, the Portable .exe runs without installing.' }] })) {
+        window.open(DOWNLOAD_URL, '_blank', 'noopener');
       }
     }
     if (this.importMsg) ui.text(this.importMsg, cx, y + bh + 6, C.cream, { align: 'center', shadow: C.ink });
@@ -349,6 +357,9 @@ const SHIRTS = [C.moss, C.river, C.rose, C.amber, C.violet, C.sky, C.terracotta,
 const PANTS = [C.river, C.walnut, C.slate, C.bark, C.moss, C.deepsea, C.wine, C.tan];
 
 /** farm names offered before you type your own */
+/** the newest release's page: its Windows installer and portable .exe */
+const DOWNLOAD_URL = 'https://github.com/ycgNem/sprocket-and-sprout/releases/latest';
+
 const FARM_NAMES = ['Willowbrook', 'Copperleaf', 'Thistledown', 'Gearwood', 'Mossbell', 'Hollyhock', 'Brasswick', 'Cogsbury', 'Sweetwater', 'Ambervale'];
 
 class NewGameForm {

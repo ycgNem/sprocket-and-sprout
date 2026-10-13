@@ -1150,3 +1150,10 @@ recommendations are the decisions.
     tab lists the regulars waiting ("Out of season: The Copper Kettle orders Country Loaf again in
     spring"). Stored goods carry over, but the board doesn't count on them. The town works are
     untouched (no due date). Not counted: the greenhouse's year-round crops.
+166. **A Download for Windows button on the website's title screen (the owner looked for "download
+    the game in the menu" and found none).** "Install as an app" only shows when the browser offers
+    to install the site (Chrome and Edge, not yet installed), so most players never see it. When it
+    doesn't, the website's menu shows "Download for Windows" in its place, which opens the newest
+    release's page (`releases/latest`) in a new tab, with a tip naming the Setup and Portable .exe.
+    Hidden in the desktop app (`app://`) and in the installed web app (display-mode standalone).
+    Same row as before, so the menu still fits 480x300 UI px with Continue showing.
