@@ -6,8 +6,8 @@ music and most sound are procedural, some SFX come from a jsfxr bank.
 
 **Status (October 11, 2026, evening): 2.0.0 "The Works" is released, every phase of ROADMAP.md is
 done, and the owner's notes since have gone live as small updates without a version bump**
-(DECISIONS #148-#163, "Since 2.0.0" below). The website runs `works` at its latest push; the GitHub
-release `v2.0.0` (Latest) has the notes and Windows installers as of cotton's 7 days (#163, October
+(DECISIONS #148-#165, "Since 2.0.0" below). The website runs `works` at its latest push; the GitHub
+release `v2.0.0` (Latest) has the notes and Windows installers as of orders in season (#165, October
 13). Next is 2.0.1 ("What's next").
 **Since 2.0.0** (each an owner's note, a change commit ending "DECISIONS #N" and a "Patch notes:"
 commit adding a line to 2.0's "Updates" in `src/data/patchnotes.ts` and PATCHNOTES.md): the patch
@@ -37,13 +37,13 @@ plate and banner, gantry wheels, chamber shadows, then by script conveyor belts,
 keeper's farmhouse), the procedural generators deleted, version 2.0.0 and its patch notes, and the
 critic's confirmation pass (every earlier finding fixed in play; its two Majors, "where to get" the
 parts and the zoom after a reload, and its Minors fixed: #146).
-**Where it stopped:** origin's `works` and `main` are at `318840d` (cotton, #163). #164 and #165
-and their patch notes are committed on local `works` only, not pushed (waiting on the owner's word),
-so the website and installers don't have them yet. `../sns-p0check` has its own node_modules now:
-it was a junction to this repo's, and `npm ci` there emptied this one (fixed with `npm ci` here); never
-run `npm ci` in a worktree whose node_modules is a junction. `../sns-p0check` has `main` at `4951ecf`; the v2.0.0 installers were rebuilt there and
+**Where it stopped:** `works` and `main` on origin are the same commit (through #165 and its patch
+notes, plus this docs commit), pushed with `git push origin works:main` and `git push origin works`.
+`../sns-p0check` has `main` at `adf12f9` and its own node_modules now: it was a junction to this
+repo's, and `npm ci` there emptied this one (fixed with `npm ci` here); never run `npm ci` in a
+worktree whose node_modules is a junction. The v2.0.0 installers were rebuilt there and
 re-uploaded (`gh release upload v2.0.0 release/*.exe --clobber`), and the release body got every
-Updates line through #163 (the live body has absolute image links: splice in only the "### Updates"
+Updates line through #165 (the live body has absolute image links: splice in only the "### Updates"
 section from `node scripts/release-notes.mjs "2.0"`, then `gh release edit v2.0.0 --notes-file`).
 For the next live update, pull `../sns-p0check` with `--ff-only` before building there. **To
 release the next version, only on the owner's word:** bump `package.json` (and the lock file), add
