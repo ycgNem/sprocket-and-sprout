@@ -12,6 +12,7 @@ import type { PlayScreen } from '../app/play';
 import { drawChronometer, drawHotbar, drawBuildBar, drawRushTracker } from './hudparts';
 import { drawPulse } from './pulse';
 import { drawNowStrip } from './nowstrip';
+import { drawTrackedOrders } from './ordertrack';
 
 export interface HudState {
   pickups: { k: number; n: number; t: number }[];
@@ -102,6 +103,8 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   ty = drawRushTracker(ui, g, ty);
   const stripTop = ty;
   ty = drawNowStrip(ui, play, ty);
+  // the orders tracked from the Orders board, under it (src/ui/ordertrack.ts)
+  ty = drawTrackedOrders(ui, play, ty, ui.h - 84);
   const leftW = ty > stripTop ? 258 : ty > 4 ? 168 : 0;
   if (ty > 4) occ.push({ x: 0, y: 0, w: leftW, h: ty });
   // lesson cards hang under it (src/ui/lessoncard.ts)

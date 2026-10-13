@@ -1125,3 +1125,13 @@ recommendations are the decisions.
     "change it to 7").** Its stages go from 2, 2, 2, 2 to 1, 2, 2, 2, like flax; regrowth stays 3
     days. The price stays 18: a day sooner to the first pick can add one more over a summer and fall
     (17, not 16), and the Crop numbers formula (ROADMAP.md) still gives 18 (17.6).
+164. **Track an order (the owner: "on each order ... click track ... it makes a little checklist and
+    pop up next to the quests").** Every open order on the board (today's asks, standing orders, the
+    Guild's contracts, the town works) has a Track button. A tracked order is a small card under the
+    Now strip (`src/ui/ordertrack.ts`): who wants it (or the works' name), when it's due, and a tick
+    box per line with its count, ticked when that line is all in. Clicking a card opens the board on
+    its tab, x stops tracking it, and a filled order (or one that lapses or rolls over) drops off on
+    its own. Up to four at once (`MAX_TRACKED`): at 2x on the 960x600 embed the left column has room
+    for about that many, and past what fits above the hotbar a "+N more tracked" line stands in. The
+    uids are saved with the orders (`tracked`), so no save version change. Guild rows grew 4 px and a
+    project row is at least 46 px tall to fit Track over Hand in.

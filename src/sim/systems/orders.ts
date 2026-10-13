@@ -104,6 +104,8 @@ export interface OrdersState {
   worksDone: string[];
   /** this week's shortage, if a business has run short (Mags' cart stocks its goods) */
   short?: Shortage;
+  /** the orders the player tracks (uids): each is a checklist under the Now strip */
+  tracked?: number[];
 }
 
 const NEVER = 1e9;
@@ -129,6 +131,33 @@ export const standingDef = (o: Order): StandingDef | undefined => (o.kind === 's
 export const worksDone = (g: Game): string[] => orders(g).worksDone;
 export const repOf = (g: Game, cust: string) => orders(g).rep[cust] ?? 0;
 export const rank = (g: Game, cust: string) => rankOf(repOf(g, cust));
+
+// ---------------- tracking ----------------
+/** how many orders can be tracked at once (the HUD's left column has room for about this many) */
+export const MAX_TRACKED = 4;
+export const isTracked = (g: Game, o: Order) => !!orders(g).tracked?.includes(o.uid);
+/** the tracked orders still open, in the order they were tracked (filled or gone ones drop off) */
+export function trackedOrders(g: Game): Order[] {
+  const os = orders(g);
+  if (!os.tracked?.length) return [];
+  const list = os.tracked.map((u) => os.open.find((o) => o.uid === u && !o.done)).filter((o): o is Order => !!o);
+  if (list.length !== os.tracked.length) os.tracked = list.map((o) => o.uid);
+  return list;
+}
+/** track an order or stop tracking it; false when the list is full */
+export function toggleTrack(g: Game, o: Order): boolean {
+  const os = orders(g);
+  if (isTracked(g, o)) {
+    os.tracked = os.tracked!.filter((u) => u !== o.uid);
+    return true;
+  }
+  if (trackedOrders(g).length >= MAX_TRACKED) {
+    g.toast(`You can track ${MAX_TRACKED} orders at once: stop tracking one first.`);
+    return false;
+  }
+  (os.tracked ??= []).push(o.uid);
+  return true;
+}
 
 /** the customer's name on the board: a business, the Guild, the Council, or a villager */
 export function custName(cust: string): string {
@@ -844,6 +873,7 @@ registerSystem({
       }
     }
     os.short = d?.short;
+    os.tracked = (d?.tracked ?? []).filter((u: number) => os.open.some((o) => o.uid === u));
     os.seen = d?.seen ?? [...new Set(os.open.filter((o) => o.kind === 'standing').map((o) => o.def).concat(Object.keys(os.filled).filter((id) => STANDING_BY_ID.has(id))))];
   },
 });

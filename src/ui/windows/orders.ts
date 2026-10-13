@@ -10,8 +10,8 @@ import { ERA_NAMES } from '../../data/research';
 import { GUILD_BONUS_PER_RANK } from '../../data/contracts';
 import { key } from '../../sim/inventory';
 import {
-  bagHelps, boardHandIn, custName, custNpc, daysLeftInWeek, dueText, fits, guildRank, haulToday, keystoneWait, lineLeft, orderFull, orderTitle, orders, payWorks, rank, repOf, shareIn, steadyOf,
-  specLabel, villagerName, type Order,
+  bagHelps, boardHandIn, custName, custNpc, daysLeftInWeek, dueText, fits, guildRank, haulToday, isTracked, keystoneWait, lineLeft, MAX_TRACKED, orderFull, orderTitle, orders, payWorks, rank,
+  repOf, shareIn, steadyOf, specLabel, toggleTrack, villagerName, type Order,
 } from '../../sim/systems/orders';
 import { festivalNotice } from '../../sim/systems/festivals';
 import type { PlayScreen } from '../../app/play';
@@ -63,6 +63,14 @@ function repStrip(ui: UI, g: PlayScreen['g'], cust: string, x: number, y: number
   if (next) ui.bar(x + w - textWidth(label) - 48, y + 2, 40, 3, (rep - REP_RANKS[r].rep) / (next.rep - REP_RANKS[r].rep), C.moss);
 }
 
+/** Track: the order's checklist under the Now strip at the top left (src/ui/ordertrack.ts) */
+function trackButton(ui: UI, g: PlayScreen['g'], o: Order, x: number, y: number) {
+  const on = isTracked(g, o);
+  const tip = on ? [{ text: 'Tracking', color: C.amber }, { text: 'Its checklist is under your quest at the top left. Click to stop tracking it.' }]
+    : [{ text: 'Track', color: C.amber }, { text: `Puts a checklist of it under your quest at the top left (up to ${MAX_TRACKED} orders).` }];
+  if (ui.button('tr' + o.uid, x, y, 44, 12, on ? 'Tracking' : 'Track', { style: 'flat', active: on, tip })) toggleTrack(g, o);
+}
+
 function drawToday(ui: UI, play: PlayScreen, x: number, y: number, w: number): number {
   const g = play.g;
   const list = orders(g).open.filter((o) => o.kind === 'today');
@@ -87,7 +95,8 @@ function drawToday(ui: UI, play: PlayScreen, x: number, y: number, w: number): n
     const onLine = drawLines(ui, o, tx, yy + 27, w - 170);
     ui.text(`${ICON.coin}${o.pay} + Trust${o.rep ? ', reputation' : ''}`, x + w - 12, yy + 27, C.oak, { align: 'right' });
     ui.text(o.done ? 'Done!' : dueText(g, o), x + w - 12, yy + 4, o.done ? C.moss : C.oak, { align: 'right' });
-    if (!onLine && ui.hover(x + 4, yy, w - 8, 40)) {
+    if (!o.done) trackButton(ui, g, o, x + w - 56, yy + 13);
+    if (!onLine && ui.hoverId !== 'tr' + o.uid && ui.hover(x + 4, yy, w - 8, 40)) {
       ui.tip([
         { text: `${villagerName(npc)}: ${orderTitle(o)}`, color: C.amber },
         { text: `By hand: hold them and press F at ${villagerName(npc)}.` },
@@ -144,12 +153,13 @@ function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number)
       ui.text(dueText(g, o), x + w - 10, yy + 4, C.oak, { align: 'right' });
       // a shortage week (Mags' cart has the goods, at a price)
       if (o.short) ui.text('Shortage', x + w - 10, yy + 14, C.brick, { align: 'right' });
+      trackButton(ui, g, o, x + w - 54, yy + 24);
       const onLine = drawLines(ui, o, tx, yy + 39, tw - 120);
       // what it pays now: a shortage's 25% is in the order's unit, the Haul doubles it today
       const unit = (o.unit ?? def.unit) * (haul ? 2 : 1);
       const pay = unit ? `${ICON.coin}${unit} each${def.silver ? `, silver ${unit * 2}` : ''}${haul ? ' today' : ''}` : def.reward?.text ?? '';
       ui.text(ellipsize(pay, 140), x + w - 10, yy + 39, orderFull(o) ? C.moss : haul ? C.amber : C.oak, { align: 'right' });
-      if (!onLine && ui.hover(x + 4, yy, w - 8, 52)) {
+      if (!onLine && ui.hoverId !== 'tr' + o.uid && ui.hover(x + 4, yy, w - 8, 52)) {
         ui.tip([
           { text: `${custName(cust)}: ${ITEM_BY_ID.get(def.spec)?.name ?? specLabel(def.spec)}`, color: C.amber },
           ...(o.short ? [{ text: `A shortage: this week's order is twice the size and pays 25% more an item. Mags' cart has some, at a price.`, color: C.rose }] : []),
@@ -173,14 +183,18 @@ function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number)
     ui.text(`New contracts every Monday: ${daysLeftInWeek(g) === 1 ? 'last day this week!' : daysLeftInWeek(g) + ' days left.'} The Freight Depot, a crate tagged for the Guild, or Hand in here.`, x + 8, yy + 1, daysLeftInWeek(g) === 1 ? C.brick : C.oak);
     yy += 11;
     for (const o of os.open.filter((x) => x.kind === 'guild')) {
-      ui.panel(x + 4, yy, w - 8, 30, 'paper', false);
-      ui.itemIcon(key(o.lines[0].spec[0] === '#' ? 'freight_depot' : o.lines[0].spec), x + 8, yy + 7, 16);
-      ui.text(orderTitle(o), x + 28, yy + 4, C.ink);
-      drawLines(ui, o, x + 28, yy + 17, w - 200);
-      ui.text(`${ICON.coin}${o.pay}`, x + w - 74, yy + 17, C.oak, { align: 'right' });
-      if (o.done) ui.text('Done!', x + w - 12, yy + 10, C.moss, { align: 'right' });
-      else if (ui.button('gh' + o.uid, x + w - 64, yy + 8, 54, 14, 'Hand in', { style: 'green', disabled: !bagHelps(g, o), tip: 'Takes what your bag has toward it' })) boardHandIn(g, o);
-      yy += 33;
+      ui.panel(x + 4, yy, w - 8, 34, 'paper', false);
+      ui.itemIcon(key(o.lines[0].spec[0] === '#' ? 'freight_depot' : o.lines[0].spec), x + 8, yy + 9, 16);
+      ui.text(orderTitle(o), x + 28, yy + 6, C.ink);
+      drawLines(ui, o, x + 28, yy + 19, w - 200);
+      ui.text(`${ICON.coin}${o.pay}`, x + w - 74, yy + 19, C.oak, { align: 'right' });
+      if (o.done) ui.text('Done!', x + w - 12, yy + 12, C.moss, { align: 'right' });
+      else {
+        // Track over Hand in
+        trackButton(ui, g, o, x + w - 59, yy + 3);
+        if (ui.button('gh' + o.uid, x + w - 64, yy + 17, 54, 14, 'Hand in', { style: 'green', disabled: !bagHelps(g, o), tip: 'Takes what your bag has toward it' })) boardHandIn(g, o);
+      }
+      yy += 37;
     }
   }
   return yy - y;
@@ -198,7 +212,8 @@ function worksRow(ui: UI, play: PlayScreen, o: Order, x: number, y: number, w: n
   const steady = steadyOf(o), today = shareIn(g, o);
   // a project's description on up to two lines ("...from your crocks and kegs for the winter.")
   const descLines = keystone ? [] : wrapText(p?.desc ?? '', w - (steady ? 176 : 160)).slice(0, 2);
-  const h = keystone ? 54 + waitLines.length * 10 : 33 + descLines.length * 9;
+  // room on the right for Track over Hand in (under a project's reward and its share count)
+  const h = keystone ? 54 + waitLines.length * 10 : Math.max(steady ? 56 : 46, 33 + descLines.length * 9);
   ui.panel(x + 4, y, w - 8, h, 'paper', false);
   if (keystone) {
     ui.fill(x + 4, y, 3, h, C.copper);
@@ -214,6 +229,7 @@ function worksRow(ui: UI, play: PlayScreen, o: Order, x: number, y: number, w: n
   }
   const money = p?.money ?? 0;
   if (steady) ui.text(ellipsize(today ? `Today's share in: ${o.shares ?? 0}/${steady} days` : `One share a day: ${o.shares ?? 0}/${steady} days`, 150), x + w - 12, y + 14, today ? C.moss : C.copper, { align: 'right' });
+  trackButton(ui, g, o, x + w - 59, y + h - 33);
   drawLines(ui, o, x + 12, y + h - 12, w - 90 - (money ? 70 : 0));
   if (money) ui.text(`+ ${ICON.coin}${money}`, x + w - 74, y + h - 12, g.player.money >= money ? C.oak : C.brick, { align: 'right' });
   if (orderFull(o) && money) {
