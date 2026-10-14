@@ -1004,6 +1004,18 @@ export class Renderer {
           if (Math.random() < dt60(this) * 0.08) this.particles.smoke(e.x * TILE + e.w * TILE - 6, e.y * TILE - EXTRA_TOP[d.id] + 2);
         }
       }
+    // a field gantry's bridge rides up to 24 tiles out along its rails from its car: one whose car is
+    // off screen still draws when its bridge is in view (the owner after 2.0: "the gantry disappears
+    // when you're close to it and when it's running", out in the field with the car out of sight)
+    for (const e of ents.others) {
+      if (e.def.kind !== 'gantry' || seen.has(e.id) || e.ghost) continue;
+      const pos = e.st.pos ?? 0;
+      const bx = e.x + DX[e.rot] * pos, by = e.y + DY[e.rot] * pos;
+      const bw = e.rot % 2 === 0 ? 7 : 1, bh = e.rot % 2 === 0 ? 1 : 7;
+      if (bx + bw < tx0 - 3 || bx > tx1 + 3 || by + bh < ty0 - 3 || by > ty1 + 3) continue;
+      seen.add(e.id);
+      pushGantry(g, e, D, ctx, this.time);
+    }
     // belt items, drawn on top of belts but below sorted sprites
     for (const [k, px, py] of beltItems) {
       // 10x10 belt icon (8x8 fill + outline) drawn 1:1 on whole pixels, centered on its lane

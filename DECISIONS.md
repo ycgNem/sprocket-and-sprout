@@ -1189,3 +1189,9 @@ recommendations are the decisions.
     in a furnace). On a belt with several machines the first fills first, then the next, the same
     output over a day. The Fair's test plate counts what its machines have loaded before calling a
     stock "ran dry" (a chest can empty into the machines long before the line runs out).
+172. **A running field gantry no longer vanishes when you're near it (the owner: "field gantry has a
+    disappearing issue when you're close to it and when it's running").** Structures were drawn
+    from the tiles on screen, and a gantry's tiles are its car's at the end of its rails: out in the
+    field beside the bridge (up to 24 tiles along), with the car off screen, nothing drew the
+    bridge. After the on-screen pass, a gantry whose bridge is in view draws even when its car
+    isn't.
