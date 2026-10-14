@@ -312,10 +312,15 @@ export function stepBed(run: BedRun, ticks: number) {
 
 export const bedDone = (run: BedRun) => run.ticks >= BED_TICKS;
 
-/** the stock the line has used to the last (item ids): a chest it was stocked in stands empty of it */
+/**
+ * the stock the line has used to the last (item ids): the chests it was stocked in stand empty of it
+ * and no machine has any of it loaded (arms load a machine about ten minutes ahead, so a chest can
+ * empty into the machines long before the line runs out)
+ */
 export function ranDry(run: BedRun): string[] {
   const out: string[] = [];
-  for (const s of run.stocked) if (!out.includes(s.id) && (run.g.ents.get(s.e)?.inv?.countId(s.id) ?? 0) === 0) out.push(s.id);
+  const loaded = (id: string) => run.g.ents.machines.reduce((a, m) => a + [...(m.mach?.inBuf ?? [])].reduce((b, [k, n]) => b + (kId(k) === id ? n : 0), 0), 0);
+  for (const s of run.stocked) if (!out.includes(s.id) && (run.g.ents.get(s.e)?.inv?.countId(s.id) ?? 0) === 0 && loaded(s.id) === 0) out.push(s.id);
   return out;
 }
 

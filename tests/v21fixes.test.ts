@@ -76,3 +76,21 @@ describe('a drill brings up rare ores slower', () => {
     expect(copper / gold).toBeLessThan(8);
   });
 });
+
+describe('arms keep loading a machine that is working', () => {
+  it('an arm feeds a busy crock past two batches (it queued behind every one before)', async () => {
+    const { place } = await import('../src/sim/build');
+    const g = blank();
+    g.player.x = 39.5;
+    g.player.y = 39.5;
+    const chest = place(g, 'chest_wood', 10, 10, 0);
+    place(g, 'arm_basic', 11, 10, 1);
+    const jar = place(g, 'jar', 12, 10, 0);
+    chest.inv!.add(key('radish'), 50);
+    for (let i = 0; i < 20 * 60; i++) g.tick();
+    expect(jar.mach!.crafting).toBe(true);
+    // twenty seconds in, the crock is working and holds far more than two radishes to come
+    expect([...jar.mach!.inBuf.values()].reduce((a, n) => a + n, 0)).toBeGreaterThanOrEqual(8);
+    expect(chest.inv!.countId('radish')).toBeLessThanOrEqual(41);
+  });
+});

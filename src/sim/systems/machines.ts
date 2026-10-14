@@ -84,15 +84,17 @@ export function machAccept(g: Game, e: Ent, k: ItemKey, manual = false): number 
   let best = 0;
   // in auto mode keep at most 2 distinct inputs buffered
   if (!m.locked && m.inBuf.size >= 2 && !m.inBuf.has(k)) return 0;
-  // until the keeper's line is whole an arm may fill the keeper's crock as far as hands can, and a
-  // few beans past a hand load: "watch the arm feed the crock" never waits on a crock your hands
-  // filled to the brim (the owner's playtest; st.handfeed, keeper.ts)
-  const deep = manual || !!e.st.handfeed;
+  // an arm loads a machine as far ahead as hands can (about ten minutes of work), so it keeps
+  // feeding a machine that's working: with two batches it queued behind every one, a radish a
+  // minute into a crock (the owner after 2.0: "while the crock and other machines are working the
+  // arms can't put stuff in"). Until the keeper's line is whole an arm may put a few beans past a
+  // hand load in the keeper's crock: "watch the arm feed the crock" never waits on a crock your
+  // hands filled to the brim (the owner's playtest; st.handfeed, keeper.ts)
   const over = !manual && e.st.handfeed ? HANDFEED_OVER : 0;
   for (const r of recipes) {
     for (const i of r.in) {
       if (!specMatch(k, i.item)) continue;
-      const cap = i.n * ((deep ? handBatches(r) : 2) + over);
+      const cap = i.n * (handBatches(r) + over);
       const cur = bufCountSpec(m, i.item);
       best = Math.max(best, cap - cur);
     }

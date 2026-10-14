@@ -1181,3 +1181,11 @@ recommendations are the decisions.
     overlaps with the x").** The chest's Sort, the coop's Add hay, the field machines' Dawn Shift
     switch and the pole's grid switch ended 14 px from the right edge, at the x's height; they end
     26 px in now, clear of it.
+171. **Arms keep loading a machine while it works (the owner: "while preserving crock and other
+    machines are working you can't put stuff in, well the arms can't").** An arm kept a machine two
+    batches ahead and queued "busy" behind every one, so a crock (a minute a jar) took a radish a
+    minute while a chest of them sat behind it. Arms now load as far ahead as hands do
+    (`handBatches`: about ten minutes of work, at least ten batches: ten radishes in a crock, 150 ore
+    in a furnace). On a belt with several machines the first fills first, then the next, the same
+    output over a day. The Fair's test plate counts what its machines have loaded before calling a
+    stock "ran dry" (a chest can empty into the machines long before the line runs out).

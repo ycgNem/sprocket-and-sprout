@@ -173,8 +173,9 @@ describe('arms and machines', () => {
     expect(handBatches(RECIPE_BY_ID.get('smelt:copper')!)).toBe(50);
     expect(machAccept(g, furnace, key('copper_ore'), true)).toBe(150);
     expect(machAccept(g, crock, key('cogbean'), true)).toBe(10);
-    // arms still keep two batches queued
-    expect(machAccept(g, furnace, key('copper_ore'))).toBe(6);
+    // arms load as far ahead as hands, so they keep feeding a machine that's working (the owner after 2.0)
+    expect(machAccept(g, furnace, key('copper_ore'))).toBe(150);
+    expect(machAccept(g, crock, key('cogbean'))).toBe(10);
   });
 
   it('watering costs a quarter less energy than hoeing', async () => {
