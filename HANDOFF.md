@@ -13,6 +13,7 @@ Copper Gull's manifests, `src/data/exports.ts`, `src/sim/systems/exports.ts`, th
 Exports tab, `src/render/harbor.ts`, art in `art/harbor/`) plus every update since 2.0.0 (#148-#167,
 below), gathered into one 2.1 entry in the patch notes (2.0's "Updates" section is gone). 426 tests
 (1 skipped); the year bot earns 188.8k. PixelLab: 24 generations on the Harbor's art (balance 2721).
+Since 2.1.0 (live, October 14, an "Updates" section in 2.1's notes, installer re-uploaded to v2.1.0 with --clobber): the late game's dead ends (#174: the Prism Shard from the bottom's starstone, Master Angler counts trap shellfish, the Wonders of the Valley quest, an every-item-has-a-source test). 430 tests.
 Next is 2.1.1 or 2.2 from the owner's notes ("What's next").
 **Since 2.0.0** (each an owner's note, a change commit ending "DECISIONS #N" and a "Patch notes:"
 commit adding a line to 2.0's "Updates" in `src/data/patchnotes.ts` and PATCHNOTES.md): the patch
