@@ -90,6 +90,11 @@ const res = await page.evaluate(async () => {
   for (const k of R(4)) for (const f of R(2)) add('town', `haul:stall:${k}:${f}`);
   for (const f of R(2)) add('town', `haul:podium:${f}`);
   add('town', 'fair:plate');
+  // the Harbor (src/render/harbor.ts): the warehouse in both states and winter, the Copper Gull
+  // moored and under way (both directions), the cargo stack's four stages
+  for (const st of R(2)) for (const w of ['', ':winter']) add('town', `harbor:warehouse:${st}${w}`);
+  for (const f of R(4)) for (const v of ['', 'sail:', 'sail:west:']) add('town', `harbor:ship:${v}${f}`);
+  for (const k of R(4)) add('town', `harbor:cargo:${k}`);
   // the field gantry's bridge, its wheels turning (frame 0 is the idle pose)
   for (const a of [0, 1]) for (const f of R(4)) add('structure', `gantry:beam:${a}:${f}`);
   for (const it of ITEMS) add('icon', 'i:' + it.id);

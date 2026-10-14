@@ -22,7 +22,7 @@ export function pushHarbor(g: Game, r: Renderer, D: Drawable[]) {
   D.push({
     y: HARBOR.y + HARBOR.h - 0.05,
     f: () => {
-      const name = `harbor:warehouse:${open ? 1 : 0}`;
+      const name = `harbor:warehouse:${open ? 1 : 0}${g.time.season === 3 ? ':winter' : ''}`;
       if (hasImage(name)) drawSprite(ctx, sprite(name), HARBOR.x * T, HARBOR.y * T);
       else warehouseShape(ctx, open);
     },
@@ -48,7 +48,8 @@ export function pushHarbor(g: Game, r: Renderer, D: Drawable[]) {
     D.push({
       y: v.y + SHIP_BERTH.h - 0.05,
       f: () => {
-        const name = v.sailing ? `harbor:ship:sail:${frame}` : `harbor:ship:${frame}`;
+        // coming in it heads west to the pier, leaving it heads east out to sea
+        const name = v.sailing ? `harbor:ship:sail:${v.west ? 'west:' : ''}${frame}` : `harbor:ship:${frame}`;
         const x = Math.round(v.x * T), y = v.y * T;
         if (hasImage(name)) drawSprite(ctx, sprite(name), x, y);
         else shipShape(ctx, x, y, v.sailing, frame);

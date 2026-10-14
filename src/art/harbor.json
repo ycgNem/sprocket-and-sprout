@@ -1,0 +1,28 @@
+{
+ "name": "harbor",
+ "kind": "sprites",
+ "file": "harbor.png",
+ "palette": "Resurrect 64",
+ "sprites": [
+  {"match":"harbor:warehouse:0","r":[322,184,69,71],"o":[5,23]},
+  {"match":"harbor:warehouse:1","r":[392,184,69,71],"o":[5,23]},
+  {"match":"harbor:warehouse:0:winter","r":[0,276,69,71],"o":[5,23]},
+  {"match":"harbor:warehouse:1:winter","r":[70,276,69,71],"o":[5,23]},
+  {"match":"harbor:ship:0","r":[0,0,160,91],"o":[0,27]},
+  {"match":"harbor:ship:1","r":[161,0,160,91],"o":[0,27]},
+  {"match":"harbor:ship:2","r":[322,0,160,91],"o":[0,27]},
+  {"match":"harbor:ship:3","r":[0,92,160,91],"o":[0,27]},
+  {"match":"harbor:ship:sail:0","r":[161,92,160,91],"o":[0,27]},
+  {"match":"harbor:ship:sail:1","r":[322,92,160,91],"o":[0,27]},
+  {"match":"harbor:ship:sail:2","r":[0,184,160,91],"o":[0,27]},
+  {"match":"harbor:ship:sail:3","r":[161,184,160,91],"o":[0,27]},
+  {"match":"harbor:ship:sail:west:0","r":[161,92,160,91],"o":[0,27],"flipX":true},
+  {"match":"harbor:ship:sail:west:1","r":[322,92,160,91],"o":[0,27],"flipX":true},
+  {"match":"harbor:ship:sail:west:2","r":[0,184,160,91],"o":[0,27],"flipX":true},
+  {"match":"harbor:ship:sail:west:3","r":[161,184,160,91],"o":[0,27],"flipX":true},
+  {"match":"harbor:cargo:0","r":[140,276,32,40],"o":[0,8]},
+  {"match":"harbor:cargo:1","r":[173,276,32,40],"o":[0,8]},
+  {"match":"harbor:cargo:2","r":[206,276,32,40],"o":[0,8]},
+  {"match":"harbor:cargo:3","r":[239,276,32,40],"o":[0,8]}
+ ]
+}

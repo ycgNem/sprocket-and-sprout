@@ -1,0 +1,224 @@
+{
+ "name": "harbor",
+ "kind": "sprites",
+ "scale": 1,
+ "_note": "Built by art/harbor/build.mjs (frames composed at their exact size, so place \"none\"). Rerun it, then node scripts/sprites-import.mjs art/harbor/sprites.json.",
+ "defaults": {
+  "place": "none",
+  "keepStrays": true
+ },
+ "sprites": [
+  {
+   "match": "harbor:warehouse:0",
+   "file": "out/warehouse_0.png",
+   "frame": [
+    69,
+    71
+   ],
+   "origin": [
+    5,
+    23
+   ]
+  },
+  {
+   "match": "harbor:warehouse:1",
+   "file": "out/warehouse_1.png",
+   "frame": [
+    69,
+    71
+   ],
+   "origin": [
+    5,
+    23
+   ]
+  },
+  {
+   "match": "harbor:warehouse:0:winter",
+   "file": "out/warehouse_0_winter.png",
+   "frame": [
+    69,
+    71
+   ],
+   "origin": [
+    5,
+    23
+   ]
+  },
+  {
+   "match": "harbor:warehouse:1:winter",
+   "file": "out/warehouse_1_winter.png",
+   "frame": [
+    69,
+    71
+   ],
+   "origin": [
+    5,
+    23
+   ]
+  },
+  {
+   "match": "harbor:ship:0",
+   "file": "out/ship_0.png",
+   "frame": [
+    160,
+    91
+   ],
+   "origin": [
+    0,
+    27
+   ]
+  },
+  {
+   "match": "harbor:ship:1",
+   "file": "out/ship_1.png",
+   "frame": [
+    160,
+    91
+   ],
+   "origin": [
+    0,
+    27
+   ]
+  },
+  {
+   "match": "harbor:ship:2",
+   "file": "out/ship_2.png",
+   "frame": [
+    160,
+    91
+   ],
+   "origin": [
+    0,
+    27
+   ]
+  },
+  {
+   "match": "harbor:ship:3",
+   "file": "out/ship_3.png",
+   "frame": [
+    160,
+    91
+   ],
+   "origin": [
+    0,
+    27
+   ]
+  },
+  {
+   "match": "harbor:ship:sail:0",
+   "file": "out/ship_sail_0.png",
+   "frame": [
+    160,
+    91
+   ],
+   "origin": [
+    0,
+    27
+   ]
+  },
+  {
+   "match": "harbor:ship:sail:1",
+   "file": "out/ship_sail_1.png",
+   "frame": [
+    160,
+    91
+   ],
+   "origin": [
+    0,
+    27
+   ]
+  },
+  {
+   "match": "harbor:ship:sail:2",
+   "file": "out/ship_sail_2.png",
+   "frame": [
+    160,
+    91
+   ],
+   "origin": [
+    0,
+    27
+   ]
+  },
+  {
+   "match": "harbor:ship:sail:3",
+   "file": "out/ship_sail_3.png",
+   "frame": [
+    160,
+    91
+   ],
+   "origin": [
+    0,
+    27
+   ]
+  },
+  {
+   "match": "harbor:ship:sail:west:0",
+   "like": "harbor:ship:sail:0",
+   "flipX": true
+  },
+  {
+   "match": "harbor:ship:sail:west:1",
+   "like": "harbor:ship:sail:1",
+   "flipX": true
+  },
+  {
+   "match": "harbor:ship:sail:west:2",
+   "like": "harbor:ship:sail:2",
+   "flipX": true
+  },
+  {
+   "match": "harbor:ship:sail:west:3",
+   "like": "harbor:ship:sail:3",
+   "flipX": true
+  },
+  {
+   "match": "harbor:cargo:0",
+   "file": "out/cargo_0.png",
+   "frame": [
+    32,
+    40
+   ],
+   "origin": [
+    0,
+    8
+   ]
+  },
+  {
+   "match": "harbor:cargo:1",
+   "file": "out/cargo_1.png",
+   "frame": [
+    32,
+    40
+   ],
+   "origin": [
+    0,
+    8
+   ]
+  },
+  {
+   "match": "harbor:cargo:2",
+   "file": "out/cargo_2.png",
+   "frame": [
+    32,
+    40
+   ],
+   "origin": [
+    0,
+    8
+   ]
+  },
+  {
+   "match": "harbor:cargo:3",
+   "file": "out/cargo_3.png",
+   "frame": [
+    32,
+    40
+   ],
+   "origin": [
+    0,
+    8
+   ]
+  }
+ ]
+}

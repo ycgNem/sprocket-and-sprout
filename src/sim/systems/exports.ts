@@ -245,13 +245,13 @@ const PASSAGE = 120;
  * at the berth beside the pier, coming in from the east on the morning it docks, leaving that way
  * on the morning it sails. Null while it's at sea.
  */
-export function shipView(g: Game): { x: number; y: number; sailing: boolean } | null {
+export function shipView(g: Game): { x: number; y: number; sailing: boolean; west?: boolean } | null {
   if (!harborOpen(g) || g.map.w < 200) return null;
   const s = exportsState(g);
   const t = (g.time.min - 360) / PASSAGE;
   const off = (f: number) => (g.map.w - SHIP_BERTH.x + 2) * Math.max(0, Math.min(1, f));
   if (s.ship === 'port') {
-    if (s.docked === g.dayIndex && t < 1) return { x: SHIP_BERTH.x + off(1 - t), y: SHIP_BERTH.y, sailing: true };
+    if (s.docked === g.dayIndex && t < 1) return { x: SHIP_BERTH.x + off(1 - t), y: SHIP_BERTH.y, sailing: true, west: true };
     return { x: SHIP_BERTH.x, y: SHIP_BERTH.y, sailing: false };
   }
   if (s.sailed === g.dayIndex && t < 1) return { x: SHIP_BERTH.x + off(t), y: SHIP_BERTH.y, sailing: true };

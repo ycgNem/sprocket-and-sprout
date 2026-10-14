@@ -1,0 +1,30 @@
+{
+  "_note": "PixelLab generations for the harbor sheet (art/harbor/build.mjs -> src/art/harbor.*), 2026-10-13. 24 generations in all (balance 2745 before, 2721 after). The cargo stack is hand-pixeled (tools/cargo.mjs, 0 generations).",
+  "warehouse_basic": {
+    "tool": "create_map_object 64x80 (w1, w2) and 64x64 (w3, w4), view low top-down, selective outline, detailed shading, high detail",
+    "cost": 4,
+    "objects": { "w1": "4246839e-406d-4181-9705-fd39208f10ea", "w2": "144d8b00-63a0-4249-a7eb-7a40450e2986", "w3": "dee5d48f-9826-4e37-a25f-1cccabb2abdf", "w4": "7f9ef71f-bd9f-4f1a-a24b-64754ede3242" },
+    "rejected": "all four: w1 is a narrow gable-front cottage (no width for a 4-tile warehouse), w2-w4 come out in an isometric corner view, not the front-on elevation of the town buildings"
+  },
+  "warehouse_stylematch": {
+    "tool": "create_map_object style-match mode, 192x128 background (sand + bld:smithy) with a 64x80 custom mask",
+    "cost": 1,
+    "object": "3a32eec7-a300-4117-8b61-05a27d88e710",
+    "rejected": "x1: a broken fragment, not a building"
+  },
+  "warehouse_pro": {
+    "tool": "create_image_pro 64x80, palette Resurrect 64 (64 hex colors), style image bld:workshop + bld:store cut from src/art/buildings.png (uploaded as upload:f0b5de3b-...)",
+    "cost": 15,
+    "job": "518bf93d-bbef-4217-a195-b8b0dbff98c3",
+    "files": "raw/pro/0.png .. 8.png",
+    "used": "0 (front-on timber warehouse, crane on the left end of the roof, ship sign, lantern, brass-hinged double doors, crates): both states, widened by 7 columns and the derelict state drawn over it by rule (tools/warehouse.mjs)",
+    "rejected": "1 (mast through the front wall), 2 (tall gable, narrow), 3 (busy crane rigging), 4 (no crane), 5 and 7 (pink roof, 7 has no crane), 6 (close to 0, moss-roofed: a fallback), 8 (already weathered: used only as the reference for the derelict look, a different silhouette from 0)"
+  },
+  "ship": {
+    "tool": "create_map_object 160x120, selective outline, detailed shading, high detail; s1 and s4 view low top-down, s2 and s3 view side",
+    "cost": 4,
+    "objects": { "s1": "7d745095-d7ca-4754-b657-dc44ba3a7832", "s2": "b908af45-dad4-4d02-bf62-295e87232125", "s3": "e13b81db-3900-4a56-854b-1ec257512194", "s4": "1f922d50-f9e4-4606-af28-0a61d0096bc7" },
+    "used": "s3 (long two-masted steamer, brass stack amidships, row of portholes, gaff mainsail and jib set): graded, copper-sheathed, furled, bobbed and given smoke by tools/ship.mjs",
+    "rejected": "s1 (single tall mast, yellow-gold hull, the stack in front of the cabin), s2 (one real mast and a big deckhouse: reads as a trawler), s4 (cream-painted hull, cold next to the airship and the town)"
+  }
+}
