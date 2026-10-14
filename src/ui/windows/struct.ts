@@ -17,6 +17,7 @@ import { RESEARCH_BY_ID } from '../../data/research';
 import { deconstruct } from '../../sim/build';
 import { DRILL_FUEL, PORT_HANDLERS, portInsert } from '../../sim/ports';
 import { orderShare, ordersFor, tagChoices } from '../../sim/systems/orders';
+import { binSeeds, seedBin, unbinSeeds } from '../../sim/systems/fieldworks';
 
 /** Extra struct panels registered by later systems (labs, buildings, hives, megaprojects...). */
 export const STRUCT_PANELS: Record<string, (ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: number, st: WinState) => number> = {};
@@ -33,7 +34,7 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
   const playerGridH = 3 * (SLOT + 2) + 14;
   let topH = 100;
   if (e.inv && (kind === 'chest' || kind === 'shipbin' || kind === 'building' || kind === 'harvester' || kind === 'planter' || kind === 'fishtrap' || kind === 'tapper' || kind === 'drill' || kind === 'gleaner' || kind === 'gantry'))
-    topH = 24 + Math.ceil(e.inv.size / 12) * (SLOT + 2) + 16 + (kind === 'shipbin' ? 30 : 0);
+    topH = 24 + Math.ceil(e.inv.size / 12) * (SLOT + 2) + 16 + (kind === 'shipbin' ? 30 : 0) + (kind === 'gantry' ? 22 : 0);
   if (e.mach) topH = 150;
   if (kind === 'pole' || kind === 'generator' || kind === 'accumulator') topH = 140;
   if (STRUCT_PANELS[kind]) topH = st.data.topH ?? 150;
@@ -76,8 +77,8 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
     } else if (field) {
       // field machines lead with their state line (what they're picking, or when the next crop ripens)
       const sl = structStateLine(g, e, true);
-      ui.text(ellipsize((sl?.text ?? '') + (kind === 'gantry' ? `  -  seeds: shift-click them in` : ''), w - 120), x + 14, top + 2, sl?.color ?? C.walnut);
-      if (g.research.done.has('r_dawn') && ui.button('dawn', x + w - 104, top - 1, 90, 12, e.st.dawn ? 'Picks from 6am' : 'Picks from noon', { style: 'flat', active: !!e.st.dawn, tip: 'Dawn Shift: pick newly ripe crops from 6am (off: the morning is left to your hands)' })) e.st.dawn = !e.st.dawn;
+      ui.text(ellipsize((sl?.text ?? '') + (kind === 'gantry' ? `  -  seeds: shift-click them in` : ''), w - 132), x + 14, top + 2, sl?.color ?? C.walnut);
+      if (g.research.done.has('r_dawn') && ui.button('dawn', x + w - 116, top - 1, 90, 12, e.st.dawn ? 'Picks from 6am' : 'Picks from noon', { style: 'flat', active: !!e.st.dawn, tip: 'Dawn Shift: pick newly ripe crops from 6am (off: the morning is left to your hands)' })) e.st.dawn = !e.st.dawn;
     } else ui.text(readonly ? 'Collected goods. Click to take, or use an arm.' : `${e.inv.slots.filter(Boolean).length}/${e.inv.size} stacks used. Shift-click to move.`, x + 14, top + 2, C.walnut);
     invGrid(ui, play, e.inv, x + 14, top + 14, 12, { target: inv, readonly, accept: kind === 'shipbin' ? (k) => kDef(k).price > 0 : undefined });
     // a steam drill's fuel sits beside its ore: click or shift-click coal or wood in, click to take it
@@ -99,10 +100,11 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
       ui.text(ellipsize('Shift-click coal or wood in from your bag.', w - (fx - x) - SLOT - 22), fx + SLOT + 8, fy + 6, C.walnut);
       target = (k, n) => (fuelValue(k) > 0 ? portInsert(g, e, k, n, 0) : 0);
     }
+    if (kind === 'gantry') seedBinRow(ui, play, e, x + 14, top + 16 + Math.ceil(e.inv.size / 12) * (SLOT + 2), w - 28);
     // the crate takes only what the post will buy, by shift-click as by hand
     if (kind === 'gantry') target = (k, n) => PORT_HANDLERS.gantry.insert!(g, e, k, n);
     else if (!readonly) target = kind === 'shipbin' ? (k, n) => (kDef(k).price > 0 ? n - e.inv!.add(k, n) : 0) : e.inv;
-    if (kind === 'chest' && ui.button('csort', x + w - 60, top - 1, 46, 12, 'Sort', { style: 'flat' })) e.inv.sort();
+    if (kind === 'chest' && ui.button('csort', x + w - 72, top - 1, 46, 12, 'Sort', { style: 'flat' })) e.inv.sort();
     if (kind === 'shipbin') {
       // a tagged crate's goods fetch their customer's order prices first, the market the rest
       const share = orderShare(g, e);
@@ -140,6 +142,36 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
  * item the market is most flooded with.
  */
 /** how many of each item key an inventory holds */
+/** the gantry's seed bin (no limit): each seed and its count; click one to take it back to your bag */
+function seedBinRow(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: number) {
+  const g = play.g;
+  const bin = Object.entries(seedBin(e)).filter(([, n]) => n > 0);
+  ui.text('Seed bin', x, y + 5, C.oak);
+  let sx = x + textWidth('Seed bin') + 8;
+  if (!bin.length) {
+    ui.text(ellipsize('Empty. Shift-click seeds in, or feed it with an arm: it takes any number.', x + w - sx), sx, y + 5, C.walnut);
+    return;
+  }
+  for (const [id, n] of bin) {
+    const label = n.toLocaleString();
+    const bw = 18 + textWidth(label) + 6;
+    if (sx + bw > x + w) break;
+    const k = key(id);
+    ui.itemIcon(k, sx, y, 16);
+    ui.text(label, sx + 18, y + 5, C.ink);
+    if (ui.hover(sx - 1, y - 1, bw, 18)) {
+      ui.tip(itemTooltip(g, k, n, [{ text: 'Click to take them back to your bag.', color: C.pebble }]));
+      if (ui.clicked) {
+        ui.eat();
+        const t = unbinSeeds(e, id, g.player.inv.space(k));
+        const left = g.player.inv.add(k, t);
+        if (left) binSeeds(e, k, left);
+      }
+    }
+    sx += bw;
+  }
+}
+
 function tally(inv: Inventory): Map<number, number> {
   const m = new Map<number, number>();
   for (const s of inv.slots) if (s) m.set(s.k, (m.get(s.k) ?? 0) + s.n);
@@ -355,7 +387,7 @@ function powerPanel(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: n
   if (e.def.kind === 'pole') {
     const sw = e.st.sw ?? 0;
     ui.text(sw === 1 ? 'Switched OFF: machines in its area are stopped.' : sw === 2 ? 'Its machines run only during the night shift.' : 'Powers the machines in its shaded area.', x + 14, y + 2, sw === 1 ? C.brick : C.walnut);
-    if (ui.button('poleswitch', x + w - 104, y - 1, 90, 13, POLE_SWITCH[sw], { style: sw === 0 ? 'green' : sw === 1 ? 'red' : 'wood', tip: 'The grid switch: On, Off, or Night shift only (its machines run 2am-6am). Click for the next position.' })) togglePole(g, e);
+    if (ui.button('poleswitch', x + w - 116, y - 1, 90, 13, POLE_SWITCH[sw], { style: sw === 0 ? 'green' : sw === 1 ? 'red' : 'wood', tip: 'The grid switch: On, Off, or Night shift only (its machines run 2am-6am). Click for the next position.' })) togglePole(g, e);
   }
   if (!n) {
     ui.text(e.def.kind === 'pole' ? 'Not connected to anything yet.' : 'Not connected to a pole! Place a pole nearby.', x + 14, y + 16, C.brick);

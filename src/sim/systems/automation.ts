@@ -172,6 +172,15 @@ export function drillOutputTile(e: Ent): [number, number] {
   }
 }
 
+/**
+ * How fast a drill brings up each ore, against the common ones (the owner: "nerf the quarry, so the
+ * rarity of the ores depict how much you get from drilling"). A cycle on a gold vein takes almost
+ * seven times as long as one on copper; stone, clay and copper come at the full rate.
+ */
+export const DRILL_YIELD: Record<string, number> = {
+  stone: 1, clay: 1, copper_ore: 1, coal: 0.8, tin_ore: 0.7, iron_ore: 0.45, gold_ore: 0.15, starmetal_ore: 0.06,
+};
+
 function drillOre(g: Game, e: Ent): string | null {
   const ores: string[] = [];
   for (let y = e.y; y < e.y + e.h; y++)
@@ -232,12 +241,16 @@ function drillTick(g: Game, e: Ent, dt: number) {
       return;
     }
   }
+  // the ore this cycle brings up, picked when it starts: a rarer one takes longer
+  if (!e.st.ore) e.st.ore = drillOre(g, e);
+  const ore: string | null = e.st.ore;
+  const yieldOf = ore ? DRILL_YIELD[ore] ?? 1 : 1;
   e.working = true;
-  setState(e, MState.Working, 'Drilling', now);
-  e.st.progress += (dt * rate) / 2;
+  setState(e, MState.Working, ore ? `Drilling ${kDef(key(ore)).name.toLowerCase()}${yieldOf < 0.5 ? ' (rare: slow going)' : ''}` : 'Drilling', now);
+  e.st.progress += ((dt * rate) / 2) * yieldOf;
   if (e.st.progress >= 1) {
     e.st.progress = 0;
-    const ore = drillOre(g, e);
+    e.st.ore = null;
     if (!ore) return;
     const k = key(ore);
     g.stats.add(k, 1);

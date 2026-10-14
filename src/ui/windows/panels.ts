@@ -66,7 +66,7 @@ STRUCT_PANELS.building = (ui, play, e, x, y, w, st) => {
   }
   const res = residents(g, e);
   ui.text(`${res.length}/${e.def.capacity} animals  -  Feeder hay: ${e.st.hay ?? 0}/40`, x + 14, y + 2, C.ink);
-  if (ui.button('addhay', x + w - 92, y - 1, 78, 13, 'Add hay', { style: 'flat', tip: 'Put hay from your bag into the feeder' })) {
+  if (ui.button('addhay', x + w - 104, y - 1, 78, 13, 'Add hay', { style: 'flat', tip: 'Put hay from your bag into the feeder' })) {
     const have = g.player.inv.countId('hay');
     const n = Math.min(have, 40 - (e.st.hay ?? 0));
     if (n > 0) {
@@ -150,7 +150,7 @@ STRUCT_PANELS.chest = (ui, play, e, x, y, w, st) => {
   // generic chest
   ui.text(e.def.id === 'crate_out' ? 'Outbox: bumblebots take from here.' : e.def.id === 'crate_store' ? 'Storage: bumblebots keep spares here.' : `${e.inv!.slots.filter(Boolean).length}/${e.inv!.size} stacks used. Shift-click to move.`, x + 14, y + 2, C.walnut);
   invGrid(ui, play, e.inv!, x + 14, y + 14, 12, { target: play.g.player.inv });
-  if (ui.button('csort', x + w - 60, y - 1, 46, 12, 'Sort', { style: 'flat' })) e.inv!.sort();
+  if (ui.button('csort', x + w - 72, y - 1, 46, 12, 'Sort', { style: 'flat' })) e.inv!.sort();
   return 24 + Math.ceil(e.inv!.size / 12) * 22 + 6;
 };
 

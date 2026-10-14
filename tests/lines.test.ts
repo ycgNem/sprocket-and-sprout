@@ -8,6 +8,7 @@ import { key } from '../src/sim/inventory';
 import type { Ent } from '../src/sim/ents';
 import { MState, isProblem } from '../src/sim/mstate';
 import { diagnose } from '../src/sim/lines';
+import { seedBin } from '../src/sim/systems/fieldworks';
 import { powerState, togglePole } from '../src/sim/systems/power';
 
 function blank() {
@@ -318,7 +319,7 @@ describe('the field gantry (ROADMAP.md 4.9.1)', () => {
     // one pass sowed the bare strip (it tills the grass first) and watered it
     const sown = gan.strip!.filter(([x, y]) => g.soil.get(g.map.idx(x, y))?.crop).length;
     expect(sown).toBe(20);
-    expect(gan.inv!.countId('cogbean_seed')).toBe(0);
+    expect(seedBin(gan).cogbean_seed ?? 0).toBe(0);
     // now ripen the crops: the next pass picks them into the car
     for (const [x, y] of gan.strip!) {
       const c = g.soil.get(g.map.idx(x, y))?.crop;
@@ -395,7 +396,7 @@ describe('the field gantry (ROADMAP.md 4.9.1)', () => {
     gan.inv!.add(key('cogbean_seed'), 1);
     run(g, 20);
     expect(g.soil.get(g.map.idx(13, 28))!.crop?.dead).toBe(false);
-    expect(gan.inv!.countId('cogbean_seed')).toBe(0);
+    expect(seedBin(gan).cogbean_seed ?? 0).toBe(0);
   });
 });
 

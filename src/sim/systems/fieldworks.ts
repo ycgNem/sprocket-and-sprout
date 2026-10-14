@@ -129,9 +129,8 @@ export function gleanerTick(g: Game, e: Ent, dt: number) {
 
 // ---------------- the field gantry ----------------
 
-/** the gantry's hopper car holds this many crops, and this many seeds */
+/** the gantry's hopper car holds this many crops; its seed bin has no limit (below) */
 export const GANTRY_HOPPER = 60;
-export const GANTRY_SEEDS = 40;
 
 /** The gantry's rails: how far the strip runs from the car, and its tiles (ROADMAP.md 4.9.1). */
 export function gantryStrip(g: Game, e: Ent, rot: Dir = e.rot): { len: number; rows: [number, number][][] } {
@@ -150,19 +149,54 @@ export function gantryStrip(g: Game, e: Ent, rot: Dir = e.rot): { len: number; r
   return { len: rows.length, rows };
 }
 
+/**
+ * The gantry's seed bin: seed id -> count, with no limit (the owner: "make it so field gantry takes
+ * infinite seeds"). It sits apart from the hopper, so seeds never crowd out the crops. Seeds a
+ * save kept in the hopper's slots (before the bin, 40 at most) move into it.
+ */
+export function seedBin(e: Ent): Record<string, number> {
+  if (!e.st.seeds) {
+    e.st.seeds = {};
+    sweepSeeds(e);
+  }
+  return e.st.seeds;
+}
+/** seeds that landed in the hopper's slots go to the bin */
+function sweepSeeds(e: Ent) {
+  const bin: Record<string, number> = e.st.seeds;
+  e.inv!.slots.forEach((s, i) => {
+    if (!s || !kDef(s.k).plant?.crop) return;
+    bin[kDef(s.k).id] = (bin[kDef(s.k).id] ?? 0) + s.n;
+    e.inv!.slots[i] = null;
+  });
+}
 function seedsIn(e: Ent): number {
-  return e.inv!.slots.reduce((a, s) => a + (s && kDef(s.k).plant?.crop ? s.n : 0), 0);
+  return Object.values(seedBin(e)).reduce((a, n) => a + n, 0);
+}
+/** put seeds in the bin (all of them: it has no limit) */
+export function binSeeds(e: Ent, k: ItemKey, n: number): number {
+  const bin = seedBin(e), id = kDef(k).id;
+  bin[id] = (bin[id] ?? 0) + n;
+  return n;
+}
+/** take up to n of a seed back out of the bin */
+export function unbinSeeds(e: Ent, id: string, n: number): number {
+  const bin = seedBin(e);
+  const t = Math.min(n, bin[id] ?? 0);
+  bin[id] -= t;
+  if (bin[id] <= 0) delete bin[id];
+  return t;
 }
 function cropsIn(e: Ent): number {
   return e.inv!.slots.reduce((a, s) => a + (s && !kDef(s.k).plant?.crop && !kDef(s.k).fertilizer ? s.n : 0), 0);
 }
 
 /** the first seed in the bin that grows on tile i this season (bare, tilled or under a dead crop) */
-function seedFor(g: Game, e: Ent, i: number): { k: number; cr: CropDef } | null {
-  for (const st of e.inv!.slots) {
-    if (!st || !kDef(st.k).plant?.crop) continue;
-    const cr = CROP_BY_SEED.get(kDef(st.k).id);
-    if (cr && (cr.seasons.includes(g.time.season) || inGreenhouse(g, i) || g.sys.megaBonus?.beacon)) return { k: st.k, cr };
+function seedFor(g: Game, e: Ent, i: number): { id: string; cr: CropDef } | null {
+  for (const [id, n] of Object.entries(seedBin(e))) {
+    if (n <= 0) continue;
+    const cr = CROP_BY_SEED.get(id);
+    if (cr && (cr.seasons.includes(g.time.season) || inGreenhouse(g, i) || g.sys.megaBonus?.beacon)) return { id, cr };
   }
   return null;
 }
@@ -210,6 +244,13 @@ function gantryRow(g: Game, e: Ent, row: [number, number][]) {
         if (out) fieldHand(g, e, out);
         let n = 0;
         for (const st of out ?? []) {
+          // seeds a crop drops go to the bin, to sow again
+          if (kDef(st.k).plant?.crop) {
+            binSeeds(e, st.k, st.n);
+            g.stats.add(st.k, st.n);
+            n += st.n;
+            continue;
+          }
           const left = e.inv!.add(st.k, st.n);
           if (left) g.sys.drops?.spawn?.(g, st.k, left, x + 0.5, y + 0.5);
           g.stats.add(st.k, st.n - left);
@@ -234,13 +275,15 @@ function gantryRow(g: Game, e: Ent, row: [number, number][]) {
     if (s.crop || canPlant(g, seed.cr, i)) continue;
     plant(g, seed.cr, i);
     s.water = true;
-    e.inv!.remove(seed.k, 1);
-    g.stats.use(seed.k, 1);
+    unbinSeeds(e, seed.id, 1);
+    g.stats.use(key(seed.id), 1);
   }
 }
 
 export function gantryTick(g: Game, e: Ent, dt: number) {
   const now = g.simTime;
+  seedBin(e);
+  sweepSeeds(e);
   let { len, rows } = gantryStrip(g, e);
   // rails behind the car and none ahead: it turns to ride them. Facing north and facing south (or
   // east and west) the car looks the same, and a player's car at the top of rails laid south sat
@@ -333,19 +376,9 @@ PORT_HANDLERS.gleaner = { accept: () => 0, insert: () => 0, uses: () => false };
 // the gantry's car: crops come out, seeds (and fertilizer) go in
 PORT_HANDLERS.gantry = {
   uses: (_g, _e, k) => !!kDef(k).plant?.crop,
-  accept: (_g, e, k) => {
-    const d = kDef(k);
-    if (!d.plant?.crop) return 0;
-    return Math.max(0, Math.min(GANTRY_SEEDS - seedsIn(e), e.inv!.space(k)));
-  },
-  insert: (_g, e, k, n) => {
-    const d = kDef(k);
-    if (!d.plant?.crop) return 0;
-    const can = Math.min(n, GANTRY_SEEDS - seedsIn(e), e.inv!.space(k));
-    if (can <= 0) return 0;
-    e.inv!.add(k, can);
-    return can;
-  },
+  // the seed bin takes every seed it's given
+  accept: (_g, _e, k) => (kDef(k).plant?.crop ? Number.MAX_SAFE_INTEGER : 0),
+  insert: (_g, e, k, n) => (kDef(k).plant?.crop && n > 0 ? binSeeds(e, k, n) : 0),
   take: (_g, e, pred, max) => {
     const inv = e.inv!;
     for (let i = inv.slots.length - 1; i >= 0; i--) {

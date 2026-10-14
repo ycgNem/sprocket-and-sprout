@@ -1164,3 +1164,20 @@ recommendations are the decisions.
     (`dist:win`, `build.win.target`); the Portable asset is gone from the v2.0.0 release, its body
     says "the installer below", and the title screen's Download for Windows tip names only Setup.
     Older releases keep theirs.
+168. **The field gantry's seed bin has no limit (the owner: "make it so field gantry takes infinite
+    seeds").** Seeds sat in the hopper car's slots, 40 at most, beside the crops. They have their own
+    bin now (`seedBin`, seed id -> count in `e.st.seeds`): an arm or a shift-click puts in every seed
+    it's given, the hopper's 16 slots are left to the crops (60, as before), seeds a crop drops go to
+    the bin, and the window shows the bin under the hopper (click a seed to take it back). Seeds a
+    save kept in the slots move into the bin on its first tick.
+169. **Rare ores drill slower (the owner: "nerf the quarry, so the rarity of the ores depict how much
+    you get from drilling").** Every vein gave one ore a cycle, so a drill on gold made as much as one
+    on copper. A cycle's length now follows the ore it brings up (`DRILL_YIELD`, picked when the
+    cycle starts): stone, clay and copper at the full rate, coal 0.8, tin 0.7, iron 0.45, gold 0.15,
+    starmetal 0.06, in the order of their prices (5, 15, 6, 10, 25, 60; coal is common but fuel).
+    The drill's line says what it's drilling, and "rare: slow going" under half speed. Hand mining
+    in the quarry is untouched.
+170. **Buttons in a window's top-right corner sat under its close x (the owner: "the sort thing
+    overlaps with the x").** The chest's Sort, the coop's Add hay, the field machines' Dawn Shift
+    switch and the pole's grid switch ended 14 px from the right edge, at the x's height; they end
+    26 px in now, clear of it.
