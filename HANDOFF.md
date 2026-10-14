@@ -4,11 +4,16 @@ A cozy farm-factory browser game: a clockwork-automation life sim in TypeScript 
 with no engine. The pixel art is PixelLab-generated and packed into small PNG sheets (`src/art/`);
 music and most sound are procedural, some SFX come from a jsfxr bank.
 
-**Status (October 11, 2026, evening): 2.0.0 "The Works" is released, every phase of ROADMAP.md is
-done, and the owner's notes since have gone live as small updates without a version bump**
-(DECISIONS #148-#166, "Since 2.0.0" below). The website runs `works` at its latest push; the GitHub
-release `v2.0.0` (Latest) has the notes and Windows installers as of orders in season (#165, October
-13). Next is 2.0.1 ("What's next").
+**Status (October 13, 2026, night): 2.1.0 "Overseas" is released** (website and the GitHub release
+`v2.1.0`, Latest, with the Setup installer). 2.1 is the owner's 2.1 notes (DECISIONS #168-#173: the
+field gantry's seed bin with no limit, the corner buttons clear of the close x, rare ores drilling
+slower by `DRILL_YIELD`, arms loading a busy machine as far ahead as hands, a running gantry drawn
+when its bridge is in view, and **exports**: the Harbor, a works project after the Tram, and the
+Copper Gull's manifests, `src/data/exports.ts`, `src/sim/systems/exports.ts`, the Orders board's
+Exports tab, `src/render/harbor.ts`, art in `art/harbor/`) plus every update since 2.0.0 (#148-#167,
+below), gathered into one 2.1 entry in the patch notes (2.0's "Updates" section is gone). 426 tests
+(1 skipped); the year bot earns 188.8k. PixelLab: 24 generations on the Harbor's art (balance 2721).
+Next is 2.1.1 or 2.2 from the owner's notes ("What's next").
 **Since 2.0.0** (each an owner's note, a change commit ending "DECISIONS #N" and a "Patch notes:"
 commit adding a line to 2.0's "Updates" in `src/data/patchnotes.ts` and PATCHNOTES.md): the patch
 notes rewritten for players (#148); Milling's rate stage and cornmeal (#149); the beach's own forage,
@@ -38,9 +43,12 @@ plate and banner, gantry wheels, chamber shadows, then by script conveyor belts,
 keeper's farmhouse), the procedural generators deleted, version 2.0.0 and its patch notes, and the
 critic's confirmation pass (every earlier finding fixed in play; its two Majors, "where to get" the
 parts and the zoom after a reload, and its Minors fixed: #146).
-**Where it stopped:** `works` and `main` on origin are the same commit (through #166 and its patch
-notes, plus this docs commit), pushed with `git push origin works:main` and `git push origin works`.
-`../sns-p0check` has `main` at `adf12f9` and its own node_modules now: it was a junction to this
+**Where it stopped:** `works` and `main` on origin are the same commit (2.1.0, `65f04ea`, plus this
+docs commit), pushed with `git push origin works:main` and `git push origin works`. The release
+`v2.1.0` has `Sprocket-and-Sprout-Setup-2.1.0.exe` only, built in `../sns-p0check` at `65f04ea`
+with `npm run dist:win`; its body is `e2e/out/release-notes-2.1.md` (two lines on where to play, then
+`node scripts/release-notes.mjs "2.1"`). The v2.0.0 notes below are history.
+`../sns-p0check` has its own node_modules now: it was a junction to this
 repo's, and `npm ci` there emptied this one (fixed with `npm ci` here); never run `npm ci` in a
 worktree whose node_modules is a junction. The v2.0.0 installers were rebuilt there and
 re-uploaded (`gh release upload v2.0.0 release/Sprocket-and-Sprout-Setup-2.0.0.exe --clobber`; not
@@ -402,15 +410,15 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
-**2.0.0 is released (every phase done, DECISIONS #139-#147).** Next is 2.0.1. PixelLab: 224
-generations plus the $2.00 credit on October 11 (2,000 more on November 9); this session spent 90,
-and everything after the critic's screenshot test was drawn by script for 0.
+**2.1.0 is released (DECISIONS #148-#173).** The economy work planned as 2.0.1 is still open; it can
+be 2.1.1. PixelLab balance 2721 on October 13 (the Harbor spent 24). Exports to watch in play: the
+manifest sizes (`LINE_VALUE`, `LINE_GROWTH` in `src/data/exports.ts`) and whether a late farm can
+fill one in a week; the owner asked for "crazy quantities", so lean big.
 
-A prompt to paste for the next session (2.0.1):
+A prompt to paste for the next session (the economy, as 2.1.1):
 
-> Read HANDOFF.md (the status, "What's next") and DECISIONS.md #139-#160. 2.0.0 is released and
-> the owner's notes since are live as small updates (#148-#160). Now
-> 2.0.1 from the critic's 2.0 review (its M5 and cut list): the economy (a cogbean earns 34.5 coins a
+> Read HANDOFF.md (the status, "What's next") and DECISIONS.md #148-#173. 2.1.0 is released. Now
+> the economy from the critic's 2.0 review (its M5 and cut list): the economy (a cogbean earns 34.5 coins a
 > tile a day raw, 85.5 pickled, against 18.6 for the next crop: try price 30 and a 3-day regrow, and
 > two orders before day 10 that need more than one crock), cut the standing orders to 5-6
 > businesses whose orders scale, keep one auction, and hold shortages back; re-baseline the pace bot
