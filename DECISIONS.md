@@ -1195,3 +1195,37 @@ recommendations are the decisions.
     field beside the bridge (up to 24 tiles along), with the car off screen, nothing drew the
     bridge. After the on-screen pass, a gantry whose bridge is in view draws even when its car
     isn't.
+173. **Exports: the Harbor and the Copper Gull (the owner: "for late game add a thing where you can
+    ship goods off, export goods, but they ask for crazy quantities ... make this feature expansive
+    and an actual project").** The late game had nothing that wanted a factory's whole output: the
+    Guild's contracts and the businesses' orders ask tens. Now:
+    - **The Harbor.** A works project after the Tram, beside the Clock ("Rebuild the Harbor": 500
+      planks, 80 beams, 150 rope, 60 iron plates, 40 brass gears, 40 glass and 30,000 coins), rebuilds
+      the old warehouse and crane at the foot of the beach pier (a landmark building, HARBOR in
+      src/sim/world/townworks.ts, drawn by src/render/harbor.ts; derelict until then). Opening it
+      brings the Harbormaster's letter, a scene, and the ship the next dawn.
+    - **Manifests** (src/sim/systems/exports.ts, data in src/data/exports.ts). The Copper Gull docks
+      at dawn with a manifest from one of five ports (never the same twice running), each with its
+      own trade: Brassmouth metal and parts, Port Verdance food and preserves, the Ember Isles drink
+      and luxuries, Saltspire timber, rope and canvas, Kettleholm tea, baking and cloth. Three lines
+      (four from Merchant, five from Magnate) of goods in season (#165) that the farm has made, each
+      about 40,000 coins of goods at base price (+60% a rank): 330 iron bars, 570 brass gears, 2,000
+      glass at the first rank, up to 9,999. A manifest is an order of a new kind ('export', customer
+      'harbor', each line with its own price), so the board, tracking (#164), crate tags and the post
+      all work on it as they do on the others.
+    - **Pay and the week.** Goods pay as they go aboard at 1.4x their base price (+0.08 a rank),
+      outside the market (no saturation). Loaded in full: a 40% bonus on top, +3 standing, and it
+      sails the next dawn; otherwise it sails a week after docking with what's aboard (+1 standing for
+      at least half by value). Three days at sea, then the next port.
+    - **Loading.** By hand at the warehouse door (F loads what the bag has, then opens the Exports
+      tab), Hand in on the Orders board's new Exports tab, or a crate tagged for the Harbor: the post
+      carries its goods down at noon, 6pm and overnight, and such a crate keeps what the ship didn't
+      take (it never sells to market), so lines stock up while the ship is at sea.
+    - **Standing.** Six ranks, Dockhand to Merchant Prince (0, 3, 9, 18, 30, 45), each with the
+      Harbormaster's letter and 10,000 to 50,000 coins. Three achievements (the Harbor, a full
+      manifest, the top rank).
+    - **On screen.** The ship moored broadside east of the pier, sailing in from the east on the
+      morning it docks and out the morning it sails (shipView); cargo stacks by the warehouse as the
+      manifest loads; the Exports tab shows the manifest, the bars, what's aboard, the bonus, the
+      record of voyages. Art by the art-director with PixelLab (the `harbor:` sheet); plain shapes
+      stand in for any frame not in the atlas.

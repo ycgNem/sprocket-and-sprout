@@ -60,12 +60,21 @@ export const TRAM = {
 /** The town line: where the square's lamp cable meets the farm at the gate (m.locs 'farm_gate'). */
 export const TOWN_LINE: [number, number] = [92, 45];
 
+/**
+ * The Harbor (2.1, exports): the export warehouse and its cargo crane on the sand at the foot of the
+ * beach pier (the pier's planks are x 138-140), its door facing the sea. Derelict until the works
+ * project rebuilds it (`harbor`); src/sim/systems/exports.ts runs it, src/render/harbor.ts draws it.
+ */
+export const HARBOR = { id: 'harbor', name: 'The Harbor', x: 141, y: 126, w: 4, h: 3, door: [143, 128] as [number, number] };
+/** where the ship moors: in the water east of the pier, broadside (its hull's tiles, bow east) */
+export const SHIP_BERTH = { x: 141, y: 135, w: 10, h: 4 };
+
 const bInfo = (b: { id: string; name: string; x: number; y: number; w: number; h: number; door: [number, number] }, roof: number, wall: number): BuildingInfo =>
   ({ id: b.id, kind: LANDMARK, name: b.name, x: b.x, y: b.y, w: b.w, h: b.h, door: [b.door[0], b.door[1]], roof, wall });
 
 /** The keystones' buildings (added by generateWorld with the town's others, so they exist in every world). */
 export function townworksBuildings(): BuildingInfo[] {
-  return [bInfo(TOWN_MILL, C.wine, C.oak), bInfo(PUMP_HOUSE, C.slate, C.brick)];
+  return [bInfo(TOWN_MILL, C.wine, C.oak), bInfo(PUMP_HOUSE, C.slate, C.brick), bInfo(HARBOR, C.oak, C.walnut)];
 }
 
 /**
@@ -125,6 +134,13 @@ export function layTownworks(m: TileMap): boolean {
   for (const [x, y] of SQUARE_LAMPS) setObj(x, y, O.LAMPPOST, SQUARE_LAMP);
   // the tram's square stop: its sign's tile stays clear
   setObj(TRAM.sign[0], TRAM.sign[1], O.NONE);
+  // the Harbor: sand under the warehouse, nothing round it or on the way from the pier to its door
+  for (let y = HARBOR.y - 1; y <= HARBOR.y + HARBOR.h + 1; y++)
+    for (let x = HARBOR.x - 1; x <= HARBOR.x + HARBOR.w; x++) {
+      if (!m.inb(x, y) || m.g(x, y) === T.PLANKS || m.g(x, y) === T.OCEAN || m.g(x, y) === T.DEEP) continue;
+      setObj(x, y, O.NONE);
+      if (x >= HARBOR.x && x < HARBOR.x + HARBOR.w && y >= HARBOR.y && y < HARBOR.y + HARBOR.h) setGround(x, y, T.SAND);
+    }
   return changed;
 }
 

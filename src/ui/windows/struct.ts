@@ -77,7 +77,7 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
     } else if (field) {
       // field machines lead with their state line (what they're picking, or when the next crop ripens)
       const sl = structStateLine(g, e, true);
-      ui.text(ellipsize((sl?.text ?? '') + (kind === 'gantry' ? `  -  seeds: shift-click them in` : ''), w - 132), x + 14, top + 2, sl?.color ?? C.walnut);
+      ui.text(ellipsize((sl?.text ?? '') + (kind === 'gantry' ? `  -  seeds: shift-click them in` : ''), g.research.done.has('r_dawn') ? w - 132 : w - 28), x + 14, top + 2, sl?.color ?? C.walnut);
       if (g.research.done.has('r_dawn') && ui.button('dawn', x + w - 116, top - 1, 90, 12, e.st.dawn ? 'Picks from 6am' : 'Picks from noon', { style: 'flat', active: !!e.st.dawn, tip: 'Dawn Shift: pick newly ripe crops from 6am (off: the morning is left to your hands)' })) e.st.dawn = !e.st.dawn;
     } else ui.text(readonly ? 'Collected goods. Click to take, or use an arm.' : `${e.inv.slots.filter(Boolean).length}/${e.inv.size} stacks used. Shift-click to move.`, x + 14, top + 2, C.walnut);
     invGrid(ui, play, e.inv, x + 14, top + 14, 12, { target: inv, readonly, accept: kind === 'shipbin' ? (k) => kDef(k).price > 0 : undefined });
@@ -109,7 +109,8 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
       // a tagged crate's goods fetch their customer's order prices first, the market the rest
       const share = orderShare(g, e);
       let total = share.coins;
-      e.inv.slots.forEach((s, i) => { if (s) total += (g.sys.market?.priceOf?.(g, s.k) ?? kDef(s.k).price) * share.left[i]; });
+      // (a crate tagged for the Harbor keeps what the ship doesn't take: none of it goes to market)
+      if (e.st.tag !== 'harbor') e.inv.slots.forEach((s, i) => { if (s) total += (g.sys.market?.priceOf?.(g, s.k) ?? kDef(s.k).price) * share.left[i]; });
       ui.text(`Worth ${ICON.coin}${total.toLocaleString()}`, x + w - 14, top + 2, C.moss, { align: 'right' });
       crateTags(ui, play, e, x, top + 16 + Math.ceil(e.inv.size / 12) * (SLOT + 2), w);
     }

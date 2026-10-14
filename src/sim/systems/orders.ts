@@ -33,6 +33,7 @@ import { addPoints, hearts, npcSys } from './npcs';
 import { send } from './goals';
 import { canResearch } from '../keystones';
 import { FOUNTAIN, MILL_WHEEL, TRAM } from '../world/townworks';
+import { PORT_BY_ID } from '../../data/exports';
 import { inSeason, specMask } from '../seasonal';
 import { SEASON_NAMES } from '../../data/types';
 
@@ -44,12 +45,14 @@ const SCENE_AT: Record<string, [number, number]> = {
   w_tram: [(TRAM.route[0][0] + TRAM.route[1][0]) / 2, TRAM.route[0][1]],
 };
 
-export type OrderKind = 'today' | 'standing' | 'guild' | 'works';
+export type OrderKind = 'today' | 'standing' | 'guild' | 'works' | 'export';
 
 export interface OrderLine {
   spec: string;
   n: number;
   have: number;
+  /** coins an item on this line (an export manifest's lines each have their own price) */
+  unit?: number;
 }
 
 export interface Order {
@@ -80,6 +83,8 @@ export interface Order {
   shareDay?: number;
   /** a standing order in a shortage week: twice the size, 25% more an item (the board says so) */
   short?: boolean;
+  /** an export manifest: the port across the sea that sent it (src/data/exports.ts) */
+  port?: string;
 }
 
 /** a shortage (Phase 5): the week, the business, what it's short of and how many it wants */
@@ -163,6 +168,7 @@ export function toggleTrack(g: Game, o: Order): boolean {
 
 /** the customer's name on the board: a business, the Guild, the Council, or a villager */
 export function custName(cust: string): string {
+  if (cust === 'harbor') return 'The Harbor';
   const b = BUSINESS_BY_ID.get(cust);
   if (b) return b.name;
   const n = NPC_BY_ID.get(cust);
@@ -188,6 +194,7 @@ export const shareIn = (g: Game, o: Order) => steadyOf(o) > 0 && o.shareDay === 
 
 /** the order's title: what it asks for, or the project's name */
 export function orderTitle(o: Order): string {
+  if (o.kind === 'export') return `${PORT_BY_ID.get(o.port ?? '')?.name ?? 'Overseas'} manifest`;
   if (o.kind === 'works') return PROJECT_BY_ID.get(o.def)?.name ?? KEYSTONE_WORKS_BY_ID.get(o.def)?.name ?? o.def;
   if (o.kind === 'guild') return CONTRACT_POOL.find((c) => c.id === o.def)?.label ?? specLabel(o.lines[0].spec);
   return `${o.lines[0].n} ${specLabel(o.lines[0].spec)}`;
@@ -206,6 +213,8 @@ export function dueText(g: Game, o: Order): string {
   if (o.kind === 'today') return o.done ? 'done' : 'ends at midnight';
   if (o.due >= NEVER) return 'no rush';
   const d = o.due - g.dayIndex;
+  // an export manifest: the ship sails the morning after its last day
+  if (o.kind === 'export') return o.done ? 'sails at dawn' : d <= 0 ? 'sails at dawn' : d === 1 ? 'sails in two days' : `sails ${WEEKDAYS[(g.weekday + d + 1) % 7]} morning`;
   if (d <= 0) return 'due today';
   if (d === 1) return 'due tomorrow';
   return `due ${WEEKDAYS[(g.weekday + d) % 7]}`;
@@ -227,7 +236,9 @@ export function haulToday(g: Game): boolean {
  * standing order pays double on the Harvest Haul (a shortage's 25% is in its `unit` already)
  */
 export function payFor(g: Game, o: Order, k: ItemKey, n: number): number {
-  return (o.unit ?? 0) * n * (o.silver && kQ(k) >= 1 ? 2 : 1) * (o.kind === 'standing' && haulToday(g) ? 2 : 1);
+  // a line's own price (an export manifest's), else the order's
+  const unit = o.lines.find((l) => l.unit !== undefined && matchesSpec(kDef(k), l.spec))?.unit ?? o.unit ?? 0;
+  return unit * n * (o.silver && kQ(k) >= 1 ? 2 : 1) * (o.kind === 'standing' && haulToday(g) ? 2 : 1);
 }
 
 const fitsLine = (l: OrderLine, k: ItemKey) => l.have < l.n && matchesSpec(kDef(k), l.spec);
@@ -252,6 +263,9 @@ function post(g: Game, o: Omit<Order, 'uid'>, quiet = false): Order {
   }
   return full;
 }
+
+/** post an export manifest (src/sim/systems/exports.ts makes it when the ship docks) */
+export const postManifest = (g: Game, o: Omit<Order, 'uid'>): Order => post(g, o, true);
 
 /** the next Friday at least two days away */
 function nextFriday(g: Game): number {
@@ -473,7 +487,7 @@ function postWorks(g: Game, quiet = false) {
  * Deliver up to n of item k to an order; returns how many it took and what they pay now. By hand
  * the coins are paid at once; by the post they join the post's total (economy.ts pays it).
  */
-function deliver(g: Game, o: Order, k: ItemKey, n: number, via: 'hand' | 'post' | 'board'): { took: number; coins: number } {
+export function deliver(g: Game, o: Order, k: ItemKey, n: number, via: 'hand' | 'post' | 'board'): { took: number; coins: number } {
   let took = 0;
   for (const l of o.lines) {
     if (took >= n || !fitsLine(l, k)) continue;
@@ -526,7 +540,9 @@ function complete(g: Game, o: Order, via: 'hand' | 'post' | 'board', money = 0) 
   const os = orders(g);
   if (money) g.player.money -= money;
   os.filled[o.def] = (os.filled[o.def] ?? 0) + 1;
-  const before = rank(g, o.cust);
+  // the Harbor keeps its own standing and ranks (src/sim/systems/exports.ts)
+  const harbor = o.kind === 'export';
+  const before = harbor ? 0 : rank(g, o.cust);
   if (o.rep) os.rep[o.cust] = (os.rep[o.cust] ?? 0) + o.rep;
   if (o.pay) {
     if (via === 'post') postBonus += o.pay;
@@ -535,7 +551,7 @@ function complete(g: Game, o: Order, via: 'hand' | 'post' | 'board', money = 0) 
       g.earned += o.pay;
     }
   }
-  if (o.kind === 'today' || o.kind === 'guild') o.done = true;
+  if (o.kind === 'today' || o.kind === 'guild' || o.kind === 'export') o.done = true;
   else os.open = os.open.filter((x) => x !== o);
   g.emit({ t: 'sfx', id: 'quest' });
   const npc = custNpc(o.cust);
@@ -568,7 +584,8 @@ function complete(g: Game, o: Order, via: 'hand' | 'post' | 'board', money = 0) 
       finishWorks(g, o.def);
       break;
   }
-  const after = rank(g, o.cust);
+  if (o.kind === 'export') g.sys.exports?.filled?.(g, o, via);
+  const after = harbor ? 0 : rank(g, o.cust);
   if (after > before) rankUp(g, o.cust, after);
   g.sys.quests?.notify?.(g, 'order', 1, o.def);
   // a rank can open a business's next standing order at once
@@ -678,7 +695,7 @@ export function orderWants(g: Game, npc: string): { label: string; k: ItemKey | 
 
 /** "Hand in" at the board (the works and the Guild's contracts): what the bag has that it wants */
 export function boardHandIn(g: Game, o: Order): number {
-  if (o.done || (o.kind !== 'works' && o.kind !== 'guild')) return 0;
+  if (o.done || (o.kind !== 'works' && o.kind !== 'guild' && o.kind !== 'export')) return 0;
   const inv = g.player.inv;
   let took = 0;
   for (const s of inv.slots) {
@@ -774,6 +791,8 @@ export function tagChoices(g: Game): { cust: string; place: string }[] {
     out.push({ cust: c, place: custName(c) });
   }
   if (os.open.some((o) => o.kind === 'works')) out.push({ cust: 'council', place: custName('council') });
+  // the Harbor once it's open, ship in or not: a crate tagged for it holds its goods for the next manifest
+  if (g.flags.has('harbor')) out.push({ cust: 'harbor', place: custName('harbor') });
   return out;
 }
 

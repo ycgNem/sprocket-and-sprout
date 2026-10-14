@@ -27,6 +27,9 @@ notes are under "What's new" on the title screen and in [PATCHNOTES.md](PATCHNOT
   businesses, by hand or by tagging the crate "Ship to:", so the post delivers them.
 - **The town's works**: the Town Mill, the Waterworks, the lamps, the tram and the clock,
   each a keystone you look at, try small, keep running and study before you build it.
+- **The Harbor** (2.1): rebuild the beach pier's warehouse and the Copper Gull calls for your
+  exports, a manifest from a port across the sea in quantities only a factory makes, paid well
+  above the market, with six ranks from Dockhand to Merchant Prince.
 - **The Deepworks**: the old mine is 30 levels in six strata, with pests instead of monsters,
   hazards with fixes, and a works chamber to restore every fifth level.
 - **The Field Works**: gleaners and the field gantry harvest for you; the night shift runs the

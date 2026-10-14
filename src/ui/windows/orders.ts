@@ -14,7 +14,9 @@ import {
   offSeason, repOf, seasonsText, shareIn, steadyOf, specLabel, toggleTrack, villagerName, type Order,
 } from '../../sim/systems/orders';
 import { inSeason } from '../../sim/seasonal';
-import { SEASON_NAMES } from '../../data/types';
+import { SEASON_NAMES, WEEKDAYS } from '../../data/types';
+import { HARBOR_RANKS, PORT_BY_ID, REP_FULL, REP_HALF, SHIP_NAME } from '../../data/exports';
+import { exportsState, harborOpen, harborRank, harborRep, loadFromBag, manifest, manifestValue, premiumAt } from '../../sim/systems/exports';
 import { festivalNotice } from '../../sim/systems/festivals';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
@@ -24,8 +26,10 @@ import { registerWindow, WinState } from './index';
 import { portrait } from './town';
 import { specIcon } from './menu';
 
-type Tab = 'today' | 'standing' | 'works';
-const TABS: [Tab, string][] = [['today', 'Today'], ['standing', 'Standing'], ['works', 'Works']];
+type Tab = 'today' | 'standing' | 'works' | 'exports';
+const TABS: [Tab, string][] = [['today', 'Today'], ['standing', 'Standing'], ['works', 'Works'], ['exports', 'Exports']];
+/** the Exports tab shows once the Harbor can be rebuilt (the Tram runs) or is open */
+const exportsTab = (g: PlayScreen['g']) => g.flags.has('tram') || harborOpen(g);
 
 /**
  * An order's lines: icon, have/n, name (as many as fit on a row). Hovering one names it (three or
@@ -290,21 +294,125 @@ function drawWorks(ui: UI, play: PlayScreen, x: number, y: number, w: number): n
   return yy - y;
 }
 
+/** the Harbor's standing strip: its rank, and how far to the next */
+function harborStrip(ui: UI, g: PlayScreen['g'], x: number, y: number, w: number) {
+  const r = harborRank(g), rep = harborRep(g), next = HARBOR_RANKS[r + 1];
+  const label = next ? `${HARBOR_RANKS[r].name}  ${rep}/${next.rep}` : HARBOR_RANKS[r].name;
+  ui.text(label, x + w, y, C.ink, { align: 'right' });
+  if (next) ui.bar(x + w - textWidth(label) - 48, y + 2, 40, 3, (rep - HARBOR_RANKS[r].rep) / (next.rep - HARBOR_RANKS[r].rep), C.moss);
+  if (ui.hover(x + w - textWidth(label) - 50, y - 2, textWidth(label) + 52, 11)) {
+    ui.tip([
+      { text: `Harbor standing: ${HARBOR_RANKS[r].name}`, color: C.amber },
+      { text: `Exports pay ${Math.round(premiumAt(r) * 100)}% of the goods' price. A manifest loaded in full: +${REP_FULL} standing; at least half of it: +${REP_HALF}.` },
+      ...(next ? [{ text: `${next.name} at ${next.rep}: bigger manifests, ${Math.round(premiumAt(r + 1) * 100)}%, and ${next.coins.toLocaleString()} coins${r + 1 === 2 || r + 1 === 4 ? ', and a line more on every manifest' : ''}.`, color: C.pebble }] : []),
+    ], 240);
+  }
+}
+
+/** The Exports tab (2.1): the ship's manifest and what's aboard, or when it calls again; the Harbor's record. */
+function drawExports(ui: UI, play: PlayScreen, x: number, y: number, w: number): number {
+  const g = play.g;
+  const s = exportsState(g);
+  let yy = y;
+  ui.text('The Harbor', x + 6, yy, C.ink);
+  if (harborOpen(g)) harborStrip(ui, g, x + 4, yy, w - 10);
+  yy += 12;
+  if (!harborOpen(g)) {
+    ui.panel(x + 4, yy, w - 8, 44, 'paper', false);
+    ui.para(`The old harbor warehouse at the beach pier is boarded up. Rebuild it on the Works tab ("Rebuild the Harbor") and merchant ships will call for your exports: cities across the sea that buy in quantities only a factory makes, well above the market.`, x + 12, yy + 6, w - 24, C.walnut, 9);
+    return yy + 48 - y;
+  }
+  const o = manifest(g);
+  if (!o) {
+    // at sea: when it calls again, and what to do meanwhile
+    const days = Math.max(1, s.next - g.dayIndex);
+    ui.panel(x + 4, yy, w - 8, 34, 'paper', false);
+    ui.fill(x + 4, yy, 3, 34, C.sky);
+    ui.text(`${SHIP_NAME} is at sea. It calls again in ${days} day${days === 1 ? '' : 's'}, at dawn on ${WEEKDAYS[(g.weekday + days) % 7]}.`, x + 12, yy + 6, C.ink);
+    ui.text(ellipsize('A crate tagged for the Harbor keeps its goods for the next manifest, so lines can stock up meanwhile.', w - 24), x + 12, yy + 19, C.walnut);
+    yy += 37;
+  } else {
+    const port = PORT_BY_ID.get(o.port ?? '');
+    const { total, aboard } = manifestValue(o);
+    const h = 40 + o.lines.length * 22 + 22;
+    ui.panel(x + 4, yy, w - 8, h, 'paper', false);
+    ui.fill(x + 4, yy, 3, h, C.copper);
+    ui.text(orderTitle(o), x + 12, yy + 4, C.ink);
+    ui.text(o.done ? 'Loaded in full: sails at dawn' : dueText(g, o), x + w - 12, yy + 4, o.done ? C.moss : o.due - g.dayIndex <= 1 ? C.brick : C.oak, { align: 'right' });
+    ui.text(ellipsize(port?.about ?? '', w - 24), x + 12, yy + 14, C.walnut);
+    ui.text(`${SHIP_NAME}, moored at the beach pier. Everything pays as it goes aboard.`, x + 12, yy + 24, C.pebble);
+    let ly = yy + 38;
+    for (const l of o.lines) {
+      const have = Math.min(l.have, l.n), done = have >= l.n;
+      const id = l.spec;
+      ui.itemIcon(key(id), x + 12, ly, 16);
+      ui.text(specLabel(id), x + 32, ly, done ? C.moss : C.ink);
+      ui.text(`${ICON.coin}${l.unit ?? 0} each`, x + w - 12, ly, C.oak, { align: 'right' });
+      ui.bar(x + 32, ly + 10, w - 170, 5, have / l.n, done ? C.leaf : C.amber);
+      ui.text(`${have.toLocaleString()} / ${l.n.toLocaleString()}`, x + w - 132, ly + 9, done ? C.moss : C.walnut);
+      ui.text(`${ICON.coin}${((l.unit ?? 0) * l.n).toLocaleString()}`, x + w - 12, ly + 9, C.walnut, { align: 'right' });
+      if (ui.hover(x + 8, ly - 2, w - 16, 20)) {
+        const item = ITEM_BY_ID.get(id);
+        ui.tip([
+          { text: specLabel(id), color: C.amber },
+          { text: done ? `All ${l.n.toLocaleString()} aboard` : `${have.toLocaleString()} of ${l.n.toLocaleString()} aboard: ${(l.n - have).toLocaleString()} to go`, color: done ? C.leaf : C.cream },
+          { text: `${l.unit} coins each overseas (${Math.round(premiumAt(harborRank(g)) * 100)}% of its price)`, color: C.pebble },
+          ...(item?.desc ? [{ text: item.desc, color: C.pebble }] : []),
+        ], 220);
+      }
+      ly += 22;
+    }
+    // what's aboard, the bonus for all of it, and the buttons
+    ui.text(`Aboard: ${ICON.coin}${aboard.toLocaleString()} of ${ICON.coin}${total.toLocaleString()} (${total ? Math.floor((aboard / total) * 100) : 0}%)`, x + 12, ly + 2, C.ink);
+    ui.text(o.done ? `Bonus paid: ${ICON.coin}${(o.pay ?? 0).toLocaleString()}` : `All of it: +${ICON.coin}${(o.pay ?? 0).toLocaleString()} and it sails a day early`, x + 12, ly + 12, o.done ? C.moss : C.copper);
+    if (!o.done) {
+      trackButton(ui, g, o, x + w - 116, ly + 4);
+      if (ui.button('xh' + o.uid, x + w - 66, ly + 3, 54, 14, 'Hand in', { style: 'green', disabled: !bagHelps(g, o), tip: 'Takes what your bag has for the manifest (or press F at the warehouse door)' })) {
+        const n = loadFromBag(g, o);
+        if (n) g.toast(`${n.toLocaleString()} loaded aboard ${SHIP_NAME}.`, undefined, C.lime);
+      }
+    }
+    yy += h + 3;
+  }
+  // how to load it, and the record
+  const how = 'Load it by hand at the warehouse door (F), here with Hand in, or tag a shipping crate for the Harbor: the post carries its goods down at noon, 6pm and overnight.';
+  const lines = wrapText(how, w - 16);
+  lines.forEach((l, i) => ui.text(l, x + 8, yy + 2 + i * 9, C.oak));
+  yy += lines.length * 9 + 6;
+  ui.fill(x + 4, yy, w - 8, 13, C.tan);
+  ui.fill(x + 4, yy + 12, w - 8, 1, C.oak);
+  ui.text(`Voyages ${s.voyages}  -  loaded in full ${s.full}  -  earned overseas ${ICON.coin}${s.earned.toLocaleString()}`, x + 9, yy + 3, C.ink);
+  yy += 16;
+  if (!s.log.length) {
+    ui.text('No voyages yet.', x + 8, yy + 1, C.pebble);
+    yy += 11;
+  }
+  for (const v of s.log) {
+    const name = PORT_BY_ID.get(v.port)?.name ?? 'Overseas';
+    ui.text(`${name}: ${Math.round(v.share * 100)}% aboard, ${ICON.coin}${v.coins.toLocaleString()}`, x + 8, yy + 1, v.share >= 1 ? C.moss : v.share >= 0.5 ? C.walnut : C.brick);
+    yy += 11;
+  }
+  return yy - y;
+}
+
 /** the board's tabs and list, drawn into a box (the board window and the journal's tab share it) */
 export function drawOrders(ui: UI, play: PlayScreen, x: number, y: number, w: number, h: number, st?: WinState) {
   const g = play.g;
   // the Keeper's Line's B7: the town's orders have been read
   g.flags.add('board:read');
   const data = st?.data ?? (play as any)._ordersTab ?? ((play as any)._ordersTab = {});
-  data.otab = data.otab ?? (st?.arg === 'works' || st?.arg === 'today' || st?.arg === 'standing' ? st.arg : 'standing');
+  data.otab = data.otab ?? (st?.arg === 'works' || st?.arg === 'today' || st?.arg === 'standing' || st?.arg === 'exports' ? st.arg : 'standing');
+  if (data.otab === 'exports' && !exportsTab(g)) data.otab = 'standing';
   const os = orders(g);
   const counts: Record<Tab, number> = {
     today: os.open.filter((o) => o.kind === 'today' && !o.done).length,
     standing: os.open.filter((o) => (o.kind === 'standing' || o.kind === 'guild') && !o.done).length,
     works: os.open.filter((o) => o.kind === 'works').length,
+    exports: os.open.filter((o) => o.kind === 'export' && !o.done).length,
   };
-  const tw = Math.floor((w - 8) / 3);
-  TABS.forEach(([id, label], i) => {
+  const tabs = TABS.filter(([id]) => id !== 'exports' || exportsTab(g));
+  const tw = Math.floor((w - 8) / tabs.length);
+  tabs.forEach(([id, label], i) => {
     if (ui.button('otab' + id, x + 4 + i * tw, y + 2, tw - 4, 14, `${label} (${counts[id]})`, { active: data.otab === id })) data.otab = id;
   });
   // the Sprocket Fair from spring 9, the Harvest Haul from fall 12: a notice pinned over the list
@@ -320,12 +428,14 @@ export function drawOrders(ui: UI, play: PlayScreen, x: number, y: number, w: nu
   }
   const ly = top, lh = h - (top - y);
   const est = data.otab === 'today' ? 14 + Math.max(1, counts.today) * 43 + 40
-    : data.otab === 'standing' ? 14 + os.open.filter((o) => o.kind !== 'today' && o.kind !== 'works').length * 47 + 16 * 12 + 60
+    : data.otab === 'standing' ? 14 + os.open.filter((o) => o.kind === 'standing' || o.kind === 'guild').length * 47 + 16 * 12 + 60
+    : data.otab === 'exports' ? 300
     : 14 + counts.works * 57 + 6 * 12 + 30;
   const off = ui.scrollOffset('orders_' + data.otab, x, ly, w, lh, data.contentH ?? est);
   ui.clip(x, ly, w, lh);
   const used = data.otab === 'today' ? drawToday(ui, play, x, ly + 3 - off, w - 4)
     : data.otab === 'standing' ? drawStanding(ui, play, x, ly + 3 - off, w - 4)
+    : data.otab === 'exports' ? drawExports(ui, play, x, ly + 3 - off, w - 4)
     : drawWorks(ui, play, x, ly + 3 - off, w - 4);
   data.contentH = used + 8;
   ui.unclip();

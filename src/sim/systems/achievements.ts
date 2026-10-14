@@ -136,6 +136,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'guild5', name: 'Guild Partner', desc: 'Reach the top Trading Guild rank.', cat: 'village', tier: 3, icon: 'f_banner', test: (g) => (g.sys.orders?.rep?.guild ?? 0) >= 20, prog: (g) => [g.sys.orders?.rep?.guild ?? 0, 20] },
   { id: 'projects8', name: 'Restorer', desc: 'Complete 8 restoration projects.', cat: 'village', tier: 2, icon: 'brick', test: (g) => projectsDone(g) >= 8, prog: (g) => [projectsDone(g), 8] },
   { id: 'clock', name: 'The Clock Strikes', desc: 'Restart the town clocktower.', cat: 'village', tier: 3, icon: 'clockwork_core', test: (g) => g.flags.has('clock_fixed') },
+  // the Harbor (2.1): exports overseas (src/sim/systems/exports.ts)
+  { id: 'harbor', name: 'Ships Call Again', desc: 'Rebuild the Harbor.', cat: 'factory', tier: 2, icon: 'rope', test: (g) => g.flags.has('harbor') },
+  { id: 'export_full', name: 'Bon Voyage', desc: 'Load a ship\'s manifest in full before it sails.', cat: 'factory', tier: 2, icon: 'crate_out', ...num('exports_full', 1) },
+  { id: 'harbor5', name: 'Merchant Prince', desc: 'Reach the top rank with the Harbor.', cat: 'factory', tier: 3, icon: 'gold_bar', test: (g) => (g.sys.orders?.rep?.harbor ?? 0) >= 45, prog: (g) => [g.sys.orders?.rep?.harbor ?? 0, 45] },
 
   // ---------------- Home & Life ----------------
   { id: 'pet', name: 'Best Friend', desc: 'Reach 5 hearts with your pet.', cat: 'home', tier: 2, icon: 'f_petbed', test: (g) => (g.sys.pet?.points ?? 0) >= 1000, prog: (g) => [Math.floor((g.sys.pet?.points ?? 0) / 200), 5] },

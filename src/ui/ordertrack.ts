@@ -64,10 +64,10 @@ export function drawTrackedOrders(ui: UI, play: PlayScreen, y: number, maxY: num
     if (xHit) toggleTrack(g, o);
     else if (ui.hover(4, yy, w, h)) {
       ui.block(4, yy, w, h);
-      if (ui.hoverId !== 'trx' + o.uid) ui.tip([{ text: o.kind === 'works' ? title : `${heading(o)}: ${orderTitle(o)}`, color: C.amber }, { text: 'Click to see it on the Orders board.' }]);
+      if (ui.hoverId !== 'trx' + o.uid) ui.tip([{ text: o.kind === 'works' || o.kind === 'export' ? title : `${heading(o)}: ${orderTitle(o)}`, color: C.amber }, { text: 'Click to see it on the Orders board.' }]);
       if (ui.clicked) {
         ui.eat();
-        play.openWindow('board', o.kind === 'today' ? 'today' : o.kind === 'works' ? 'works' : 'standing');
+        play.openWindow('board', o.kind === 'today' ? 'today' : o.kind === 'works' ? 'works' : o.kind === 'export' ? 'exports' : 'standing');
       }
     }
     yy += h + 2;

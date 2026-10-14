@@ -17,7 +17,7 @@ import type { Ent } from '../ents';
 import { kDef, kIdx, type ItemKey } from '../inventory';
 import { O, type BuildingInfo } from '../world/tilemap';
 import { AIRSHIP } from '../world/worldgen';
-import { FOUNTAIN, LANDMARK, LANDMARKS, layTownworks, PUMP_HOUSE, rectDist, SQUARE_LAMPS, TOWN_LINE, TOWN_MILL, TRAM, type Landmark } from '../world/townworks';
+import { FOUNTAIN, HARBOR, LANDMARK, LANDMARKS, layTownworks, PUMP_HOUSE, rectDist, SQUARE_LAMPS, TOWN_LINE, TOWN_MILL, TRAM, type Landmark } from '../world/townworks';
 import { market, unitPrice } from './economy';
 import { powerLoads, type PowerLoad } from './power';
 import { lookCounts } from '../keystones';
@@ -77,7 +77,9 @@ export function townLineNet(g: Game): number {
 }
 
 // ---------------- looking ----------------
-const LOOKABLE: Landmark[] = [...LANDMARKS, AIRSHIP_RECT];
+/** the Harbor's warehouse with its roof and crane, and the ship's berth beside the pier */
+const HARBOR_RECT: Landmark = { id: HARBOR.id, name: HARBOR.name, x0: HARBOR.x, y0: HARBOR.y - 2, x1: HARBOR.x + HARBOR.w, y1: HARBOR.y + HARBOR.h };
+const LOOKABLE: Landmark[] = [...LANDMARKS, AIRSHIP_RECT, HARBOR_RECT];
 
 /** the landmark drawn at a world point (tiles), if any: the mill, the pump house, the fountain, the airship */
 export function landmarkAt(g: Game, fx: number, fy: number): Landmark | null {
@@ -106,6 +108,7 @@ export function landmarkTip(g: Game, l: Landmark): { text: string; color?: numbe
     case 'town_mill': return [{ text: l.name, color: AMBER }, line(g.flags.has('town_mill'), 'The wheel turns: the town grinds its flour here again.', "Silent: its wheel hasn't turned in years.")];
     case 'pump_house': return [{ text: l.name, color: AMBER }, line(g.flags.has('waterworks'), "Pumping: the square's fountain runs.", 'Shuttered: its pumps are seized.')];
     case 'fountain': return [{ text: l.name, color: AMBER }, line(g.flags.has('waterworks'), 'Running, fed by the Waterworks.', 'Dry and cracked: the Waterworks are shut.')];
+    case 'harbor': return [{ text: l.name, color: AMBER }, line(g.flags.has('harbor'), g.sys.exports?.ship === 'port' ? 'Open: the Copper Gull is in port, loading your exports.' : 'Open: the Copper Gull is at sea. Press F at the door to see the Exports.', 'Boarded up, its crane rusted. The town works could rebuild it.')];
     default: return [{ text: l.name, color: AMBER }, { text: "Roxy's airship, moored on Skyhook Field.", color: PEBBLE }];
   }
 }
@@ -115,7 +118,11 @@ function landmarkDoor(g: Game, b: BuildingInfo) {
   const l = LANDMARKS.find((x) => x.id === b.id);
   if (l) lookAt(g, l);
   if (b.id === TOWN_MILL.id) g.toast(g.flags.has('town_mill') ? 'The Town Mill. The wheel turns, and the stones grind the town\'s flour again.' : "The Town Mill. Its wheel hasn't turned since the old works closed, and the millstones are cold.");
-  else if (b.id === PUMP_HOUSE.id) g.toast(g.flags.has('waterworks') ? "The Waterworks. The pumps thump away, and the square's fountain runs." : "The Waterworks. Shuttered: the pumps that fed the square's fountain are seized.");
+  else if (b.id === HARBOR.id) {
+    // the Harbor's warehouse: loads the manifest from the bag (src/sim/systems/exports.ts)
+    g.sys.exports?.door?.(g);
+    return;
+  } else if (b.id === PUMP_HOUSE.id) g.toast(g.flags.has('waterworks') ? "The Waterworks. The pumps thump away, and the square's fountain runs." : "The Waterworks. Shuttered: the pumps that fed the square's fountain are seized.");
   g.emit({ t: 'sfx', id: 'thud' });
 }
 

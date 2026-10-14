@@ -327,6 +327,10 @@ export const PROJECTS: ProjectDef[] = [
   // the Clock is the Starlight era's town keystone: it waits for the Tram
   { id: 'p_clock', name: 'Restart the Clock', area: 'The clocktower', desc: 'The great mechanism needs brass, coils and a heart.', items: [{ item: 'brass_gear', n: 40 }, { item: 'spark_coil', n: 10 }, { item: 'clockwork_core', n: 1 }], money: 10000, after: ['flag:tram'],
     reward: { flag: 'clock_fixed', text: 'The clocktower ticks again! The whole town celebrates.' } },
+  // the Harbor (2.1): the old pier's warehouse and crane, rebuilt for the ships that carry your
+  // exports overseas (src/sim/systems/exports.ts). It waits for the Tram, with the Clock
+  { id: 'p_harbor', name: 'Rebuild the Harbor', area: 'The Harbor', desc: "The old pier's warehouse and cargo crane, rebuilt so merchant ships call again. They buy in quantities only a factory makes.", items: [{ item: 'plank', n: 500 }, { item: 'beam', n: 80 }, { item: 'rope', n: 150 }, { item: 'iron_plate', n: 60 }, { item: 'brass_gear', n: 40 }, { item: 'glass', n: 40 }], money: 30000, after: ['flag:tram'],
+    reward: { flag: 'harbor', text: 'The Harbor is open: the Copper Gull calls for your exports.' } },
   { id: 'p_preserves', name: "The Kettle's Cellar", area: 'The Copper Kettle', desc: "Rowan stocks the cellar for winter: a day's worth from your crocks and kegs, three days running.", items: [{ item: '#preserve', n: 8 }, { item: '#wine', n: 2 }], after: ['flag:town_mill'], steady: 3,
     reward: { items: [{ item: 'keg', n: 4 }], text: 'Four kegs' } },
   { id: 'p_dairy', name: 'Dairy Day', area: 'The Copper Kettle', desc: "The inn's dairy, supplied a day at a time: cheese, butter and eggs on three days.", items: [{ item: 'cheese', n: 3 }, { item: 'butter', n: 3 }, { item: '#egg', n: 4 }], after: ['r_dairy'], steady: 3,

@@ -160,6 +160,8 @@ export function shipAll(g: Game): { sold: { k: number; n: number; price: number;
   const orders = g.sys.orders?.consign?.(g, bins) as { sold: { k: number; n: number; price: number; to?: string }[]; total: number } | undefined;
   const agg = new Map<number, number>();
   for (const b of bins) {
+    // a crate tagged for the Harbor keeps what the ship didn't take, for the next manifest
+    if (b.st.tag === 'harbor') continue;
     for (const s of b.inv!.slots) if (s) agg.set(s.k, (agg.get(s.k) ?? 0) + s.n);
     b.inv!.slots.fill(null);
   }

@@ -23,6 +23,7 @@ import './systems/fishing';
 import './systems/mine';
 import './systems/quests';
 import './systems/orders';
+import './systems/exports';
 import './systems/goals';
 import './systems/cookbook';
 import './systems/festivals';

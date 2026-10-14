@@ -42,6 +42,7 @@ import { STRATA, CHAMBER_BY_KIND, VENT_ON, VENT_TELL } from '../data/deepworks';
 import { deepFrames } from './deepframes';
 import type { MineState } from '../sim/systems/mine';
 import { pushTownworks } from './townworks';
+import { pushHarbor } from './harbor';
 import { drawFairPlate, pushFairground } from './fairground';
 import { LANDMARK, SQUARE_LAMP } from '../sim/world/townworks';
 
@@ -600,6 +601,8 @@ export class Renderer {
     }
     // the town keystones: the Town Mill, the Waterworks, the square's lamps, the tram (src/render/townworks.ts)
     if (m === g.map) pushTownworks(g, this, D);
+    // the Harbor: its warehouse, the ship and the cargo (src/render/harbor.ts)
+    if (m === g.map) pushHarbor(g, this, D);
     if (m === g.map) pushFairground(g, this, D);
     // actors
     this.drawActors(g, m, D);
