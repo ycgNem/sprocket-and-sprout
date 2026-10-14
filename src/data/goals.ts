@@ -250,6 +250,16 @@ export const QUESTS: QuestDef[] = [
     desc: 'With the clocktower ticking again, the mayor dreams bigger. Research Grand Works and begin a megaproject.',
     objectives: [{ t: 'research', id: 'r_grandworks' }, { t: 'build', struct: 'construction_site', n: 1 }],
     reward: { money: 10000 } },
+  // the last goal (2.1.1): all three grand works, each on its own site; the Beacon's Starheart asks
+  // for the Prism Shard from the bottom of the Deepworks
+  { id: 's_wonders', title: 'Wonders of the Valley', giver: 'tobias', after: ['s_grand'],
+    desc: '"One great work makes a town proud. Three would put Thistlewick on every map." Build all three megaprojects, each on its own Grand Works Site.',
+    objectives: [
+      { t: 'flag', flag: 'wonder:m_orrery', label: 'Finish the Great Orrery', why: 'Concrete, beams, a thousand brass gears, gold, lenses, clockwork cores, then starmetal and starstones.' },
+      { t: 'flag', flag: 'wonder:m_skyship', label: 'Finish the Skyship Dock', why: 'Beams and iron plate, cloth, linen and rope for the balloons, clockwork cores and spring batteries, then wine, preserves and cheese.' },
+      { t: 'flag', flag: 'wonder:m_beacon', label: 'Finish the Starlight Beacon', why: 'Bricks, glass, lenses and gold, then its Starheart: 8 starstones, 20 glow sorbets and the Prism Shard from the bottom of the Deepworks (level 30).' },
+    ],
+    reward: { money: 50000, items: [{ item: 'starstone', n: 3 }] } },
   { id: 's_friends', title: 'Part of the Town', giver: 'marigold', after: ['k9_bed'],
     desc: 'Reach Trust 4 with three different villagers.',
     objectives: [{ t: 'friend', npc: '*', hearts: 4 }],

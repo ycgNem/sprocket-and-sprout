@@ -23,6 +23,8 @@ import { TOOL_POWER } from '../actions';
 import { keystoneQuest, lookCounts } from '../keystones';
 
 export const MAX_FLOOR = 30;
+/** after the first (always), the chance a starstone at the bottom holds another Prism Shard */
+export const PRISM_AGAIN = 0.1;
 const MW = 48, MH = 40;
 /** the old lift's level, the collapsed gallery's, the flooded stair's (the Frost below is under water) */
 export const LIFT_LEVEL = 5, GALLERY_LEVEL = 6, FLOOD_LEVEL = 10;
@@ -1240,7 +1242,17 @@ function rockDrops(g: Game, st: MineState, x: number, y: number, o: O, data: num
   } else if (o === O.GEM_ROCK) {
     const gems = ['amethyst', 'topaz', 'jade', 'ruby', 'sapphire', 'opal', 'starstone'];
     d(gems[data] ?? 'quartz');
-    if (data === 6) took(g, st, 'star:' + floor);
+    if (data === 6) {
+      took(g, st, 'star:' + floor);
+      // the fallen star's heart: the first starstone broken at the bottom holds a Prism Shard (the
+      // Starlight Beacon's last stage asks for one, and nothing else gave it), later ones now and then
+      const first = !g.flags.has('prism_found');
+      if (first || g.rng.next() < PRISM_AGAIN) {
+        d('prism_shard');
+        g.flags.add('prism_found');
+        g.toast(first ? 'Light bends strangely: a Prism Shard was inside the star!' : 'Another Prism Shard!', 'i:prism_shard', C.lavender);
+      }
+    }
     if (g.rng.next() < 0.3) d('quartz');
   }
   g.addXp('mining', o === O.ORE_ROCK ? 4 + Math.floor(floor / 5) : o === O.GEM_ROCK ? 12 : 1);

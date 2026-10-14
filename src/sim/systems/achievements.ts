@@ -56,6 +56,10 @@ const kinds = (g: Game, kind: string) => g.ents.all().filter((e) => !e.ghost && 
 const projectsDone = (g: Game) => ((g.sys.orders?.worksDone ?? []) as string[]).filter((id) => id.startsWith('p_')).length;
 const num = (k: string, goal: number) => ({ test: (gg: Game) => c(gg, k) >= goal, prog: (gg: Game): [number, number] => [c(gg, k), goal] });
 const NON_LEGEND_FISH = FISH.filter((f: any) => !f.legendary).map((f: any) => f.id as string);
+/** shellfish come only from fish traps, which count what they bring up (they never bite a line) */
+const TRAP_FISH = new Set(FISH.filter((f: any) => f.trap).map((f: any) => f.id as string));
+/** caught on a line, or (shellfish) brought up by a trap: a trap's haul is counted as made */
+const caught = (g: Game, f: string) => c(g, 'caught_' + f) > 0 || (TRAP_FISH.has(f) && made(g, f) > 0);
 
 export const ACHIEVEMENTS: Achievement[] = [
   // ---------------- Farming ----------------
@@ -94,6 +98,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'artisan100', name: 'Artisan', desc: 'Make 100 artisan goods.', cat: 'factory', tier: 2, icon: 'keg', test: (g) => madeCat(g, 'artisan') >= 100, prog: (g) => [Math.floor(madeCat(g, 'artisan')), 100] },
   { id: 'decon100', name: 'Change of Plans', desc: 'Pick up 100 placed structures.', cat: 'factory', tier: 1, icon: 'chest_wood', ...num('decon', 100) },
   { id: 'mega', name: 'Grand Works', desc: 'Complete a megaproject.', cat: 'factory', tier: 3, icon: 'construction_site', test: (g) => (g.sys.goals?.mega?.length ?? 0) >= 1 },
+  { id: 'mega3', name: 'Wonders of the Valley', desc: 'Complete all three megaprojects.', cat: 'factory', tier: 3, icon: 'prism_shard', test: (g) => (g.sys.goals?.mega?.length ?? 0) >= 3, prog: (g) => [Math.min(3, g.sys.goals?.mega?.length ?? 0), 3] },
 
   // ---------------- Explorer ----------------
   // (the ids keep the Old Mine's floors 20/40/60: the Deepworks has 30 levels, and old saves' depth halved)
@@ -110,7 +115,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'treasure10', name: 'Treasure Hunter', desc: 'Open 10 treasure chests in the Deepworks.', cat: 'explore', tier: 2, icon: 'gold_bar', ...num('treasures', 10) },
   { id: 'fish1', name: 'Bite!', desc: 'Catch your first fish.', cat: 'explore', tier: 1, icon: 'bluegill', ...num('fish_caught', 1) },
   { id: 'fish25', name: 'Angler', desc: 'Catch 25 fish.', cat: 'explore', tier: 1, icon: 'rod_1', ...num('fish_caught', 25) },
-  { id: 'fish_all', name: 'Master Angler', desc: 'Catch every ordinary fish in the valley.', cat: 'explore', tier: 3, icon: 'rod_3', test: (g) => NON_LEGEND_FISH.every((f) => c(g, 'caught_' + f) > 0), prog: (g) => [NON_LEGEND_FISH.filter((f) => c(g, 'caught_' + f) > 0).length, NON_LEGEND_FISH.length] },
+  { id: 'fish_all', name: 'Master Angler', desc: 'Catch every ordinary fish in the valley.', cat: 'explore', tier: 3, icon: 'rod_3', test: (g) => NON_LEGEND_FISH.every((f) => caught(g, f)), prog: (g) => [NON_LEGEND_FISH.filter((f) => caught(g, f)).length, NON_LEGEND_FISH.length] },
   { id: 'legend', name: 'Legendary', desc: 'Land a legendary fish.', cat: 'explore', tier: 3, icon: 'thistlefin', test: (g) => ['thistlefin', 'clockjaw', 'tidemother'].some((f) => c(g, 'caught_' + f) > 0) },
   { id: 'dig25', name: 'Archaeologist', desc: 'Dig up 25 artifact spots.', cat: 'explore', tier: 1, icon: 'old_cog', ...num('dug', 25) },
   { id: 'museum', name: 'Curator', desc: 'Donate 20 items to the museum.', cat: 'explore', tier: 2, icon: 'fossil_shell', test: (g) => (g.sys.goals?.museum?.length ?? 0) >= 20, prog: (g) => [g.sys.goals?.museum?.length ?? 0, 20] },

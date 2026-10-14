@@ -16,6 +16,8 @@ export const SOURCE: Record<string, string> = {
   iron_ore: 'Break ore rocks with the pickaxe in the Deepworks, levels 11-15 (the Frost).',
   gold_ore: 'Break ore rocks with the pickaxe in the Deepworks, levels 16-20 (the Ember).',
   kelp: 'Washes up on the beach every morning. Fish traps set in the sea catch some too.',
+  prism_shard: 'Break the starstone at the bottom of the Deepworks (level 30): the first always holds one, later ones now and then.',
+  starstone: 'One glints at the bottom of the Deepworks (level 30) each day; geodes hold one very rarely.',
   coconut: 'Shake the palms on the beach, south of town, in summer.',
   // parts
   plank: 'Craft it from 2 wood (C), or buy it at the Joinery.',

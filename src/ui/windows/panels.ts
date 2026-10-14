@@ -185,11 +185,14 @@ STRUCT_PANELS.megaproject = (ui, play, e, x, y, w, st) => {
     ui.text(it.item[0] === '#' ? 'Any ' + it.item.slice(1) : ITEM_BY_ID.get(it.item)!.name, x + 32, iy + 3, C.ink);
     ui.bar(x + 150, iy + 3, 110, 7, (it.n - need) / it.n, C.moss);
     ui.text(`${it.n - need}/${it.n}`, x + w - 14, iy + 3, C.walnut, { align: 'right' });
+    // hover: the item's tip with its "Get it" line (a Prism Shard or a starstone is no shop's)
+    if (icon && ui.hover(x + 14, iy, w - 28, 16)) ui.tip(itemTooltip(g, key(icon)), 220);
   });
   const gy = y + 20 + stage.items.length * 18;
   ui.text('Feed it with arms and belts, or shift-click items in your bag below.', x + 14, gy, C.oak);
-  ui.text('Reward: ' + def.reward, x + 14, gy + 10, C.moss);
-  return gy - y + 24;
+  // the reward wraps (the Starlight Beacon's ran past the window's edge)
+  const rh = ui.para('Reward: ' + def.reward, x + 14, gy + 10, w - 28, C.moss, 10);
+  return gy - y + 14 + rh;
 };
 
 STRUCT_PANELS.depot = (ui, play, e, x, y, w, st) => {

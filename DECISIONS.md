@@ -1229,3 +1229,28 @@ recommendations are the decisions.
       manifest loads; the Exports tab shows the manifest, the bars, what's aboard, the bonus, the
       record of voyages. Art by the art-director with PixelLab (the `harbor:` sheet); plain shapes
       stand in for any frame not in the atlas.
+
+174. **The late game's dead ends (the owner: "Breaking the fallen star at the bottom of the mine
+    (level 30) for the first time gives a Prism Shard... see if other late game things are
+    unbeatable").**
+    - **The Prism Shard.** The Starlight Beacon's last stage (Starheart) asked for one and nothing in
+      the game gave it. Now the first starstone broken at the bottom of the Deepworks always holds
+      one (flag `prism_found`), and each later one has a 1 in 10 chance (`PRISM_AGAIN`), so a sold
+      shard isn't lost for good. `SOURCE` hints for it and for the starstone.
+    - **The audit.** Every item a project, megaproject, quest, request, standing order, keystone,
+      contract, research, chamber, export port, building kit, home upgrade or recipe asks for was
+      checked for a source (shops, the token shop, animals, monsters, fish, rewards, crops and trees,
+      recipes to a fixed point, and items the simulation names: drops, forage, finds). Only the
+      Prism Shard had none; that check is now a test (tests/latefixes.test.ts). Unlock words
+      (recipes, shops, projects, orders, contracts, quests) all resolve, quest objectives all point
+      at real structures, villagers, fish, crops and research, and every achievement counter is
+      counted somewhere.
+    - **Master Angler.** It wanted every ordinary fish caught on a line, but the six shellfish only
+      come from traps, which never counted. Now a shellfish counts once a trap has brought one up
+      (its made count, so older farms' trap hauls count too).
+    - **Wonders of the Valley.** After Grand Works the story stopped at "begin a megaproject". A last
+      quest (Mayor, after `s_grand`) asks for all three, each on its own site (flags
+      `wonder:<id>`, set in applyMega so finished works on older farms count), 50,000 coins and 3
+      starstones; an achievement of the same name. No PixelLab art was needed.
+    - **The Grand Works Site's window.** Hovering a stage's item shows its tip with "Get it", and the
+      reward text wraps instead of running off the window.

@@ -72,6 +72,15 @@ export const PATCH_NOTES: PatchNote[] = [
           `On the website, the title screen has a Download for Windows button. The Windows download is now a single installer.`,
         ],
       },
+      {
+        title: `Updates`,
+        items: [
+          `The Prism Shard can now be found: the first starstone you break at the bottom of the Deepworks (level 30) holds one, and later ones sometimes do. Before this, nothing gave one, so the Starlight Beacon could never be finished.`,
+          `Master Angler now counts the shellfish your fish traps bring up (crayfish, periwinkles, mussels, shrimp, lobsters and shore crabs). They never bite a line, so it could not be earned before.`,
+          `A last quest from the Mayor after Grand Works: Wonders of the Valley, finish all three megaprojects. It comes with a new achievement of the same name.`,
+          `Hover an item on a Grand Works Site to see where to get it, and the site's reward no longer runs off the edge of the window.`,
+        ],
+      },
     ],
   },
   {

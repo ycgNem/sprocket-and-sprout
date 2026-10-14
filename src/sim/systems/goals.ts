@@ -97,6 +97,8 @@ function advanceMega(g: Game, e: Ent) {
 
 export function applyMega(g: Game) {
   const done = goals(g).mega;
+  // what the last quest (Wonders of the Valley) watches; set here so older farms' finished works count
+  for (const id of done) g.flags.add('wonder:' + id);
   g.sys.megaBonus = {
     machine: done.includes('m_orrery') ? 0.25 : 0,
     market: done.includes('m_skyship') ? 0.25 : 0,
