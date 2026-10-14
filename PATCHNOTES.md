@@ -1,5 +1,61 @@
 # Sprocket & Sprout patch notes
 
+## 2.1 (October 2026)
+
+**Overseas**
+
+2.1 opens the Harbor: late in the game, a merchant ship calls at the beach pier for your exports, in amounts only a factory can make. It also brings together every fix and update since 2.0.
+
+### The Harbor: exports overseas
+
+- Late in the game, after the tram runs, the town can rebuild the old harbor warehouse at the beach pier ("Rebuild the Harbor" on the Works tab).
+- Once it's open, the merchant ship the Copper Gull calls at the pier. Each visit it brings a manifest from a port across the sea: three to five goods in huge amounts, like 300 iron bars, 600 brass gears or 2,000 glass.
+- Each port wants different things: Brassmouth buys metal and parts, Port Verdance food and preserves, the Ember Isles wine and luxuries, Saltspire timber, rope and canvas, Kettleholm tea, baking and cloth.
+- A manifest only asks for goods in season that your farm has made.
+- Everything pays as it goes aboard, well above the market, and never lowers market prices. Load a manifest in full and you get a big bonus on top, and the ship sails a day early.
+- The ship stays a week, then sails with whatever is aboard and comes back three days later.
+- Load goods by hand at the warehouse door (F), with Hand in on the Orders board's new Exports tab, or tag a shipping crate for the Harbor. A crate tagged for the Harbor keeps its goods while the ship is at sea instead of selling them.
+- Your standing with the Harbor grows with every manifest you fill (or at least half fill). Six ranks, from Dockhand to Merchant Prince, each with a letter and coins from the Harbormaster, better prices and bigger manifests.
+- Manifests can be tracked like any other order.
+
+### Orders
+
+- You can track orders: press Track on any order on the Orders board and a small checklist of it shows under your quest at the top left, ticking off each item as it goes in. Click it to open the board, or x to stop tracking. Up to four at once.
+- Orders ask for things that are in season: no bread or flour in winter, when no grain grows, and no pickled cogbeans in fall or winter. A shop's weekly order takes a break until its season comes back, and the Orders board says when.
+- Quests that ask for sprout bundles mention the quick way: a plant fiber with a coconut or anything else from the beach.
+- A keystone's "keep a line making ... a minute" step counts as soon as the line runs, even before you've done the steps listed above it.
+- The Milling step that asks you to keep a mill grinding is clearer: it shows how fast your mill is going and how to pass it, and cornmeal counts as meal.
+- Later research costs less and climbs more evenly: the last era's topics ask 35 to 50 of each bundle instead of 50 to 80.
+
+### Machines
+
+- Arms keep loading a machine while it's working, about ten minutes of work ahead, instead of waiting for each batch to finish.
+- The field gantry's seed bin has no limit: arms or your hands can put in as many seeds as you like, and they no longer take space from the crops. Its window shows the bin; click a seed to take it back.
+- A field gantry no longer disappears when you stand near its bridge while it's out along its rails.
+- A field gantry rides its rails whichever end of them you put it at.
+- Drills bring up rare ores more slowly: copper and stone come fast, iron at under half the speed, gold at about a seventh. The drill says what it's drilling.
+- You can fuel a steam drill yourself: hold coal or wood and press F, or shift-click fuel in from your bag.
+- The Harvest Crane can be turned with R to face any of four ways.
+- Hover over a placed scarecrow, sprinkler, harvest crane, seed sower, gleaner, power pole or hive to see what it reaches.
+- Buttons in a window's top corner, like a chest's Sort, no longer sit under its close button.
+
+### Farming and the valley
+
+- Cotton ripens in 7 days instead of 8.
+- Hover over a crop to see what it is, how many days until it's ripe, whether it's been watered today and which seasons it grows in.
+- You can pull up a crop by swinging your axe or pickaxe at it twice. A ripe one drops its harvest.
+- Crops planted right against the greenhouse's back wall can be harvested.
+- The beach washes up two or three new finds every morning. Kelp turns up a bit more often, and beach palms grow one or two coconuts at a time.
+- A fish trap that's already baited no longer takes another bait.
+
+### Music, art and more
+
+- New music: three songs, Clockwork Morning, Sprout Lane Waltz and Lamplight, that take turns. Press N, or Next in Settings, to skip to the next song.
+- The pickaxe swing facing up or down no longer looks broken, for every look.
+- The ladders in the mine are redrawn.
+- New pixel art for the Harbor: the warehouse at the pier (with snow on its roof in winter), the Copper Gull at anchor and under sail, and the cargo stacking up as you load.
+- On the website, the title screen has a Download for Windows button. The Windows download is now a single installer.
+
 ## 2.0 (October 2026)
 
 **The Works**
@@ -93,32 +149,6 @@
 - Farms from 1.x get the cogbean oil recipe and, after Water Power, a mill, so they can keep going.
 - The game remembers how far you zoomed in.
 - New art for the villagers, the festivals, the belts, the crock and the farmhouse.
-
-### Updates
-
-- The Milling step that asks you to keep a mill grinding is clearer: it shows how fast your mill is going and how to pass it, and cornmeal now counts as meal.
-- The beach washes up two or three new finds every morning, however much is lying around in the woods.
-- Kelp turns up a bit more often, on the beach and in fish traps set in the sea, and its tooltip says where to look.
-- Beach palms grow one or two coconuts at a time.
-- You can pull up a crop by swinging your axe or pickaxe at it twice. A ripe one drops its harvest.
-- Crops planted right against the greenhouse's back wall can be harvested.
-- New music: three songs, Clockwork Morning, Sprout Lane Waltz and Lamplight, that take turns. They sound darker in the mine and softer at home and late at night.
-- Press N, or Next under the music slider in Settings, to skip to the next song.
-- Quests that ask for sprout bundles mention the quick way: a plant fiber with a coconut or anything else from the beach.
-- A fish trap that's already baited no longer takes another bait. Walk up to one to see whether it's baited.
-- Hover over a crop to see what it is, how many days until it's ripe, whether it's been watered today and which seasons it grows in.
-- You can fuel a steam drill yourself: hold coal or wood and press F, or open it and shift-click fuel in from your bag. Before, only arms could fuel one.
-- The Harvest Crane can be turned with R, before or after you place it, to face any of four ways. It still picks all around it.
-- Hover over a placed scarecrow, sprinkler, harvest crane, seed sower, gleaner, power pole or hive to see what it reaches. The scarecrow's area is shown as the circle it really covers.
-- The pickaxe swing facing up or down no longer looks broken, for every look.
-- The ladders in the mine are redrawn: the way down is a dark shaft with the ladder going into it, and the way up is a ladder you can see climbing out.
-- Later research costs less and climbs more evenly: the last era's topics ask 35 to 50 of each bundle instead of 50 to 80, and a few topics now cost more or less to match how much they change your farm.
-- A keystone's "keep a line making ... a minute" step now counts as soon as the line runs, even before you've done the steps listed above it. Before, its clock sat at 0:00 until they were done.
-- A field gantry rides its rails whichever end of them you put it at. Before, one placed at the top or the right-hand end of its rails didn't move unless you turned it around.
-- Cotton ripens in 7 days instead of 8.
-- You can track orders: press Track on any order on the Orders board and a small checklist of it shows under your quest at the top left, ticking off each item as it goes in. Click it to open the board, or x to stop tracking. Up to four at once.
-- Orders ask for things that are in season: no bread or flour in winter, when no grain grows, and no pickled cogbeans in fall or winter. A shop's weekly order takes a break until its season comes back, and the Orders board says when.
-- On the website, the title screen has a Download for Windows button that opens the download page (when your browser offers to install the game, it says Install as an app instead).
 
 ## 2.0 beta (October 2026)
 
