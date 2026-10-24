@@ -1,15 +1,9 @@
-// Villagers: daily schedules with A* pathing, dialogue selection, gifts, friendship, heart events.
-import { questName, shortName } from '../../data/cookbook';
+// Villagers: daily schedules with A* pathing, talk and dialogue selection. (Trust, gifts, birthdays
+// and heart events were taken out in 2.1.1, DECISIONS #175: the town is about its works.)
 import { NPCS, NPC_BY_ID } from '../../data/npcs';
-import { ITEM_BY_ID, matchesSpec } from '../../data/items';
-import type { DialogueLine, HeartEventDef, ItemDef, NPCDef, ScheduleDef } from '../../data/types';
+import type { DialogueLine, NPCDef, ScheduleDef } from '../../data/types';
 import { Game, registerSystem } from '../Game';
-import { kDef } from '../inventory';
-import { DX, DY } from '../ents';
 import { findPath } from '../world/path';
-
-export const POINTS_PER_HEART = 250;
-export const MAX_POINTS = 2500;
 
 export interface NPCState {
   id: string;
@@ -21,19 +15,15 @@ export interface NPCState {
   visible: boolean;
   path: [number, number][];
   target: string;
-  points: number;
+  /** talked today (the day's first chat, "Chat with" once you have) */
   talked: boolean;
-  giftedToday: boolean;
-  giftsWeek: number;
   met: boolean;
-  seen: number[];
   recent: string[];
   emote: string | null;
   emoteT: number;
   /** waiting time at a stop before idling around */
   idleT: number;
   schedule: ScheduleDef | null;
-  birthdayGift: boolean;
   /** the first day this villager asks you a question again (Pip's echoes, src/sim/people.ts) */
   askDay?: number;
 }
@@ -44,8 +34,6 @@ export interface NPCState {
  * the specialists need no system of their own (import order is tick order).
  */
 export const TALK_HOOKS: ((g: Game, n: NPCState, shopAfter?: string) => boolean)[] = [];
-/** after a heart event closes (Thorne's 2-Trust event hands over his first drawing) */
-export const EVENT_HOOKS: ((g: Game, npcId: string) => void)[] = [];
 
 export interface NPCSys {
   list: NPCState[];
@@ -64,13 +52,9 @@ export function npcSys(g: Game): NPCSys {
 
 function newState(d: NPCDef): NPCState {
   return {
-    id: d.id, x: 0, y: 0, dir: 2, moving: false, walkT: 0, visible: false, path: [], target: '', points: 0, talked: false, giftedToday: false,
-    giftsWeek: 0, met: false, seen: [], recent: [], emote: null, emoteT: 0, idleT: 0, schedule: null, birthdayGift: false,
+    id: d.id, x: 0, y: 0, dir: 2, moving: false, walkT: 0, visible: false, path: [], target: '', talked: false, met: false,
+    recent: [], emote: null, emoteT: 0, idleT: 0, schedule: null,
   };
-}
-
-export function hearts(n: NPCState) {
-  return Math.min(10, Math.floor(n.points / POINTS_PER_HEART));
 }
 
 function npcAt(g: Game, x: number, y: number): NPCState | null {
@@ -263,14 +247,11 @@ export function fillTokens(g: Game, s: string) {
 
 export function chooseLine(g: Game, n: NPCState, d: NPCDef): string {
   if (!n.met) return d.intro;
-  const h = hearts(n);
   const tod = timeOfDay(g.time.min);
   const festival = !!g.sys.festivals?.today?.(g);
   const ok = (l: DialogueLine) =>
     (l.season === undefined || l.season === g.time.season) &&
     (l.weather === undefined || l.weather === g.weather) &&
-    (l.minH === undefined || h >= l.minH) &&
-    (l.maxH === undefined || h <= l.maxH) &&
     (l.weekday === undefined || l.weekday === g.weekday) &&
     (l.time === undefined || l.time === tod) &&
     (l.festival === undefined || l.festival === festival) &&
@@ -282,57 +263,11 @@ export function chooseLine(g: Game, n: NPCState, d: NPCDef): string {
   if (!pool.length) return '...';
   // specific lines are more likely (a line about the town's keystones, too)
   const weight = (l: DialogueLine) =>
-    1 + (l.season !== undefined ? 1.5 : 0) + (l.weather !== undefined ? 3 : 0) + (l.minH !== undefined ? 1 + l.minH * 0.3 : 0) + (l.weekday !== undefined ? 2 : 0) + (l.time !== undefined ? 1.2 : 0) + (l.festival ? 6 : 0) + (l.flag !== undefined ? 2 : 0);
+    1 + (l.season !== undefined ? 1.5 : 0) + (l.weather !== undefined ? 3 : 0) + (l.weekday !== undefined ? 2 : 0) + (l.time !== undefined ? 1.2 : 0) + (l.festival ? 6 : 0) + (l.flag !== undefined ? 2 : 0);
   const line = g.rng.weighted(pool, weight);
   n.recent.push(line.text);
   if (n.recent.length > 6) n.recent.shift();
   return line.text;
-}
-
-export type Taste = 'love' | 'like' | 'neutral' | 'dislike' | 'hate';
-
-export function giftTaste(d: NPCDef, itemId: string): Taste {
-  const def = ITEM_BY_ID.get(itemId)!;
-  const order: Taste[] = ['love', 'hate', 'like', 'dislike'];
-  // exact ids first, then tags
-  for (const t of order) if ((d.gifts[t as 'love'] as string[]).includes(itemId)) return t;
-  for (const t of order) if ((d.gifts[t as 'love'] as string[]).some((s) => s[0] === '#' && matchesSpec(def, s))) return t;
-  if (def.cat === 'trash') return 'hate';
-  return 'neutral';
-}
-
-/**
- * Trust a gift moves (points; 250 a Trust level). A third of 1.x's: Trust is built mostly by orders
- * and discoveries (ROADMAP.md 7.6): a filled Today ask is 120, a standing order 100 (150 a big one),
- * a main quest 100 to its giver, Sable's filing and Pip's echoes 60, the day's first chat 20.
- */
-export const TASTE_POINTS: Record<Taste, number> = { love: 27, like: 15, neutral: 7, dislike: -7, hate: -13 };
-
-export function isBirthday(g: Game, d: NPCDef) {
-  return d.birthday.season === g.time.season && d.birthday.day === g.time.day;
-}
-
-export function addPoints(g: Game, n: NPCState, pts: number) {
-  const before = hearts(n);
-  n.points = Math.max(0, Math.min(MAX_POINTS, n.points + pts));
-  const after = hearts(n);
-  if (after > before) {
-    g.emit({ t: 'sfx', id: 'heart' });
-    // the UI's word for hearts is Trust (ROADMAP.md 7.6); romance keeps its hearts
-    g.toast(`${questName(n.id, NPC_BY_ID.get(n.id)!.name)} trusts you more: Trust ${after}`, undefined, 28);
-    g.sys.quests?.notify?.(g, 'friend', after, n.id);
-  }
-}
-
-/** Can this item be given as a gift at all (tools, structures, research and the locket can't)? */
-export function giftable(hd: ItemDef): boolean {
-  return !hd.tool && !hd.weapon && hd.cat !== 'placeable' && hd.cat !== 'research' && hd.id !== 'heart_charm';
-}
-
-/** Would F hand this villager the held item as a gift right now (not just chat)? */
-export function wouldGift(g: Game, n: NPCState, hd: ItemDef): boolean {
-  if (!n.met || !giftable(hd) || n.giftedToday) return false;
-  return n.giftsWeek < 2 || isBirthday(g, NPC_BY_ID.get(n.id)!);
 }
 
 /**
@@ -349,9 +284,9 @@ export function insideAt(g: Game, loc: string): NPCState[] {
 }
 
 /**
- * Player interacts: gift if holding a giftable item and allowed, otherwise talk. From a shop's
- * counter (a villager at work inside, src/ui/windows/town.ts) `shopAfter` brings the shop back once
- * the talk is done, and `chat` talks without handing over what you hold.
+ * Player interacts: hand over what a quest asked them for, otherwise talk. From a shop's counter (a
+ * villager at work inside, src/ui/windows/town.ts) `shopAfter` brings the shop back once the talk is
+ * done, and `chat` talks without handing over what you hold.
  */
 export function talkTo(g: Game, n: NPCState, shopAfter?: string, chat = false) {
   const d = NPC_BY_ID.get(n.id)!;
@@ -369,65 +304,19 @@ export function talkTo(g: Game, n: NPCState, shopAfter?: string, chat = false) {
   const held = chat ? null : p.inv.slots[p.sel];
   // quests that want a delivery to this NPC take priority
   if (held && g.sys.quests?.tryDeliver?.(g, n.id, held.k, shopAfter)) return;
-  if (held && n.met && kDef(held.k).id === 'heart_charm') {
-    g.sys.offerLocket?.(g, n);
-    return;
-  }
-  if (held && n.met) {
-    const hd = kDef(held.k);
-    if (giftable(hd)) {
-      const bday = isBirthday(g, d);
-      if (n.giftedToday) {
-        openDialog(g, n, `${shortName(d.name)} smiles. "You already gave me something today, {player}."`, shopAfter);
-        return;
-      }
-      if (n.giftsWeek >= 2 && !bday) {
-        openDialog(g, n, `"That's very kind, but you've spoiled me enough this week!"`, shopAfter);
-        return;
-      }
-      const taste = giftTaste(d, hd.id);
-      const q = held.k & 3;
-      let pts = TASTE_POINTS[taste] * (taste === 'love' || taste === 'like' ? 1 + q * 0.1 : 1);
-      if (bday) pts *= 8;
-      p.inv.remove(held.k, 1);
-      n.giftedToday = true;
-      n.giftsWeek++;
-      if (!n.talked) {
-        n.talked = true;
-        pts += 20;
-      }
-      addPoints(g, n, Math.round(pts));
-      const reps = d.giftReplies[taste];
-      let text = bday ? d.giftReplies.birthday : reps[g.rng.int(0, reps.length - 1)];
-      if (bday && (taste === 'dislike' || taste === 'hate')) text = reps[0];
-      n.emote = taste === 'love' ? 'heart' : taste === 'like' ? 'happy' : taste === 'neutral' ? null : 'sad';
-      n.emoteT = 2.5;
-      g.emit({ t: 'fx', kind: taste === 'love' ? 'hearts' : 'sparkle', x: n.x, y: n.y - 1 });
-      g.emit({ t: 'sfx', id: taste === 'love' || taste === 'like' ? 'heart' : 'talk' });
-      g.count('gifts');
-      if (hd.id === 'old_boot') g.sys.achUnlock?.(g, 'regift');
-      openDialog(g, n, text, shopAfter, taste === 'love' || taste === 'like' ? 1 : taste === 'neutral' ? 0 : 2);
-      return;
-    }
-  }
   // a specialist's own talk (an echo, a record, a drawing) instead of a chat line
   if (n.met && specialTalk(g, n, shopAfter)) return;
   const visit: string | null = n.met ? g.sys.visitLine?.(g, n) ?? null : null;
-  let text = visit ?? chooseLine(g, n, d);
+  const text = visit ?? chooseLine(g, n, d);
   if (visit && !g.sys.visits.talked) {
     // a visit to the farm is a good chat
     g.sys.visits.talked = true;
-    addPoints(g, n, 25);
     n.emote = 'happy';
     n.emoteT = 2;
   }
-  if (!n.met) n.met = true;
-  if (!n.talked) {
-    n.talked = true;
-    addPoints(g, n, 20);
-  }
+  n.met = true;
+  n.talked = true;
   g.sys.quests?.notify?.(g, 'talk', 1, n.id);
-  if (isBirthday(g, d) && !n.giftedToday) text += ` ...It's my birthday today, you know.`;
   openDialog(g, n, text, shopAfter);
 }
 
@@ -438,10 +327,7 @@ export function talkTo(g: Game, n: NPCState, shopAfter?: string, chat = false) {
 export function specialTalk(g: Game, n: NPCState, shopAfter?: string): boolean {
   if (!TALK_HOOKS.some((h) => h(g, n, shopAfter))) return false;
   n.met = true;
-  if (!n.talked) {
-    n.talked = true;
-    addPoints(g, n, 20);
-  }
+  n.talked = true;
   g.sys.quests?.notify?.(g, 'talk', 1, n.id);
   return true;
 }
@@ -449,7 +335,7 @@ export function specialTalk(g: Game, n: NPCState, shopAfter?: string): boolean {
 export function openDialog(g: Game, n: NPCState, text: string, shopAfter?: string, mood?: number) {
   const d = NPC_BY_ID.get(n.id)!;
   g.sys.dialogue = { npc: n.id };
-  g.emit({ t: 'ui', open: 'dialog', arg: { npc: n.id, name: d.name, pages: splitPages(fillTokens(g, text)), shop: shopAfter, hearts: hearts(n), mood: mood ?? (hearts(n) >= 3 && /!/.test(text) ? 1 : 0) } });
+  g.emit({ t: 'ui', open: 'dialog', arg: { npc: n.id, name: d.name, pages: splitPages(fillTokens(g, text)), shop: shopAfter, mood: mood ?? 0 } });
 }
 
 export function splitPages(text: string): string[] {
@@ -466,84 +352,12 @@ export function splitPages(text: string): string[] {
   return out;
 }
 
-// ---------------- heart events ----------------
-function checkHeartEvents(g: Game) {
-  if (g.sys.cutscene || g.sys.dialogue || g.player.where !== 'world') return;
-  const p = g.player;
-  for (const n of npcSys(g).list) {
-    const d = NPC_BY_ID.get(n.id)!;
-    const h = hearts(n);
-    for (const ev of d.heartEvents) {
-      if (h < ev.hearts || n.seen.includes(ev.hearts)) continue;
-      if (g.time.min < ev.window[0] || g.time.min >= ev.window[1]) continue;
-      if (ev.weather === 'rain' && !g.isRaining()) continue;
-      if (ev.weather === 'clear' && g.isRaining()) continue;
-      const loc = g.map.locs.get(ev.loc);
-      if (!loc) continue;
-      if (Math.hypot(p.x - (loc[0] + 0.5), p.y - (loc[1] + 0.5)) > 5) continue;
-      startHeartEvent(g, n, ev);
-      return;
-    }
-  }
-}
-
-/** a clear tile beside the player for a villager to stand on in a scene, facing them: x, y (feet), dir */
-function besidePlayer(g: Game): [number, number, number] {
-  const p = g.player, px = Math.floor(p.x), py = Math.floor(p.y);
-  const fx = px + DX[p.dir], fy = py + DY[p.dir];
-  // right, left, below, above, then the corners; each faces back toward the player
-  const spots: [number, number, number][] = [[1, 0, 3], [-1, 0, 1], [0, 1, 0], [0, -1, 2], [1, 1, 3], [-1, 1, 1], [1, -1, 3], [-1, -1, 1]];
-  for (const [dx, dy, dir] of spots) {
-    const x = px + dx, y = py + dy;
-    if ((x === fx && y === fy) || !g.map.walkable(x, y)) continue;
-    const e = g.ents.at(x, y);
-    if (e && !e.ghost && e.def.solid) continue;
-    return [x + 0.5, y + 0.9, dir];
-  }
-  return [p.x + 1, p.y, 3];
-}
-
-function startHeartEvent(g: Game, n: NPCState, ev: HeartEventDef) {
-  n.seen.push(ev.hearts);
-  // shops can stock things from a heart event on (`unlock: 'flag:heart_<npc>_<hearts>'`)
-  g.flags.add(`heart_${n.id}_${ev.hearts}`);
-  const d = NPC_BY_ID.get(n.id)!;
-  // bring the NPC next to the player: on a clear tile beside them, never on a machine, in the water
-  // or on the tile they face (the owner's playtest: the Professor's farm-gate scene left her standing
-  // on the river wheel, which then answered F with her)
-  const [bx, by, bdir] = besidePlayer(g);
-  n.visible = true;
-  n.path = [];
-  n.x = bx;
-  n.y = by;
-  n.dir = bdir as 0 | 1 | 2 | 3;
-  g.sys.cutscene = { npc: n.id };
-  g.emit({ t: 'sfx', id: 'chime' });
-  g.emit({
-    t: 'ui', open: 'event',
-    arg: {
-      npc: n.id, title: ev.title,
-      lines: ev.lines.map((l) => ({ who: l.who === 'npc' ? d.name : l.who === 'player' ? g.player.name : l.who === 'narrator' ? '' : NPC_BY_ID.get(l.who)?.name ?? l.who, text: fillTokens(g, l.text), npcId: l.who === 'npc' ? n.id : NPC_BY_ID.has(l.who) ? l.who : null })),
-      choice: ev.choice ? { prompt: fillTokens(g, ev.choice.prompt), options: ev.choice.options.map((o) => ({ text: fillTokens(g, o.text), reply: fillTokens(g, o.reply), friendship: o.friendship })) } : null,
-    },
-  });
-}
-
-export function finishHeartEvent(g: Game, npcId: string, friendship: number) {
-  const n = npcSys(g).byId.get(npcId);
-  if (n) addPoints(g, n, 60 + friendship);
-  g.sys.cutscene = null;
-  g.count('heart_events');
-  for (const h of EVENT_HOOKS) h(g, npcId);
-}
-
 registerSystem({
   name: 'npcs',
   tick(g, dt) {
     if (g.map.w < 100) return;
     const s = npcSys(g);
     for (const n of s.list) stepNPC(g, n, dt);
-    if (g.tickN % 30 === 0) checkHeartEvents(g);
   },
   dayStart(g) {
     if (g.map.w < 100) return;
@@ -553,28 +367,24 @@ registerSystem({
       n.schedule = pickSchedule(g, d);
       n.target = n.schedule.at[0][1];
       placeAt(g, n, n.target);
-      n.giftedToday = false;
       n.emote = null;
-      if (g.weekday === 0) n.giftsWeek = 0;
     }
   },
   dayEnd(g) {
-    for (const n of npcSys(g).list) {
-      if (!n.talked && n.met && n.points > 0) n.points = Math.max(0, n.points - (hearts(n) >= 8 ? 1 : 2));
-      n.talked = false;
-    }
+    for (const n of npcSys(g).list) n.talked = false;
     g.sys.dialogue = null;
     g.sys.cutscene = null;
   },
   save(g) {
-    return npcSys(g).list.map((n) => ({ id: n.id, points: n.points, met: n.met, seen: n.seen, giftsWeek: n.giftsWeek, talked: n.talked, giftedToday: n.giftedToday, ...(n.askDay ? { askDay: n.askDay } : {}) }));
+    return npcSys(g).list.map((n) => ({ id: n.id, met: n.met, talked: n.talked, ...(n.askDay ? { askDay: n.askDay } : {}) }));
   },
   load(g, d) {
     const s = npcSys(g);
     for (const r of d as any[]) {
       const n = s.byId.get(r.id);
       if (!n) continue;
-      Object.assign(n, { points: r.points, met: r.met, seen: r.seen ?? [], giftsWeek: r.giftsWeek ?? 0, talked: !!r.talked, giftedToday: !!r.giftedToday, askDay: r.askDay ?? 0 });
+      // (an older save's points, gifts and heart events are left behind: Trust is gone, #175)
+      Object.assign(n, { met: !!r.met, talked: !!r.talked, askDay: r.askDay ?? 0 });
     }
   },
   afterLoad(g) {

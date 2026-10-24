@@ -1,11 +1,9 @@
 // The farmhouse interior: a small cozy room with a bed, fireplace, kitchen, almanac.
-import { shortName } from '../../data/cookbook';
 import { Game, registerSystem, type DaySummary } from '../Game';
 import { O, T, TileMap, Z } from '../world/tilemap';
 import { C } from '../../data/palette';
 import { SEASON_NAMES } from '../../data/types';
 import { ITEM_BY_ID } from '../../data/items';
-import { NPCS, NPC_BY_ID } from '../../data/npcs';
 import { HOME_UPGRADES } from '../../data/shops';
 import { FESTIVALS } from '../../data/goals';
 import type { RecipeDef } from '../../data/types';
@@ -118,7 +116,6 @@ export function almanacBits(g: Game): AlmanacBits {
   for (let d = 1; d <= 10; d++) {
     let day = t.day + d, season = t.season;
     if (day > 28) { day -= 28; season = (season + 1) % 4 as any; }
-    for (const n of NPCS) if (n.birthday.season === season && n.birthday.day === day) soon.push(`${shortName(n.name)}'s birthday (${SEASON_NAMES[season]} ${day})`);
     const f = FESTIVALS.find((x) => x.season === season && x.day === day);
     if (f) soon.push(`${f.name} (${SEASON_NAMES[season]} ${day})`);
   }
@@ -159,10 +156,6 @@ const HOVER: Partial<Record<O, [string, string]>> = {
 
 export function houseHover(g: Game, tx: number, ty: number): { text: string; color?: number }[] | null {
   const m = houseMap(g);
-  if (g.sys.partnerHome?.(g) && Math.abs(tx + 0.5 - 8.5) < 0.8 && Math.abs(ty + 0.5 - 7.1) < 1) {
-    const pid = [...g.flags].find((f) => f.startsWith('partner:'))!.slice(8);
-    return [{ text: NPC_BY_ID.get(pid)?.name ?? pid, color: C.rose }, { text: 'Right-click to sit and talk', color: C.pebble }];
-  }
   const dc = decorAt(g, tx, ty);
   if (dc) {
     const use = DECOR_USE.get(dc.id);
@@ -279,7 +272,6 @@ export function pickupDecor(g: Game, x: number, y: number): boolean {
 /** F or right-click at a farmhouse tile (`critter`: the pet or the hamster's ball is on it, so a rug yields to it) */
 export function houseInteract(g: Game, tx: number, ty: number, critter = false): boolean {
   const m = houseMap(g);
-  if (g.sys.partnerAt?.(g, tx, ty)) return true;
   const dc = decorAt(g, tx, ty);
   if (dc && !(critter && FURN_BY_ID.get(dc.id)!.flat)) return DECOR_USE.get(dc.id)?.use(g, dc) || pickupDecor(g, tx, ty);
   const o = m.o(tx, ty);

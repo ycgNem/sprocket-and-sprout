@@ -150,11 +150,11 @@ Fair's day, or a Brass Locket.
 
 **Home**
 - A walk-in farmhouse: sleep in your bed (you wake up inside), warm up by the hearth, and read
-  the almanac for tomorrow's weather, this week's market demand, birthdays, festivals and a
-  Sunday recipe.
+  the almanac for tomorrow's weather, this week's market demand, festivals and a Sunday recipe.
 - Renovations from the carpenter: a kitchen for instant home cooking, a root cellar pantry, a
   featherbed and a grand hearth.
-- Cooking: 22 dishes. Villagers teach you their recipes as friendships grow. Cooked food gives
+- Cooking: 22 dishes. Villagers mail you their recipes as the town's works come back (Thorne sells
+  the glow sorbet's card; Mags' cart sells any you're missing). Cooked food gives
   timed buffs (speed, stamina, fishing, mining, luck, defense, farming).
 - Furniture: armchairs, lamps, rugs, a fish tank, plants, a pet bed, a hamster cage, cart-only
   curios, and paintings from Hazel. Rugs stack under furniture and paintings hang on the wall.
@@ -170,19 +170,17 @@ Fair's day, or a Brass Locket.
 
 **Town**
 - 14 villagers with schedules, A*-pathing, 37+ lines of dialogue each (by season, weather, time,
-  weekday and friendship), gift tastes, birthdays, and four heart events with choices.
-  Friends drop by your farm on weekend afternoons.
+  weekday and how far the town's works have come). Villagers you've met drop by your farm on
+  weekend afternoons. No gifts or friendship meters: the works' specialists give the works
+  something as each keystone wakes (Juniper's trade price, Hazel's index, Pip's machine watch,
+  Bram's furnace at cost, Sable's catalogue, Thorne's drawings).
 - New in 1.1: **Roxy Vane**, sky-courier and captain of the Brass Vixen, an airship moored on
   Skyhook Field at the east end of Main Street. She drops you a card on day 4. Her hold sells
-  off-season seeds for the greenhouse and clockwork parts before your research catches up, and
-  she has her own story (engine trouble, a card game, a sunset flight, a choice about the long
-  route). She's drawn in more detail than the other villagers: a taller sprite with idle and
+  off-season seeds for the greenhouse and clockwork parts before your research catches up. She's drawn in more detail than the other villagers: a taller sprite with idle and
   greeting animation, and 64 px portraits.
-- Romance: give the Brass Locket to a villager you love. Your partner makes breakfast, helps
-  with chores and spends evenings by your hearth.
 - 10 shops plus Mags' freight cart (Fridays and Sundays, and the Tuesday of a shortage week) with
   rare parts, off-season seeds, recipe cards and furniture, and a Sunday lot at auction. A shop's
-  counter lets you chat with its keeper and anyone in with them, give them what you hold, and hand
+  counter lets you chat with its keeper and anyone in with them, and hand
   over what their asks and orders want straight from your bag.
 - 4 festivals and a token stall: the Sprocket Fair (your line on the Professor's test bed against
   three villagers' entries), Lantern Night, the Harvest Haul (standing orders pay double, and the

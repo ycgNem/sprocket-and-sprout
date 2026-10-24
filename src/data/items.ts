@@ -369,7 +369,8 @@ for (const [id, name, price, desc, icon, energy] of food)
 
 // ---------------- Misc ----------------
 it('ticket', 'Festival Token', 'misc', 0, { t: 'ticket', c: [C.rose, C.butter] }, 'Spend at festival stalls.');
-it('heart_charm', 'Brass Locket', 'misc', 0, { t: 'locket', c: [C.brass, C.rose] }, 'Give it to someone you love very much (needs Trust 8).');
+// (kept so later items keep their index: the locket romance is gone, #175, and one left in a bag sells)
+it('heart_charm', 'Brass Locket', 'misc', 3750, { t: 'locket', c: [C.brass, C.rose] }, 'An old brass locket, a keepsake of the town. It sells well.');
 it('elevator_key', 'Lift Token', 'misc', 0, { t: 'ticket', c: [C.slate, C.brass] }, 'Unused.');
 
 // ---------------- Structures ----------------

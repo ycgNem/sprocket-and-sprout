@@ -1598,15 +1598,6 @@ export class Renderer {
         if (a.emote) this.drawEmote(a.x, a.y - (big ? 1.9 : 1.4), a.emote);
       } });
     }
-    // your partner by the hearth in the evening
-    if (g.player.where === 'house' && g.sys.partnerHome?.(g)) {
-      const id = [...g.flags].find((f: string) => f.startsWith('partner:'))!.slice(8);
-      const [px, py] = [8.5, 7.5];
-      D.push({ y: py, f: () => {
-        drawSprite(ctx, sprite('shadow:12'), px * TILE, py * TILE);
-        drawSprite(ctx, sprite(`ch:${id}:2:0`), px * TILE, py * TILE);
-      } });
-    }
     // Mags' traveling cart by the square
     const cpos = g.sys.cart?.pos as [number, number] | undefined;
     if (cpos && g.player.where === 'world' && cartHere(g) && onScreen(cpos[0] + 1.5, cpos[1])) {

@@ -71,7 +71,7 @@ export function checkTips(p: PlayScreen) {
     if (!t.when(p)) continue;
     p.g.flags.add('tip_' + t.id);
     // only the welcome is a window; everything else is a short toast, one at a time
-    if (t.id === 'welcome') p.openWindow('dialog', { npc: 'ottoline', name: 'Professor Cogwhistle', hearts: -1, pages: t.text.replace('{name}', p.g.player.name).split('\n\n') });
+    if (t.id === 'welcome') p.openWindow('dialog', { npc: 'ottoline', name: 'Professor Cogwhistle', pages: t.text.replace('{name}', p.g.player.name).split('\n\n') });
     else p.toast('Tip: ' + (t.title ? t.title + ': ' : '') + t.text.split('\n\n')[0], undefined, 21);
     return;
   }

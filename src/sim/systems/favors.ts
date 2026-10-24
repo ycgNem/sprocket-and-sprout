@@ -1,20 +1,18 @@
-// The works' specialists' Trust rewards (src/data/trust.ts): each villager's letter the morning after
-// you reach the level, and Pip's watch. Once Pip trusts you (Trust 3), a machine on the farm or in
-// the farmhouse that has stood stopped for a minute (starved, blocked, out of fuel or power) brings
-// Pip running with which one and why, once each time it stops. No random numbers: the world's dice
-// are untouched.
+// The works' specialists' favors (src/data/favors.ts): each villager's letter the morning after its
+// keystone, and Pip's watch. Once the Town Mill turns, a machine on the farm or in the farmhouse that
+// has stood stopped for a minute (starved, blocked, out of fuel or power) brings Pip running with
+// which one and why, once each time it stops. No random numbers: the world's dice are untouched.
 import { Game, registerSystem } from '../Game';
 import { NPC_BY_ID } from '../../data/npcs';
 import { shortName } from '../../data/cookbook';
 import { C } from '../../data/palette';
-import { TRUST_REWARDS } from '../../data/trust';
+import { FAVORS } from '../../data/favors';
 import { entName } from '../ents';
 import { MState } from '../mstate';
 import { isRusted } from '../rust';
-import { hearts, npcSys } from './npcs';
 import { send } from './goals';
 
-export const hasTrust = (g: Game, id: string) => g.flags.has('trust:' + id);
+export const hasFavor = (g: Game, id: string) => g.flags.has('favor:' + id);
 
 /** how long a machine stands stopped before Pip comes running (works seconds) */
 export const PIP_WAIT = 60;
@@ -24,9 +22,9 @@ const PIP_GAP = 20;
 const STOPPED = new Set<MState>([MState.Starved, MState.Blocked, MState.NeedsFuel, MState.Unpowered]);
 
 function pipWatch(g: Game) {
-  if (!hasTrust(g, 'pip_watch') || g.sleeping || g.nightShift || g.player.where === 'mine') return;
+  if (!hasFavor(g, 'pip_watch') || g.sleeping || g.nightShift || g.player.where === 'mine') return;
   const now = g.simTime;
-  const w = (g.sys.trust ??= { told: -PIP_GAP }) as { told: number };
+  const w = (g.sys.favors ??= { told: -PIP_GAP }) as { told: number };
   if (now - w.told < PIP_GAP) return;
   for (const list of [g.ents.machines, g.houseEnts.machines])
     for (const e of list) {
@@ -40,18 +38,20 @@ function pipWatch(g: Game) {
 }
 
 registerSystem({
-  name: 'trust',
+  name: 'favors',
   tick(g) {
     if (g.tickN % 60 === 0) pipWatch(g);
   },
   dayStart(g) {
-    if (!g.sys.npcs || g.map.w < 100) return;
-    for (const r of TRUST_REWARDS) {
-      if (hasTrust(g, r.id)) continue;
-      const n = npcSys(g).byId.get(r.npc);
-      if (!n || hearts(n) < r.trust) continue;
-      g.flags.add('trust:' + r.id);
-      send(g, 'trust_' + r.id, { from: r.npc, title: `${shortName(NPC_BY_ID.get(r.npc)?.name ?? r.npc)}: ${r.title}`, text: r.letter });
+    if (g.map.w < 100) return;
+    for (const r of FAVORS) {
+      if (hasFavor(g, r.id) || !g.flags.has(r.after)) continue;
+      g.flags.add('favor:' + r.id);
+      send(g, 'favor_' + r.id, { from: r.npc, title: `${shortName(NPC_BY_ID.get(r.npc)?.name ?? r.npc)}: ${r.title}`, text: r.letter });
     }
+  },
+  afterLoad(g) {
+    // a farm from before 2.1.1 earned these by Trust (flag 'trust:<id>'): it keeps them
+    for (const r of FAVORS) if (g.flags.delete('trust:' + r.id)) g.flags.add('favor:' + r.id);
   },
 });

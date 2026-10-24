@@ -1,6 +1,6 @@
 // Pip's echoes (ROADMAP.md 7.6, Phase 5): Pip copies every lesson card you've seen into a notebook
 // and asks it back, one a day, the next time you talk to them (src/sim/people.ts). Three answers,
-// one right. Right: Trust and "I wrote it in my notebook!"; wrong: Pip explains, nothing is lost and
+// one right. Right: "I wrote it in my notebook!"; wrong: Pip explains, nothing is lost and
 // the question comes back another day. One echo per lesson card (src/data/lessons.ts).
 
 export interface EchoDef {

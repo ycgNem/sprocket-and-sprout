@@ -1,7 +1,6 @@
 // Who answers one F when several things could (the owner's playtest: the Professor beside the
 // keeper's water wheel took the F meant for it; src/sim/near.ts). What stands on the faced tile
-// comes first, then the tile's own things, then a villager only near it; a villager arriving for a
-// scene stands on a clear tile beside you.
+// comes first, then the tile's own things, then a villager only near it.
 import { describe, expect, it } from 'vitest';
 import '../src/sim';
 import { Game } from '../src/sim/Game';
@@ -39,23 +38,6 @@ describe('one F, several answers', () => {
     expect(tilePrompt(g, px, py)?.verb).toMatch(/Talk to|Chat with/);
     interact(g, px, py);
     expect(n.talked).toBe(true);
-  });
-
-  it("the Professor's farm-gate scene puts her on a clear tile beside you, not on the wheel you face", () => {
-    const g = new Game({ seed: 82, name: 'P', farmName: 'P' });
-    secs(g, 1);
-    const n = prof(g);
-    n.points = 600; // two Trust
-    g.time.min = 1100;
-    // west of the wheel, facing it (east): the old placement (one tile right) was the wheel itself
-    const [wx, wy] = RIVER.wheel;
-    g.player.x = wx - 0.5; g.player.y = wy + 1.5; g.player.dir = 1;
-    secs(g, 1);
-    expect(g.sys.cutscene?.npc).toBe('ottoline');
-    const tx = Math.floor(n.x), ty = Math.floor(n.y);
-    expect([tx, ty]).not.toEqual([wx, wy + 1]);
-    expect(g.map.walkable(tx, ty)).toBe(true);
-    expect(g.ents.at(tx, ty)?.def.solid ?? false).toBe(false);
   });
 });
 

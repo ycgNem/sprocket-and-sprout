@@ -5,7 +5,8 @@
 import { CROP_BY_ID } from '../data/crops';
 import { ITEM_INDEX } from '../data/items';
 import { RECIPE_BY_ID } from '../data/recipes';
-import { INDEXED_LIB } from '../data/trust';
+import { INDEXED_LIB } from '../data/favors';
+import { hasFavor } from './systems/favors';
 import { STRUCT_BY_ID } from '../data/structures';
 import type { Game } from './Game';
 import type { Blueprint, BlueprintItem } from './blueprint';
@@ -21,8 +22,8 @@ export interface LibEntry {
 }
 
 export const LIB_MAX = 12;
-/** the library's size: 12, or 24 with Hazel's index (a Trust reward, src/data/trust.ts) */
-export const libMax = (g: Game) => (g.flags.has('trust:hazel_index') ? INDEXED_LIB : LIB_MAX);
+/** the library's size: 12, or 24 with Hazel's index (her favor, src/data/favors.ts) */
+export const libMax = (g: Game) => (hasFavor(g, 'hazel_index') ? INDEXED_LIB : LIB_MAX);
 
 export interface DraftingState {
   lib: LibEntry[];

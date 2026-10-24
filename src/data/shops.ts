@@ -158,6 +158,8 @@ export const SHOPS: ShopDef[] = [
       ...CROPS.filter((c) => RARE.includes(c.id)).map((c) => ({ item: c.seed, price: Math.round(c.seedPrice * 1.5), seasons: c.seasons as any, daily: 10 })),
       ...TREES.filter((t) => t.wild).map((t) => ({ item: t.sapling, price: 80, daily: 5 })),
       { item: 'super_tonic', price: 160, daily: 20 }, { item: 'deep_mulch', price: 120, daily: 20 },
+      // the glow sorbet the Starlight Beacon's Starheart wants: his card, once the Grand Works are studied
+      { item: 'card_glow_sorbet', price: 1200, daily: 1, unlock: 'r_grandworks' },
     ],
     buys: ['forage', 'gem', 'mineral'],
   },
@@ -170,7 +172,6 @@ export const SHOPS: ShopDef[] = [
       ...CROPS.filter((c) => c.seasons.length < 4).map((c) => ({ item: c.seed, price: c.seedPrice * 2, seasons: [0, 1, 2, 3].filter((s) => !c.seasons.includes(s as any)) as any, daily: 10 })),
       { item: 'brass_gear', price: 520, daily: 5 }, { item: 'spring', price: 420, daily: 5 }, { item: 'lens', price: 450, daily: 3 },
       { item: 'clockwork_core', price: 2400, daily: 1 }, { item: 'coffee_drink', price: 320, daily: 5 },
-      { item: 'heart_charm', price: 7500, daily: 1, unlock: 'flag:heart_roxy_6' },
       { item: 'spark_coil', price: 700, daily: 5, unlock: 'rep:roxy:2' }, { item: 'starmetal_ore', price: 900, daily: 6, unlock: 'rep:roxy:4' }, { item: 'starmetal_bar', price: 2800, daily: 2, unlock: 'rep:roxy:5' },
     ],
     buys: ['artisan', 'gem'],

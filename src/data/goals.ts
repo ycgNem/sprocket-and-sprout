@@ -79,7 +79,7 @@ export const QUESTS: QuestDef[] = [
       { t: 'flag', flag: 'board:read', label: 'Read the Orders board (on the square, or J)', why: 'Who in town wants what you make.', goto: 'board' },
       { t: 'order', id: 'rowan_pickles', label: "Fill Rowan's order: pickled cogbeans", why: 'Bring them to the inn, or tag the crate for the Copper Kettle (F at the crate): the post delivers. Plant more beans meanwhile.' },
     ],
-    reward: { money: 200, flag: 'recipe_cogbean_oil', friendship: ['rowan', 150] } },
+    reward: { money: 200, flag: 'recipe_cogbean_oil' } },
   { id: 'k8_river', title: 'The River Works', giver: 'bram', tutorial: true, main: true, after: ['k7_town'], needFlag: 'keepers_line',
     why: 'The valley runs on what you build next.',
     desc: "The keeper's old water wheel stands rusted on the river by the farm gate, with its poles and a grist mill, and the grain bin still holds last autumn's barley. Bram will forge the bars to mend it, for six bottles of cogbean oil.",
@@ -260,10 +260,6 @@ export const QUESTS: QuestDef[] = [
       { t: 'flag', flag: 'wonder:m_beacon', label: 'Finish the Starlight Beacon', why: 'Bricks, glass, lenses and gold, then its Starheart: 8 starstones, 20 glow sorbets and the Prism Shard from the bottom of the Deepworks (level 30).' },
     ],
     reward: { money: 50000, items: [{ item: 'starstone', n: 3 }] } },
-  { id: 's_friends', title: 'Part of the Town', giver: 'marigold', after: ['k9_bed'],
-    desc: 'Reach Trust 4 with three different villagers.',
-    objectives: [{ t: 'friend', npc: '*', hearts: 4 }],
-    reward: { money: 1000, items: [{ item: 'cake', n: 2 }] } },
   { id: 's_rich', title: 'A Prosperous Farm', giver: 'tobias', after: ['k9_power'],
     desc: 'Earn 25,000 coins in total.',
     objectives: [{ t: 'money', n: 25000 }],
@@ -412,5 +408,5 @@ export const FESTIVALS: FestivalDef[] = [
 /** festival token shop */
 export const TOKEN_SHOP: { item: string; tickets: number }[] = [
   { item: 'flower_pot', tickets: 4 }, { item: 'lamp', tickets: 6 }, { item: 'super_tonic', tickets: 3 }, { item: 'deluxe_bait', tickets: 2 },
-  { item: 'starpetal_seed', tickets: 8 }, { item: 'glowmelon_seed', tickets: 10 }, { item: 'heart_charm', tickets: 40 }, { item: 'sprinkler_2', tickets: 15 },
+  { item: 'starpetal_seed', tickets: 8 }, { item: 'glowmelon_seed', tickets: 10 }, { item: 'sprinkler_2', tickets: 15 },
 ];

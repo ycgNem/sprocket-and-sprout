@@ -6,7 +6,7 @@
 //   asked (it counts as the look), and files each new discovery you tell them about.
 // - Old Thorne, the old works' last engineer, hands over his drawings for the drafting table's library.
 // A pure module with no system of its own (import order is tick order, src/sim/index.ts): it hangs
-// its talks on npcs.ts's TALK_HOOKS and EVENT_HOOKS when it's imported, and visits.ts asks it where
+// its talks on npcs.ts's TALK_HOOKS when it's imported, and visits.ts asks it where
 // Pip stands. The answers come back through the event window's choice (src/ui/windows/town.ts) to
 // finishAsk.
 import { DISCOVERIES, RECORDS, type DiscoveryDef } from '../data/archive';
@@ -25,11 +25,7 @@ import { addBlueprint } from './drafting';
 import { keystoneQuest } from './keystones';
 import { lessonsSeen } from './lessons';
 import { MState, isProblem, stateText } from './mstate';
-import { addPoints, EVENT_HOOKS, fillTokens, hearts, npcSys, openDialog, TALK_HOOKS, type NPCState } from './systems/npcs';
-
-/** Trust for an echo answered right (Pip) and for a discovery filed (Sable) */
-export const ECHO_TRUST = 60;
-export const FILE_TRUST = 60;
+import { fillTokens, npcSys, openDialog, TALK_HOOKS, type NPCState } from './systems/npcs';
 
 /** a question a villager asks you through the event window's choice */
 export interface Ask {
@@ -64,7 +60,7 @@ function openAsk(g: Game, n: NPCState, title: string, lines: AskLine[], prompt: 
     arg: {
       npc: n.id, title,
       lines: lines.map((l) => ({ who: l.who === 'npc' ? d.name : l.who === 'player' ? g.player.name : '', text: fillTokens(g, l.text), npcId: l.who === 'npc' ? n.id : null })),
-      choice: { prompt: fillTokens(g, prompt), options: options.map((o) => ({ text: fillTokens(g, o.text), reply: fillTokens(g, o.reply), friendship: 0 })) },
+      choice: { prompt: fillTokens(g, prompt), options: options.map((o) => ({ text: fillTokens(g, o.text), reply: fillTokens(g, o.reply) })) },
       ask,
     },
   });
@@ -82,7 +78,6 @@ export function finishAsk(g: Game, ask: Ask, pick: number) {
       if (pick === ask.right) {
         g.flags.add('echo:' + ask.id);
         g.flags.delete('echo_miss:' + ask.id);
-        if (pip) addPoints(g, pip, ECHO_TRUST);
         g.count('echoes');
         g.emit({ t: 'sfx', id: 'heart' });
       } else g.flags.add('echo_miss:' + ask.id);
@@ -91,7 +86,6 @@ export function finishAsk(g: Game, ask: Ask, pick: number) {
       if (pick < 0) return;
       if (g.sys.visits?.npc === 'pip') g.sys.visits.asked = true;
       if (pick === ask.right && pip) {
-        addPoints(g, pip, ECHO_TRUST);
         g.count('echoes');
         g.emit({ t: 'sfx', id: 'heart' });
       }
@@ -316,11 +310,9 @@ export function lendRecord(g: Game, kind: ChamberKind): boolean {
   g.toast(`Sable lends you the old works' record of ${c?.name ?? kind}${r ? `: ${r.name}'s look is done` : ''}.`, undefined, C.butter);
   // telling Sable about it files it too
   const d = DISCOVERIES.find((x) => x.id === kind);
-  const sable = npcSys(g).byId.get('sable');
-  if (d && sable && !g.flags.has('filed:' + d.id)) {
+  if (d && !g.flags.has('filed:' + d.id)) {
     g.flags.add('filed:' + d.id);
     g.count('filed');
-    addPoints(g, sable, FILE_TRUST);
   }
   // the quest's look step reads the flag: check it now, not at the next poll
   g.sys.quests?.notify?.(g, 'flag', 1, flag);
@@ -346,7 +338,6 @@ function sableTalk(g: Game, n: NPCState, shopAfter?: string): boolean {
   if (d) {
     g.flags.add('filed:' + d.id);
     g.count('filed');
-    addPoints(g, n, FILE_TRUST);
     n.emote = 'happy';
     n.emoteT = 2;
     openDialog(g, n, d.line, shopAfter, 1);
@@ -357,11 +348,9 @@ function sableTalk(g: Game, n: NPCState, shopAfter?: string): boolean {
 
 // ---------------- Thorne's drawings ----------------
 
-/** the next drawing Thorne owes you (its flag is set, his Trust is there, you haven't got it) */
+/** the next drawing Thorne owes you (its keystone is done, or it has none, and you haven't got it) */
 export function drawingDue(g: Game): DrawingDef | null {
-  const t = npcSys(g).byId.get('thorne');
-  const trust = t ? hearts(t) : 0;
-  return DRAWINGS.find((d) => g.flags.has(d.after) && trust >= d.trust && !g.flags.has('drawing:' + d.id)) ?? null;
+  return DRAWINGS.find((d) => (!d.after || g.flags.has(d.after)) && !g.flags.has('drawing:' + d.id)) ?? null;
 }
 
 /** into the drafting table's library (false: the library is full, so it waits) */
@@ -393,9 +382,3 @@ function thorneTalk(g: Game, n: NPCState, shopAfter?: string): boolean {
 // (a shop door passes its shop, to open after the line: Thorne's Hollow)
 TALK_HOOKS.push((g, n, shopAfter) => (n.id === 'pip' ? pipTalk(g, n) : n.id === 'sable' ? sableTalk(g, n, shopAfter) : n.id === 'thorne' ? thorneTalk(g, n, shopAfter) : false));
 
-// the end of Thorne's 2-Trust event hands over the drawing he showed you (the event said the words)
-EVENT_HOOKS.push((g, npcId) => {
-  if (npcId !== 'thorne') return;
-  const d = drawingDue(g);
-  if (d && d.after === 'heart_thorne_2') giveDrawing(g, d);
-});

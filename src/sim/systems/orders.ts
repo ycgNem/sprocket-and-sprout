@@ -29,7 +29,6 @@ import type { Ent } from '../ents';
 import { key, kDef, kQ, type ItemKey } from '../inventory';
 import { lesson } from '../lessons';
 import { PORT_HANDLERS } from '../ports';
-import { addPoints, hearts, npcSys } from './npcs';
 import { send } from './goals';
 import { canResearch } from '../keystones';
 import { FOUNTAIN, MILL_WHEEL, TRAM } from '../world/townworks';
@@ -554,11 +553,8 @@ function complete(g: Game, o: Order, via: 'hand' | 'post' | 'board', money = 0) 
   if (o.kind === 'today' || o.kind === 'guild' || o.kind === 'export') o.done = true;
   else os.open = os.open.filter((x) => x !== o);
   g.emit({ t: 'sfx', id: 'quest' });
-  const npc = custNpc(o.cust);
-  const ns = npc ? npcSys(g).byId.get(npc) : undefined;
   switch (o.kind) {
     case 'today':
-      if (ns) addPoints(g, ns, 120);
       g.count('requests');
       if (via === 'post') g.toast(`${custName(o.cust)}'s ask filled by the post: ${o.pay} coins.`, 'i:' + o.lines[0].spec, C.lime);
       break;
@@ -569,7 +565,6 @@ function complete(g: Game, o: Order, via: 'hand' | 'post' | 'board', money = 0) 
         g.player.money += def.reward.money;
         g.earned += def.reward.money;
       }
-      if (ns) addPoints(g, ns, def.big ? 150 : 100);
       g.count('orders');
       g.toast(`${custName(o.cust)}'s order filled${via === 'post' ? ' by the post' : ''}! Reputation ${repOf(g, o.cust)}${def.reward ? '. ' + def.reward.text : ''}`, 'i:' + def.spec, C.lime);
       break;
@@ -668,7 +663,6 @@ export function handDeliver(g: Game, npc: string, k: ItemKey, shopAfter?: string
   }
   inv.slots = inv.slots.map((s) => (s && s.n > 0 ? s : null));
   if (!took) return false;
-  const nState = npcSys(g).byId.get(npc);
   const name = NPC_BY_ID.get(npc)!.name;
   const def = standingDef(o);
   const finished = o.done || !orders(g).open.includes(o);
@@ -679,7 +673,7 @@ export function handDeliver(g: Game, npc: string, k: ItemKey, shopAfter?: string
   void paid;
   g.emit({ t: 'sfx', id: 'coin' });
   g.emit({ t: 'fx', kind: 'coins', x: g.player.x, y: g.player.y - 1 });
-  g.emit({ t: 'ui', open: 'dialog', arg: { npc, name, pages: [line], hearts: nState ? hearts(nState) : 0, shop: shopAfter } });
+  g.emit({ t: 'ui', open: 'dialog', arg: { npc, name, pages: [line], shop: shopAfter } });
   return true;
 }
 

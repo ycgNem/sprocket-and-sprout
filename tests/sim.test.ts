@@ -9,7 +9,7 @@ import { laneInsert } from '../src/sim/systems/belts';
 import { serialize, deserialize, migrate, SAVE_VERSION } from '../src/sim/save';
 import { unitPrice, sellStack } from '../src/sim/systems/economy';
 import { mine } from '../src/sim/systems/mine';
-import { npcSys, giftTaste } from '../src/sim/systems/npcs';
+import { chooseLine, npcSys } from '../src/sim/systems/npcs';
 import { NPC_BY_ID } from '../src/data/npcs';
 import { craft, HAND_RECIPES } from '../src/sim/crafting';
 import { O, T } from '../src/sim/world/tilemap';
@@ -172,10 +172,22 @@ describe('crafting', () => {
 });
 
 describe('npcs', () => {
-  it('gift tastes prefer exact ids over tags', () => {
-    const d = NPC_BY_ID.get('ottoline')!;
-    expect(giftTaste(d, 'brass_gear')).toBe('love');
-    expect(giftTaste(d, 'old_boot')).toBe('hate');
+  it("a villager's later lines wait for the town's story, and their first ones stop once it moves on", () => {
+    const g = new Game({ seed: 13 });
+    const d = NPC_BY_ID.get('marigold')!;
+    const n = npcSys(g).byId.get('marigold')!;
+    n.met = true;
+    const later = d.dialogue.filter((l) => l.flag === 'town_mill').map((l) => l.text);
+    const early = d.dialogue.filter((l) => l.noFlag === 'town_mill').map((l) => l.text);
+    expect(later.length).toBeGreaterThan(0);
+    expect(early.length).toBeGreaterThan(0);
+    const said = (k: number) => { const out = new Set<string>(); for (let i = 0; i < k; i++) out.add(chooseLine(g, n, d)); return out; };
+    const before = said(400);
+    expect(later.some((t) => before.has(t))).toBe(false);
+    g.flags.add('town_mill');
+    const after = said(400);
+    expect(later.some((t) => after.has(t))).toBe(true);
+    expect(early.some((t) => after.has(t))).toBe(false);
   });
 
   it('villagers follow their schedules out of their homes', () => {
@@ -221,7 +233,7 @@ describe('save/load', () => {
     g.map.setO(66, 40, O.NONE);
     const keg = place(g, 'keg', 66, 41, 0);
     keg.mach!.inBuf.set(key('grape'), 2);
-    npcSys(g).byId.get('rowan')!.points = 777;
+    npcSys(g).byId.get('rowan')!.met = true;
     const data = JSON.parse(JSON.stringify(serialize(g, { skin: 1, hair: 2, hairStyle: 'short', shirt: 3, pants: 4 })));
     const { game: g2, look } = deserialize(data);
     expect(look).toEqual({ skin: 1, hair: 2, hairStyle: 'short', shirt: 3, pants: 4 });
@@ -231,7 +243,7 @@ describe('save/load', () => {
     expect(g2.ents.belts.length).toBe(g.ents.belts.length);
     expect(g2.ents.at(60, 40)!.belt!.lanes[0].k.length).toBe(1);
     expect(g2.ents.rootAt(66, 41)!.mach!.inBuf.get(key('grape'))).toBe(2);
-    expect(npcSys(g2).byId.get('rowan')!.points).toBe(777);
+    expect(npcSys(g2).byId.get('rowan')!.met).toBe(true);
     expect(g2.map.obj[g2.map.idx(61, 40)]).toBe(O.NONE);
   });
 

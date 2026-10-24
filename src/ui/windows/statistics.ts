@@ -44,7 +44,7 @@ function rows(play: PlayScreen): [Row[], Row[]] {
       'The town',
       ['Quests done', num(c('quests'))],
       ['Orders filled', num(c('orders'))],
-      ['Gifts given', num(c('gifts'))],
+      ['Recipes learned', num(c('recipes'))],
     ],
     [
       'The works',

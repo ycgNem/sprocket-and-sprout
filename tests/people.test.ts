@@ -1,5 +1,6 @@
-// Villagers as specialists (ROADMAP.md 7.6, Phase 5): the six re-roles, Trust's numbers, Pip's
-// echoes, Sable's lent records and filing, and Old Thorne's drawings for the drafting table.
+// Villagers as specialists (ROADMAP.md 7.6, Phase 5): the six re-roles, no Trust left anywhere (2.1.1,
+// DECISIONS #175), Pip's echoes, Sable's lent records and filing, and Old Thorne's drawings for the
+// drafting table, one as each keystone wakes.
 import { describe, expect, it } from 'vitest';
 import '../src/sim';
 import { DAY_END, Game } from '../src/sim/Game';
@@ -21,12 +22,12 @@ import { blueprintCost, pasteBlueprint } from '../src/sim/blueprint';
 import { drafting, LIB_MAX } from '../src/sim/drafting';
 import { keystoneQuest } from '../src/sim/keystones';
 import { MState } from '../src/sim/mstate';
-import { finishHeartEvent, hearts, npcSys, POINTS_PER_HEART, TASTE_POINTS } from '../src/sim/systems/npcs';
+import { npcSys } from '../src/sim/systems/npcs';
 import { objDone, questSys } from '../src/sim/systems/quests';
 import { handDeliver, orders, type Order } from '../src/sim/systems/orders';
 import { stages } from '../src/sim/systems/research';
 import {
-  answerPip, discoveryDue, drawingDue, dropPipAsk, echoDue, ECHO_TRUST, FILE_TRUST, finishAsk, giveDrawing, kindLines, machineQuestion, pipAsk, pipAskLive,
+  answerPip, discoveryDue, drawingDue, dropPipAsk, echoDue, finishAsk, giveDrawing, kindLines, machineQuestion, pipAsk, pipAskLive,
   recordDue, standBy, type Ask,
 } from '../src/sim/people';
 
@@ -69,35 +70,12 @@ describe('the six re-roles', () => {
       const d = NPC_BY_ID.get(id)!;
       expect(d.job, id).toMatch(jobs[id]);
       expect(d.dialogue.length, `${id} lines`).toBeGreaterThanOrEqual(38);
-      // conditions spread over the lines: seasons, Trust, the town's keystones
+      // conditions spread over the lines: seasons and the town's keystones
       expect(d.dialogue.some((l) => l.season !== undefined), `${id} seasonal`).toBe(true);
-      expect(d.dialogue.some((l) => l.minH !== undefined), `${id} trust-gated`).toBe(true);
       expect(d.dialogue.some((l) => l.flag !== undefined || l.noFlag !== undefined), `${id} keystone-aware`).toBe(true);
       // the house style: no em dashes anywhere they speak
-      const all = [d.intro, d.bio, ...d.dialogue.map((l) => l.text), ...Object.values(d.giftReplies).flat(), ...d.heartEvents.flatMap((e) => e.lines.map((l) => l.text))];
+      const all = [d.intro, d.bio, ...d.dialogue.map((l) => l.text)];
       for (const t of all) expect(t.includes('—'), `${id}: ${t.slice(0, 40)}`).toBe(false);
-      // gifts lean to the works: every id a real item
-      for (const list of Object.values(d.gifts)) for (const s of list) if (s[0] !== '#') expect(ITEM_BY_ID.has(s), `${id} gift ${s}`).toBe(true);
-    }
-  });
-
-  it("have new 2- and 4-Trust events at real places, in sensible windows", () => {
-    const titles: Record<string, [string, string]> = {
-      juniper: ['True on the Shaft', "Elsbeth's Wheel"], bram: ['Reading the Flame', 'The Old Foundry'], sable: ['The Back Room', 'The Last Entry'],
-      thorne: ['The Drawing Chest', 'The Night the Fires Went Out'], hazel: ['Leading Lines', 'The Drafting Table'], pip: ['The Spoon Wheel', "The Apprentice's Notebook"],
-    };
-    const maps = [1, 7, 42].map((s) => generateWorld(s));
-    for (const id of SIX) {
-      const d = NPC_BY_ID.get(id)!;
-      for (const [i, h] of [2, 4].entries()) {
-        const ev = d.heartEvents.find((e) => e.hearts === h)!;
-        expect(ev.title, `${id} ${h}`).toBe(titles[id][i]);
-        for (const m of maps) expect(m.locs.has(ev.loc), `${id} ${h} at ${ev.loc}`).toBe(true);
-        expect(ev.window[0], `${id} ${h} opens`).toBeGreaterThanOrEqual(360);
-        expect(ev.window[1] - ev.window[0], `${id} ${h} window`).toBeGreaterThanOrEqual(120);
-        expect(ev.window[1], `${id} ${h} closes`).toBeLessThanOrEqual(1440);
-        expect(ev.lines.length, `${id} ${h} lines`).toBeGreaterThanOrEqual(5);
-      }
     }
   });
 
@@ -116,50 +94,39 @@ describe('the six re-roles', () => {
   });
 });
 
-describe('Trust', () => {
-  it('a loved gift is 27, a standing order 100 (150 a big one), a Today ask 120', () => {
-    expect(TASTE_POINTS).toEqual({ love: 27, like: 15, neutral: 7, dislike: -7, hate: -13 });
+describe('no Trust', () => {
+  it('orders, quests and talks give no points, and nothing a villager keeps counts friendship', () => {
     const g = new Game({ seed: 3 });
-    const j = met(g, 'juniper');
-    j.talked = true;
-    g.player.inv.slots[g.player.sel = 0] = { k: key('beam'), n: 1 };
-    g.events.length = 0;
-    npcSys(g).interact(g, j);
-    expect(j.points).toBe(27);
-    // a standing order, filled by hand
     const b = met(g, 'bram');
     const os = orders(g);
-    const post = (def: string, spec: string, n: number) => {
-      const o: Order = { uid: os.uid++, kind: 'standing', def, cust: 'bram', lines: [{ spec, n, have: 0 }], day: g.dayIndex, due: g.dayIndex + 7, unit: 1, rep: 1 };
-      os.open.push(o);
-      g.player.inv.slots[g.player.sel] = { k: key(spec), n };
-      expect(handDeliver(g, 'bram', key(spec))).toBe(true);
-    };
-    post('bram_coal', 'coal', 30);
-    expect(b.points).toBe(100);
-    post('bram_iron', 'iron_bar', 20);
-    expect(b.points).toBe(250);
-    expect(hearts(b)).toBe(1);
-    // a Today ask
-    const h = met(g, 'hazel');
-    os.open.push({ uid: os.uid++, kind: 'today', def: 'req:hazel:pigment', cust: 'hazel', lines: [{ spec: 'pigment', n: 3, have: 0 }], day: g.dayIndex, due: g.dayIndex, pay: 100, rep: 0 });
-    g.player.inv.slots[g.player.sel] = { k: key('pigment'), n: 3 };
-    expect(handDeliver(g, 'hazel', key('pigment'))).toBe(true);
-    expect(h.points).toBe(120);
+    const o: Order = { uid: os.uid++, kind: 'standing', def: 'bram_coal', cust: 'bram', lines: [{ spec: 'coal', n: 30, have: 0 }], day: g.dayIndex, due: g.dayIndex + 7, unit: 1, rep: 1 };
+    os.open.push(o);
+    g.player.inv.slots[g.player.sel = 0] = { k: key('coal'), n: 30 };
+    expect(handDeliver(g, 'bram', key('coal'))).toBe(true);
+    talk(g, 'bram');
+    for (const k of ['points', 'giftedToday', 'giftsWeek', 'seen', 'birthdayGift']) expect(k in b, k).toBe(false);
+    for (const d of NPC_BY_ID.values()) for (const k of ['gifts', 'giftReplies', 'heartEvents', 'birthday']) expect(k in d, `${d.id} ${k}`).toBe(false);
+    // what you hold stays yours: there are no gifts
+    const j = met(g, 'juniper');
+    g.player.inv.slots[g.player.sel] = { k: key('old_boot'), n: 1 };
+    g.events.length = 0;
+    npcSys(g).interact(g, j);
+    expect(g.player.inv.countId('old_boot')).toBe(1);
   });
 
-  it('a main quest gives its giver 100, not twice when its reward already gives them Trust', () => {
-    const g = new Game({ seed: 5 });
-    const q = QUEST_BY_ID.get('k11_boiler')!;
-    expect(q.main && !q.reward.friendship).toBe(true);
-    const t = met(g, 'thorne');
-    questSys(g).active.push({ id: q.id, prog: q.objectives.map(() => 1e6), day: 0 });
-    g.research.done.add('r_sawmill');
-    g.research.done.add('r_steam');
-    g.flags.add('gallery_shored');
-    questSys(g).notify(g, 'tick', 0);
-    expect(questSys(g).done).toContain(q.id);
-    expect(t.points).toBe(100);
+  it("an older save's Trust loads and is left behind", async () => {
+    const { serialize, deserialize } = await import('../src/sim/save');
+    const g = new Game({ seed: 4 });
+    met(g, 'rowan');
+    const d = JSON.parse(JSON.stringify(serialize(g, { skin: 1, hair: 2, hairStyle: 'short', shirt: 3, pants: 4 })));
+    const r = d.sys.npcs.find((x: { id: string }) => x.id === 'rowan');
+    Object.assign(r, { points: 2000, seen: [2, 4], giftsWeek: 1, giftedToday: true });
+    d.flags.push('partner:rowan', 'heart_rowan_2');
+    const g2 = deserialize(d).game;
+    const n = npcSys(g2).byId.get('rowan')!;
+    expect(n.met).toBe(true);
+    expect('points' in n).toBe(false);
+    nextDay(g2);
   });
 });
 
@@ -173,7 +140,7 @@ describe("Pip's echoes", () => {
     }
   });
 
-  it('asks a seen card back: right is +60 Trust and the notebook, not a heart event', () => {
+  it('asks a seen card back: right is the notebook', () => {
     const g = new Game({ seed: 11 });
     for (const f of [...g.flags]) if (f.startsWith('lesson:')) g.flags.delete(f);
     const pip = met(g, 'pip');
@@ -183,7 +150,6 @@ describe("Pip's echoes", () => {
     expect(lastDialog(g)).not.toBeNull();
     g.flags.add('lesson:arm');
     pip.talked = true;
-    const before = pip.points;
     talk(g, 'pip');
     const ev = lastEvent(g);
     expect(ev.title).toBe("Pip's Question");
@@ -193,10 +159,7 @@ describe("Pip's echoes", () => {
     expect(ev.choice.options[1].reply).toMatch(/I wrote it in my notebook!/);
     finishAsk(g, ask, 1);
     expect(g.flags.has('echo:arm')).toBe(true);
-    expect(pip.points).toBe(before + ECHO_TRUST);
-    // not a heart event: none counted or seen, no cutscene, no 60 + friendship
-    expect(g.counters.heart_events ?? 0).toBe(0);
-    expect(pip.seen).toEqual([]);
+    expect(g.counters.echoes).toBe(1);
     expect(g.sys.cutscene ?? null).toBeNull();
     // one a day: another card seen today waits for tomorrow
     g.flags.add('lesson:belt');
@@ -212,7 +175,6 @@ describe("Pip's echoes", () => {
     const pip = met(g, 'pip');
     pip.talked = true;
     g.flags.add('lesson:rust');
-    const before = pip.points;
     talk(g, 'pip');
     const ev = lastEvent(g);
     const ask = ev.ask as Ask;
@@ -220,7 +182,7 @@ describe("Pip's echoes", () => {
     const wrong = ask.right === 0 ? 1 : 0;
     expect(ev.choice.options[wrong].reply).toBe(ECHO_BY_LESSON.get('rust')!.no);
     finishAsk(g, ask, wrong);
-    expect(pip.points).toBe(before);
+    expect(g.counters.echoes ?? 0).toBe(0);
     expect(g.flags.has('echo:rust')).toBe(false);
     expect(g.flags.has('echo_miss:rust')).toBe(true);
     expect(echoDue(g)).toBeNull();
@@ -278,7 +240,6 @@ describe("Pip's echoes", () => {
     pip.x = spot[0] + 0.5;
     pip.y = spot[1] + 0.9;
     g.sys.visits = { npc: 'pip', talked: false, ent: crock.id, asked: false };
-    const before = pip.points;
     talk(g, 'pip');
     expect(lastEvent(g)).toBeNull();
     const a = pipAsk(g)!;
@@ -296,7 +257,7 @@ describe("Pip's echoes", () => {
     answerPip(g, other);
     expect(pipAsk(g)!.ok).toBe(true);
     expect(pipAsk(g)!.reply).toMatch(/notebook/);
-    expect(pip.points).toBe(before + ECHO_TRUST);
+    expect(g.counters.echoes).toBe(1);
     expect(g.sys.visits.asked).toBe(true);
     // asked once a visit: then the visit's own line
     dropPipAsk(g);
@@ -317,13 +278,12 @@ describe("Pip's echoes", () => {
     pip.x = spot[0] + 0.5;
     pip.y = spot[1] + 0.9;
     g.sys.visits = { npc: 'pip', talked: false, ent: crock.id, asked: false };
-    const before = pip.points;
     talk(g, 'pip');
     const a = pipAsk(g)!;
     answerPip(g, (a.right + 1) % 3);
     expect(a.ok).toBe(false);
     expect(a.reply).toContain('"Output full: nothing takes its goods away"');
-    expect(pip.points).toBe(before);
+    expect(g.counters.echoes ?? 0).toBe(0);
     // a second visit's question, then you go indoors: it's put away
     g.sys.visits.asked = false;
     dropPipAsk(g);
@@ -382,7 +342,7 @@ describe("Sable's archive", () => {
     expect(lastEvent(g)?.ask?.id).toBe('boiler');
   });
 
-  it('files each new discovery once, +60 Trust a time', () => {
+  it('files each new discovery once', () => {
     const g = new Game({ seed: 23 });
     const sable = met(g, 'sable');
     sable.talked = true;
@@ -390,23 +350,21 @@ describe("Sable's archive", () => {
     expect(discoveryDue(g)).toBeNull();
     g.flags.add('observed:belt_1');
     g.flags.add('town_mill');
-    const before = sable.points;
     talk(g, 'sable');
     expect(lastDialog(g).pages.join(' ')).toMatch(/belt run/);
-    expect(sable.points).toBe(before + FILE_TRUST);
     talk(g, 'sable');
     expect(lastDialog(g).pages.join(' ')).toMatch(/Town Mill turns/);
-    expect(sable.points).toBe(before + 2 * FILE_TRUST);
+    expect(g.counters.filed).toBe(2);
     // filed: an ordinary chat now
     talk(g, 'sable');
-    expect(sable.points).toBe(before + 2 * FILE_TRUST);
+    expect(g.counters.filed).toBe(2);
     expect(g.flags.has('filed:belt_1') && g.flags.has('filed:k_mill')).toBe(true);
   });
 });
 
 describe("Thorne's drawings", () => {
   it('each pastes whole into a blank map: real pieces, arms between their ends', () => {
-    expect(DRAWINGS.map((d) => d.after)).toEqual(['heart_thorne_2', 'town_mill', 'waterworks', 'tram']);
+    expect(DRAWINGS.map((d) => d.after)).toEqual([undefined, 'town_mill', 'waterworks', 'tram']);
     for (const d of DRAWINGS) {
       const bp = d.bp;
       // every arm takes from a piece behind it and drops onto one in front
@@ -433,38 +391,27 @@ describe("Thorne's drawings", () => {
     }
   });
 
-  it('the first at the end of his 2-Trust event, the rest as the town wakes and his Trust grows; all in the library', () => {
-    expect(DRAWINGS.map((d) => d.trust)).toEqual([2, 4, 6, 8]);
+  it('the first once you have met him, the rest as the town wakes; all in the library', () => {
     const g = new Game({ seed: 31 });
-    const t = met(g, 'thorne');
-    t.talked = true;
-    t.points = 2 * POINTS_PER_HEART;
-    expect(drawingDue(g)).toBeNull();
-    // the event's own flag is set when it starts; the drawing comes when it ends
-    g.flags.add('heart_thorne_2');
-    g.events.length = 0;
-    finishHeartEvent(g, 'thorne', 0);
     const lib = () => drafting(g).lib;
+    // not met: nothing yet (the first talk is his introduction)
+    talk(g, 'thorne');
+    expect(lib().length).toBe(0);
+    g.events.length = 0;
+    talk(g, 'thorne');
+    expect(lastDialog(g).pages.join(' ')).toMatch(/Chest, arm, crock, arm, crate/);
     expect(lib().map((e) => [e.name, e.from])).toEqual([["The keeper's crock line", 'thorne']]);
     // (no drafting table yet: the toast says where one comes from)
     expect(g.events.some((e: any) => e.t === 'toast' && /Juniper can build a drafting table/.test(e.text))).toBe(true);
-    // a keystone done, but the mill line waits for Trust 4; then his next talk brings it
-    g.flags.add('town_mill');
     talk(g, 'thorne');
     expect(lib().length).toBe(1);
-    t.points = 4 * POINTS_PER_HEART;
+    g.flags.add('town_mill');
     talk(g, 'thorne');
     expect(lastDialog(g).pages.join(' ')).toMatch(/Bin, arm, mill, arm, chest/);
     expect(lib().map((e) => e.name)).toEqual(["The keeper's crock line", 'A mill line']);
-    talk(g, 'thorne');
-    expect(lib().length).toBe(2);
     g.flags.add('waterworks');
     g.flags.add('tram');
-    t.points = 6 * POINTS_PER_HEART;
     talk(g, 'thorne');
-    talk(g, 'thorne');
-    expect(lib().map((e) => e.name)).toEqual(["The keeper's crock line", 'A mill line', 'A smelting line']);
-    t.points = 8 * POINTS_PER_HEART;
     talk(g, 'thorne');
     expect(lib().map((e) => e.name)).toEqual(["The keeper's crock line", 'A mill line', 'A smelting line', "The clock's gear line"]);
     expect(drawingDue(g)).toBeNull();
@@ -472,11 +419,13 @@ describe("Thorne's drawings", () => {
 
   it('a full library keeps the drawing for later', () => {
     const g = new Game({ seed: 32 });
-    met(g, 'thorne').points = 4 * POINTS_PER_HEART;
+    const t = met(g, 'thorne');
+    g.flags.add('drawing:crock_line');
     const lib = drafting(g).lib;
     while (lib.length < LIB_MAX) lib.push({ name: 'Mine ' + lib.length, bp: DRAWINGS[0].bp, from: '', day: 0 });
     g.flags.add('town_mill');
     expect(giveDrawing(g, drawingDue(g)!)).toBe(false);
+    t.talked = false;
     talk(g, 'thorne');
     expect(lastDialog(g).pages.join(' ')).toMatch(/drafting table's full/);
     lib.pop();
@@ -495,9 +444,8 @@ describe('saves', () => {
     g.flags.add('lesson:arm');
     talk(g, 'pip');
     finishAsk(g, lastEvent(g).ask, 1);
-    met(g, 'thorne').points = 2 * POINTS_PER_HEART;
-    g.flags.add('heart_thorne_2');
-    finishHeartEvent(g, 'thorne', 0);
+    met(g, 'thorne');
+    talk(g, 'thorne');
     const g2 = deserialize(JSON.parse(JSON.stringify(serialize(g, look)))).game;
     expect(npcSys(g2).byId.get('pip')!.askDay).toBe(pip.askDay);
     expect(g2.flags.has('echo:arm')).toBe(true);

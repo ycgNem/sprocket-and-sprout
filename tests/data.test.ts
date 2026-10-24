@@ -86,7 +86,6 @@ describe('content data', () => {
       expect(!r.after!.startsWith('r_') || RESEARCH_BY_ID.has(r.after!), `${r.npc} ${r.item} after ${r.after}`).toBe(true);
       expect(!!r.before && ITEM_BY_ID.has(r.before.item), `${r.npc} ${r.item} before`).toBe(true);
     }
-    for (const n of NPCS) for (const list of Object.values(n.gifts)) for (const s of list) expect(specOk(s), `${n.id} gift ${s}`).toBe(true);
     for (const mo of MONSTERS) for (const d of mo.drops) expect(ITEM_BY_ID.has(d.item), d.item).toBe(true);
     for (const a of ANIMALS) expect(ITEM_BY_ID.has(a.product)).toBe(true);
   });
@@ -95,7 +94,6 @@ describe('content data', () => {
     const m = generateWorld(1);
     for (const n of NPCS) {
       for (const s of n.schedules) for (const [, loc] of s.at) expect(m.locs.has(loc), `${n.id} -> ${loc}`).toBe(true);
-      for (const e of n.heartEvents) expect(m.locs.has(e.loc), `${n.id} event ${e.loc}`).toBe(true);
     }
     for (const s of SHOPS) expect(m.locs.has(s.loc), s.loc).toBe(true);
   });

@@ -54,5 +54,5 @@ export const FURNITURE: FurnDef[] = [
 
 export const FURN_BY_ID = new Map(FURNITURE.map((f) => [f.id, f]));
 
-/** Paintings Hazel sends as friendship grows. */
-export const HAZEL_PAINTINGS: [number, string][] = [[2, 'f_paint_meadow'], [4, 'f_paint_sea'], [6, 'f_paint_tower']];
+/** Paintings Hazel sends as the town wakes: the keystone flag, then the painting */
+export const HAZEL_PAINTINGS: [string, string][] = [['town_mill', 'f_paint_meadow'], ['waterworks', 'f_paint_sea'], ['tram', 'f_paint_tower']];

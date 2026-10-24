@@ -1,7 +1,7 @@
 // Old Thorne's drawings of the old works (ROADMAP.md 7.6, Phase 5): blueprints he gives you for the
-// drafting table's library (src/sim/drafting.ts), one at the end of his 2-Trust event and one each
-// time the town wakes another of the old works' keystones, as his Trust grows (2, 4, 6, 8: his are
-// the works' Trust rewards, src/data/trust.ts). Every piece is a real structure; arms take
+// drafting table's library (src/sim/drafting.ts): the first once you've met him, then one each time
+// the town wakes another of the old works' keystones (they were Trust rewards until 2.1.1, #175; the
+// other specialists' favors are src/data/favors.ts). Every piece is a real structure; arms take
 // from behind and drop in front (rot 0 north, 1 east, 2 south, 3 west). src/sim/people.ts gives them.
 import type { Blueprint } from '../sim/blueprint';
 
@@ -9,11 +9,9 @@ export interface DrawingDef {
   id: string;
   /** its name in the library */
   name: string;
-  /** the flag it waits for (his 2-Trust event, a town keystone) */
-  after: string;
-  /** and the Trust it waits for */
-  trust: number;
-  /** what Thorne says, handing it over on a talk (the 2-Trust one is handed over in the event) */
+  /** the town keystone it waits for (none: the first, once you've met him) */
+  after?: string;
+  /** what Thorne says, handing it over on a talk */
   line: string;
   bp: Blueprint;
 }
@@ -21,7 +19,7 @@ export interface DrawingDef {
 export const DRAWINGS: DrawingDef[] = [
   {
     // the keeper's own line, as Thorne drew it for them: chest, arm, crock, arm, crate in a row
-    id: 'crock_line', name: "The keeper's crock line", after: 'heart_thorne_2', trust: 2,
+    id: 'crock_line', name: "The keeper's crock line",
     line: "The keeper's crock line, as I promised. Chest, arm, crock, arm, crate. The smallest works there is.",
     bp: {
       w: 5, h: 1,
@@ -37,7 +35,7 @@ export const DRAWINGS: DrawingDef[] = [
   {
     // a grain bin, a spring arm, the mill, a spring arm, a chest; a pole for the stones. Spring arms
     // draw no sparks, so the mill gets all of them (k9's lesson)
-    id: 'mill_line', name: 'A mill line', after: 'town_mill', trust: 4,
+    id: 'mill_line', name: 'A mill line', after: 'town_mill',
     line: "The Town Mill turns, so here's how the old works ran a small one. Bin, arm, mill, arm, chest. Spring arms draw no sparks, so the stones get all of them. Put the pole on your grid.",
     bp: {
       w: 6, h: 2,
@@ -53,7 +51,7 @@ export const DRAWINGS: DrawingDef[] = [
   },
   {
     // ore in from the side, coal down from above, bars out the other side
-    id: 'smelt_line', name: 'A smelting line', after: 'waterworks', trust: 6,
+    id: 'smelt_line', name: 'A smelting line', after: 'waterworks',
     line: "The Waterworks run, so you'll want brass by the bar. The old works' smelting line: ore in from the side, coal down from above. Ours never went out in forty years.",
     bp: {
       w: 5, h: 3,
@@ -70,7 +68,7 @@ export const DRAWINGS: DrawingDef[] = [
   },
   {
     // brass bars into a tinker's bench locked on brass gears: the Clock wants forty
-    id: 'gear_line', name: "The clock's gear line", after: 'tram', trust: 8,
+    id: 'gear_line', name: "The clock's gear line", after: 'tram',
     line: "The Tram runs. The Clock wants forty brass gears, so here's how we cut them by the hundred. Brass bars in, gears out, and a pole for the bench.",
     bp: {
       w: 6, h: 2,

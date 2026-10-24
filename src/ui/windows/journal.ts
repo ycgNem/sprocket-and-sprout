@@ -1,8 +1,9 @@
-// Journal (notebook, quests, orders, friends, collections, mail), world map, restoration board, museum.
+// Journal (notebook, quests, orders, the town and your animals, collections, mail), world map, restoration board, museum.
 import { togglePetStay } from '../../sim/systems/pet';
 import { hamsterHearts, type HamsterState } from '../../sim/systems/hamster';
-import { TRUST_REWARDS } from '../../data/trust';
-import { shortName } from '../../data/cookbook';
+import { FAVORS } from '../../data/favors';
+import { DRAWINGS } from '../../data/drawings';
+import { KEYSTONE_WHEN, RECIPE_TEACHERS, shortName } from '../../data/cookbook';
 import { C, PALETTE } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
 import { NPCS, NPC_BY_ID } from '../../data/npcs';
@@ -10,7 +11,7 @@ import { FISH } from '../../data/fish';
 import { QUEST_BY_ID } from '../../data/goals';
 import { SEASON_NAMES } from '../../data/types';
 import { key } from '../../sim/inventory';
-import { hearts, insideAt, npcSys, giftTaste } from '../../sim/systems/npcs';
+import { insideAt, npcSys } from '../../sim/systems/npcs';
 import { objDone, objText, questSys } from '../../sim/systems/quests';
 import { donateMuseum, goals, museumAccepts, MUSEUM_TOTAL, readMail } from '../../sim/systems/goals';
 import { tileColor } from '../hud';
@@ -21,7 +22,7 @@ import { registerWindow, WinState } from './index';
 import { sprite, drawFit } from '../../render/atlas';
 import { ICON, textWidth, ellipsize } from '../font';
 import { itemTooltip } from '../tooltips';
-import { counter, portrait, trustRow } from './town';
+import { counter, portrait } from './town';
 import { shopFor, shopStatus } from '../../sim/systems/town';
 import type { NPCState } from '../../sim/systems/npcs';
 import { charArtHeight } from '../../render/art/sheets';
@@ -37,7 +38,7 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
   st.data.tab = st.data.tab ?? st.arg ?? 'quests';
   // (achievements have their own window, U: their tab overflowed its button and pushed Mail under the
   // close button, the sweep found)
-  // (the villagers' tab reads "Town": who they are and how far they trust you)
+  // (the villagers' tab reads "Town": who they are and what they give the works)
   const tabs = [['notebook', 'Notebook'], ['quests', 'Quests'], ['orders', 'Orders'], ['friends', 'Town'], ['collect', 'Collections'], ['mail', 'Mail']];
   let jump = false;
   const tw = Math.min(70, Math.floor((w - 44) / tabs.length));
@@ -131,24 +132,19 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
       if (ry < by - rowH || ry > by + bh) return;
       portrait(ui, n.id, bx + 4, ry, 18);
       ui.text(n.met ? d.name : '???', bx + 34, ry + 3, C.ink);
-      if (g.flags.has('partner:' + n.id)) ui.text(ICON.heart + ' partner', bx + 34 + textWidth(d.name) + 6, ry + 3, C.rose);
-      // the job shares a row with the birthday column at +230
-      ui.text(ellipsize(n.met ? d.job : 'You haven\'t met yet', 230 - 34 - 6), bx + 34, ry + 13, C.oak);
-      // Trust (hearts under the hood) as cog pips
-      trustRow(ui, hearts(n), bx + 230, ry + 3);
-      ui.text(`Birthday: ${SEASON_NAMES[d.birthday.season]} ${d.birthday.day}`, bx + 230, ry + 13, C.walnut);
+      // the job, and what they give the works as the town wakes (src/data/favors.ts, Thorne's drawings)
+      ui.text(ellipsize(n.met ? d.job : "You haven't met yet", 230 - 34 - 6), bx + 34, ry + 13, C.oak);
+      const favor = FAVORS.find((f) => f.npc === n.id);
+      if (favor) ui.text(ellipsize(favor.title, bw - 230 - 46), bx + 230, ry + 3, g.flags.has('favor:' + favor.id) ? C.moss : C.walnut);
+      else if (n.id === 'thorne') ui.text(`Drawings: ${DRAWINGS.filter((x) => g.flags.has('drawing:' + x.id)).length} of ${DRAWINGS.length}`, bx + 230, ry + 3, C.walnut);
       if (n.talked) ui.text('talked', bx + bw - 8, ry + 3, C.moss, { align: 'right' });
-      if (n.giftedToday) ui.text('gift', bx + bw - 8, ry + 13, C.rose, { align: 'right' });
       if (ui.hover(bx, ry, bw, rowH - 2) && n.met) {
-        // known gift tastes: love items you have gifted
-        const h = hearts(n);
-        const trust = h >= 10 ? 'Trust 10: as high as it goes' : `Trust ${h}: ${Math.round(((n.points % 250) / 250) * 100)}% of the way to ${h + 1}`;
-        const lines = [{ text: d.name, color: C.amber }, { text: d.personality }, { text: trust, color: C.pebble }];
-        // what a works specialist gives as Trust grows (src/data/trust.ts): butter once it's yours
-        for (const r of TRUST_REWARDS.filter((x) => x.npc === n.id)) lines.push({ text: `Trust ${r.trust}: ${r.name}`, color: g.flags.has('trust:' + r.id) ? C.butter : C.pebble });
-        if (n.id === 'thorne') lines.push({ text: 'Trust 2, 4, 6, 8: his drawings of the old works, as the town wakes', color: C.pebble });
-        const held = g.player.inv.slots[g.player.sel];
-        if (held) lines.push({ text: `Would think of your ${ITEMS[held.k >> 2].name}: ${giftTaste(d, ITEMS[held.k >> 2].id)}`, color: C.lime });
+        const lines = [{ text: d.name, color: C.amber }, { text: d.personality }];
+        // their favor for the works (butter once it's yours) and the recipes they send
+        if (favor) lines.push({ text: `${favor.name}, ${KEYSTONE_WHEN[favor.after] ?? 'later'}`, color: g.flags.has('favor:' + favor.id) ? C.butter : C.pebble });
+        if (n.id === 'thorne') lines.push({ text: 'His drawings of the old works, one as each keystone wakes', color: C.pebble });
+        const recipes = Object.entries(RECIPE_TEACHERS).filter(([, t]) => t.npc === n.id).map(([id]) => ITEM_BY_ID.get(id)?.name ?? id);
+        if (recipes.length) lines.push({ text: 'Recipes: ' + recipes.join(', '), color: C.pebble });
         ui.tip(lines, 220);
       }
     });

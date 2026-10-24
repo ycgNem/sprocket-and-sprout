@@ -19,7 +19,6 @@ describe('Roxy Vane', () => {
   it('is a full villager with a shop on her airship', () => {
     const r = NPC_BY_ID.get('roxy')!;
     expect(r.age).toBe('adult');
-    expect(r.heartEvents.map((e) => e.hearts)).toEqual([2, 4, 6, 8]);
     expect(r.dialogue.length).toBeGreaterThanOrEqual(30);
     const shop = SHOP_BY_ID.get('airfreight')!;
     expect(shop.owner).toBe('roxy');
@@ -71,7 +70,6 @@ describe('Roxy Vane', () => {
     const g2 = deserialize(d).game;
     expect(g2.map.obj[g2.map.idx(dx, dy + 1)]).toBe(O.NONE);
     const roxy = npcSys(g2).byId.get('roxy')!;
-    expect(roxy.points).toBe(0);
     expect(roxy.met).toBe(false);
     // the door of her shop is a building door on the map
     expect(g2.map.buildingAtTile(dx, dy - 1)?.id).toBe('airship');

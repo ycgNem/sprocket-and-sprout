@@ -1,4 +1,4 @@
-// Town windows: NPC dialogue with portraits, heart-event cutscenes, shops.
+// Town windows: NPC dialogue with portraits, scenes and villagers' questions, shops.
 import { shortName } from '../../data/cookbook';
 import { C } from '../../data/palette';
 import { ITEM_BY_ID } from '../../data/items';
@@ -10,14 +10,14 @@ import { ANIMALS } from '../../data/creatures';
 import { STRUCT_BY_ID } from '../../data/structures';
 import { key, kDef } from '../../sim/inventory';
 import { buy, buyKit, canAffordKit, crackGeode, dailyLeft, entryPrice, sellToShop, shopBuys, shopStock, startUpgrade, unitPrice, upgradeOptions } from '../../sim/systems/economy';
-import { finishHeartEvent, giftable, hearts, insideAt, npcSys, talkTo, wouldGift, type NPCState } from '../../sim/systems/npcs';
+import { insideAt, npcSys, talkTo, type NPCState } from '../../sim/systems/npcs';
 import { counterAsks, handIn } from '../../sim/systems/quests';
 import { finishAsk, type Ask } from '../../sim/people';
 import { sundayLot } from '../../sim/systems/cart';
 import { sprite, drawFit } from '../../render/atlas';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
-import { wrapText, ICON, ellipsize, textWidth } from '../font';
+import { wrapText, ICON, ellipsize } from '../font';
 import { centered, frame, invGrid, SLOT } from './common';
 import { registerWindow, WinState } from './index';
 import { itemTooltip } from '../tooltips';
@@ -53,28 +53,8 @@ function portrait(ui: UI, npcId: string, x: number, y: number, size = 48, mood =
   ui.ctx.drawImage(s.img, s.x, s.y, pw, pw, x + 4 + Math.floor((size - sz) / 2), y + 4 + Math.floor((size - sz) / 2), sz, sz);
 }
 
-/**
- * Trust, the UI's word for a villager's hearts (ROADMAP.md 7.6): ten small cog pips, the earned ones
- * in brass (59 px wide). Romance keeps its hearts (the locket, the partner).
- */
-function trustRow(ui: UI, h: number, x: number, y: number) {
-  const n = Math.max(0, Math.min(10, h));
-  if (n) ui.text(ICON.cog.repeat(n), x, y, C.amber);
-  if (n < 10) ui.text(ICON.cog.repeat(10 - n), x + n * 6, y, C.oak);
-}
-
-/** "Trust" and its pips on a paper tag, its right edge at `right` (the dialogue box's top corner) */
-function trustTag(ui: UI, h: number, right: number, y: number) {
-  const tw = textWidth('Trust');
-  const w = tw + 75;
-  const x = right - w;
-  ui.panel(x, y, w, 14, 'paper', false);
-  ui.text('Trust', x + 6, y + 4, C.walnut);
-  trustRow(ui, h, x + tw + 10, y + 4);
-}
-
 function drawDialog(ui: UI, play: PlayScreen, st: WinState): boolean {
-  const a = st.arg as { npc: string; name: string; pages: string[]; shop?: string; hearts: number; mood?: number };
+  const a = st.arg as { npc: string; name: string; pages: string[]; shop?: string; mood?: number };
   st.data.page = st.data.page ?? 0;
   st.data.chars = (st.data.chars ?? 0) + 96 * Math.min(0.05, ui.dt);
   const text = a.pages[st.data.page] ?? '';
@@ -84,7 +64,6 @@ function drawDialog(ui: UI, play: PlayScreen, st: WinState): boolean {
   portrait(ui, a.npc, x + 8, y + 7, 64, a.mood ?? 0);
   ui.panel(x + 8, y - 12, Math.max(70, a.name.length * 6 + 12), 14, 'brass', false);
   ui.text(a.name, x + 14, y - 8, C.ink);
-  if (a.hearts >= 0) trustTag(ui, a.hearts, x + w - 8, y - 12);
   const shown = text.slice(0, Math.floor(st.data.chars));
   if (Math.floor(st.data.chars) % 3 === 0 && st.data.chars < text.length) ui.sfx('talk');
   wrapText(shown, w - 104).forEach((l, i) => ui.text(l, x + 86, y + 12 + i * 11, C.ink));
@@ -120,8 +99,8 @@ function drawDialog(ui: UI, play: PlayScreen, st: WinState): boolean {
 }
 
 function drawEvent(ui: UI, play: PlayScreen, st: WinState): boolean {
-  // a heart event, or a villager's question (Pip's echoes, Sable's records: `ask`, src/sim/people.ts)
-  const a = st.arg as { npc: string; title: string; lines: { who: string; text: string; npcId: string | null }[]; choice: { prompt: string; options: { text: string; reply: string; friendship: number }[] } | null; ask?: Ask };
+  // a scene (the Professor's springs), or a villager's question (Pip's echoes, Sable's records: `ask`, src/sim/people.ts)
+  const a = st.arg as { npc: string; title: string; lines: { who: string; text: string; npcId: string | null }[]; choice: { prompt: string; options: { text: string; reply: string }[] } | null; ask?: Ask };
   st.data.i = st.data.i ?? 0;
   st.data.chars = (st.data.chars ?? 0) + 90 * Math.min(0.05, ui.dt);
   // letterbox
@@ -143,7 +122,6 @@ function drawEvent(ui: UI, play: PlayScreen, st: WinState): boolean {
     a.choice.options.forEach((o, i) => {
       if (ui.button('ch' + i, x + 12, y + 6 + i * 20, w - 24, 17, o.text, { style: 'flat' })) {
         st.data.reply = o.reply;
-        st.data.friend = o.friendship;
         st.data.pick = i;
         st.data.chars = 0;
       }
@@ -154,7 +132,7 @@ function drawEvent(ui: UI, play: PlayScreen, st: WinState): boolean {
     if (a.ask) {
       st.data.done = true;
       finishAsk(g, a.ask, st.data.pick ?? -1);
-    } else finishHeartEvent(g, a.npc, st.data.friend ?? 0);
+    } else g.sys.cutscene = null;
     return false;
   }
   ui.panel(x, y, w, h);
@@ -205,10 +183,8 @@ export function counter(ui: UI, play: PlayScreen, st: WinState, n: NPCState, her
   const hd = held ? kDef(held.k) : null;
   const asks = counterAsks(g, n.id);
   const wanted = !!hd && asks.some((a) => a.k !== null && kDef(a.k).id === hd.id);
-  if (hd && n.met && (giftable(hd) || wanted)) {
-    const ok = wanted || wouldGift(g, n, hd);
-    const tip = wanted ? `Hand ${name} your ${hd.name}: they asked for it` : ok ? `Give ${name} your ${hd.name} (a gift)` : n.giftedToday ? `${name} has had a gift today` : `${name} has had two gifts this week`;
-    if (ui.button('ct_give', bx, by, bw, 14, 'Give', { style: 'flat', disabled: !ok, tip })) talkTo(g, n, after);
+  if (hd && n.met && wanted) {
+    if (ui.button('ct_give', bx, by, bw, 14, 'Give', { style: 'flat', tip: `Hand ${name} your ${hd.name}: they asked for it` })) talkTo(g, n, after);
     ui.itemIcon(held!.k, bx + bw - 15, by - 1, 16);
     next();
   }
@@ -414,9 +390,9 @@ registerWindow('event', {
     // a question closed early still counts the answer you gave (none: it's asked again)
     if (st.arg.ask) {
       if (!st.data.done) finishAsk(play.g, st.arg.ask, st.data.pick ?? -1);
-    } else if (play.g.sys.cutscene) finishHeartEvent(play.g, st.arg.npc, st.data.friend ?? 0);
+    } else play.g.sys.cutscene = null;
   },
 });
 registerWindow('shop', { draw: drawShop });
 
-export { hearts, npcSys, trustRow, portrait };
+export { npcSys, portrait };

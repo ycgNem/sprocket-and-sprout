@@ -7,6 +7,34 @@ export interface NotePic { src: string; caption: string }
 export interface PatchNote { version: string; date: string; title: string; intro: string; pics?: NotePic[]; sections: NoteSection[] }
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: '2.1.1',
+    date: 'October 2026',
+    title: 'The Town at Work',
+    intro: `2.1.1 takes Trust out of the game. No friendship meters, gifts, birthdays or heart scenes: Thistlewick is about its works, and what the town gives you now comes as its works come back.`,
+    sections: [
+      {
+        title: `Trust is gone`,
+        items: [
+          `No more Trust, gifts, birthdays or heart scenes. Talk to villagers any time: what they say changes as the mill, the waterworks and the tram come back.`,
+          `Partners and the Brass Locket are gone too. A locket left in your bag sells for 3,750.`,
+          `Villagers you've met drop by the farm on weekend afternoons.`,
+          `The Part of the Town quest and the friendship and gift achievements are retired. A new achievement, The Town's Thanks, is for collecting every favor below.`,
+        ],
+      },
+      {
+        title: `What the town gives now`,
+        items: [
+          `Recipes come by mail, one a morning, as the town's works return: seven once the Town Mill turns, five once the Waterworks flow, two once the Tram runs. The Sunday almanac still teaches one a week, and Mags' cart sells the cards.`,
+          `Thorne's Hollow sells the Glowmelon Sorbet recipe card once you've studied Grand Works. It was locked behind Dr. Marrow's Trust, and the Starlight Beacon needs 20 sorbets.`,
+          `The specialists' favors: Juniper's trade price, Hazel's bigger drafting library and Pip's machine watch come when the Town Mill turns; Bram's blast furnace at cost and Sable's catalogue when the Waterworks flow.`,
+          `Old Thorne gives you his first drawing once you've met him, and the rest as each of the town's works wakes. Hazel's paintings arrive the same way.`,
+          `Farms that already earned any of these keep them.`,
+          `The Journal's Town tab shows each villager's favor and the recipes they send.`,
+        ],
+      },
+    ],
+  },
+  {
     version: '2.1',
     date: 'October 2026',
     title: 'Overseas',

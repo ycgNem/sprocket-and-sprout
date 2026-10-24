@@ -12,7 +12,7 @@ import { buildingFaced, onTile } from './near';
 import { cartHere } from './systems/cart';
 import { canTill } from './systems/farming';
 import { fuelValue, loadChoices, machAccept, stationRecipes } from './systems/machines';
-import { wouldGift } from './systems/npcs';
+import { counterAsks } from './systems/quests';
 import { petAt } from './systems/pet';
 import { tockAt } from './systems/tock';
 import { hamsterBallAt } from './systems/hamster';
@@ -117,8 +117,9 @@ export function tilePrompt(g: Game, tx: number, ty: number): Prompt | null {
       const held = p.inv.slots[p.sel];
       const hd = held ? kDef(held.k) : null;
       const name = questName(npc.id, NPC_BY_ID.get(npc.id)?.name ?? '');
-      // the same rules F follows (talkTo): the locket, then a gift, else a chat
-      const verb = hd?.id === 'heart_charm' && npc.met ? 'Offer the locket' : hd && wouldGift(g, npc, hd) ? `Give to ${name}` : npc.talked ? `Chat with ${name}` : `Talk to ${name}`;
+      // the same rules F follows (talkTo): what a quest asked them for, else a chat
+      const wanted = !!hd && counterAsks(g, npc.id).some((a) => a.k !== null && kDef(a.k).id === hd.id);
+      const verb = wanted ? `Give to ${name}` : npc.talked ? `Chat with ${name}` : `Talk to ${name}`;
       return { verb, x: npc.x, y: npc.y - 2 };
     }
     if (animal && (!on || onTile(animal, tx, ty))) return animal.petted ? null : { verb: 'Pet', x: animal.x, y: animal.y - 1.2 };

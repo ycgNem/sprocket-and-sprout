@@ -49,7 +49,7 @@ const SC = {
   restoration: async () => ev(`(() => { S.play.openWindow('restoration'); })()`),
   board: async () => ev(`(() => { S.play.openWindow('board'); })()`),
   museum: async () => ev(`(() => { S.g.player.inv.add(S.key('amethyst'), 1); S.g.player.inv.add(S.key('old_cog'), 1); S.play.openWindow('museum'); })()`),
-  friends: async () => ev(`(() => { for (const n of S.g.sys.npcs.list) { n.met = true; n.points = Math.floor(Math.random() * 1500); } S.play.openWindow('journal'); S.play.win.data.tab = 'friends'; })()`),
+  friends: async () => ev(`(() => { for (const n of S.g.sys.npcs.list) n.met = true; S.play.openWindow('journal'); S.play.win.data.tab = 'friends'; })()`),
   collections: async () => ev(`(() => { S.play.openWindow('journal'); S.play.win.data.tab = 'collect'; S.play.win.data.sub = 'fish'; })()`),
   mail: async () => ev(`(() => { S.play.openWindow('mail'); })()`),
   stats: async () => ev(`(() => { const g = S.g; for (let i = 0; i < 400; i++) { g.stats.add(S.key('wood'), 1); g.stats.add(S.key('stone'), 2); g.stats.use(S.key('wood'), 1); g.tick(); } S.play.openWindow('stats'); })()`),

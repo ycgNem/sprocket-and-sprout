@@ -1,5 +1,5 @@
-// Farm visits: on fine weekend afternoons a villager who likes you strolls over to see the farm.
-// Talking to them there gives a farm-aware line and a little extra Trust. On a fine afternoon with
+// Farm visits: on fine weekend afternoons a villager you've met strolls over to see the farm.
+// Talking to them there gives a farm-aware line. On a fine afternoon with
 // no other visitor, Pip may come after school and stand by one of your machines to ask about it
 // (ROADMAP.md 7.6; the question is src/sim/people.ts).
 import { NPC_BY_ID } from '../../data/npcs';
@@ -7,7 +7,7 @@ import { SHOPS } from '../../data/shops';
 import { shortName } from '../../data/cookbook';
 import { Game, registerSystem } from '../Game';
 import { dayHash, pipMachines, standBy } from '../people';
-import { hearts, npcSys, NPCState } from './npcs';
+import { npcSys, NPCState } from './npcs';
 
 const ARRIVE = 13 * 60, LEAVE = 16 * 60 + 30;
 /** Pip, after school (school lets out at 3pm), home before dark */
@@ -86,18 +86,11 @@ registerSystem({
     if (g.map.w < 100 || g.daysPlayed < 5) return;
     if (g.isRaining() || g.weather === 'snow' || g.weather === 'storm') return;
     if (g.sys.festivals?.today?.(g)) return;
-    // your partner drops by most fine days; others only at weekends
-    const pid = [...g.flags].find((f) => f.startsWith('partner:'))?.slice(8);
-    const partner = pid ? npcSys(g).byId.get(pid) : undefined;
-    let n: NPCState | undefined;
-    // (the rolls here are the same as before Pip's visits: they never roll g.rng themselves)
-    if (partner && partner.schedule && !keepsShopToday(g, partner.id) && g.rng.next() < 0.7) n = partner;
-    else {
-      if (g.weekday !== 5 && g.weekday !== 6) return pipVisit(g);
-      const cands = npcSys(g).list.filter((x) => x.met && hearts(x) >= 3 && !keepsShopToday(g, x.id) && x.schedule && x !== partner);
-      if (!cands.length || g.rng.next() > 0.6) return pipVisit(g);
-      n = g.rng.pick(cands);
-    }
+    // at weekends a villager you've met may drop by (Pip's visits otherwise)
+    if (g.weekday !== 5 && g.weekday !== 6) return pipVisit(g);
+    const cands = npcSys(g).list.filter((x) => x.met && !keepsShopToday(g, x.id) && x.schedule);
+    if (!cands.length || g.rng.next() > 0.6) return pipVisit(g);
+    const n: NPCState = g.rng.pick(cands);
     if (!g.map.locs.has('farm_visit')) g.map.locs.set('farm_visit', visitSpot(g));
     const at = n.schedule!.at as [number, string][];
     const back = locAt(at, LEAVE);

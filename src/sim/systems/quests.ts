@@ -12,7 +12,7 @@ import type { ObjectiveDef, QuestDef } from '../../data/types';
 import { Game, registerSystem } from '../Game';
 import { DX, DY, type Ent } from '../ents';
 import { key, kDef } from '../inventory';
-import { addPoints, hearts, npcSys } from './npcs';
+import { npcSys } from './npcs';
 import { portGraph } from '../lines';
 import { allEnts } from '../indoors';
 import { stageCount, stageNext, stages, validateText } from './research';
@@ -83,9 +83,6 @@ export function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
   switch (o.t) {
     case 'have': return g.player.inv.countSpec(o.item) >= o.n;
     case 'money': return g.earned >= o.n;
-    case 'friend':
-      if (o.npc === '*') return npcSys(g).list.filter((n) => hearts(n) >= o.hearts).length >= 3;
-      return hearts(npcSys(g).byId.get(o.npc)!) >= o.hearts;
     case 'produce': {
       let rate = 0;
       for (let i = 0; i < ITEMS.length; i++) if (matchesSpec(ITEMS[i], o.item)) rate += g.stats.rate(i, 0, 'prod');
@@ -237,7 +234,6 @@ export function objText(g: Game, o: ObjectiveDef, prog: number): string {
     case 'money': return `Earn ${o.n.toLocaleString()} coins (${Math.min(o.n, g.earned).toLocaleString()})`;
     case 'sleep': return 'Go to bed';
     case 'visit': return `Visit the ${o.loc}`;
-    case 'friend': return o.npc === '*' ? `Trust ${o.hearts} with 3 villagers (${npcSys(g).list.filter((n) => hearts(n) >= o.hearts).length}/3)` : `Trust ${o.hearts} with ${NPC_BY_ID.get(o.npc)?.name}`;
     case 'produce': return `Make ${item(o.item)} with machines`;
     case 'crate': return `${o.auto ? 'Ship' : 'Put'} ${o.n} ${item(o.item)} ${o.auto ? 'by arm' : 'in the crate'} (${Math.min(prog, o.n)}/${o.n})`;
     case 'restore': return o.struct ? `Restore the ${STRUCT_BY_ID.get(o.struct)?.name ?? o.struct}` : 'Restore it';
@@ -282,13 +278,6 @@ function complete(g: Game, a: ActiveQuest) {
   for (const it of r.items ?? []) g.give(key(it.item), it.n);
   if (r.flag) g.flags.add(r.flag);
   (q.today ??= []).push(def.title);
-  if (r.friendship) {
-    const n = npcSys(g).byId.get(r.friendship[0]);
-    if (n) addPoints(g, n, r.friendship[1]);
-  }
-  // the giver's Trust: a main quest 100 (ROADMAP.md 7.6), others 40; not twice when the reward already gives it
-  const giver = npcSys(g).byId.get(def.giver);
-  if (giver && r.friendship?.[0] !== def.giver) addPoints(g, giver, def.main ? 100 : 40);
   // the play screen shows a banner, flies the reward in and plays the fanfare
   g.emit({ t: 'quest', title: def.title, money: r.money ?? 0, items: r.items ?? [] });
   if (def.done) g.toast(def.done, undefined, C.amber);

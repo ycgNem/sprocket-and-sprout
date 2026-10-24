@@ -1254,3 +1254,31 @@ recommendations are the decisions.
       starstones; an achievement of the same name. No PixelLab art was needed.
     - **The Grand Works Site's window.** Hovering a stage's item shows its tip with "Get it", and the
       reward text wraps instead of running off the window.
+
+175. **Trust is gone (the owner: "completely remove trust from the game, it's useless and just
+    copies Stardew, be thorough, and clean up"; "have Thorne sell that recipe instead").** 2.1.1.
+    - **Out:** friendship points and Trust levels, gifts and gift tastes, birthdays (the almanac's
+      too), the 14 villagers' heart events (and the event hook Thorne's first drawing hung on),
+      partners and the locket romance (src/sim/systems/partner.ts, the hearth, breakfast), the
+      Trust tag on the dialogue box and the villager tip, the cog pip glyph, the friend gift mail,
+      the "friend" quest objective and the Part of the Town quest, the friendship/gift/partner/scene
+      achievements, a quest reward's `friendship`, and Trust from orders, quests, talks, Pip's
+      echoes and Sable's filing. Dialogue gated by hearts now follows the town's keystones (Trust
+      2-3 lines always, 4-5 after the Town Mill, 6 the Waterworks, 8 the Tram; the stranger lines
+      stop when the mill turns).
+    - **What Trust gave moves to the story:** the specialists' rewards are favors
+      (src/data/favors.ts, src/sim/systems/favors.ts, flag `favor:<id>`): Juniper's trade price,
+      Hazel's index and Pip's watch after `town_mill`, Bram's furnace at cost and Sable's catalogue
+      after `waterworks`; a farm's `trust:<id>` flags become favors on load. Thorne's first drawing
+      comes once you've met him, the rest with their keystones. Recipes are mailed after a keystone
+      (7 at the mill, 5 at the waterworks, 2 at the tram; one a morning, so they don't all toast at once); the glow sorbet is never mailed: Thorne's
+      Hollow sells its card after Grand Works (`r_grandworks`), the cart and the almanac as before.
+      Hazel's paintings come with the mill, the waterworks and the tram.
+    - **Kept:** villagers, schedules, talk and the day's first chat, quests' hand-ins at a talk or a
+      counter (Give only for what they asked), farm visits (any villager you've met, at weekends),
+      Pip's echoes and machine questions, Sable's records, the event window for scenes and asks,
+      business reputation (a different thing, on the Orders board), and pets' and the hamster's
+      hearts. The Brass Locket item stays in the list (later items keep their index) as a keepsake
+      that sells for 3,750; it's no longer sold.
+    - **New:** an achievement, The Town's Thanks (every favor); the Journal's Town tab shows each
+      villager's favor and recipes. An older save's points, gifts and scenes are dropped on load.

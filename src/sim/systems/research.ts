@@ -2,7 +2,8 @@
 // recipes. Keystones carry stages before the bundles: observe (a flag), experiment (objectives),
 // validate (an item made at a rate, held for some minutes); a desk on a keystone whose stages
 // aren't done waits and takes nothing. Era rewards (the 1.x buff nodes) come from town keystones.
-import { CATALOGUE } from '../../data/trust';
+import { CATALOGUE } from '../../data/favors';
+import { hasFavor } from './favors';
 import { ERA_REWARDS, REWARD_BY_ID, RESEARCH, RESEARCH_BY_ID } from '../../data/research';
 import { canResearch, keystoneOpen, keystoneQuest, stageCount } from '../keystones';
 export { canResearch, keystoneOpen, stageCount } from '../keystones';
@@ -217,8 +218,8 @@ function labAccept(g: Game, e: Ent, k: number): number {
 /** the structures that may be study desks: the farm's and the farmhouse's (Workshop HQ) */
 const deskLists = (g: Game) => [g.ents.others, g.houseEnts.others];
 
-/** how fast a desk studies (Sable's catalogue, a Trust reward, makes it 15% faster: src/data/trust.ts) */
-export const deskSpeed = (g: Game, e: Ent) => (e.def.speed ?? 1) * g.mods.labSpeed * (g.flags.has('trust:sable_catalogue') ? CATALOGUE : 1);
+/** how fast a desk studies (Sable's catalogue, their favor, makes it 15% faster: src/data/favors.ts) */
+export const deskSpeed = (g: Game, e: Ent) => (e.def.speed ?? 1) * g.mods.labSpeed * (hasFavor(g, 'sable_catalogue') ? CATALOGUE : 1);
 
 function updateLabs(g: Game, dt: number) {
   const cur = g.research.current;

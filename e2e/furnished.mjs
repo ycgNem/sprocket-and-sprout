@@ -29,14 +29,14 @@ await ev(`(async () => {
   put('f_paint_meadow', 6, 1); put('f_paint_tower', 9, 1); put('f_banner', 12, 1);
   put('f_petbed', 6, 4); put('f_rug_blue', 9, 7);
   const p = P.petSys(g); p.kind = 'cat'; p.coat = 0; P.adoptPet(g, 'Turnip');
-  g.time.min = 21 * 60; g.flags.add('partner:rowan');
+  g.time.min = 21 * 60;
   g.player.inv.slots[11] = { k: I.key('f_armchair_sage'), n: 1 }; g.player.sel = 11;
 })()`);
 await page.waitForTimeout(1500);
 const scr = await ev(`(() => { const r = window.__app.renderer; const s = r.tileToScreen(4.5, 8.5); return { x: s.x / window.__app.dpr, y: s.y / window.__app.dpr }; })()`);
 await page.mouse.move(scr.x, scr.y);
 await page.waitForTimeout(2500);
-await page.screenshot({ path: `${out}/partner.png` });
+await page.screenshot({ path: `${out}/furnished.png` });
 await page.mouse.click(scr.x, scr.y);
 await page.waitForTimeout(300);
 console.log('decor', await ev(`S.g.sys.house.decor.length`), 'pet', JSON.stringify(await ev(`[S.g.sys.pet.map, S.g.sys.pet.x.toFixed(1), S.g.sys.pet.y.toFixed(1), S.g.sys.pet.mode]`)));

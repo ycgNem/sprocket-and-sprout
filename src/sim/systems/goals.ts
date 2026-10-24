@@ -1,9 +1,7 @@
 // Long-term goals: megaprojects, museum donations, the collection log and the mailbox. (The
 // restoration projects are the Orders board's Works now: src/sim/systems/orders.ts.)
-import { shortName } from '../../data/cookbook';
 import { MEGAPROJECTS, MEGA_BY_ID, PROJECTS } from '../../data/goals';
 import { ITEMS, ITEM_BY_ID, matchesSpec } from '../../data/items';
-import { NPC_BY_ID } from '../../data/npcs';
 import { C } from '../../data/palette';
 import { Game, registerSystem } from '../Game';
 import type { Ent } from '../ents';
@@ -144,8 +142,8 @@ export function donateMuseum(g: Game, id: string): boolean {
 }
 
 // ---------------- mail ----------------
-// DECISIONS #57 ("too much mail"): quests send no letters, season notes, festivals and
-// birthdays live in the almanac, and the mailbox delivers at most one letter a day. The rest
+// DECISIONS #57 ("too much mail"): quests send no letters, season notes and festivals live in the
+// almanac, and the mailbox delivers at most one letter a day. The rest
 // wait in a queue and arrive on the next free morning, oldest first.
 export function send(g: Game, id: string, l: { from: string; title: string; text: string; items?: { item: string; n: number }[] }) {
   const gs = goals(g);
@@ -184,14 +182,6 @@ function mailSend(g: Game, id: string, args: any) {
 }
 
 function seasonalMail(g: Game) {
-  // occasional gifts from close friends (season notes, festivals and birthdays are in the almanac)
-  for (const n of g.sys.npcs?.list ?? []) {
-    if (n.points >= 1000 && g.rng.next() < 0.015) {
-      const d = NPC_BY_ID.get(n.id)!;
-      const love = d.gifts.love.filter((x) => x[0] !== '#' && ITEM_BY_ID.has(x));
-      if (love.length) send(g, `gift_${n.id}_${g.dayIndex}`, { from: n.id, title: 'A little something', text: `I saw this and thought of you. - ${shortName(d.name)}`, items: [{ item: g.rng.pick(['cake', 'cookies', 'bread', 'tea', 'honey']), n: 1 }] });
-    }
-  }
   // a festival tomorrow gets a toast in the morning rather than a letter
   const t = g.time;
   const fest = g.mode === 'rush' ? null : g.sys.festivals?.list?.find?.((f: any) => f.season === t.season && f.day === t.day + 1);

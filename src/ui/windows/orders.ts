@@ -106,7 +106,7 @@ function drawToday(ui: UI, play: PlayScreen, x: number, y: number, w: number): n
     ui.text(villagerName(npc) + (biz ? `, ${biz.name}` : ''), tx, yy + 4, C.ink);
     ui.text(ellipsize(`"${o.text ?? ''}"`, w - 120), tx, yy + 14, C.walnut);
     const onLine = drawLines(ui, o, tx, yy + 27, w - 170);
-    ui.text(`${ICON.coin}${o.pay} + Trust${o.rep ? ', reputation' : ''}`, x + w - 12, yy + 27, C.oak, { align: 'right' });
+    ui.text(`${ICON.coin}${o.pay}${o.rep ? ' + reputation' : ''}`, x + w - 12, yy + 27, C.oak, { align: 'right' });
     ui.text(o.done ? 'Done!' : dueText(g, o), x + w - 12, yy + 4, o.done ? C.moss : C.oak, { align: 'right' });
     if (!o.done) trackButton(ui, g, o, x + w - 56, yy + 13);
     if (!onLine && ui.hoverId !== 'tr' + o.uid && ui.hover(x + 4, yy, w - 8, 40)) {

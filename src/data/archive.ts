@@ -1,5 +1,5 @@
 // Sable's archive (ROADMAP.md 7.6, Phase 5): the old works' records. Sable files each discovery you
-// tell them about (Trust, once each) and lends the record of a works chamber you saw before its
+// tell them about (once each) and lends the record of a works chamber you saw before its
 // keystone's quest asked (DECISIONS #94/#98 made you go back down for the look). src/sim/people.ts
 // runs both.
 import type { ChamberKind } from './deepworks';

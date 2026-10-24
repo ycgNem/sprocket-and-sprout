@@ -1,23 +1,24 @@
-// The works' specialists' Trust rewards (src/data/trust.ts, src/sim/systems/trust.ts; the critic's
-// Phase 5 review: "Trust is hearts with new labels"): letters at their levels and what each does,
-// Pip's watch, the soups gone to the villagers who cook, Mags' Tuesday in a shortage week and
-// Hazel's asks waiting for Dyes & Pastes.
+// The works' specialists' favors (src/data/favors.ts, src/sim/systems/favors.ts; Trust rewards until
+// 2.1.1, DECISIONS #175): letters as the town's keystones finish and what each does, a farm that
+// earned them by Trust keeping them, Pip's watch, the soups gone to the villagers who cook, Mags'
+// Tuesday in a shortage week and Hazel's asks waiting for Dyes & Pastes.
 import { describe, expect, it } from 'vitest';
 import '../src/sim';
 import { DAY_END, Game } from '../src/sim/Game';
 import { REQUEST_POOL } from '../src/data/goals';
 import { RECIPE_TEACHERS } from '../src/data/cookbook';
 import { SHOP_BY_ID } from '../src/data/shops';
-import { AT_COST, CATALOGUE, INDEXED_LIB, TRADE_PRICE, TRUST_REWARDS, WOODEN_MACHINES } from '../src/data/trust';
+import { AT_COST, CATALOGUE, FAVORS, INDEXED_LIB, TRADE_PRICE, WOODEN_MACHINES } from '../src/data/favors';
 import { place } from '../src/sim/build';
 import { libMax, LIB_MAX } from '../src/sim/drafting';
 import { key } from '../src/sim/inventory';
-import { npcSys, POINTS_PER_HEART } from '../src/sim/systems/npcs';
+import { npcSys } from '../src/sim/systems/npcs';
 import { entryPrice } from '../src/sim/systems/economy';
 import { cartDay, cartHere } from '../src/sim/systems/cart';
 import { askNow } from '../src/sim/systems/orders';
 import { deskSpeed } from '../src/sim/systems/research';
-import { PIP_WAIT } from '../src/sim/systems/trust';
+import { PIP_WAIT } from '../src/sim/systems/favors';
+import { serialize, deserialize } from '../src/sim/save';
 
 const SIX = ['juniper', 'bram', 'sable', 'thorne', 'hazel', 'pip'];
 
@@ -30,32 +31,34 @@ const ticks = (g: Game, secs: number) => {
   for (let i = 0; i < secs * 60; i++) g.tick();
 };
 
-describe("the specialists' Trust rewards", () => {
-  it('are works things, one letter each the morning after the level, never twice', () => {
-    expect(TRUST_REWARDS.map((r) => r.npc).sort()).toEqual(['bram', 'hazel', 'juniper', 'pip', 'sable']);
+describe("the specialists' favors", () => {
+  it('are works things, one letter each the morning after its keystone, never twice', () => {
+    expect(FAVORS.map((r) => r.npc).sort()).toEqual(['bram', 'hazel', 'juniper', 'pip', 'sable']);
     const g = new Game({ seed: 51 });
-    const at = (lvl: (t: number) => number) => {
-      for (const r of TRUST_REWARDS) {
-        const n = npcSys(g).byId.get(r.npc)!;
-        n.met = true;
-        // (a little over: a day without a talk costs a couple of points)
-        n.points = lvl(r.trust) * POINTS_PER_HEART + 20;
-      }
-    };
-    at((t) => t - 1);
     nextDay(g);
-    for (const r of TRUST_REWARDS) expect(g.flags.has('trust:' + r.id), r.id).toBe(false);
-    at((t) => t);
-    nextDay(g);
-    for (const r of TRUST_REWARDS) {
-      expect(g.flags.has('trust:' + r.id), r.id).toBe(true);
-      const mine = letters(g).filter((l) => l.id === 'trust_' + r.id);
+    for (const r of FAVORS) expect(g.flags.has('favor:' + r.id), r.id).toBe(false);
+    for (const flag of ['town_mill', 'waterworks']) {
+      g.flags.add(flag);
+      nextDay(g);
+      for (const r of FAVORS) expect(g.flags.has('favor:' + r.id), r.id).toBe(r.after === 'town_mill' || flag === 'waterworks');
+    }
+    for (const r of FAVORS) {
+      const mine = letters(g).filter((l) => l.id === 'favor_' + r.id);
       expect(mine.length, r.id).toBe(1);
       expect(mine[0].from).toBe(r.npc);
       expect(mine[0].title).toContain(r.title);
     }
     nextDay(g);
-    for (const r of TRUST_REWARDS) expect(letters(g).filter((l) => l.id === 'trust_' + r.id).length).toBe(1);
+    for (const r of FAVORS) expect(letters(g).filter((l) => l.id === 'favor_' + r.id).length).toBe(1);
+  });
+
+  it('a farm that earned them by Trust keeps them', () => {
+    const g = new Game({ seed: 57 });
+    const d = JSON.parse(JSON.stringify(serialize(g, { skin: 1, hair: 2, hairStyle: 'short', shirt: 3, pants: 4 })));
+    d.flags.push('trust:pip_watch', 'trust:bram_cost');
+    const g2 = deserialize(d).game;
+    expect(g2.flags.has('favor:pip_watch') && g2.flags.has('favor:bram_cost')).toBe(true);
+    expect([...g2.flags].some((f) => f.startsWith('trust:'))).toBe(false);
   });
 
   it("Juniper's trade price, Bram's furnace at cost, Hazel's index and Sable's catalogue", () => {
@@ -66,24 +69,24 @@ describe("the specialists' Trust rewards", () => {
     const before = wooden.map((e) => entryPrice(g, e));
     const plank = joinery.find((e) => e.item === 'plank')!;
     const plank0 = entryPrice(g, plank);
-    g.flags.add('trust:juniper_trade');
+    g.flags.add('favor:juniper_trade');
     wooden.forEach((e, i) => expect(entryPrice(g, e), e.item).toBe(Math.round(before[i] * TRADE_PRICE)));
     // timber isn't a machine: the market's price
     expect(entryPrice(g, plank)).toBe(plank0);
     const furnace = SHOP_BY_ID.get('smithy')!.stock.find((e) => e.item === 'blast_furnace')!;
     expect(entryPrice(g, furnace)).toBe(6500);
-    g.flags.add('trust:bram_cost');
+    g.flags.add('favor:bram_cost');
     expect(entryPrice(g, furnace)).toBe(Math.round(6500 * AT_COST));
-    expect(TRUST_REWARDS.find((r) => r.id === 'bram_cost')!.name).toContain((6500 * AT_COST).toLocaleString('en-US'));
+    expect(FAVORS.find((r) => r.id === 'bram_cost')!.name).toContain((6500 * AT_COST).toLocaleString('en-US'));
     // Hazel: the drafting library holds 24
     expect(libMax(g)).toBe(LIB_MAX);
-    g.flags.add('trust:hazel_index');
+    g.flags.add('favor:hazel_index');
     expect(libMax(g)).toBe(INDEXED_LIB);
     // Sable: a desk studies 15% faster
     const t = new Game({ seed: 53, blank: { w: 12, h: 12 } });
     const desk = place(t, 'lab', 2, 2, 0);
     const s0 = deskSpeed(t, desk);
-    t.flags.add('trust:sable_catalogue');
+    t.flags.add('favor:sable_catalogue');
     expect(deskSpeed(t, desk)).toBeCloseTo(s0 * CATALOGUE);
     expect(CATALOGUE).toBeCloseTo(1.15);
   });
@@ -100,7 +103,7 @@ describe("Pip's watch", () => {
     const told = () => g.events.filter((e: any) => e.t === 'toast' && /^Pip:/.test(e.text)) as { text: string }[];
     ticks(g, PIP_WAIT + 5);
     expect(told().length).toBe(0);
-    g.flags.add('trust:pip_watch');
+    g.flags.add('favor:pip_watch');
     g.events.length = 0;
     ticks(g, 3);
     // the minute counts from when it stopped, so Pip's already late
@@ -122,8 +125,9 @@ describe("Pip's watch", () => {
 });
 
 describe('the soups went to the cooks', () => {
-  it('no works specialist teaches a recipe; every teacher is a villager', () => {
-    for (const [id, t] of Object.entries(RECIPE_TEACHERS)) expect(SIX.includes(t.npc), `${id}: ${t.npc}`).toBe(false);
+  it('no works specialist mails a recipe (Thorne only sells the glow sorbet card); every teacher is a villager', () => {
+    for (const [id, t] of Object.entries(RECIPE_TEACHERS)) expect(SIX.includes(t.npc) && !!t.after, `${id}: ${t.npc}`).toBe(false);
+    expect(RECIPE_TEACHERS.glow_sorbet).toMatchObject({ npc: 'thorne', sold: 'hermit' });
     for (const t of Object.values(RECIPE_TEACHERS)) expect(npcSys(new Game({ seed: 1 })).byId.has(t.npc), t.npc).toBe(true);
   });
 });

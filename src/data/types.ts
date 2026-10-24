@@ -175,8 +175,6 @@ export interface DialogueLine {
   text: string;
   season?: Season;
   weather?: Weather;
-  minH?: number;
-  maxH?: number;
   weekday?: number;
   time?: 'morning' | 'afternoon' | 'evening' | 'night';
   /** spoken only on festival days */
@@ -193,24 +191,6 @@ export interface ScheduleDef {
   when?: { season?: Season; weather?: 'rain' | 'clear'; weekdays?: number[] };
   /** [minutes since 00:00, location id]; NPC walks there starting at that time */
   at: [number, LocationId][];
-}
-
-export interface HeartEventLine {
-  /** 'npc' = this NPC, 'player', or another npc id, or 'narrator' */
-  who: string;
-  text: string;
-}
-
-export interface HeartEventDef {
-  hearts: number;
-  title: string;
-  /** location to trigger near */
-  loc: LocationId;
-  /** hour window [from, to) in minutes since midnight */
-  window: [number, number];
-  weather?: 'rain' | 'clear';
-  lines: HeartEventLine[];
-  choice?: { prompt: string; options: { text: string; reply: string; friendship: number }[] };
 }
 
 export interface NPCLook {
@@ -235,13 +215,9 @@ export interface NPCDef {
   personality: string;
   bio: string;
   look: NPCLook;
-  birthday: { season: Season; day: number };
-  gifts: { love: string[]; like: string[]; dislike: string[]; hate: string[] };
   schedules: ScheduleDef[];
   intro: string;
   dialogue: DialogueLine[];
-  giftReplies: { love: string[]; like: string[]; neutral: string[]; dislike: string[]; hate: string[]; birthday: string };
-  heartEvents: HeartEventDef[];
   /** optional shop this NPC runs */
   shop?: string;
 }
@@ -353,7 +329,6 @@ export type ObjectiveDef = ObjectiveBase & (
   | { t: 'money'; n: number }
   | { t: 'sleep' }
   | { t: 'visit'; loc: LocationId }
-  | { t: 'friend'; npc: string; hearts: number }
   | { t: 'produce'; item: string; perMin: number }
   /** goods put into the shipping crate (deposit time, not the post's); `auto`: only by arm or belt,
    *  and a hand load of a machine starts the count again (the line must run by itself) */
@@ -386,7 +361,7 @@ export interface QuestDef {
   giver: string;
   desc: string;
   objectives: ObjectiveDef[];
-  reward: { money?: number; items?: Stack[]; friendship?: [string, number]; flag?: string };
+  reward: { money?: number; items?: Stack[]; flag?: string };
   /** quest ids that must be complete first */
   after?: string[];
   /** auto-start on this day index (0-based absolute day) */

@@ -59,19 +59,17 @@ describe('the counter', () => {
     expect(handIn(g, 'bram', 'smithy')).toBe(false);
   });
 
-  it("Chat talks without handing over what you hold; Give gifts it; either way the shop comes back", () => {
+  it("Chat and a talk never take what you hold (there are no gifts); either way the shop comes back", () => {
     const { g, bram, hazel } = atWork();
     g.player.inv.slots[(g.player.sel = 0)] = { k: key('copper_bar'), n: 2 };
     g.events.length = 0;
     talkTo(g, bram, 'smithy', true);
     expect(g.player.inv.countId('copper_bar')).toBe(2);
-    expect(bram.giftedToday).toBe(false);
     expect(dialogs(g).at(-1)?.shop).toBe('smithy');
     // someone else in the shop: the same
     g.events.length = 0;
     talkTo(g, hazel, 'smithy');
-    expect(hazel.giftedToday).toBe(true);
-    expect(g.player.inv.countId('copper_bar')).toBe(1);
+    expect(g.player.inv.countId('copper_bar')).toBe(2);
     expect(dialogs(g).at(-1)?.shop).toBe('smithy');
   });
 });

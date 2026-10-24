@@ -166,7 +166,7 @@ const SC = {
   // Roxy (1.1): her shop on the airship, her field in the morning, and a chat with her 64 px portrait
   airfreight: async () => ev(`(() => { S.play.openWindow('shop', 'airfreight'); })()`),
   skyfield: async () => ev(`(() => { const g = S.g; S.play.closeWindow(); g.time.min = 8 * 60; g.player.x = 182.5; g.player.y = 60.6; g.player.dir = 1; const n = g.sys.npcs.byId.get('roxy'); n.x = 184.5; n.y = 60.9; n.visible = true; n.path = []; n.dir = 3; })()`),
-  'roxy-chat': async () => ev(`(() => { const g = S.g; const n = g.sys.npcs.byId.get('roxy'); n.met = true; n.points = 900; window.__npcs.openDialog(g, n, "Evening, gorgeous. Yes, I mean you. Don't look behind you, there's nobody there.", undefined, 0); })()`),
+  'roxy-chat': async () => ev(`(() => { const g = S.g; const n = g.sys.npcs.byId.get('roxy'); n.met = true; window.__npcs.openDialog(g, n, "Evening, gorgeous. Yes, I mean you. Don't look behind you, there's nobody there.", undefined, 0); })()`),
   // Pip's echo (ROADMAP.md 7.6): a lesson card asked back, its three answers up
   'pip-echo': async () => {
     await ev(`(() => { const g = S.g; S.play.closeWindow(); g.sys.dialogue = null; const sel = g.player.sel; g.player.sel = -1; const n = g.sys.npcs.byId.get('pip'); n.met = true; n.askDay = 0; g.sys.npcs.interact(g, n); g.player.sel = sel; })()`);
@@ -181,7 +181,7 @@ const SC = {
   // the Orders board: two standing orders and today's asks
   board: async () => ev(`(() => { ${ORDERS}; S.play.openWindow('board'); })()`),
   museum: async () => ev(`(() => { S.g.player.inv.add(S.key('amethyst'), 1); S.g.player.inv.add(S.key('old_cog'), 1); S.play.openWindow('museum'); })()`),
-  friends: async () => ev(`(() => { let i = 0; for (const n of S.g.sys.npcs.list) { n.met = true; n.points = (i++ * 377) % 1500; } S.play.openWindow('journal'); S.play.win.data.tab = 'friends'; })()`),
+  friends: async () => ev(`(() => { for (const n of S.g.sys.npcs.list) n.met = true; S.play.openWindow('journal'); S.play.win.data.tab = 'friends'; })()`),
   collections: async () => ev(`(() => { S.play.openWindow('journal'); S.play.win.data.tab = 'collect'; S.play.win.data.sub = 'fish'; })()`),
   journal: async () => ev(`(() => { S.play.openWindow('journal'); })()`),
   'journal-orders': async () => ev(`(() => { ${ORDERS}; S.play.openWindow('journal', 'orders'); S.play.win.data.tab = 'orders'; })()`),

@@ -13,6 +13,7 @@ import { PORT_HANDLERS } from '../src/sim/ports';
 import { O } from '../src/sim/world/tilemap';
 import { MEGA_BY_ID } from '../src/data/goals';
 import { questSys } from '../src/sim/systems/quests';
+import { SHOP_BY_ID } from '../src/data/shops';
 
 function clear(g: Game, x0: number, y0: number, x1: number, y1: number) {
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
@@ -287,7 +288,7 @@ describe('farm pet', () => {
 });
 
 describe('cookbook', () => {
-  it('villagers teach recipes at heart levels; the Sunday almanac teaches one; old saves know all', async () => {
+  it('villagers mail recipes as the keystones finish; the Sunday almanac teaches one; old saves know all', async () => {
     const CB = await import('../src/sim/systems/cookbook');
     const { serialize, deserialize } = await import('../src/sim/save');
     const { RECIPE_BY_ID } = await import('../src/data/recipes');
@@ -295,10 +296,18 @@ describe('cookbook', () => {
     const pancakes = RECIPE_BY_ID.get('cook:pancakes')!;
     expect(g.unlocked(pancakes.unlock)).toBe(false);
     expect(g.unlocked(RECIPE_BY_ID.get('cook:bread')!.unlock)).toBe(true);
-    npcSys(g).byId.get('rowan')!.points = 2 * 250 + 10;
+    sleep(g);
+    expect(g.unlocked(pancakes.unlock)).toBe(false);
+    g.flags.add('town_mill');
     sleep(g);
     expect(g.unlocked(pancakes.unlock)).toBe(true);
     expect(g.unlocked(RECIPE_BY_ID.get('cook:pizza')!.unlock)).toBe(false);
+    // the glow sorbet is never mailed: Thorne's Hollow sells its card once the Grand Works are studied
+    g.flags.add('waterworks');
+    g.flags.add('tram');
+    sleep(g);
+    expect(g.unlocked(RECIPE_BY_ID.get('cook:glow_sorbet')!.unlock)).toBe(false);
+    expect(SHOP_BY_ID.get('hermit')!.stock.find((e) => e.item === 'card_glow_sorbet')?.unlock).toBe('r_grandworks');
     // almanac on a Sunday
     while (g.weekday !== 6) sleep(g);
     const before = CB.unknownRecipes(g).length;
@@ -314,14 +323,13 @@ describe('cookbook', () => {
 });
 
 describe('farm visits', () => {
-  it('a friendly villager walks to the farm on a fine weekend afternoon', async () => {
+  it('a villager you have met walks to the farm on a fine weekend afternoon', async () => {
     const g = new Game({ seed: 16 });
-    for (const n of npcSys(g).list) { n.met = true; n.points = 3 * 250 + 10; }
+    for (const n of npcSys(g).list) n.met = true;
     let tries = 0;
     while (!g.sys.visits && tries++ < 60) {
       sleep(g);
       if (g.weekday === 4) g.tomorrow = 'sun';
-      for (const n of npcSys(g).list) n.points = Math.max(n.points, 760);
     }
     expect(g.sys.visits).toBeTruthy();
     const n = npcSys(g).byId.get(g.sys.visits.npc)!;
@@ -330,10 +338,9 @@ describe('farm visits', () => {
     let t = 0;
     while (Math.hypot(n.x - sx, n.y - sy) > 3 && t++ < 60 * 400) g.tick();
     expect(Math.hypot(n.x - sx, n.y - sy)).toBeLessThan(3);
-    const before = n.points;
     g.events.length = 0;
     npcSys(g).interact(g, n);
-    expect(n.points).toBeGreaterThanOrEqual(before + 25);
+    expect(g.sys.visits.talked).toBe(true);
     const dlg = g.events.find((e: any) => e.t === 'ui' && e.open === 'dialog') as any;
     expect(dlg.arg.pages.join(' ').length).toBeGreaterThan(10);
   });
@@ -504,38 +511,6 @@ describe("founder's candles (the Sprocket Fair's prizes since 2.0 Phase 5)", () 
     expect(g.player.inv.countId('f_lantern')).toBe(1);
     expect(unitPrice(g, key('radish'))).toBeGreaterThan(price);
     expect(F.claimCandles(g, 3)).toEqual([]);
-  });
-});
-
-describe('partners', () => {
-  it('the locket needs 8 hearts and an adult; partners make breakfast and sit by the hearth', async () => {
-    const P = await import('../src/sim/systems/partner');
-    const H = await import('../src/sim/systems/house');
-    const g = new Game({ seed: 28 });
-    const s = npcSys(g);
-    const pip = s.byId.get('pip')!, rowan = s.byId.get('rowan')!;
-    pip.met = rowan.met = true;
-    pip.points = rowan.points = 9 * 250;
-    g.player.inv.slots[g.player.sel = 0] = { k: key('heart_charm'), n: 1 };
-    s.interact(g, pip);
-    expect(P.partnerId(g)).toBeNull();
-    rowan.points = 7 * 250;
-    s.interact(g, rowan);
-    expect(P.partnerId(g)).toBeNull();
-    rowan.points = 8 * 250 + 5;
-    s.interact(g, rowan);
-    expect(P.partnerId(g)).toBe('rowan');
-    expect(g.player.inv.countId('heart_charm')).toBe(0);
-    // a week of mornings brings at least one breakfast
-    const food = () => ['pancakes', 'omelet', 'bread', 'cookies', 'fruit_salad', 'veggie_soup', 'honey_bun'].reduce((a, id) => a + g.player.inv.countId(id), 0);
-    for (let i = 0; i < 7; i++) sleep(g);
-    expect(food()).toBeGreaterThan(0);
-    // evening by the hearth
-    H.enterHouse(g);
-    g.time.min = 21 * 60;
-    g.events.length = 0;
-    expect(H.houseInteract(g, 8, 7)).toBe(true);
-    expect(g.events.some((e: any) => e.t === 'ui' && e.open === 'dialog')).toBe(true);
   });
 });
 

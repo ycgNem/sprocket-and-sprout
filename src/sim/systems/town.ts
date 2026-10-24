@@ -7,7 +7,7 @@ import { WEEKDAYS } from '../../data/types';
 import { Game, registerSystem } from '../Game';
 import type { BuildingInfo } from '../world/tilemap';
 import { skyfield } from '../world/worldgen';
-import { addPoints, npcSys, openDialog, specialTalk } from './npcs';
+import { npcSys, openDialog, specialTalk } from './npcs';
 
 function fmt(min: number) {
   const h = Math.floor(min / 60);
@@ -81,16 +81,13 @@ export function door(g: Game, b: BuildingInfo) {
     }
     g.emit({ t: 'sfx', id: 'door' });
     if (shop.id === 'clinic') g.player.hp = g.player.maxHp;
-    // stepping into a keeper's shop counts as saying hello (quests that say "talk to" them), with
-    // the day's chat friendship; the first visit is the introduction, then the counter
+    // stepping into a keeper's shop counts as saying hello (quests that say "talk to" them); the first
+    // visit is the introduction, then the counter
     g.sys.quests?.notify?.(g, 'talk', 1, shop.owner);
     if (keeper) {
       const firstVisit = !keeper.met;
       keeper.met = true;
-      if (!keeper.talked) {
-        keeper.talked = true;
-        addPoints(g, keeper, 20);
-      }
+      keeper.talked = true;
       if (firstVisit) {
         openDialog(g, keeper, NPC_BY_ID.get(keeper.id)!.intro, shop.id);
         return;

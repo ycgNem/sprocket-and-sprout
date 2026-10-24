@@ -8,7 +8,7 @@ import { RESEARCH } from '../../data/research';
 import { CROPS } from '../../data/crops';
 import { OBSERVATIONS } from '../../data/deepworks';
 import { Game, registerSystem, SKILLS } from '../Game';
-import { hearts } from './npcs';
+import { FAVORS } from '../../data/favors';
 
 export type AchCat = 'farm' | 'factory' | 'explore' | 'village' | 'home' | 'fortune' | 'challenge' | 'secret';
 export const ACH_CATS: { id: AchCat; name: string }[] = [
@@ -125,11 +125,7 @@ export const ACHIEVEMENTS: Achievement[] = [
 
   // ---------------- Village ----------------
   { id: 'talkall', name: 'Social Butterfly', desc: 'Talk to every villager.', cat: 'village', tier: 1, icon: 'tea', test: (g) => npcs(g).length > 0 && npcs(g).every((n) => c(g, 'talk_' + n.id) > 0), prog: (g) => [npcs(g).filter((n) => c(g, 'talk_' + n.id) > 0).length, npcs(g).length || 13] },
-  { id: 'friends5', name: 'Neighborly', desc: 'Reach Trust 4 with 5 villagers.', cat: 'village', tier: 2, icon: 'cookies', test: (g) => npcs(g).filter((n) => hearts(n) >= 4).length >= 5, prog: (g) => [npcs(g).filter((n) => hearts(n) >= 4).length, 5] },
-  { id: 'friend10', name: 'Kindred Spirit', desc: 'Reach Trust 10 with anyone.', cat: 'village', tier: 3, icon: 'cake', test: (g) => npcs(g).some((n) => hearts(n) >= 10) },
-  { id: 'gifts', name: 'Thoughtful', desc: 'Give 50 gifts.', cat: 'village', tier: 1, icon: 'tulip', ...num('gifts', 50) },
-  { id: 'heartevents', name: 'Open Book', desc: "See 8 of the villagers' Trust scenes.", cat: 'village', tier: 2, icon: 'f_paint_meadow', ...num('heart_events', 8) },
-  { id: 'partner', name: 'The Brass Locket', desc: 'Find a partner to share your farm with.', cat: 'village', tier: 3, icon: 'heart_charm', ...num('partner', 1) },
+  { id: 'favors', name: "The Town's Thanks", desc: "Receive every one of the works' specialists' favors.", cat: 'village', tier: 2, icon: 'brass_gear', test: (g) => FAVORS.every((f) => g.flags.has('favor:' + f.id)), prog: (g) => [FAVORS.filter((f) => g.flags.has('favor:' + f.id)).length, FAVORS.length] },
   { id: 'requests20', name: 'Good Neighbor', desc: 'Complete 20 town requests from the notice board.', cat: 'village', tier: 2, icon: 'bread', ...num('requests', 20) },
   { id: 'quests15', name: 'Story Time', desc: 'Complete 15 quests.', cat: 'village', tier: 2, icon: 'f_bookcase', ...num('quests', 15) },
   // the four are the Sprocket Fair, Lantern Night, the Harvest Haul and Frostlight Skate (a save that went
@@ -207,7 +203,6 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'floor13', name: 'Unlucky Thirteen', desc: 'Went down to level 13 of the Deepworks on a Friday.', cat: 'secret', tier: 1, icon: 'moth_dust', secret: true, hint: 'Some levels are worse on certain days.', test: (g) => g.player.where === 'mine' && g.sys.mine?.floor === 13 && g.weekday === 4 },
   { id: 'highnoon', name: 'High Noon', desc: 'Stood by the restored clocktower as it struck twelve.', cat: 'secret', tier: 2, icon: 'f_gilded_clock', secret: true, hint: 'Hear the old clock strike midday.', test: (g) => { if (!g.flags.has('clock_fixed') || g.player.where !== 'world' || g.time.min < 720 || g.time.min >= 735) return false; const [cx, cy] = g.map.loc('clocktower'); return Math.hypot(g.player.x - cx, g.player.y - cy) < 4; } },
   { id: 'mascot', name: 'Brand Loyalty', desc: 'Named your pet Sprocket or Sprout.', cat: 'secret', tier: 1, icon: 'f_petbed', secret: true, hint: 'A pet deserves a name with a ring to it.', test: (g) => /sprocket|sprout/i.test(g.sys.pet?.stage !== 'none' ? g.sys.pet?.name ?? '' : '') },
-  { id: 'regift', name: 'Regifter', desc: 'Gave someone a Waterlogged Boot. They were thrilled. (They were not.)', cat: 'secret', tier: 1, icon: 'old_boot', secret: true, hint: 'One person\'s trash is... still trash.' },
   { id: 'sentimental', name: 'Sentimental', desc: 'Still carried the Rusty Hoe in your second year.', cat: 'secret', tier: 1, icon: 'hoe_0', secret: true, hint: 'Never forget where you came from.', test: (g) => g.time.year >= 2 && g.player.inv.countId('hoe_0') > 0 },
   { id: 'club', name: 'Club to a Knife Fight', desc: 'Cleared a pest on level 25 of the Deepworks or deeper with the Driftwood Club.', cat: 'secret', tier: 3, icon: 'sword_0', secret: true, hint: 'Your very first weapon has one more fight in it.' },
   { id: 'graveyard', name: 'Graveyard Shift', desc: 'Caught a fish after 1am in a thunderstorm.', cat: 'secret', tier: 2, icon: 'moon_squid', secret: true, hint: 'The fish bite strangest in the worst weather.' },

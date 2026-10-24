@@ -5,7 +5,6 @@ import './systems/drops';
 import './systems/economy';
 import './systems/npcs';
 import './systems/visits';
-import './systems/partner';
 import './systems/cart';
 import './systems/nights';
 import './systems/ponds';
@@ -18,7 +17,7 @@ import './systems/pet';
 // the hamster in its cage (the owner's playtest): its own dice, after the pet's
 import './systems/hamster';
 import './systems/tock';
-import './systems/trust';
+import './systems/favors';
 import './systems/fishing';
 import './systems/mine';
 import './systems/quests';

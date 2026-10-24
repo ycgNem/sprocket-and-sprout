@@ -410,7 +410,6 @@ describe('the four festivals', () => {
       expect(festivalToday(g)?.id).toBe('f_haul');
     }
     expect(FESTIVALS.filter((f) => f.season === 2 && f.day === 15).length).toBe(1);
-    expect(NPCS.filter((n) => n.birthday.season === 2 && n.birthday.day === 15)).toEqual([]);
   });
 
   it('opens the Fair at the first F at the Professor, and her key bubble says so; the Mayor opens it too', () => {
