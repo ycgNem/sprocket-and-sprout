@@ -65,13 +65,16 @@ export const STRATA: StratumDef[] = [
     extra: [['quartz', 0.25]], decor: 'crystal', decorP: 0.03, ladder: [0.04, 0.012], art: 4,
     // a near-black, colourless dark: the cyan floor showed through a blue one at 0.84 and read as
     // bright as the Earth (the critic's Phases 3+4 re-check), so lamps weren't needed
-    dark: 0.93, lantern: 3.2, tint: C.ink,
+    // (2.1.2: 0.9 now that the floor's specks sit a step down their ramp, art/terrain/derive.json)
+    dark: 0.9, lantern: 3.2, tint: C.ink,
     intro: 'The Crystal (levels 21-25): gems and quartz in galleries too dark for your lantern. Set lamps down on the floor to light them. Wisps hide the ladders.',
   },
   {
     id: 'starfall', name: 'Starfall', levels: [26, 30], ores: [[5, 5]], rock: 0.19, ore: 0.05, gem: 0.02, ice: 0,
     extra: [['quartz', 0.1]], decor: 'mixed', decorP: 0.016, ladder: [0.04, 0.012], art: 5,
-    dark: 0.72, lantern: 4.5, tint: C.bark,
+    // the 2.1.1 critic: "level 30 is purple fog". A lighter, colourless dark (was 0.72 in bark) so the
+    // room past the lantern still shows its rocks, ladders and the shards' marks
+    dark: 0.62, lantern: 4.5, tint: C.ink,
     intro: 'Starfall (levels 26-30): starmetal. Shards of the fallen star still drop from the roof: keep off the glowing marks.',
   },
 ];

@@ -7,6 +7,8 @@ import { curMap } from '../sim/systems/player';
 import type { Renderer } from './renderer';
 import { townworksLights } from './townworks';
 import { SQUARE_LAMP } from '../sim/world/townworks';
+import { harborOpen } from '../sim/systems/exports';
+import { HARBOR_LAMPS } from './harbor';
 
 const RES = 4; // screen px per light-map px
 
@@ -176,6 +178,8 @@ export class Lighting {
       for (const L of g.sys.festivalLights ?? []) out.push(L);
       // the town keystones: the square's lamps on your power, the mill's and pump house's windows
       out.push(...townworksLights(g));
+      // the rebuilt Harbor's two lanterns by the cargo doors
+      if (m.w >= 200 && harborOpen(g)) for (const [x, y] of HARBOR_LAMPS) out.push({ x, y, r: 3.4, i: 0.85, c: C.amber, flicker: true });
     } else {
       for (const L of g.sys.mine?.lights ?? []) out.push(L);
     }

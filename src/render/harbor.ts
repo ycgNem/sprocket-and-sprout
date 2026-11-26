@@ -13,6 +13,10 @@ import type { Drawable, Renderer } from './renderer';
 const T = 16;
 /** where the cargo stands: on the sand east of the warehouse (2x2 tiles) */
 const CARGO = { x: HARBOR.x + HARBOR.w, y: HARBOR.y + 1 };
+/** the two lanterns by the cargo doors, in tiles (art/harbor/tools/grand.ts LANTERNS less the frame's origin); lit once the Harbor is rebuilt */
+export const HARBOR_LAMPS: [number, number][] = [[HARBOR.x + 15 / T, HARBOR.y + 29 / T], [HARBOR.x + 58 / T, HARBOR.y + 29 / T]];
+/** how far the warehouse's roof and crane stand over the sand behind it, in tiles (the frame's origin, 72 px) */
+const RISE = 4.5;
 
 export function pushHarbor(g: Game, r: Renderer, D: Drawable[]) {
   if (g.map.w < 200) return;
@@ -23,8 +27,13 @@ export function pushHarbor(g: Game, r: Renderer, D: Drawable[]) {
     y: HARBOR.y + HARBOR.h - 0.05,
     f: () => {
       const name = `harbor:warehouse:${open ? 1 : 0}${g.time.season === 3 ? ':winter' : ''}`;
+      // three storeys hide the sand behind them: the warehouse thins while you walk there, as a tree in front of you does
+      const p = g.player;
+      const behind = p.where === 'world' && p.x > HARBOR.x - 0.6 && p.x < HARBOR.x + HARBOR.w + 0.6 && p.y < HARBOR.y + 0.3 && p.y > HARBOR.y - RISE;
+      if (behind) ctx.globalAlpha = 0.5;
       if (hasImage(name)) drawSprite(ctx, sprite(name), HARBOR.x * T, HARBOR.y * T);
       else warehouseShape(ctx, open);
+      ctx.globalAlpha = 1;
     },
   });
   // the cargo stacked for the ship: none, a few crates, half a stack, a full one under a net

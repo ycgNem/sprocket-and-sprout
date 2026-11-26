@@ -284,34 +284,6 @@ ICONS.rapeseed = {
   ],
 };
 
-// ---- rapeseed_seed: the seed packet every crop has (a tilted parchment square), a yellow canola spray ----
-ICONS.rapeseed_seed = {
-  key: {
-    k: '#2e222f',
-    b: '#fdcbb0', c: '#fbb954', d: '#e6904e',                   // parchment and its shading
-    Y: '#fbff86', y: '#f9c22b', o: '#f79617',                   // flowers
-    g: '#239063', t: '#0b8a8f', T: '#0eaf9b',                   // stem and leaves
-  },
-  rows: [
-    '................',
-    '.....kkkk.......',
-    '....kbbbbkkkk...',
-    '....kbbbbbbbbk..',
-    '...kbbyybbyybbk.',
-    '...kbYYyyYyybdk.',
-    '...kbyoybyoybdk.',
-    '...kbbgbbgbbbdk.',
-    '...kbtgTbgTbddk.',
-    '..kbbTtgggtTbdk.',
-    '..kbbbbbgbbbbdk.',
-    '..kbbbbbbbbbddk.',
-    '..kbbbbbbbbbdk..',
-    '...kkkkbbbbkk...',
-    '.......kkkk.....',
-    '................',
-  ],
-};
-
 // ---- thresher: a small thresher: sheaf in the hopper, a porthole with its brass beater, the flywheel, the chute ----
 ICONS.thresher = {
   key: {

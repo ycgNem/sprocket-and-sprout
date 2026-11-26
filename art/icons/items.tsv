@@ -547,3 +547,8 @@ rapeseed_seed	Rapeseed Seeds	seed	seeds		#fdcbb0,#91db69
 thresher	Thresher	placeable	struct			thresher
 tram_bin	Tram Cart Bin	placeable	struct			tram_bin
 f_hamster_cage	Hamster Cage	furniture	furn	hamstercage:0		
+f_keep_brassmouth	Brassmouth Foundry Bell	furniture	furn	keepsake:0		
+f_keep_verdance	Verdance Spice Jars	furniture	furn	keepsake:1		
+f_keep_ember	Ember Isles Palm	furniture	furn	keepsake:2		
+f_keep_saltspire	Saltspire Model Ship	furniture	furn	keepsake:3		
+f_keep_kettleholm	Kettleholm Samovar	furniture	furn	keepsake:4		

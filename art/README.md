@@ -16,7 +16,7 @@ import can be rerun. Rules: `STYLE.md`. Plan: `ROADMAP.md`.
 | `town/` | the town works (`town:*`, `st:tram_bin:*`): PixelLab pieces plus scripted frames (`tools/*.mjs`); the mill and rails baked from the old generator into `baked/` (`tools/bake.mjs`, needs the dev server) | `scripts/sprites-import.mjs` | `src/art/town.*` |
 | `ruins/` | the Tinker's Yard wrecks (`o:56:<v>:<season>`): one PixelLab wreck each (`raw/batches.json`), graded and given its four seasons by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/ruins.*` |
 | `fairs/` | the Harvest Haul stalls and podium (`haul:stall:<k>:<f>`, `haul:podium:<f>`), the Fair's test plate and banner (`fair:plate`, `fair:banner:<f>`), hand-pixeled by `build.mjs` | `scripts/sprites-import.mjs` | `src/art/fairs.*` |
-| `harbor/` | the Harbor (`harbor:warehouse:<restored>[:winter]`, `harbor:ship:<f>`, `harbor:ship:sail[:west]:<f>`, `harbor:cargo:<n>`): the warehouse from one PixelLab pick widened and given its derelict state by rule, the Copper Gull graded, furled, bobbed and smoked by rule, the cargo hand-pixeled; `build.mjs`, review `tools/contact.mjs`, in-game `tools/proof.mjs` | `scripts/sprites-import.mjs` | `src/art/harbor.*` |
+| `harbor/` | the Harbor (`harbor:warehouse:<restored>[:winter]`, `harbor:ship:<f>`, `harbor:ship:sail[:west]:<f>`, `harbor:cargo:<n>`): the warehouse (80x120, three storeys with the crane in its roof) from one PixelLab pick fitted to the footprint and given its restored, derelict and winter states by rule (`tools/grand.ts`), the Copper Gull graded, furled, bobbed and smoked by rule, the cargo hand-pixeled; `build.mjs`, review `tools/contact.mjs`, in-game `tools/proof.mjs` | `scripts/sprites-import.mjs` | `src/art/harbor.*` |
 | `buildings/` | town buildings and farm structures (`bld:*`, `st:*`) composed from PixelLab picks by `tools/compose.mjs` (config `buildings.json` from `tools/mkconfig.mjs`); the farmhouse's clockwork (gable cog, copper downpipe into a gauge tank, roof vent) pixeled over it by `keeper.mjs`, which compose runs as its `post` step (0 generations) | `scripts/sprites-import.mjs` | `src/art/buildings.*` |
 | `promo/` | the "then and now" screenshots in What's new, PATCHNOTES.md and the README: the first build (v0.9, commit `9a72b2a`) and 2.0 at a new game's first morning, by `promo/capture.mjs` (its header says how to build the old version) | (imported by `src/data/patchnotes.ts`) | the WebPs themselves |
 | everything else | sprites by name (crops, objects, trees, buildings, machines, icons…) | `scripts/sprites-import.mjs` | `src/art/<group>.*` |
@@ -91,6 +91,15 @@ and writes PNGs the usual importers take:
   picked in `art/icons/picks.json`; review image `e2e/out/icons-hand.png`). `art/icons/items.tsv`
   lists every item (regenerate it with `list-items.ts` together with picks for new items, or
   `build.mjs` fails); picks.json's `external` list names icons another sheet draws (fieldworks).
+  Seed packets are not drawn: `"<crop>_seed": { "packet": "<crop>", "band": [light, shade] }` prints the
+  crop's own icon on the shared packet with a fold in the crop's colour (`tools/packet.ts`), so a new
+  crop's packet follows from its icon.
+- `node art/terrain/tools/beds.ts` (a `build.sh` step): tilled soil as countable beds. The bed pattern
+  is written once in map-tile coordinates and seen through the dual grid's half-tile offset, so the
+  bases, the soil sets and the renderer's painted transitions (`src/render/blend.ts`) agree on every
+  rim and furrow; watered soil is the same bed one step down the ramp, cut square on the tile.
+- `node art/home/keepsakes.ts`, then the home and icons imports: the five export ports' keepsakes
+  (`hf:keepsake:<0-4>:*`, placed like the globe) and their item icons, hand-pixeled as ASCII.
 - `node art/terrain/tools/seams.mjs` (a `build.sh` step): lines up where the Wang sets cross each
   edge, so `node e2e/seams.mjs` reads 0; `seams-diff.mjs` shows what it changed.
 - `node art/fairs/build.mjs`, then `node scripts/sprites-import.mjs art/fairs/sprites.json`: the

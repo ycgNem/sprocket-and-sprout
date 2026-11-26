@@ -12,48 +12,48 @@
    "match": "harbor:warehouse:0",
    "file": "out/warehouse_0.png",
    "frame": [
-    69,
-    71
+    80,
+    120
    ],
    "origin": [
-    5,
-    23
+    7,
+    72
    ]
   },
   {
    "match": "harbor:warehouse:1",
    "file": "out/warehouse_1.png",
    "frame": [
-    69,
-    71
+    80,
+    120
    ],
    "origin": [
-    5,
-    23
+    7,
+    72
    ]
   },
   {
    "match": "harbor:warehouse:0:winter",
    "file": "out/warehouse_0_winter.png",
    "frame": [
-    69,
-    71
+    80,
+    120
    ],
    "origin": [
-    5,
-    23
+    7,
+    72
    ]
   },
   {
    "match": "harbor:warehouse:1:winter",
    "file": "out/warehouse_1_winter.png",
    "frame": [
-    69,
-    71
+    80,
+    120
    ],
    "origin": [
-    5,
-    23
+    7,
+    72
    ]
   },
   {

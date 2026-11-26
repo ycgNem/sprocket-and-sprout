@@ -10,8 +10,10 @@
 //
 // Sprites (drawn with drawSprite at the footprint's top-left; origin = how far the art overhangs the
 // footprint to the left (ox) and above it (oy)):
-//   harbor:warehouse:<0 derelict | 1 restored>  69x71, origin (5, 23): footprint 4x3 tiles (64x48);
-//        the crane overhangs the pier to the west by 5 px, the roof and crane rise 23 px above
+//   harbor:warehouse:<0 derelict | 1 restored>  80x120, origin (7, 72): footprint 4x3 tiles (64x48);
+//        three storeys, a gable and a cupola; the crane is built into the west end of the roof and its
+//        jib hangs out over the pier; the roof and crane rise 72 px above the footprint (the renderer
+//        fades the building when the player walks behind it, src/render/harbor.ts)
 //   harbor:warehouse:<0|1>:winter  the same with snow on the roof (the town buildings' winter rule)
 //   harbor:ship:<0-3>         160x91, origin (0, 27): moored, sails furled; footprint 10x4 tiles
 //        (160x64), waterline foam on the footprint's bottom rows; frames bob 1 px (2-3) and puff smoke
@@ -21,13 +23,14 @@
 //   harbor:cargo:<0-3>        32x40, origin (0, 8): footprint 2x2 tiles; 0 empty pallet .. 3 full
 //        stack under a cargo net
 //
-// Sources and what was done to each: tools/warehouse.mjs, tools/ship.mjs, tools/cargo.mjs;
+// Sources and what was done to each: tools/grand.ts (the warehouse; tools/warehouse.mjs is the 2.1
+// shed it replaced, no longer built), tools/ship.mjs, tools/cargo.mjs;
 // generations: raw/batches.json.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lineup } from './tools/px.mjs';
-import { buildWarehouse, WAREHOUSE } from './tools/warehouse.mjs';
+import { buildWarehouse, WAREHOUSE } from './tools/grand.ts';
 import { buildShip, SHIP } from './tools/ship.mjs';
 import { buildCargo, CARGO } from './tools/cargo.mjs';
 

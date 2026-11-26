@@ -1502,9 +1502,17 @@ export class Renderer {
       } else if (h.kind === 'gas' && !over) {
         // the pocket's stain on the floor, so you can see where it lies while it's quiet
         const build = h.state === 1 ? 1 - h.t / VENT_TELL : 0;
-        ctx.fillStyle = rgba(C.lime, h.state === 3 ? 0.2 : 0.08 + build * 0.1);
+        ctx.fillStyle = rgba(C.lime, h.state === 3 ? 0.26 : 0.14 + build * 0.1);
         ctx.fillRect(px + 2, py + 1, 12, 14);
         ctx.fillRect(px + 1, py + 2, 14, 12);
+        // the vent's mouth: a dark fissure with a green glint in it, so a quiet pocket still reads
+        // as a marked tile on the Ember's cracked floor (the plume rises from here)
+        ctx.fillStyle = PALETTE[C.ink];
+        ctx.fillRect(px + 4, py + 10, 8, 3);
+        ctx.fillRect(px + 6, py + 9, 4, 5);
+        const glint = Math.sin(t * 2 + hh * 6) > 0;
+        px1(glint ? C.lime : C.leaf, px + 7, py + 11);
+        px1(glint ? C.leaf : C.lime, px + 9, py + 11);
       } else if (h.kind === 'gas' && h.state === 3) {
         // venting: a green plume boiling up out of the floor, two tiles high, over a bright jet at
         // its mouth (it fades in and out)

@@ -22,6 +22,9 @@
 //   "<item id>": { "like": "<item id>", "recolor": {...}, "region": [x, y, w, h] }
 //       swap limited to a rectangle of the frame (the contents of a jar, not its lid): baked
 //       into its own frame
+//   "<crop>_seed": { "packet": "<crop item id>", "band": ["#light", "#shade"], "face": "tan" }
+//       a seed packet: the shared paper packet with the crop's icon shrunk onto its face and a
+//       fold in the crop's colour (options and defaults in tools/packet.ts)
 // Families under "families" (see picks.json):
 //   { base: "<item id>", key: [colors], members: { id: "<ramp>" } }   runtime recolor: key[i] -> ramp[i]
 //       (tool tiers, recipe cards)
@@ -35,6 +38,7 @@ import path from 'node:path';
 import { encodePNG } from '../../../scripts/lib/png.mjs';
 import { PAL, blank, blit, bbox, rgbOf } from '../../../scripts/lib/pixel.mjs';
 import { load, closeOutline, center, copy, px, put, INK, trimTips, lum, inkEdge } from './lib.mjs';
+import { packet } from './packet.ts';
 
 const HERE = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '..');
 const ROOT = path.resolve(HERE, '../..');
@@ -163,6 +167,11 @@ function resolve(id, stack = []) {
   if (s.family) {
     const img = familyFrame(id, s.family, s.ramps);
     r = img ? { img, own: true } : null;
+  } else if (s.packet) {
+    // a seed packet: the crop's own icon printed on the shared packet (tools/packet.ts)
+    const base = resolve(s.packet, [...stack, id]);
+    if (!base) problems.push(`${id}: packet of ${s.packet}, which has no icon`);
+    else r = { img: packet(base.img, s), own: true };
   } else if (typeof s === 'string' || s.src) {
     const img = fromRaw(id, s);
     r = img ? { img, own: true } : null;

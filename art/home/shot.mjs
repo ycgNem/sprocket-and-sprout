@@ -39,6 +39,8 @@ await page.evaluate(async ({ hour, season, kitchen, empty }) => {
     put('f_tank', 1, 6); put('f_bookcase', 12, 7); put('f_pantry_shelf', 11, 7); put('f_fig', 3, 8); put('f_fern', 1, 5);
     put('f_petbed', 6, 3); put('f_rug_blue', 9, 7); put('f_lantern', 5, 8); put('f_gilded_clock', 3, 4);
     put('f_globe', 9, 8); put('f_telescope', 10, 8); put('f_musicbox', 12, 4);
+    // the five ports' keepsakes (art/home/keepsakes.ts)
+    put('f_keep_brassmouth', 4, 6); put('f_keep_verdance', 5, 6); put('f_keep_ember', 6, 6); put('f_keep_saltspire', 7, 6); put('f_keep_kettleholm', 7, 4);
   }
   g.time.min = hour * 60;
 }, { hour, season, kitchen: args.includes('--kitchen'), empty: args.includes('--empty') });

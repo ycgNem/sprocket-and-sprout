@@ -3,7 +3,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lineup } from './px.mjs';
-import { buildWarehouse } from './warehouse.mjs';
+import { buildWarehouse } from './grand.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const fr = buildWarehouse();

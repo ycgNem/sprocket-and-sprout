@@ -1,7 +1,7 @@
 {
   "name": "home",
   "kind": "sprites",
-  "meta": {"source":"art/home: PixelLab batches (batches.json) + Pro Flash pieces, hand fix-ups in fixups.json (node art/home/fixups.mjs before importing); the tool wall is hand-pixeled (node art/home/toolwall.mjs), the hamster cage and wheel too (node art/home/hamstercage.mjs)"},
+  "meta": {"source":"art/home: PixelLab batches (batches.json) + Pro Flash pieces, hand fix-ups in fixups.json (node art/home/fixups.mjs before importing); the tool wall is hand-pixeled (node art/home/toolwall.mjs), the hamster cage and wheel too (node art/home/hamstercage.mjs), the five port keepsakes too (node art/home/keepsakes.ts)"},
   "sprites": [
     {"match":"hf:chair:0:*","file":"src/chair.png","frame":[16,20],"origin":[0,4],"at":[8,19]},
     {"match":"hf:armchair:0:*","file":"src/armchair0.png","frame":[18,20],"origin":[1,4],"at":[9,19]},
@@ -12,6 +12,11 @@
     {"match":"hf:table:0:3","like":"hf:table:0:1","recolor":{"#fbb954":"#c7dcd0","#f9c22b":"#e83b3b","#cd683d":"#ae2334"}},
     {"match":"hf:almanac:0:*","file":"src/almanac.png","frame":[16,22],"origin":[0,6],"at":[8,21]},
     {"match":"hf:globe:0:*","file":"src/globe.png","frame":[16,24],"origin":[0,8],"at":[8,23]},
+    {"match":"hf:keepsake:0:*","file":"src/keepsake0.png","frame":[16,24],"origin":[0,8],"at":[8,23]},
+    {"match":"hf:keepsake:1:*","file":"src/keepsake1.png","frame":[16,24],"origin":[0,8],"at":[8,23]},
+    {"match":"hf:keepsake:2:*","file":"src/keepsake2.png","frame":[16,24],"origin":[0,8],"at":[8,23]},
+    {"match":"hf:keepsake:3:*","file":"src/keepsake3.png","frame":[16,24],"origin":[0,8],"at":[8,23]},
+    {"match":"hf:keepsake:4:*","file":"src/keepsake4.png","frame":[16,24],"origin":[0,8],"at":[8,23]},
     {"match":"hf:telescope:0:*","file":"src/telescope.png","frame":[16,24],"origin":[0,8],"at":[8,23]},
     {"match":"hf:shelf:0:*","file":"src/bookcase.png","frame":[16,30],"origin":[0,14],"at":[8,29]},
     {"match":"hf:plant:0:*","file":"src/fig.png","frame":[16,28],"origin":[0,12],"at":[8,27]},

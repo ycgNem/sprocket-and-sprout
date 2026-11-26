@@ -26,5 +26,14 @@
     "objects": { "s1": "7d745095-d7ca-4754-b657-dc44ba3a7832", "s2": "b908af45-dad4-4d02-bf62-295e87232125", "s3": "e13b81db-3900-4a56-854b-1ec257512194", "s4": "1f922d50-f9e4-4606-af28-0a61d0096bc7" },
     "used": "s3 (long two-masted steamer, brass stack amidships, row of portholes, gaff mainsail and jib set): graded, copper-sheathed, furled, bobbed and given smoke by tools/ship.mjs",
     "rejected": "s1 (single tall mast, yellow-gold hull, the stack in front of the cabin), s2 (one real mast and a big deckhouse: reads as a trawler), s4 (cream-painted hull, cold next to the airship and the town)"
+  },
+  "warehouse_grand": {
+    "date": "2026-11-26 (2.1.2, the critic: the 30,000-coin Harbor reads as a small shed). Balance 4682 before; the job's receipt charged 10 (other art agents were on the account the same hour, so the balance after is not this job's alone).",
+    "tool": "create_image_pro 80x120, palette Resurrect 64, style image raw/grand/style.png (the old warehouse, bld:workshop and bld:clocktower side by side)",
+    "cost": 10,
+    "job": "6e7f51df-ffcd-49d3-add3-e225cca262cd",
+    "files": "raw/grand/a0.png .. a3.png",
+    "used": "a3 (three storeys over the cargo doors, a gable and a cupola, the crane built into the west end of the roof, crates against the wall): fitted to the footprint and given its restored, derelict and winter states by rule (tools/grand.ts)",
+    "rejected": "a0 (plainer: two storeys, the crane a pole on the roof), a1 (reads as a barn or a house, no works about it), a2 (a flat-topped tower with no roof)"
   }
 }

@@ -15,6 +15,8 @@ import { sprite } from './atlas';
 const T = 16;
 const prio = (k: string) => CLASS_PRIO[k] ?? 3;
 const WATERY = new Set(['water', 'deep']);
+/** tilled soil, dry and watered: beds of one plot (art/terrain/tools/beds.ts) */
+const PLOT = new Set(['soil', 'wet']);
 
 /** pixels of a base tile (after its season recolor), cached by sprite name */
 const pixCache = new Map<string, Uint8ClampedArray | null>();
@@ -102,6 +104,20 @@ export function blendVertex(art: TerrainArt, corners: string[], vx: number, vy: 
       }
       owner[y * T + x] = o;
     }
+  // dry and watered soil are one plot of beds: inside the plot's outline each pixel is the bed of its
+  // own map tile (the quadrant it lies in, or the nearest tilled one where the plot's edge bulges
+  // into a neighbour), cut square on the tile boundary with no rim, so every bed counts
+  const plot = classes.map((k) => PLOT.has(k));
+  if (plot.filter(Boolean).length === 2)
+    for (let y = 0; y < T; y++)
+      for (let x = 0; x < T; x++) {
+        if (!plot[owner[y * T + x]]) continue;
+        const qx = x < 8 ? 0 : 1, qy = y < 8 ? 0 : 1;
+        for (const [ax, ay] of [[qx, qy], [1 - qx, qy], [qx, 1 - qy], [1 - qx, 1 - qy]]) {
+          const k = corners[ay * 2 + ax];
+          if (PLOT.has(k)) { owner[y * T + x] = classes.indexOf(k); break; }
+        }
+      }
   const img = ctx.createImageData(T, T);
   const d = img.data;
   for (let y = 0; y < T; y++)
@@ -113,7 +129,7 @@ export function blendVertex(art: TerrainArt, corners: string[], vx: number, vy: 
       for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
         const xx = x + dx, yy = y + dy;
         if (xx < 0 || yy < 0 || xx >= T || yy >= T) continue;
-        if (owner[yy * T + xx] > o) above = true;
+        if (owner[yy * T + xx] > o && !(plot[o] && plot[owner[yy * T + xx]])) above = true;
       }
       if (above) {
         if (WATERY.has(classes[o])) {
