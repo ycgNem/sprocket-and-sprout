@@ -16,8 +16,10 @@ below), gathered into one 2.1 entry in the patch notes (2.0's "Updates" section 
 **2.1.1 "The Town at Work" (October 23): Trust is gone (DECISIONS #175)**: no friendship points, gifts, birthdays, heart events or partners; the specialists' rewards are favors after keystones (src/data/favors.ts), recipes are mailed after keystones (Thorne's Hollow sells the glow sorbet card after Grand Works), Thorne's drawings come with keystones. Released as `v2.1.1` (Setup installer only). Mentions of Trust further down this file are history.
 Since 2.1.0 (live, October 14, an "Updates" section in 2.1's notes, installer re-uploaded to v2.1.0 with --clobber): the late game's dead ends (#174: the Prism Shard from the bottom's starstone, Master Angler counts trap shellfish, the Wonders of the Valley quest, an every-item-has-a-source test). 430 tests.
 Next is 2.1.1 or 2.2 from the owner's notes ("What's next").
-**2.2 "A Fair Price" (November 26, 2026) is built on `works` and NOT released** (not merged to
-`main`, not pushed, no `gh release`: the owner says when). It answers a critic's full playthrough of
+**2.2 "A Fair Price" is released (November 26, 2026)** on the owner's word ("push it live and update
+the windows download"): `main` = `works`, pushed (the website), and the GitHub release `v2.2.0` is
+Latest with `Sprocket-and-Sprout-Setup-2.2.0.exe` only (built in `../sns-p0check` with `npm run
+dist:win`; body `e2e/out/release-notes-2.2.md`). It answers a critic's full playthrough of
 2.1.1 and a screen sweep at three sizes (DECISIONS #176-#180): the playtest's bugs (#176); the
 economy (#177: cogbean 20, `preservePrice`, exports at the market's price with each port's keepsake
 and crate, three coin-heavy town works `p_market` / `p_freight` / `p_guildhall`, the Governor's fuel
@@ -423,8 +425,7 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
 
 ## What's next
 
-**2.2 is ready on `works` and waits for the owner's word to release** (merge to `main`, push, the
-installer, `gh release` with `node scripts/release-notes.mjs "2.2"`). Still open after it:
+**2.2 is released.** Still open after it:
 - **A scripted factory-path player for Steam to the Harbor.** `tests/bot.ts` stops at the
   Waterworks (`k11_boiler`); `scripts/latepace.ts` is only the arithmetic of the later gates.
 - **The critic's cut list is the owner's call and untouched:** Lantern Night, Frostlight Skate, the
