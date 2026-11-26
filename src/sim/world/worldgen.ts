@@ -5,6 +5,7 @@ import { TileMap, T, Z, O, BuildingInfo } from './tilemap';
 import type { FarmKind } from '../../data/modes';
 import { shapeFarm } from './farms';
 import { layTownworks, townworksBuildings } from './townworks';
+import { layTownlife } from './townlife';
 
 export const WORLD_W = 200;
 export const WORLD_H = 150;
@@ -415,6 +416,8 @@ export function generateWorld(seed: number, farm: FarmKind = 'classic'): TileMap
   shapeFarm(m, seed, farm, FARM, plantTree);
   // the keystones' ground: the mill's and pump house's doorsteps, the fountain, the square's lamps
   layTownworks(m);
+  // the places of town life: the works' yards, the shops' fronts, the market's stalls (./townlife.ts)
+  layTownlife(m);
 
   squareBridges(m);
   // artifact spots everywhere outdoors (respawn daily too)

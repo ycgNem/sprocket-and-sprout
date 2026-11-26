@@ -5,7 +5,7 @@ import { key } from '../src/sim/inventory';
 import { place } from '../src/sim/build';
 import { setResearch } from '../src/sim/systems/research';
 import { npcSys } from '../src/sim/systems/npcs';
-import { shopOpen } from '../src/sim/systems/town';
+import { keeperIn, shopOpen } from '../src/sim/systems/town';
 import { buyAnimal } from '../src/sim/systems/animals';
 import { fishing } from '../src/sim/systems/fishing';
 import { startMega, megaNeed } from '../src/sim/systems/goals';
@@ -57,17 +57,23 @@ describe('research labs', () => {
 });
 
 describe('town', () => {
-  it('shopkeepers are in their shops during opening hours', () => {
+  it('shopkeepers are at their shops during opening hours', () => {
     const g = new Game({ seed: 23 });
-    // run to 10:30 on a Monday
+    // mid-morning on a Monday: Marigold is working out in front of the Mercantile on a dry morning
+    // (src/sim/townlife.ts), which keeps the door open
     g.time.min = 10.5 * 60 - 60;
     run(g, 60 * 0.7 + 30);
     expect(shopOpen(g, 'general').open).toBe(true);
     const mari = npcSys(g).byId.get('marigold')!;
+    expect(mari.target).toBe('store_front');
+    expect(keeperIn(g, 'general')).toBe(true);
+    // and a quarter of an hour on she is behind the counter, between her spells outdoors (11:20 to 12:00)
+    run(g, 15 * 0.7);
     expect(mari.visible).toBe(false);
     const inside = g.map.locs.get('store_in')!;
     const t = g.map.locs.get(mari.target)!;
     expect(t).toEqual(inside);
+    expect(keeperIn(g, 'general')).toBe(true);
   });
 });
 

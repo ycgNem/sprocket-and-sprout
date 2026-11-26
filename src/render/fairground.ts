@@ -6,7 +6,9 @@
 import { C, PALETTE } from '../data/palette';
 import { STRUCT_BY_ID } from '../data/structures';
 import type { Game } from '../sim/Game';
+import { marketOn } from '../sim/townlife';
 import { FAIR_ENTRY_LINES, FAIR_PLATE } from '../sim/world/fairground';
+import { MARKET_BELL, MARKET_STALLS } from '../sim/world/townlife';
 import { drawSprite, hasImage, sprite } from './atlas';
 import type { Drawable, Renderer } from './renderer';
 
@@ -66,6 +68,7 @@ export function drawFairPlate(ctx: CanvasRenderingContext2D, g: Game) {
 /** the three entries, running beside the plate, y-sorted with the villagers (and the Haul's stalls) */
 export function pushFairground(g: Game, r: Renderer, D: Drawable[]) {
   if (haulShown(g)) return pushHaul(g, r, D);
+  if (marketShown(g)) return pushMarket(r, D);
   if (!fairShown(g)) return;
   const ctx = r.ctx;
   // the Fair's banner over the plaza's west entrance, where the road comes in from the farm (clear of
@@ -88,18 +91,32 @@ export function pushFairground(g: Game, r: Renderer, D: Drawable[]) {
     }
 }
 
-/** the Harvest Haul's stalls and podium, y-sorted with the villagers (drawn only once their art is in) */
-function pushHaul(g: Game, r: Renderer, D: Drawable[]) {
+/** a 2x1 stall (or the podium) on the square, y-sorted with the villagers (drawn only once its art is in) */
+function putStall(r: Renderer, D: Drawable[], name: string, x: number, y: number) {
+  if (!hasImage(name)) return;
   const ctx = r.ctx;
-  // the awnings stir now and then, each on its own beat
-  const f = (k: number) => (Math.floor(r.time * 1.5 + k * 0.7) % 3 === 0 ? 1 : 0);
-  const put = (name: string, x: number, y: number) => {
-    if (!hasImage(name)) return;
-    D.push({ y: y + 0.98, f: () => {
-      drawSprite(ctx, sprite('shadow:28'), x * T + 16, (y + 1) * T - 2);
-      drawSprite(ctx, sprite(name), x * T, y * T);
-    } });
-  };
-  for (const s of HAUL_STALLS) put(`haul:stall:${s.k}:${f(s.k)}`, s.x, s.y);
-  put(`haul:podium:${f(4)}`, HAUL_PODIUM.x, HAUL_PODIUM.y);
+  D.push({ y: y + 0.98, f: () => {
+    drawSprite(ctx, sprite('shadow:28'), x * T + 16, (y + 1) * T - 2);
+    drawSprite(ctx, sprite(name), x * T, y * T);
+  } });
+}
+/** the awnings stir now and then, each on its own beat */
+const stir = (r: Renderer, k: number) => (Math.floor(r.time * 1.5 + k * 0.7) % 3 === 0 ? 1 : 0);
+
+/** the Harvest Haul's stalls and podium */
+function pushHaul(g: Game, r: Renderer, D: Drawable[]) {
+  for (const s of HAUL_STALLS) putStall(r, D, `haul:stall:${s.k}:${stir(r, s.k)}`, s.x, s.y);
+  putStall(r, D, `haul:podium:${stir(r, 4)}`, HAUL_PODIUM.x, HAUL_PODIUM.y);
+}
+
+/** the Thursday market is on and you're in the valley to see it (src/sim/townlife.ts) */
+export const marketShown = (g: Game) => g.player.where === 'world' && marketOn(g);
+
+/**
+ * The Thursday market: the Haul's stall sprites where the villagers' stalls stand
+ * (src/sim/world/townlife.ts), and its podium as the Mayor's bell stand.
+ */
+function pushMarket(r: Renderer, D: Drawable[]) {
+  MARKET_STALLS.forEach((s, i) => putStall(r, D, `haul:stall:${s.k}:${stir(r, i)}`, s.x, s.y));
+  putStall(r, D, `haul:podium:${stir(r, 7)}`, MARKET_BELL.x, MARKET_BELL.y);
 }

@@ -185,12 +185,44 @@ export interface DialogueLine {
   flag?: string;
   /** only while this flag isn't set (the Town Mill still silent) */
   noFlag?: string;
+  /**
+   * only while they stand at this place (a stint's `at`: Juniper at the mill's wheel says what the
+   * wheel is doing), or 'market' at the Thursday market on the square
+   */
+  at?: LocationId;
 }
 
 export interface ScheduleDef {
   when?: { season?: Season; weather?: 'rain' | 'clear'; weekdays?: number[] };
   /** [minutes since 00:00, location id]; NPC walks there starting at that time */
   at: [number, LocationId][];
+}
+
+/**
+ * A part of a dry day spent somewhere other than the schedule says (src/sim/townlife.ts): at a town
+ * works once its keystone's flag is set (Juniper at the Town Mill's wheel, Sable round the square's
+ * lamps at dusk), out in front of the shop a keeper minds (the door still opens: `while` their
+ * counter), or at lunch on the square. The first one that holds wins; none on a wet day, when the
+ * rain schedule keeps everyone in.
+ */
+export interface StintDef {
+  /** minutes since 00:00: from, and up to (not including) */
+  from: number;
+  to: number;
+  at: LocationId;
+  /** only once this flag is set (a keystone: 'town_mill', 'waterworks', 'lamps_hung', 'tram', 'clock_fixed', 'harbor') */
+  flag?: string;
+  /** only until this flag is set */
+  noFlag?: string;
+  weekdays?: number[];
+  /** only while the Copper Gull is in port */
+  ship?: boolean;
+  /** only while the day's schedule has them at this place (a keeper's counter: '<shop>_in') */
+  while?: LocationId;
+  /** the way they face standing there (0 up, 1 right, 2 down, 3 left): towards the works */
+  face?: 0 | 1 | 2 | 3;
+  /** a bubble now and then while they stand there ('note', 'happy', '!', '?') */
+  emote?: string;
 }
 
 export interface NPCLook {
@@ -216,6 +248,8 @@ export interface NPCDef {
   bio: string;
   look: NPCLook;
   schedules: ScheduleDef[];
+  /** parts of a dry day spent at a works, out in front of their shop or at lunch on the square */
+  stints?: StintDef[];
   intro: string;
   dialogue: DialogueLine[];
   /** optional shop this NPC runs */

@@ -10,7 +10,9 @@ import { ANIMALS } from '../../data/creatures';
 import { STRUCT_BY_ID } from '../../data/structures';
 import { key, kDef } from '../../sim/inventory';
 import { buy, buyKit, canAffordKit, crackGeode, dailyLeft, entryPrice, sellToShop, shopBuys, shopStock, startUpgrade, unitPrice, upgradeOptions } from '../../sim/systems/economy';
-import { insideAt, npcSys, talkTo, type NPCState } from '../../sim/systems/npcs';
+import { atShopfront, insideAt, npcSys, talkTo, type NPCState } from '../../sim/systems/npcs';
+import { ODDS_TABLE, oddsStock } from '../../sim/marketstall';
+import { stallShop } from '../../sim/townlife';
 import { counterAsks, handIn } from '../../sim/systems/quests';
 import { finishAsk, type Ask } from '../../sim/people';
 import { sundayLot } from '../../sim/systems/cart';
@@ -227,7 +229,8 @@ export function counter(ui: UI, play: PlayScreen, st: WinState, n: NPCState, her
 
 function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
-  const shop = SHOP_BY_ID.get(st.arg)!;
+  // (the Thursday market's odds table is a stall, not one of the SHOPS: src/sim/marketstall.ts)
+  const shop = st.arg === ODDS_TABLE.id ? ODDS_TABLE : SHOP_BY_ID.get(st.arg)!;
   const w = 380, h = 280;
   const { x, y } = centered(ui, w, h);
   if (!frame(ui, x, y, w, h, shop.name)) return false;
@@ -243,6 +246,9 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
   // the counter: the keeper at work and anyone in with them, to chat with, give to, or hand a
   // quest's or an order's goods to (the owner's playtest: at work, villagers could only sell)
   const here = NPC_BY_ID.has(shop.owner) ? insideAt(g, shop.loc) : [];
+  // a keeper working out in front of the shop, or selling from their market stall, is at the counter too
+  const keeper = npcSys(g).byId.get(shop.owner);
+  if (keeper && !here.includes(keeper) && (atShopfront(g, keeper, shop.loc) || stallShop(g, keeper) === shop.id)) here.unshift(keeper);
   if (!here.some((n) => n.id === st.data.who)) st.data.who = shop.owner;
   const who: string = st.data.who;
   portrait(ui, who, x + w - 58, y + 30, 32, 1);
@@ -255,7 +261,7 @@ function drawShop(ui: UI, play: PlayScreen, st: WinState): boolean {
     // Mags' Sunday lot (2.0 Phase 5, src/sim/auction.ts): one lot by auction at the cart on Sundays
     if (shop.id === 'cart' && sundayLot(g) && ui.button('sunday_lot', x + w - 78, y + 88, 70, 16, 'Sunday lot', { style: 'green', tip: 'Mags auctions one lot on Sundays: bid against Roxy and the Professor' })) play.openWindow('auction', 'cart');
     ui.para(shop.greeting, listX, y + h - 96, listW, C.walnut);
-    const stock = shopStock(g, shop.id);
+    const stock = shop.id === ODDS_TABLE.id ? oddsStock(g) : shopStock(g, shop.id);
     const rowH = 18;
     const off = ui.scrollOffset('shop_' + shop.id, listX, listY, listW, listH, stock.length * rowH);
     ui.clip(listX, listY, listW, listH);

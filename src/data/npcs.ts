@@ -23,8 +23,23 @@ export const NPCS: NPCDef[] = [
       { when: { season: 3 }, at: [[360, 'store_in'], [1020, 'clocktower'], [1080, 'inn_in'], [1230, 'store_in']] },
       { at: [[360, 'store_in'], [470, 'square'], [520, 'store_in'], [1020, 'board'], [1080, 'inn_patio'], [1200, 'square_east'], [1290, 'store_in']] },
     ],
+    stints: [
+      // out front with the seed crates on a dry day (the door still opens), and lunch on the square on her day off
+      { from: 580, to: 680, at: 'store_front', while: 'store_in' },
+      { from: 720, to: 815, at: 'store_front', while: 'store_in' },
+      { from: 850, to: 950, at: 'store_front', while: 'store_in' },
+      { from: 985, to: 1020, at: 'store_front', while: 'store_in' },
+      { from: 690, to: 800, at: 'lunch_e', weekdays: [2] },
+      { from: 1085, to: 1200, at: 'lunch_f', flag: 'lamplighting' },
+    ],
     intro: "Oh! You must be {player}, from {farm}! Come in, come in, mind the yarn. I'm Marigold. Seeds, sundries, and all the news worth knowing: that's my trade.",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "Fine day, so the seed crates come outside and so do I. The door's open, dear, go on in.", at: 'store_front' },
+      { text: "Flour from our own mill on my shelves again. I'd stopped writing 'local' on the tags. Had to cut a new stencil.", flag: 'town_mill' },
+      { text: "I take my knitting to the square of an evening now the lamps are lit. Twelve lamps, {player}! I can see to turn a heel at nine o'clock.", flag: 'lamplighting', at: 'lunch_f' },
+      { text: "Market day! Everything from the shop out in the sun, and I can see who's buying what from whom. Best day of my week, professionally and otherwise.", at: 'market' },
+      { text: "Same seeds, same prices, dear, only with a breeze. Have a look.", at: 'market' },
       { text: "Seeds by the window, tools by the till, gossip by request. What can I find for you, dear?" },
       { text: "I knit when I'm happy, I knit when I'm worried. I've knitted three blankets this week, so draw your own conclusions." },
       { text: "Hazel was in earlier with blue pigment on her nose. I didn't tell her. Some things a person should discover in a mirror." },
@@ -82,10 +97,27 @@ export const NPCS: NPCDef[] = [
       { when: { weather: 'rain' }, at: [[360, 'smithy_in'], [1000, 'inn_in'], [1260, 'smithy_in']] },
       { when: { weekdays: [6] }, at: [[360, 'smithy_in'], [540, 'carpenter'], [660, 'hilltop'], [780, 'riverbank_north'], [900, 'bridge_north'], [990, 'inn_patio'], [1080, 'inn_in'], [1290, 'smithy_in']] },
       { when: { season: 3 }, at: [[360, 'smithy_in'], [970, 'lake_shore'], [1080, 'inn_in'], [1250, 'smithy_in']] },
-      { at: [[360, 'smithy_in'], [420, 'mine_entrance'], [500, 'smithy_in'], [960, 'quarry'], [1080, 'inn_in'], [1260, 'smithy_in']] },
+      { at: [[360, 'smithy_in'], [420, 'mine_entrance'], [480, 'smithy_in'], [960, 'quarry'], [1080, 'inn_in'], [1260, 'smithy_in']] },
+    ],
+    stints: [
+      // the tram's first cart brings his ore; the pump house's valves before he lights his own fire
+      { from: 390, to: 432, at: 'tram_stop_e', flag: 'tram', face: 3 },
+      { from: 420, to: 500, at: 'pump_yard', flag: 'waterworks', face: 0, emote: 'note' },
+      { from: 540, to: 590, at: 'smithy_front', while: 'smithy_in' },
+      { from: 625, to: 725, at: 'smithy_front', while: 'smithy_in' },
+      { from: 760, to: 860, at: 'smithy_front', while: 'smithy_in' },
+      { from: 895, to: 960, at: 'smithy_front', while: 'smithy_in' },
     ],
     intro: "Hm. New farmer. Bram. I run the foundry. Ore in, bars out, plates if you're patient. You build machines? Then you'll be back. Everyone who builds comes back to the furnace.",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "Listen to that. Two strokes, a breath, two strokes. I cast the collars on those pump rods myself, from your bars. They'll outlast the both of us.", flag: 'waterworks', at: 'pump_yard' },
+      { text: "I check the pump's valves before I light my own fire. A pump's like a forge: ignore it for a week and it sulks for a year.", flag: 'waterworks', at: 'pump_yard' },
+      { text: "First cart of the morning. I used to haul my ore down from the quarry on my own back. Now it comes to me on rails. On your rails.", flag: 'tram', at: 'tram_stop_e' },
+      { text: "The cart's wheels sing on the bend by the avenue. I told Juniper iron sings sweeter than oak. They said oak doesn't need to show off.", flag: 'tram', at: 'tram_stop_e' },
+      { text: "Too fine a day to breathe coal smoke. I'm dressing castings out here. Go on in, the till's by the anvil.", at: 'smithy_front' },
+      { text: "Bars, plates and tool work, same as at the forge, only you can hear yourself think. What do you need?", at: 'market' },
+      { text: "Juniper sets up beside me on purpose. Says oak looks better next to iron. I say iron doesn't need the help.", at: 'market' },
       { text: "Iron doesn't lie. Pour it too cold and it tells you. More honest than most folk." },
       { text: "Copper's easy. Tin's easier. Put them together right and you get brass, which is neither, and better. Don't quote me." },
       { text: "Juniper says oak holds the works up. I say iron holds the oak together. Eleven years we've argued it. Nobody's winning." },
@@ -147,13 +179,28 @@ export const NPCS: NPCDef[] = [
     shop: 'carpenter',
     schedules: [
       { when: { weather: 'rain' }, at: [[360, 'carpenter_in'], [1080, 'inn_in'], [1200, 'carpenter_in']] },
-      { when: { weekdays: [1] }, at: [[360, 'carpenter_in'], [480, 'forest_glade'], [660, 'orchard_road'], [780, 'smithy'], [900, 'clocktower'], [1050, 'inn_in'], [1230, 'carpenter_in']] },
+      { when: { weekdays: [1] }, at: [[360, 'carpenter_in'], [480, 'riverbank_south'], [660, 'orchard_road'], [780, 'smithy'], [900, 'clocktower'], [1050, 'inn_in'], [1230, 'carpenter_in']] },
       { when: { season: 3 }, at: [[360, 'carpenter_in'], [1020, 'clocktower'], [1110, 'inn_in'], [1230, 'carpenter_in']] },
-      // (unchanged from 1.x: a schedule's walk moves the villagers' dice, and with them the pace bot's seeds)
-      { at: [[360, 'carpenter_in'], [420, 'forest_path'], [510, 'carpenter_in'], [1020, 'bridge_north'], [1110, 'garden'], [1200, 'carpenter_in']] },
+      // (she turns back at ten to eight: the Joinery opens at nine, and the forest path is an hour's walk)
+      { at: [[360, 'carpenter_in'], [420, 'forest_path'], [470, 'carpenter_in'], [1020, 'bridge_north'], [1110, 'garden'], [1200, 'carpenter_in']] },
+    ],
+    stints: [
+      // the millwright at the Town Mill's wheel every dry morning (all of a Tuesday morning, the Joinery's day off)
+      { from: 405, to: 518, at: 'mill_yard', flag: 'town_mill', face: 3, emote: 'note' },
+      { from: 518, to: 650, at: 'mill_yard', flag: 'town_mill', weekdays: [1], face: 3, emote: 'note' },
+      { from: 540, to: 635, at: 'carpenter_front', while: 'carpenter_in' },
+      { from: 670, to: 770, at: 'carpenter_front', while: 'carpenter_in' },
+      { from: 805, to: 905, at: 'carpenter_front', while: 'carpenter_in' },
+      { from: 940, to: 1020, at: 'carpenter_front', while: 'carpenter_in' },
     ],
     intro: "Hello. Juniper. Millwright. I build wheels, mills and the frames machines stand on. I've heard your works from the road, {player}. Something in there runs a little out of true. We should talk, when you're ready. No rush. Timber doesn't rush.",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "Hear that? Eleven turns a minute, and not a knock in it. The shaft runs true, {player}. I come and listen before I open the shop.", flag: 'town_mill', at: 'mill_yard' },
+      { text: "Grandmother Elsbeth hung this wheel. I grease its bearings every morning now. Thirty years I walked past it standing still.", flag: 'town_mill', at: 'mill_yard' },
+      { text: "Planing is outdoor work on a dry day. The shavings see themselves off. The shop's open: go through.", at: 'carpenter_front' },
+      { text: "Market day. I bring the order book and a few true beams. Bram brings his opinions. Both are for sale.", at: 'market' },
+      { text: "Anything the Joinery makes, I'll take the order here. No need to walk round to the shop.", at: 'market' },
       { text: "A wheel tells you everything if you listen. A knock once a turn is a loose paddle. Twice a turn, the shaft. A knock you can't place is Bram." },
       { text: "Measure three times, cut once. Measure a fourth time if it has to carry a mill." },
       { text: "Every frame in your works stands on timber. Iron gets the praise. Oak does the holding." },
@@ -216,12 +263,23 @@ export const NPCS: NPCDef[] = [
     shop: 'workshop',
     schedules: [
       { when: { weather: 'rain' }, at: [[360, 'workshop_in'], [1080, 'inn_in'], [1260, 'workshop_in']] },
-      { when: { weekdays: [5, 6] }, at: [[360, 'workshop_in'], [400, 'hilltop'], [480, 'mayor_house'], [585, 'workshop_in'], [1080, 'clocktower'], [1200, 'workshop_in']] },
-      { when: { season: 3 }, at: [[360, 'workshop_in'], [500, 'clocktower'], [585, 'workshop_in'], [1080, 'inn_in'], [1230, 'workshop_in']] },
-      { at: [[360, 'workshop_in'], [420, 'clocktower'], [500, 'library'], [585, 'workshop_in'], [1080, 'farm_gate'], [1170, 'inn_in'], [1320, 'workshop_in']] },
+      { when: { weekdays: [5, 6] }, at: [[360, 'workshop_in'], [400, 'hilltop'], [480, 'mayor_house'], [540, 'workshop_in'], [1080, 'clocktower'], [1200, 'workshop_in']] },
+      { when: { season: 3 }, at: [[360, 'workshop_in'], [500, 'clocktower'], [570, 'workshop_in'], [1080, 'inn_in'], [1230, 'workshop_in']] },
+      { at: [[360, 'workshop_in'], [420, 'clocktower'], [500, 'library'], [570, 'workshop_in'], [1080, 'farm_gate'], [1170, 'inn_in'], [1320, 'workshop_in']] },
+    ],
+    stints: [
+      { from: 630, to: 720, at: 'workshop_front', while: 'workshop_in' },
+      { from: 765, to: 860, at: 'workshop_front', while: 'workshop_in' },
+      { from: 900, to: 990, at: 'workshop_front', while: 'workshop_in' },
+      { from: 1030, to: 1080, at: 'workshop_front', while: 'workshop_in' },
     ],
     intro: "Ah-ha! The new farmer! Splendid! I'm Professor Cogwhistle: inventor, tinkerer and enthusiastic menace. Tell me, {player}, have you ever wondered how many items per minute {farm} could produce?",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "Field testing! Everything works on the bench. The question is whether it works on gravel. Shop's open, mind the wire.", at: 'workshop_front' },
+      { text: "I wind the great clock at seven sharp. With your core in its heart it doesn't strictly need it, but a mechanism likes to be visited.", flag: 'clock_fixed', at: 'clocktower' },
+      { text: "The whole town sets its day by that clock again. Do you know what that does to a town? Punctuality, {player}! It's practically an invention.", flag: 'clock_fixed' },
+      { text: "A quick turn round the stalls before I open! Bram has plates today. One must inspect the plates.", at: 'market' },
       { text: "A belt is just a river that knows where it's going! Isn't that wonderful?" },
       { text: "Throughput, {player}! Not how much you make, but how smoothly it flows. A farm is a melody. Machines are the orchestra!" },
       { text: "I once built an automatic teapot. It worked beautifully. It also worked on the curtains. Lessons were learned!" },
@@ -278,12 +336,24 @@ export const NPCS: NPCDef[] = [
     shop: 'inn',
     schedules: [
       { when: { weather: 'rain' }, at: [[360, 'inn_in']] },
-      { when: { weekdays: [6] }, at: [[360, 'inn_in'], [380, 'pier'], [440, 'inn_in'], [1385, 'inn_patio'], [1430, 'inn_in']] },
+      { when: { weekdays: [6] }, at: [[360, 'inn_in'], [380, 'pier'], [415, 'inn_in'], [1385, 'inn_patio'], [1430, 'inn_in']] },
       { when: { season: 3 }, at: [[360, 'inn_in'], [390, 'ranch'], [450, 'inn_in'], [1390, 'clocktower'], [1430, 'inn_in']] },
-      { at: [[360, 'inn_in'], [375, 'garden'], [420, 'store'], [460, 'inn_in'], [1385, 'inn_patio'], [1430, 'inn_in']] },
+      { at: [[360, 'inn_in'], [375, 'garden'], [420, 'store'], [450, 'inn_in'], [1385, 'inn_patio'], [1430, 'inn_in']] },
+    ],
+    stints: [
+      // flour from the Town Mill before the ovens, tables out front on a dry day
+      { from: 385, to: 445, at: 'mill_door', flag: 'town_mill', face: 0 },
+      { from: 550, to: 630, at: 'inn_front', while: 'inn_in' },
+      { from: 680, to: 760, at: 'inn_front', while: 'inn_in' },
+      { from: 815, to: 895, at: 'inn_front', while: 'inn_in' },
+      { from: 950, to: 1040, at: 'inn_front', while: 'inn_in' },
     ],
     intro: "Welcome to The Copper Kettle! Sit anywhere that isn't sticky. I'm Rowan. You're the new farmer? Then the first bowl's on the house. Farmers always look hungry, and they usually are.",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "Flour, still warm from the stones! I used to send to the city for it. Now I walk two streets before breakfast.", flag: 'town_mill', at: 'mill_door' },
+      { text: "The sacks are stacked by the mill door every morning. Tomorrow's loaves, the lot. That wheel feeds the whole Kettle, {player}.", flag: 'town_mill', at: 'mill_door' },
+      { text: "Tables outside when it's dry! Half the town eats on the square at noon, so the Kettle meets them halfway. Go on in if you're hungry.", at: 'inn_front' },
       { text: "Soup of the day is 'whatever the farmer brought in.' Lately that's you, {player}. No pressure!" },
       { text: "Pip asked me where steam goes. I said kettle heaven. They've been leaving the lid off ever since." },
       { text: "The secret ingredient is butter. The other secret ingredient is more butter." },
@@ -338,12 +408,28 @@ export const NPCS: NPCDef[] = [
     look: { skin: C.oak, hair: C.amber, hairStyle: 'spiky', shirt: C.sky, pants: C.walnut, accent: C.leaf, height: 'short' },
     schedules: [
       { when: { weather: 'rain' }, at: [[360, 'inn_in'], [520, 'library_in'], [960, 'inn_in']] },
-      { when: { weekdays: [0, 1, 2, 3, 4] }, at: [[360, 'inn_in'], [480, 'square'], [520, 'library_in'], [900, 'tidepools'], [1020, 'forest_path'], [1110, 'square'], [1200, 'inn_in']] },
+      // school in the morning (out in its yard on a dry day, the stints below), then the afternoon about town
+      { when: { weekdays: [0, 1, 2, 3, 4] }, at: [[360, 'inn_in'], [480, 'square'], [520, 'library_in'], [780, 'workshop'], [900, 'beach'], [1020, 'bridge_north'], [1110, 'square'], [1200, 'inn_in']] },
       { when: { season: 3 }, at: [[360, 'inn_in'], [600, 'square'], [720, 'lake_shore'], [900, 'hilltop'], [1050, 'inn_in']] },
       { at: [[360, 'inn_in'], [540, 'riverbank_south'], [660, 'forest_glade'], [780, 'inn_patio'], [900, 'workshop'], [1020, 'beach'], [1140, 'inn_in']] },
     ],
+    stints: [
+      // the tram's afternoon cart, the fountain, lessons in the school's yard, lunch on the square
+      { from: 995, to: 1035, at: 'tram_stop_e', flag: 'tram', face: 3, emote: '!' },
+      { from: 915, to: 990, at: 'fountain_e', flag: 'waterworks', weekdays: [0, 1, 2, 3, 4], face: 3, emote: 'happy' },
+      { from: 525, to: 690, at: 'school_desk', while: 'library_in', weekdays: [0, 1, 2, 3, 4], face: 3 },
+      { from: 690, to: 785, at: 'lunch_c', weekdays: [0, 1, 2, 3, 4] },
+    ],
     intro: "Whoa! Are you the farmer with the machines? Do they talk? Do they bite? Can I see? I'm Pip! I'm gonna be an engineer! I've got a notebook and a beetle named Gerald. Can I be your apprentice? You don't have to answer now. Yes?",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "The fountain's ON! I put a leaf boat in and it went all the way round. Then it sank. Then I made a better one.", flag: 'waterworks', at: 'fountain_e' },
+      { text: "Dr. Marrow says I can't drink it. But I can time it. It does a big splash every four seconds. I think the pump is breathing.", flag: 'waterworks', at: 'fountain_e' },
+      { text: "Shh. The cart's coming. You can feel it in the rail before you hear it. ...I'm not touching the rail. I'm NEAR the rail.", flag: 'tram', at: 'tram_stop_e' },
+      { text: "I'm going to ride the tram to the quarry one day. Thorne says carts are for ore. I said I'm small. He said so is ore.", flag: 'tram', at: 'tram_stop_e' },
+      { text: "We're doing levers! Outside! I asked if a seesaw counts and Sable said 'regrettably, yes'.", at: 'school_desk' },
+      { text: "Dad packs me a pie for lunch. I eat it on the square so I can watch who goes where. Everybody goes everywhere!", at: 'lunch_c' },
+      { text: "No school on market day! Well. Sable says the market IS school. But there's no chairs, so it doesn't count.", at: 'market' },
       { text: "Why do arms only take from behind? I know why. I'm checking if YOU know. ...You know. Okay." },
       { text: "I made a water wheel out of spoons! It turned three times and then the river took it. The river's a thief." },
       { text: "When I grow up I'm gonna build a line that makes cookies. Chest of flour, arm, oven, arm, my mouth." },
@@ -408,8 +494,20 @@ export const NPCS: NPCDef[] = [
       { when: { weekdays: [5, 6] }, at: [[360, 'home_ines_in'], [480, 'lake_shore'], [600, 'library_in'], [750, 'inn_in'], [870, 'garden'], [1020, 'beach'], [1140, 'inn_in'], [1290, 'home_ines_in']] },
       { at: [[360, 'home_ines_in'], [470, 'square'], [520, 'clinic_in'], [900, 'garden'], [990, 'library'], [1080, 'inn_in'], [1260, 'home_ines_in']] },
     ],
+    stints: [
+      // the fountain's water after the clinic shuts; the herb bed by the clinic's door
+      { from: 905, to: 985, at: 'fountain_w', flag: 'waterworks', face: 1 },
+      { from: 590, to: 670, at: 'clinic_front', while: 'clinic_in' },
+      { from: 715, to: 805, at: 'clinic_front', while: 'clinic_in' },
+      { from: 860, to: 900, at: 'clinic_front', while: 'clinic_in' },
+    ],
     intro: "You're the new farmer. I can tell by the posture: three parts determination, one part lower back strain. Dr. Marrow. The clinic's open weekdays. Try not to need it.",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "Clean running water in the middle of town. Do you know what that does for my waiting room? I've finished two whole novels. Medical ones.", flag: 'waterworks', at: 'fountain_w' },
+      { text: "I test the fountain every afternoon. Clear as glass, cold as a stethoscope. Your Waterworks are the best medicine this town has had in nine years.", flag: 'waterworks', at: 'fountain_w' },
+      { text: "The comfrey needs weeding and nobody has fallen off a ladder yet today. The clinic's open if you need it.", at: 'clinic_front' },
+      { text: "I shut the clinic at three and do my shopping while the stalls are still up. Doctor's orders. My own.", at: 'market' },
       { text: "Drink water. Eat vegetables. Sleep more than four hours. Revolutionary advice, I know." },
       { text: "I've treated more hammer injuries this year than the last five combined. I'm looking at you, Bram." },
       { text: "Professor Cogwhistle came in with singed eyebrows again. She called it 'a successful test.' I called it 'eyebrows.'" },
@@ -465,12 +563,25 @@ export const NPCS: NPCDef[] = [
     shop: 'fisher',
     schedules: [
       { when: { weather: 'rain' }, at: [[360, 'fisher_in'], [380, 'pier'], [520, 'fisher_in'], [1020, 'pier'], [1260, 'fisher_in']] },
-      { when: { weekdays: [3] }, at: [[360, 'fisher_in'], [380, 'lake_dock'], [520, 'fisher_in'], [1020, 'forest_path'], [1100, 'beach'], [1250, 'fisher_in']] },
-      { when: { season: 3 }, at: [[360, 'fisher_in'], [400, 'lake_dock'], [520, 'fisher_in'], [1020, 'inn_in'], [1200, 'fisher_in']] },
-      { at: [[360, 'fisher_in'], [370, 'pier'], [520, 'fisher_in'], [1020, 'beach_west'], [1110, 'tidepools'], [1200, 'pier'], [1290, 'fisher_in']] },
+      { when: { weekdays: [3] }, at: [[360, 'fisher_in'], [380, 'lake_dock'], [470, 'fisher_in'], [1020, 'forest_path'], [1100, 'beach'], [1250, 'fisher_in']] },
+      { when: { season: 3 }, at: [[360, 'fisher_in'], [400, 'lake_dock'], [475, 'fisher_in'], [1020, 'inn_in'], [1200, 'fisher_in']] },
+      { at: [[360, 'fisher_in'], [370, 'pier'], [520, 'fisher_in'], [1020, 'beach'], [1110, 'tidepools'], [1200, 'pier'], [1290, 'fisher_in']] },
+    ],
+    stints: [
+      // the Harbor while the Copper Gull is in; nets mended in front of the hut
+      { from: 365, to: 525, at: 'harbor_quay', flag: 'harbor', ship: true, face: 2 },
+      { from: 1025, to: 1110, at: 'harbor_quay', flag: 'harbor', ship: true, face: 2 },
+      { from: 545, to: 580, at: 'fisher_hut_front', while: 'fisher_in' },
+      { from: 635, to: 715, at: 'fisher_hut_front', while: 'fisher_in' },
+      { from: 770, to: 850, at: 'fisher_hut_front', while: 'fisher_in' },
+      { from: 905, to: 995, at: 'fisher_hut_front', while: 'fisher_in' },
     ],
     intro: "Hm. You're the farmer. Wren. I sell rods, bait, fish. Don't whistle on my pier.",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "The Copper Gull's sitting low on her marks already. That's your goods in her belly, {player}. I never whistle on a pier, but I'll nod at one.", flag: 'harbor', at: 'harbor_quay' },
+      { text: "A real ship at our pier again. Father used to pilot them in past the tidepools. He'd have said your crane was too loud, and liked it.", flag: 'harbor', at: 'harbor_quay' },
+      { text: "Nets don't mend themselves, and the light's better out here. Bait's inside. The door's on the latch.", at: 'fisher_hut_front' },
       { text: "The sea gives. The sea takes. Mostly it takes bait." },
       { text: "Never count your fish before they're landed. Never whistle on the pier. Never trust a calm sea in fall." },
       { text: "The Golden Thistlefin swims the river on spring mornings. Old folk say it's one fish, ageless. Seen it twice. Never caught it." },
@@ -526,11 +637,27 @@ export const NPCS: NPCDef[] = [
     schedules: [
       { when: { weather: 'rain' }, at: [[360, 'mayor_in'], [600, 'library_in'], [840, 'inn_in'], [1080, 'mayor_in']] },
       { when: { weekdays: [0] }, at: [[360, 'mayor_in'], [540, 'board'], [660, 'store_in'], [780, 'square_west'], [900, 'clocktower'], [1020, 'mayor_house'], [1080, 'mayor_in']] },
-      { when: { season: 3 }, at: [[360, 'mayor_in'], [600, 'clocktower'], [720, 'inn_in'], [900, 'square'], [1020, 'mayor_in']] },
+      { when: { season: 3 }, at: [[360, 'mayor_in'], [530, 'clocktower'], [720, 'inn_in'], [810, 'board'], [900, 'square'], [1020, 'mayor_house'], [1090, 'mayor_in']] },
       { at: [[360, 'mayor_in'], [480, 'clocktower'], [600, 'square'], [720, 'inn_patio'], [840, 'board'], [960, 'garden'], [1080, 'mayor_house'], [1200, 'mayor_in']] },
+    ],
+    stints: [
+      // under the clock when it strikes noon and six, the tram's morning cart, an evening under the lamps, lunch on the square
+      { from: 700, to: 760, at: 'clock_view', flag: 'clock_fixed', face: 0, emote: 'note' },
+      { from: 1065, to: 1100, at: 'clock_view', flag: 'clock_fixed', face: 0, emote: 'note' },
+      { from: 520, to: 560, at: 'tram_stop', flag: 'tram', face: 1 },
+      { from: 1100, to: 1190, at: 'lunch_b', flag: 'lamplighting' },
+      { from: 660, to: 815, at: 'lunch_a' },
     ],
     intro: "Ahem! Welcome, welcome to Thistlewick, jewel of the valley! I am Mayor Tobias Thistle. On behalf of the town council, which is also me, I bid you a most hearty welcome to {farm}!",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "Hush, hush, any moment now... There. Did you hear it? Thirty years I stood here at noon out of habit, listening to nothing. Now it answers.", flag: 'clock_fixed', at: 'clock_view' },
+      { text: "I set my watch by it every day, {player}, though my watch has never been wrong. It's the principle. A town should agree on what time it is.", flag: 'clock_fixed', at: 'clock_view' },
+      { text: "I like to meet the morning cart. A mayor should know what his town runs on, and today it is running on rather a lot of ore.", flag: 'tram', at: 'tram_stop' },
+      { text: "An evening on the square under lamps, {player}. Our lamps, on your current. I have written three speeches about it and thrown them all away. It needs none.", flag: 'lamplighting', at: 'lunch_b' },
+      { text: "Lunch on the square, every fine day. A mayor who eats indoors misses half the town's business and all of its gossip.", at: 'lunch_a' },
+      { text: "I ring the market open at nine and shut at four. It is, I don't mind telling you, the finest bell work of my week.", at: 'market' },
+      { text: "A square full of stalls and neighbours! This is what a town is for, {player}.", at: 'market' },
       { text: "Thistlewick was founded by my great-grandfather, Aldous Thistle, on this very square. He had a magnificent moustache. I am doing my best." },
       { text: "The clocktower stopped thirty years ago. Seventeen gears missing, the mainspring snapped. But one day, {player}. One day!" },
       { text: "A town is not merely streets and houses. It is a promise we make to one another every morning. I said that in a speech once. It went over very well." },
@@ -585,12 +712,31 @@ export const NPCS: NPCDef[] = [
     look: { skin: C.walnut, hair: C.violet, hairStyle: 'short', shirt: C.slate, pants: C.plum, accent: C.lavender, glasses: true, height: 'normal' },
     schedules: [
       { when: { weather: 'rain' }, at: [[360, 'home_sable_in'], [520, 'library_in'], [1020, 'inn_in'], [1200, 'home_sable_in']] },
-      { when: { season: 3 }, at: [[360, 'home_sable_in'], [520, 'library_in'], [900, 'workshop_in'], [1080, 'hilltop'], [1200, 'home_sable_in']] },
+      { when: { season: 3 }, at: [[360, 'home_sable_in'], [520, 'library_in'], [900, 'square_west'], [990, 'workshop_in'], [1080, 'hilltop'], [1200, 'home_sable_in']] },
       { when: { weekdays: [0, 1, 2, 3, 4] }, at: [[360, 'home_sable_in'], [470, 'garden'], [520, 'library_in'], [900, 'square_west'], [990, 'lake_shore'], [1140, 'hilltop'], [1290, 'home_sable_in']] },
       { at: [[360, 'home_sable_in'], [540, 'library_in'], [720, 'workshop_in'], [840, 'forest_glade'], [960, 'inn_patio'], [1140, 'hilltop'], [1320, 'home_sable_in']] },
     ],
+    stints: [
+      // a round of the square's lamps at dusk, lessons in the school's yard, lunch on the square, an hour on the library's step
+      { from: 1060, to: 1085, at: 'lamp_nw', flag: 'lamps_hung', face: 0 },
+      { from: 1085, to: 1110, at: 'lamp_ne', flag: 'lamps_hung', face: 0 },
+      { from: 1110, to: 1135, at: 'lamp_e', flag: 'lamps_hung', face: 1 },
+      { from: 1135, to: 1160, at: 'lamp_se', flag: 'lamps_hung', face: 2 },
+      { from: 1160, to: 1185, at: 'lamp_sw', flag: 'lamps_hung', face: 2 },
+      { from: 1185, to: 1215, at: 'lamp_w', flag: 'lamps_hung', face: 3 },
+      { from: 525, to: 690, at: 'school_yard', while: 'library_in', weekdays: [0, 1, 2, 3, 4], face: 1 },
+      { from: 690, to: 785, at: 'lunch_d', weekdays: [0, 1, 2, 3, 4] },
+      { from: 785, to: 900, at: 'library', while: 'library_in', weekdays: [0, 1, 2, 3, 4] },
+    ],
     intro: "Oh, hello. You must be {player}. I'm Sable, the archivist. The library's books are free; the old works' records are lent, gladly. Overdue fines are payable in interesting facts. Welcome to Thistlewick.",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "Twelve lamps, twelve entries in the ledger every dusk: lit, steady, or sulking. Tonight's count so far is all steady. I'd say well done, but the ledger doesn't take adjectives.", flag: 'lamplighting', at: 'lamp_*' },
+      { text: "I check each glass before dark. The old works' lamplighter kept a daybook for forty years; its last page just says 'dark'. I have started the next page.", flag: 'lamps_hung', at: 'lamp_*' },
+      { text: "They burn on your current, you know. When the farm is short of sparks the square dims, and I write that down too. No pressure.", flag: 'lamplighting', at: 'lamp_*' },
+      { text: "Lessons outdoors on a dry morning. Today is levers. Pip has already moved my chair with one, which I am counting as a pass.", at: 'school_yard' },
+      { text: "Lunch on the square. It is the one hour of the day the whole town is in one place. Useful, if you ever need to collect eleven overdue books at once.", at: 'lunch_d' },
+      { text: "The school attends the market on Thursdays. Arithmetic, economics and rhetoric in one square, and I don't have to draw a single diagram.", at: 'market' },
       { text: "The archive has four thousand ledgers and one ghost. The ghost is a very well-read cat named Footnote." },
       { text: "The old works kept a daybook. Every shift, every pour, every stoppage. I've read all of it. Twice. The second time was for fun." },
       { text: "If you find something down in the Deepworks, tell me. I file it. Then the next person doesn't have to be brave to know about it." },
@@ -651,12 +797,22 @@ export const NPCS: NPCDef[] = [
     shop: 'ranch',
     schedules: [
       { when: { weather: 'rain' }, at: [[360, 'ranch_in'], [1080, 'inn_in'], [1230, 'ranch_in']] },
-      { when: { weekdays: [0, 1] }, at: [[360, 'ranch_in'], [420, 'ranch'], [600, 'orchard_road'], [720, 'store_in'], [840, 'pier'], [960, 'riverbank_south'], [1110, 'inn_in'], [1260, 'ranch_in']] },
+      { when: { weekdays: [0, 1] }, at: [[360, 'ranch_in'], [420, 'ranch'], [600, 'orchard_road'], [790, 'store_in'], [815, 'pier'], [960, 'riverbank_south'], [1110, 'inn_in'], [1260, 'ranch_in']] },
       { when: { season: 3 }, at: [[360, 'ranch_in'], [960, 'ranch'], [1050, 'inn_in'], [1200, 'ranch_in']] },
       { at: [[360, 'ranch_in'], [370, 'ranch'], [520, 'ranch_in'], [960, 'ranch'], [1080, 'beach'], [1170, 'inn_in'], [1290, 'ranch_in']] },
     ],
+    stints: [
+      // out with the herd in front of the ranch; lunch on the square on his days off
+      { from: 545, to: 715, at: 'ranch_front', while: 'ranch_in' },
+      { from: 765, to: 955, at: 'ranch_front', while: 'ranch_in' },
+      { from: 715, to: 790, at: 'lunch_f', weekdays: [0, 1] },
+    ],
     intro: "Oh! Um. Hello. I'm Clem. I've got the ranch. Animals, hay, that sort of thing. You're the farmer? Do you... want a cow? You don't have to. They're just nice. Cows.",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "Cows like company when the sun's out. So do I, as it goes. Door's open if you're after hay.", at: 'ranch_front' },
+      { text: "Brought the feed sacks down on the cart. Pepper wanted to come. Pepper is not allowed at the market any more.", at: 'market' },
+      { text: "Hay, and anything else the ranch sells, right here. The cows send their regards.", at: 'market' },
       { text: "This is Buttercup Marigold Barlow. My oldest cow. Say hello. She won't, but she'd like you to." },
       { text: "Animals know who's kind. They can tell. Pepper bit the tax collector once. Good goat." },
       { text: "I try to talk to people the way I talk to the cows. Slow and gentle. It works on the cows." },
@@ -712,11 +868,25 @@ export const NPCS: NPCDef[] = [
     schedules: [
       { when: { weather: 'rain' }, at: [[360, 'home_hazel_in'], [600, 'store_in'], [840, 'library_in'], [1020, 'home_hazel_in']] },
       { when: { weekdays: [5] }, at: [[360, 'home_hazel_in'], [600, 'square_east'], [720, 'orchard_road'], [840, 'forest_pond'], [1000, 'inn_patio'], [1140, 'square'], [1230, 'home_hazel_in']] },
-      { when: { season: 3 }, at: [[360, 'home_hazel_in'], [600, 'lake_shore'], [780, 'store_in'], [960, 'hilltop'], [1080, 'home_hazel_in']] },
-      { at: [[360, 'home_hazel_in'], [540, 'farm_gate'], [690, 'store_in'], [780, 'bridge_south'], [900, 'beach_west'], [1050, 'hilltop'], [1170, 'home_hazel_in']] },
+      { when: { season: 3 }, at: [[360, 'home_hazel_in'], [530, 'lake_shore'], [750, 'store_in'], [810, 'square_west'], [960, 'hilltop'], [1090, 'home_hazel_in']] },
+      // (the farm's works drawn from the bridge: she keeps to the town's side of the river by day)
+      { at: [[360, 'home_hazel_in'], [530, 'bridge_north'], [680, 'square_east'], [800, 'orchard_road'], [900, 'riverbank_south'], [1050, 'hilltop'], [1170, 'home_hazel_in']] },
+    ],
+    stints: [
+      // drawing what turns: the Town Mill's wheel, the clock's face at noon; lunch on the square
+      { from: 540, to: 640, at: 'mill_bank', flag: 'town_mill', face: 3 },
+      { from: 708, to: 745, at: 'clock_view_e', flag: 'clock_fixed', face: 0 },
+      { from: 695, to: 810, at: 'lunch_b' },
     ],
     intro: "Oh. You're the new farmer. Aunt Marigold won't shut up about you. I'm Hazel. I draw machines. Plans, sections, the lot. Don't stand in my light, and don't touch the ink.",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "Don't stand there, you're in my elevation. ...The wheel has forty-eight floats. I've counted them going round. Twice, because they move.", flag: 'town_mill', at: 'mill_bank' },
+      { text: "I drew this mill standing still for three years. A dead thing draws easy. Now it turns and I have to work for it. Don't tell anyone I'm pleased.", flag: 'town_mill', at: 'mill_bank' },
+      { text: "The clock's hands move while I draw them. I've decided to draw it at noon exactly, every day, until one comes out right.", flag: 'clock_fixed', at: 'clock_view_e' },
+      { text: "Everyone eats on the square at noon. I come for the drawing. Hands holding sandwiches are very hard.", at: 'lunch_b' },
+      { text: "I mind the odds table. The Professor, Rowan, Wren and that pilot each send a few things down, and I sell them and draw whoever's haggling.", at: 'market' },
+      { text: "It's different every week. I don't choose it. I only letter the price tags, which is why they're the best-looking tags on the square.", at: 'market' },
       { text: "I'm leaving for the city in spring. The drawing offices take anyone who can hold a line. Probably. Definitely. Probably." },
       { text: "A blueprint is a drawing that tells the truth about a machine. Most drawings lie a little. Mine don't. Much." },
       { text: "Your belts make really good lines. In plan they read like handwriting. Don't let it go to your head." },
@@ -777,12 +947,26 @@ export const NPCS: NPCDef[] = [
     shop: 'hermit',
     schedules: [
       { when: { weather: 'rain', weekdays: [0, 1, 2, 3, 6] }, at: [[360, 'hermit_in'], [600, 'forest_glade'], [780, 'hermit_in']] },
-      { when: { weekdays: [4, 5] }, at: [[360, 'hermit_in'], [400, 'forest_glade'], [500, 'forest_pond'], [585, 'hermit_in'], [1080, 'forest_pond'], [1200, 'hermit_in']] },
+      { when: { weekdays: [4, 5] }, at: [[360, 'hermit_in'], [400, 'forest_glade'], [500, 'forest_pond'], [570, 'hermit_in'], [1080, 'forest_pond'], [1200, 'hermit_in']] },
       { when: { season: 3 }, at: [[360, 'hermit_in'], [600, 'forest_pond'], [760, 'hilltop'], [900, 'hermit_in']] },
       { at: [[360, 'hermit_in'], [420, 'forest_pond'], [540, 'forest_glade'], [720, 'forest_path'], [840, 'mine_entrance'], [960, 'forest_glade'], [1110, 'hermit_in']] },
     ],
+    stints: [
+      // the tram he ran: its quarry stop in the morning, the square stop by noon (the days his Hollow is shut)
+      { from: 420, to: 640, at: 'tram_quarry', flag: 'tram', weekdays: [0, 1, 2, 3, 6], face: 1 },
+      { from: 640, to: 800, at: 'tram_stop', flag: 'tram', weekdays: [0, 1, 2, 3, 6], face: 1 },
+      { from: 640, to: 760, at: 'hermit_hut_front', while: 'hermit_in' },
+      { from: 840, to: 960, at: 'hermit_hut_front', while: 'hermit_in' },
+    ],
     intro: "Ahh. The one who woke the keeper's works. I heard the crock start, you know. From here. Thorne, they call me. I kept the old works running, once, until they didn't. Sit, if you like. That boiler plate makes a good bench.",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "Points were stiff this morning. I oiled them. Thirty years I told myself I didn't miss this line. Thirty years I was a liar.", flag: 'tram', at: 'tram_quarry' },
+      { text: "Cart leaves on the even hours and stands in town at a quarter to. Same as she ran in my day. I didn't set it. She remembers.", flag: 'tram', at: 'tram_quarry' },
+      { text: "I don't come into town. I come to check the buffer stop. It happens to be in town.", flag: 'tram', at: 'tram_stop' },
+      { text: "Folk keep saying good morning to me. I'd forgotten that was a thing folk did. The tram's got a lot to answer for.", flag: 'tram', at: 'tram_stop' },
+      { text: "Sorting salvage in the open, where I can see what's rust and what's only pretending. Hut's open.", at: 'hermit_hut_front' },
+      { text: "Came in along the tram line. Stayed for the noise. Don't tell my sister.", flag: 'tram', at: 'market' },
       { text: "Every machine you've restored, I knew when it was new. The keeper's crock had a sticky lid even then." },
       { text: "The old works ran on steam, water and stubbornness. Mostly stubbornness. The steam was a close second." },
       { text: "There's a boiler under the moss two hundred paces east of my hut. I sit on it to think. It doesn't mind. It's done thinking." },
@@ -846,12 +1030,23 @@ export const NPCS: NPCDef[] = [
       { when: { weather: 'rain' }, at: [[360, 'airship_in'], [1140, 'inn_in'], [1380, 'airship_in']] },
       // Tuesday: the city run. Back after dark with the gossip.
       { when: { weekdays: [1] }, at: [[360, 'airship_in'], [1200, 'inn_in'], [1400, 'airship_in']] },
-      { when: { weekdays: [5, 6] }, at: [[360, 'skyfield'], [600, 'airship_in'], [960, 'square_east'], [1050, 'lake_dock'], [1140, 'inn_patio'], [1260, 'inn_in'], [1410, 'airship_in']] },
-      { when: { season: 3 }, at: [[360, 'skyfield'], [600, 'airship_in'], [960, 'smithy'], [1050, 'inn_in'], [1380, 'airship_in']] },
-      { at: [[360, 'skyfield'], [600, 'airship_in'], [960, 'workshop'], [1050, 'square_east'], [1140, 'inn_patio'], [1260, 'inn_in'], [1410, 'airship_in']] },
+      { when: { weekdays: [5, 6] }, at: [[360, 'skyfield'], [590, 'airship_in'], [960, 'square_east'], [1050, 'lake_dock'], [1140, 'inn_patio'], [1260, 'inn_in'], [1410, 'airship_in']] },
+      { when: { season: 3 }, at: [[360, 'skyfield'], [590, 'airship_in'], [960, 'smithy'], [1050, 'inn_in'], [1380, 'airship_in']] },
+      { at: [[360, 'skyfield'], [590, 'airship_in'], [960, 'workshop'], [1050, 'square_east'], [1140, 'inn_patio'], [1260, 'inn_in'], [1410, 'airship_in']] },
+    ],
+    stints: [
+      // down at the Harbor once the Brass Vixen's hold is shut, while the Copper Gull is in; her mooring lines (not on Tuesday's city run)
+      { from: 980, to: 1080, at: 'harbor_yard', flag: 'harbor', ship: true, face: 2 },
+      { from: 600, to: 680, at: 'airship_front', while: 'airship_in', weekdays: [0, 2, 3, 4, 5, 6] },
+      { from: 725, to: 810, at: 'airship_front', while: 'airship_in', weekdays: [0, 2, 3, 4, 5, 6] },
+      { from: 860, to: 940, at: 'airship_front', while: 'airship_in', weekdays: [0, 2, 3, 4, 5, 6] },
     ],
     intro: "Well, well. You must be the one with the singing farm. Roxy Vane, captain of the Brass Vixen: freight, favours and the fastest route to anywhere. Shop's up the gangplank, sugar. Mind the third step.",
     dialogue: [
+      // town life: at the works you rebuilt, out front, at lunch on the square, at the Thursday market
+      { text: "Just sizing up the competition. She carries a hundred times what the Vixen does and takes a week to do it. I'd call that a draw.", flag: 'harbor', at: 'harbor_yard' },
+      { text: "The Gull's mate tried to tell me sea freight is the future. I told him the future has a propeller on it. We're having cards at the Kettle later.", flag: 'harbor', at: 'harbor_yard' },
+      { text: "Checking her mooring lines. A ship that isn't checked is a ship that's somewhere else by morning. Hold's open, go on up.", at: 'airship_front' },
       { text: "If it fits in my hold and the money's right, I'll fly it. If it's alive, it pays double. If it's on fire, we need to talk." },
       { text: "Don't touch the ropes, sugar. Everything on this field is holding something up." },
       { text: "The city's all smoke and elbows. Out here the only thing in a hurry is you, {player}." },

@@ -19,6 +19,8 @@ import { spawnDrop } from './systems/drops';
 import { deconstruct } from './build';
 import { isRusted, restore } from './rust';
 import { buildingFaced, onTile } from './near';
+import { marketOn, stallShop } from './townlife';
+import { marketStallAt } from './world/townlife';
 import { lesson } from './lessons';
 import { availableRecipes, fuelValue, loadChoices, machAccept, machInsert, setRecipe } from './systems/machines';
 import { curMap } from './systems/player';
@@ -642,6 +644,14 @@ function tileAnswers(g: Game, tx: number, ty: number): boolean {
   if (cp && cartHere(g) && tx >= cp[0] - 1 && tx <= cp[0] + 3 && ty >= cp[1] - 1 && ty <= cp[1] + 2) {
     g.emit({ t: 'ui', open: 'shop', arg: 'cart' });
     g.emit({ t: 'sfx', id: 'open' });
+    return true;
+  }
+  // a stall's counter at the Thursday market: its keeper serves (their talk, then the stall's shop)
+  const stall = m === g.map && marketOn(g) ? marketStallAt(tx, ty) : null;
+  if (stall) {
+    const keeper = g.sys.npcs?.byId?.get(stall.who);
+    if (keeper && stallShop(g, keeper) && Math.hypot(keeper.x - (stall.stand[0] + 0.5), keeper.y - (stall.stand[1] + 0.9)) < 3) g.sys.npcs.interact(g, keeper);
+    else g.toast("Nobody's at the stall just now.");
     return true;
   }
   // buildings (doors)

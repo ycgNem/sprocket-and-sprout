@@ -7,7 +7,8 @@ import { WEEKDAYS } from '../../data/types';
 import { Game, registerSystem } from '../Game';
 import type { BuildingInfo } from '../world/tilemap';
 import { skyfield } from '../world/worldgen';
-import { npcSys, openDialog, specialTalk } from './npcs';
+import { atShopfront, npcSys, openDialog, specialTalk } from './npcs';
+import { atMarket } from '../townlife';
 
 function fmt(min: number) {
   const h = Math.floor(min / 60);
@@ -27,13 +28,25 @@ export function shopOpen(g: Game, shopId: string): { open: boolean; why?: string
   return { open: true };
 }
 
-/** is a shop's keeper inside it right now (the door opens only then)? */
+/**
+ * is a shop's keeper at it right now (the door opens only then)? Inside, or working out in front of
+ * it on a dry day (src/sim/townlife.ts)
+ */
 export function keeperIn(g: Game, shopId: string): boolean {
   const shop = SHOPS.find((x) => x.id === shopId)!;
   const keeper = npcSys(g).byId.get(shop.owner);
   const inside = g.map.locs.get(shop.loc + '_in');
   const kt = keeper ? g.map.locs.get(keeper.target) : undefined;
+  if (keeper && atShopfront(g, keeper, shop.loc)) return true;
   return !!keeper && !keeper.visible && !!inside && !!kt && kt[0] === inside[0] && kt[1] === inside[1];
+}
+
+/** why a shop in its hours has nobody at the door: the keeper is at their market stall, or just out */
+function keeperAway(g: Game, shopId: string): string {
+  const shop = SHOPS.find((x) => x.id === shopId)!;
+  const who = shortName(NPC_BY_ID.get(shop.owner)?.name ?? '') ?? 'The keeper';
+  if (atMarket(g, shopId)) return `${who} is at the market on the square today: the stall there is the shop.`;
+  return `${who} isn't in right now.`;
 }
 
 /** what the door would say, in one line (the map's hover) */
@@ -41,7 +54,7 @@ export function shopStatus(g: Game, shopId: string): { open: boolean; text: stri
   const shop = SHOPS.find((x) => x.id === shopId)!;
   const st = shopOpen(g, shop.id);
   if (!st.open) return { open: false, text: st.why ?? 'Closed.' };
-  if (!keeperIn(g, shop.id)) return { open: false, text: `${shortName(NPC_BY_ID.get(shop.owner)?.name ?? '') ?? 'The keeper'} isn't in right now.` };
+  if (!keeperIn(g, shop.id)) return { open: false, text: keeperAway(g, shop.id) };
   return { open: true, text: `Open until ${fmt(shop.close)}.` };
 }
 
@@ -74,8 +87,7 @@ export function door(g: Game, b: BuildingInfo) {
     const keeper = npcSys(g).byId.get(shop.owner);
     const keeperHome = keeperIn(g, shop.id);
     if (!st.open || !keeperHome) {
-      const who = shortName(NPC_BY_ID.get(shop.owner)?.name ?? '') ?? 'The keeper';
-      g.toast(`${shop.name}: ${st.open ? `${who} isn't in right now.` : st.why}`);
+      g.toast(`${shop.name}: ${st.open ? keeperAway(g, shop.id) : st.why}`);
       g.emit({ t: 'sfx', id: 'thud' });
       return;
     }

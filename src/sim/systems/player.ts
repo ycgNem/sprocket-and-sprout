@@ -4,6 +4,8 @@ import { Game, registerSystem, SEC_PER_MIN } from '../Game';
 import { T, TileMap } from '../world/tilemap';
 import { decorSolid, houseMap } from './house';
 import { DX, DY } from '../ents';
+import { marketOn } from '../townlife';
+import { marketBlocks } from '../world/townlife';
 
 export function curMap(g: Game): TileMap {
   const w = g.player.where;
@@ -23,6 +25,8 @@ export function solidAt(g: Game, tx: number, ty: number): boolean {
   if (m !== g.map) return !!g.sys.mine?.solid?.(g, tx, ty);
   const e = g.ents.at(tx, ty);
   if (e && !e.ghost && e.def.solid) return true;
+  // the Thursday market's stalls (src/sim/townlife.ts); one set up where you stood lets you step out
+  if (marketBlocks(tx, ty) && marketOn(g) && !marketBlocks(Math.floor(g.player.x), Math.floor(g.player.y - 0.1))) return true;
   const s = g.soil.get(m.idx(tx, ty));
   if (s?.crop && !s.crop.dead) {
     const cr = CROP_BY_ID.get(s.crop.id);

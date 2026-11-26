@@ -10,6 +10,8 @@ import type { Ent } from './ents';
 import { kDef } from './inventory';
 import { buildingFaced, onTile } from './near';
 import { cartHere } from './systems/cart';
+import { marketOn } from './townlife';
+import { marketStallAt } from './world/townlife';
 import { canTill } from './systems/farming';
 import { fuelValue, loadChoices, machAccept, stationRecipes } from './systems/machines';
 import { counterAsks } from './systems/quests';
@@ -139,6 +141,9 @@ function ownPrompt(g: Game, tx: number, ty: number): Prompt | null {
   const top = (verb: string, lift = 0.1): Prompt => ({ verb, x: tx + 0.5, y: ty - lift });
   const cp = g.sys.cart?.pos as [number, number] | undefined;
   if (cp && cartHere(g) && tx >= cp[0] - 1 && tx <= cp[0] + 3 && ty >= cp[1] - 1 && ty <= cp[1] + 2) return { verb: "Mags' cart", x: cp[0] + 1.5, y: cp[1] - 0.5 };
+  // a stall's counter at the Thursday market (actions.ts tileAnswers)
+  const stall = m === g.map && marketOn(g) ? marketStallAt(tx, ty) : null;
+  if (stall) return { verb: stall.shop === 'market' ? 'The odds table' : `${questName(stall.who, NPC_BY_ID.get(stall.who)?.name ?? '')}'s stall`, x: stall.x + 1, y: stall.y - 1.4 };
   const b = buildingFaced(g, m, tx, ty);
   if (b && (ty === b.y + b.h - 1 || ty === b.y + b.h) && Math.abs(tx - b.door[0]) <= 1) {
     // the town keystones' landmarks (src/sim/systems/townworks.ts) are looked at, not entered

@@ -3,7 +3,9 @@
 import { NPCS, NPC_BY_ID } from '../../data/npcs';
 import type { DialogueLine, NPCDef, ScheduleDef } from '../../data/types';
 import { Game, registerSystem } from '../Game';
+import { lifeSpot, marketDay, marketOn, stallShop } from '../townlife';
 import { findPath } from '../world/path';
+import { layTownlife, marketBlocks, MARKET_CLOSE, MARKET_OPEN } from '../world/townlife';
 
 export interface NPCState {
   id: string;
@@ -26,6 +28,10 @@ export interface NPCState {
   schedule: ScheduleDef | null;
   /** the first day this villager asks you a question again (Pip's echoes, src/sim/people.ts) */
   askDay?: number;
+  /** the way they face where they stand now (at a works, a market stall); not saved */
+  face?: 0 | 1 | 2 | 3;
+  /** a bubble for now and then while they stand there; not saved */
+  mood?: string;
 }
 
 /**
@@ -85,18 +91,35 @@ function pickSchedule(g: Game, d: NPCDef): ScheduleDef {
   return d.schedules[d.schedules.length - 1];
 }
 
-/** Location where the NPC should be right now (festival overrides). */
-function currentTarget(g: Game, n: NPCState): string {
-  // a scripted visit (the Professor walking into the keeper's yard, src/sim/systems/keeper.ts)
-  const visit = g.sys.visitSpot?.(g, n.id);
-  if (visit) return visit;
-  const fest = g.sys.festivals?.npcSpot?.(g, n.id);
-  if (fest) return fest;
+/** where the day's schedule alone has them right now */
+export function scheduled(g: Game, n: NPCState): string {
   const s = n.schedule;
   if (!s) return '';
   let tgt = s.at[0][1];
   for (const [t, loc] of s.at) if (g.time.min >= t) tgt = loc;
   return tgt;
+}
+
+/**
+ * Location where the NPC should be right now: a scripted visit, a festival, the Thursday market or
+ * a stint (at a town works, out in front of their shop, at lunch: src/sim/townlife.ts), else the
+ * schedule's. Sets the way they face there.
+ */
+function currentTarget(g: Game, n: NPCState): string {
+  n.face = undefined;
+  n.mood = undefined;
+  // a scripted visit (the Professor walking into the keeper's yard, src/sim/systems/keeper.ts)
+  const visit = g.sys.visitSpot?.(g, n.id);
+  if (visit) return visit;
+  const fest = g.sys.festivals?.npcSpot?.(g, n.id);
+  if (fest) return fest;
+  const tgt = scheduled(g, n);
+  if (!tgt) return '';
+  const life = lifeSpot(g, n.id, tgt);
+  if (!life) return tgt;
+  n.face = life.face;
+  n.mood = life.emote;
+  return life.loc;
 }
 
 function locTile(g: Game, loc: string): [number, number] | null {
@@ -119,8 +142,10 @@ function walkCache(g: Game) {
 }
 
 function npcWalkable(g: Game) {
+  const market = marketOn(g);
   return (x: number, y: number) => {
     if (!g.map.walkable(x, y)) return false;
+    if (market && marketBlocks(x, y)) return false;
     const e = g.ents.at(x, y);
     if (e && e.def.solid && !e.ghost) return false;
     return true;
@@ -137,7 +162,8 @@ function planPath(g: Game, n: NPCState, loc: string) {
     gy = gy + 1;
   }
   const sx = Math.floor(n.x), sy = Math.floor(n.y);
-  const key = `${sx},${sy}>${gx},${gy}`;
+  // (a path found while the market's stalls stand is its own: it walks round them)
+  const key = `${marketOn(g) ? 'm' : ''}${sx},${sy}>${gx},${gy}`;
   const cache = walkCache(g);
   let path = cache.get(key);
   if (path === undefined) {
@@ -222,6 +248,16 @@ function stepNPC(g: Game, n: NPCState, dt: number) {
     if (Math.hypot(p.x - n.x, p.y - n.y) < 2.2) {
       const dx = p.x - n.x, dy = p.y - n.y;
       n.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : 3) : dy > 0 ? 2 : 0;
+    } else if (n.face !== undefined) {
+      // at a works or a stall: they face it, with a bubble now and then
+      n.dir = n.face;
+      if (n.idleT > 14) {
+        n.idleT = 0;
+        if (n.mood && !n.emote) {
+          n.emote = n.mood;
+          n.emoteT = 1.8;
+        }
+      }
     } else if (n.idleT > 4) {
       n.idleT = 0;
       n.dir = g.rng.int(0, 3) as 0 | 1 | 2 | 3;
@@ -241,6 +277,14 @@ function timeOfDay(min: number) {
   return 'night';
 }
 
+/** is the villager out at this place (a line's `at`: a works' spot, 'lamp_*' for any of several, or 'market' for any place at the market)? */
+function standsAt(n: NPCState, at: string): boolean {
+  if (!n.visible) return false;
+  if (at === 'market') return n.target.startsWith('mkt_');
+  // 'lamp_*': any stop of a round
+  return at.endsWith('*') ? n.target.startsWith(at.slice(0, -1)) : n.target === at;
+}
+
 export function fillTokens(g: Game, s: string) {
   return s.replace(/\{player\}/g, g.player.name).replace(/\{farm\}/g, g.player.farmName + ' Farm').replace(/\{fav\}/g, g.player.favorite);
 }
@@ -257,13 +301,14 @@ export function chooseLine(g: Game, n: NPCState, d: NPCDef): string {
     (l.festival === undefined || l.festival === festival) &&
     (l.year === undefined || g.time.year >= l.year) &&
     (l.flag === undefined || g.flags.has(l.flag)) &&
-    (l.noFlag === undefined || !g.flags.has(l.noFlag));
+    (l.noFlag === undefined || !g.flags.has(l.noFlag)) &&
+    (l.at === undefined || standsAt(n, l.at));
   const cands = d.dialogue.filter(ok).filter((l) => !n.recent.includes(l.text));
   const pool = cands.length ? cands : d.dialogue.filter(ok);
   if (!pool.length) return '...';
   // specific lines are more likely (a line about the town's keystones, too)
   const weight = (l: DialogueLine) =>
-    1 + (l.season !== undefined ? 1.5 : 0) + (l.weather !== undefined ? 3 : 0) + (l.weekday !== undefined ? 2 : 0) + (l.time !== undefined ? 1.2 : 0) + (l.festival ? 6 : 0) + (l.flag !== undefined ? 2 : 0);
+    1 + (l.season !== undefined ? 1.5 : 0) + (l.weather !== undefined ? 3 : 0) + (l.weekday !== undefined ? 2 : 0) + (l.time !== undefined ? 1.2 : 0) + (l.festival ? 6 : 0) + (l.flag !== undefined ? 2 : 0) + (l.at !== undefined ? 8 : 0);
   const line = g.rng.weighted(pool, weight);
   n.recent.push(line.text);
   if (n.recent.length > 6) n.recent.shift();
@@ -281,6 +326,18 @@ export function insideAt(g: Game, loc: string): NPCState[] {
     const t = !n.visible && g.map.locs.get(n.target);
     return !!t && t[0] === tile[0] && t[1] === tile[1];
   });
+}
+
+/**
+ * A keeper working out in front of their shop on a dry day (a stint at '<shop>_front'), or on the
+ * few steps between the counter and there: the door opens as if they were in.
+ */
+export function atShopfront(g: Game, n: NPCState, loc: string): boolean {
+  if (!n.visible) return false;
+  const front = g.map.locs.get(loc + '_front'), inside = g.map.locs.get(loc + '_in'), t = g.map.locs.get(n.target);
+  if (!front || !inside || !t) return false;
+  const toFront = t[0] === front[0] && t[1] === front[1], toDoor = t[0] === inside[0] && t[1] === inside[1];
+  return (toFront || toDoor) && Math.hypot(n.x - (inside[0] + 0.5), n.y - (inside[1] + 1.9)) < 4.5;
 }
 
 /**
@@ -302,10 +359,19 @@ export function talkTo(g: Game, n: NPCState, shopAfter?: string, chat = false) {
   }
   const p = g.player;
   const held = chat ? null : p.inv.slots[p.sel];
+  // at a market stall the stall is the counter: the talk ends at its shop, and once you've said
+  // hello today F opens it straight away (the shop window has Chat, Give and Hand in)
+  const stall = shopAfter || chat ? null : stallShop(g, n);
+  if (stall) shopAfter = stall;
   // quests that want a delivery to this NPC take priority
   if (held && g.sys.quests?.tryDeliver?.(g, n.id, held.k, shopAfter)) return;
   // a specialist's own talk (an echo, a record, a drawing) instead of a chat line
   if (n.met && specialTalk(g, n, shopAfter)) return;
+  if (stall && n.met && n.talked) {
+    g.emit({ t: 'ui', open: 'shop', arg: stall });
+    g.emit({ t: 'sfx', id: 'open' });
+    return;
+  }
   const visit: string | null = n.met ? g.sys.visitLine?.(g, n) ?? null : null;
   const text = visit ?? chooseLine(g, n, d);
   if (visit && !g.sys.visits.talked) {
@@ -352,6 +418,8 @@ export function splitPages(text: string): string[] {
   return out;
 }
 
+const clock = (min: number) => `${((Math.floor(min / 60) + 11) % 12) + 1}${min < 720 ? 'am' : 'pm'}`;
+
 registerSystem({
   name: 'npcs',
   tick(g, dt) {
@@ -362,6 +430,10 @@ registerSystem({
   dayStart(g) {
     if (g.map.w < 100) return;
     const s = npcSys(g);
+    // the places of town life (a works' yard, a shop's front, the market's stalls): laid afresh,
+    // since a tree may have grown on one
+    layTownlife(g.map);
+    if (marketDay(g)) g.toast(`Market day: stalls on the town square, ${clock(MARKET_OPEN)} to ${clock(MARKET_CLOSE)}.`, 'i:bread');
     for (const n of s.list) {
       const d = NPC_BY_ID.get(n.id)!;
       n.schedule = pickSchedule(g, d);
@@ -390,6 +462,7 @@ registerSystem({
   afterLoad(g) {
     // put everyone where their schedule says
     const s = npcSys(g);
+    layTownlife(g.map);
     for (const n of s.list) {
       const d = NPC_BY_ID.get(n.id)!;
       n.schedule = pickSchedule(g, d);

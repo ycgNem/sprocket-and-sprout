@@ -11,6 +11,7 @@ import { Inventory, key, kId, kQ } from '../inventory';
 import { almanacRecipe } from './cookbook';
 import { FURN_BY_ID, FurnDef } from '../../data/furniture';
 import { loadLib, saveLib } from '../drafting';
+import { nextMarket } from '../townlife';
 import { HOUSE_DOOR, HOUSE_H, HOUSE_W, HOUSE_WIDE } from '../world/house';
 
 export { HOUSE_W, HOUSE_H, HOUSE_DOOR, HOUSE_WIDE };
@@ -118,6 +119,11 @@ export function almanacBits(g: Game): AlmanacBits {
     if (day > 28) { day -= 28; season = (season + 1) % 4 as any; }
     const f = FESTIVALS.find((x) => x.season === season && x.day === day);
     if (f) soon.push(`${f.name} (${SEASON_NAMES[season]} ${day})`);
+  }
+  // the Thursday market on the square (src/sim/townlife.ts): the next one, unless a festival has its day
+  if (g.mode !== 'rush' && g.map.w >= 200) {
+    const [ms, md] = nextMarket(g);
+    if (!FESTIVALS.some((x) => x.season === ms && x.day === md)) soon.unshift(`Market day on the square (Thursday, ${SEASON_NAMES[ms]} ${md})`);
   }
   const tips = [
     'The night shift runs your works from 2am to 6am: stock a chest before bed and the night pays for it.',

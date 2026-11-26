@@ -276,9 +276,11 @@ describe('walkability (1.2 playtest bug 12)', () => {
 });
 
 describe('shopkeepers (owner playtest: the ranch never opened)', () => {
-  it('every keeper is inside for most of the shop\'s opening hours, Clem included', async () => {
+  it('every keeper is at the shop for most of its opening hours, Clem included', async () => {
+    // (at the shop: behind the counter, or working out in front of it on a dry day, which keeps the
+    // door open: src/sim/townlife.ts)
     const { SHOPS } = await import('../src/data/shops');
-    const { shopOpen } = await import('../src/sim/systems/town');
+    const { keeperIn, shopOpen } = await import('../src/sim/systems/town');
     const g = new Game({ seed: 5, name: 'T', farmName: 'T' });
     while (g.weekday !== 4) g.endDay(false);
     const open = new Map<string, number>(), home = new Map<string, number>();
@@ -289,8 +291,7 @@ describe('shopkeepers (owner playtest: the ranch never opened)', () => {
         const k = npcSys(g).byId.get(s.owner);
         if (!k || !shopOpen(g, s.id).open) continue;
         open.set(s.id, (open.get(s.id) ?? 0) + 1);
-        const inside = g.map.locs.get(s.loc + '_in'), kt = g.map.locs.get(k.target);
-        if (!k.visible && inside && kt && kt[0] === inside[0] && kt[1] === inside[1]) home.set(s.id, (home.get(s.id) ?? 0) + 1);
+        if (keeperIn(g, s.id)) home.set(s.id, (home.get(s.id) ?? 0) + 1);
       }
     }
     expect(open.get('ranch')).toBeGreaterThan(0);
