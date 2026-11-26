@@ -25,6 +25,8 @@ export function stationRecipes(station: string): RecipeDef[] {
   return r;
 }
 
+/** Governor (the profession): what a piece of fuel gives a burner or a steam engine, and the share of its power a machine needs for full speed */
+export const GOVERNOR_FUEL = 4 / 3, GOVERNOR_SAT = 0.6;
 export function fuelValue(k: ItemKey): number {
   return kDef(k).fuel ?? 0;
 }
@@ -303,7 +305,8 @@ const STATION_PERKS: [string, Set<string>, number][] = [
 
 /** a store's machines (the farm's, or the farmhouse's: Workshop HQ) */
 export function updateMachines(g: Game, dt: number, ents: Ents = g.ents) {
-  const speedMod = g.mods.machineSpeed + (g.sys.megaBonus?.machine ?? 0) + (g.hasPerk('engineer') ? 0.1 : 0) + (g.hasPerk('industrialist') ? 0.15 : 0);
+  // (the Machinists' Guildhall is the works project p_guildhall)
+  const speedMod = g.mods.machineSpeed + (g.sys.megaBonus?.machine ?? 0) + (g.flags.has('guildhall') ? 0.1 : 0) + (g.hasPerk('engineer') ? 0.1 : 0) + (g.hasPerk('industrialist') ? 0.15 : 0);
   const boosts = STATION_PERKS.filter(([id]) => g.hasPerk(id));
   const now = g.simTime;
   // on the night shift the hamster's wheel speeds the farmhouse machines in its reach (src/sim/systems/hamster.ts)
@@ -356,7 +359,7 @@ export function updateMachines(g: Game, dt: number, ents: Ents = g.ents) {
     // fuel
     if (e.def.fuel && m.burn <= 0) {
       if (m.fuel && m.fuel.n > 0) {
-        m.burn += fuelValue(m.fuel.k);
+        m.burn += fuelValue(m.fuel.k) * (g.hasPerk('clockmaker') ? GOVERNOR_FUEL : 1);
         g.stats.use(m.fuel.k, 1);
         if (--m.fuel.n <= 0) m.fuel = null;
       } else {

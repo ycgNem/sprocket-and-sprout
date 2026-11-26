@@ -2,6 +2,8 @@
 // with what your machines make; farming's are about the field machines and the crock, not sell
 // prices (the critic's Stardew test, Phases 3+4 re-check: "only the names changed"); foraging and
 // mining each have one that runs their machines too (Sawyer, Drill Rigger, Furnace Hand). Each pair
+// (2.2: the Governor is the thrifty pick against the Engineer's speed: a third more from fuel, and
+// full speed down to 60% power, was 75% and nothing else, which no one took.)
 // is a real trade-off (the critic's confirmation pass: arms are never a line's bottleneck, and a
 // gleaner idles most of the afternoon): speed or brownout tolerance, yield or coverage. Fishing and
 // combat were the last pairs to have no works answer (Phase 5): each is now hands or works, a fishing
@@ -12,7 +14,7 @@ export interface PerkDef { id: string; skill: string; level: 5 | 10; name: strin
 
 export const PERKS: PerkDef[] = [
   { id: 'engineer', skill: 'tinkering', level: 5, name: 'Engineer', desc: 'Machines work 10% faster.' },
-  { id: 'clockmaker', skill: 'tinkering', level: 5, name: 'Governor', desc: 'Powered machines keep full speed until the grid meets less than 75% of what they need.' },
+  { id: 'clockmaker', skill: 'tinkering', level: 5, name: 'Governor', desc: 'Burners and steam engines get a third more from every piece of fuel, and powered machines keep full speed until the grid meets less than 60% of what they need.' },
   { id: 'industrialist', skill: 'tinkering', level: 10, name: 'Industrialist', desc: 'Machines work another 15% faster.' },
   { id: 'conservator', skill: 'tinkering', level: 10, name: 'Conservator', desc: 'Machines and arms draw 25% less power.' },
   { id: 'tiller', skill: 'farming', level: 5, name: 'Field Hand', desc: 'Gleaners, harvest cranes and the field gantry pick one crop extra every fourth pick.' },

@@ -12,7 +12,7 @@ import { till as tillTile } from '../src/sim/systems/farming';
 import { stepFacing } from '../src/sim/prompts';
 
 const fresh = () => new Game({ seed: 3, name: 'T', farmName: 'T' });
-const run = (g: Game, ticks: number) => { for (let i = 0; i < ticks; i++) g.tick(1 / 60); };
+const run = (g: Game, ticks: number) => { for (let i = 0; i < ticks; i++) g.tick(); };
 
 describe('The Silent Clock', () => {
   it('counts a Clock restarted without a walk to the clocktower', () => {
@@ -28,7 +28,7 @@ describe("the opening's bed steps", () => {
   it('tilling somewhere else does not tick off the gleaner bed', () => {
     const g = fresh();
     const q = questSys(g);
-    q.active = [{ id: 'k4_grow', prog: [0, 0, 0, 0] }];
+    q.active = [{ id: 'k4_grow', prog: [0, 0, 0, 0], day: 0 }];
     // four tiles tilled out in the field
     let n = 0;
     for (let x = 30; x < 80 && n < 4; x++) if (tillTile(g, x, 40)) n++;
@@ -52,7 +52,7 @@ describe('F leans toward the step', () => {
     const def = QUEST_BY_ID.get('k1_line')!;
     const ci = def.objectives.findIndex((o) => o.t === 'crate' && !o.auto);
     expect(ci).toBeGreaterThanOrEqual(0);
-    q.active = [{ id: 'k1_line', prog: def.objectives.map((_, i) => (i < ci ? 99 : 0)) }];
+    q.active = [{ id: 'k1_line', prog: def.objectives.map((_, i) => (i < ci ? 99 : 0)), day: 0 }];
     const [ax, ay] = OPENING.armTile;
     const crate = g.ents.get(g.shipBinId)!;
     expect(Math.abs(crate.y - ay)).toBe(1);

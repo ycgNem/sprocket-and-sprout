@@ -274,14 +274,14 @@ describe('the Sprocket Fair test plate', () => {
   it("tunes the year's entries to the sample lines", () => {
     // the sample lines' scores (coins a minute of value added, year 1, no perks), as recorded in src/sim/fair.ts
     const recorded: Partial<Record<LineName, number>> = {
-      crock1: 68, crock2: 136, crock3: 204, crock4: 271, crock6: 407, gleaned: 68, craned: 68,
+      crock1: 33, crock2: 66, crock3: 99, crock4: 132, crock6: 198, gleaned: 33, craned: 33,
       furnace1: 276, furnace2: 552, furnace6: 1656, tin6: 1933, iron6: 2522,
       mill1: 373, mill3: 1119, mill3grain: 2138, sift6: -1355,
     };
     for (const [n, v] of Object.entries(recorded)) near(score[n as LineName], v);
     const [prof, bram, juniper] = fairEntries(1).map((e) => e.score);
     expect(fairEntries(1).map((e) => e.who)).toEqual(['ottoline', 'bram', 'juniper']);
-    expect([prof, bram, juniper]).toEqual([50, 250, 2000]);
+    expect([prof, bram, juniper]).toEqual([20, 120, 2000]);
     // any first real line beats the Professor: one crock, a gleaner's crock
     expect(score.crock1).toBeGreaterThan(prof);
     expect(score.gleaned).toBeGreaterThan(prof);
@@ -315,9 +315,9 @@ describe('the Sprocket Fair test plate', () => {
     // the bot's own first line: chest, arm, crock, arm, chest
     const l1 = g.ents.get(bot.lineIn!)!;
     const own = copy(l1.x, l1.y, 5, 1);
-    near(keeper, 68);
+    near(keeper, 33);
     near(river, 373);
-    near(own, 68);
+    near(own, 33);
     for (const s of [keeper, river, own]) {
       expect(s).toBeGreaterThan(prof);
       expect(s).toBeLessThan(juniper);
@@ -779,7 +779,7 @@ describe("Mags' freight cart", () => {
     expect(o.short).toBe(true);
     expect(o.lines[0].n).toBe(def.n * SHORT_SIZE);
     expect(o.unit).toBe(Math.round(def.unit * SHORT_PAY));
-    expect(payFor(g, o, key('pickles_cogbean'), 2)).toBe(2 * 188);
+    expect(payFor(g, o, key('pickles_cogbean'), 2)).toBe(2 * Math.round(def.unit * SHORT_PAY));
     expect(os.short).toEqual({ week, cust: 'rowan', spec: 'pickles_cogbean', n: def.n * SHORT_SIZE });
     expect(g.events.some((e) => e.t === 'toast' && /run short/.test(e.text))).toBe(true);
     // Mags has the beans the pickles are made from, dear, and enough a day for the order

@@ -279,7 +279,7 @@ art('honey', 'Wildflower Honey', 100, { t: 'jar', c: [C.amber, C.brass] }, 'Gold
 for (const [fl, nm, mult] of [['tulip', 'Tulip', 1.4], ['sunflower', 'Sunflower', 1.6], ['sunbell', 'Sunbell', 2.2], ['starpetal', 'Starpetal', 4], ['meadow_daisy', 'Daisy', 1.2], ['elderflower', 'Elderflower', 1.5], ['ice_crocus', 'Crocus', 2]] as const)
   art(`honey_${fl}`, `${nm} Honey`, Math.round(100 * mult), { t: 'jar', c: [C.amber, C.brass, -1, C.rose] }, `Honey flavored by ${nm.toLowerCase()} blossoms.`, ['honey'], 25);
 // the opening's second product (ROADMAP.md 4.10, taught by Rowan in Phase 2): one input, two recipes
-art('cogbean_oil', 'Cogbean Oil', 200, { t: 'bottle', c: [C.lime, C.brass] }, 'Pressed from cogbeans in a crock. Keeps gears quiet and salads bright.', ['oil']);
+art('cogbean_oil', 'Cogbean Oil', 110, { t: 'bottle', c: [C.lime, C.brass] }, 'Pressed from cogbeans in a crock. Keeps gears quiet and salads bright.', ['oil']);
 art('mead', 'Mead', 300, { t: 'bottle', c: [C.amber, C.brass] }, 'Honey wine. Sweet and strong.', ['drink'], 25);
 art('ale', 'Wheat Ale', 200, { t: 'mug', c: [C.amber, C.cream] }, 'Golden and foamy.', ['drink'], 25);
 art('stout', 'Barley Stout', 240, { t: 'mug', c: [C.bark, C.tan] }, 'Dark, roasty and rich.', ['drink'], 30);
@@ -324,12 +324,19 @@ const colorOf = (id: string): number => {
   if (tr) return tr.look.fruit ?? C.rose;
   return id === 'raspberry' ? C.rose : C.terracotta;
 };
+/**
+ * A jar from the crock: nearly double the crop, plus a little for the jar (2.2; it was x1.6 + 40, and
+ * the flat 40 made a 21-coin berry worth 3.5 times itself in a jar while a melon gained a third).
+ */
+export function preservePrice(price: number): number {
+  return Math.round(price * 1.9 + 15);
+}
 for (const [id, name, price] of FRUITS) {
   art(`wine_${id}`, `${name} Wine`, Math.round(price * 2.2 + 20), { t: 'bottle', c: [colorOf(id), -1, -1, C.wine] }, `Wine made from ${name.toLowerCase()}. Better with age.`, ['drink', 'wine'], 20);
-  art(`jam_${id}`, `${name} Jam`, Math.round(price * 1.6 + 40), { t: 'jar', c: [colorOf(id), -1, -1, C.cream] }, `Sweet ${name.toLowerCase()} preserves.`, ['preserve'], 25);
+  art(`jam_${id}`, `${name} Jam`, preservePrice(price), { t: 'jar', c: [colorOf(id), -1, -1, C.cream] }, `Sweet ${name.toLowerCase()} preserves.`, ['preserve'], 25);
 }
 for (const [id, name, price] of VEG) {
-  art(`pickles_${id}`, `Pickled ${name}`, Math.round(price * 1.6 + 40), { t: 'jar', c: [colorOf(id), -1, -1, C.lime] }, `Crunchy, briny ${name.toLowerCase()}.`, ['preserve'], 20);
+  art(`pickles_${id}`, `Pickled ${name}`, preservePrice(price), { t: 'jar', c: [colorOf(id), -1, -1, C.lime] }, `Crunchy, briny ${name.toLowerCase()}.`, ['preserve'], 20);
   art(`juice_${id}`, `${name} Juice`, Math.round(price * 1.8 + 10), { t: 'bottle', c: [colorOf(id), -1, -1, C.lime] }, `Fresh-pressed ${name.toLowerCase()} juice.`, ['drink', 'juice'], 25);
 }
 
@@ -400,7 +407,9 @@ export const ITEMS_AFTER_1_1 = ['cogbean_oil', 'gleaner', 'rail', 'field_gantry'
   // 2.0 Phase 4, the town keystones: the tram's cart bin (a structure's item, never in a bag)
   'tram_bin',
   // 2.0 Phase 5, the owner's playtest: the hamster's cage
-  'f_hamster_cage'];
+  'f_hamster_cage',
+  // 2.2: the five export ports' keepsakes
+  'f_keep_brassmouth', 'f_keep_verdance', 'f_keep_ember', 'f_keep_saltspire', 'f_keep_kettleholm'];
 for (const id of ITEMS_AFTER_1_1) {
   const i = list.findIndex((d) => d.id === id);
   if (i >= 0) list.push(...list.splice(i, 1));

@@ -237,8 +237,11 @@ export function haulToday(g: Game): boolean {
 export function payFor(g: Game, o: Order, k: ItemKey, n: number): number {
   // a line's own price (an export manifest's), else the order's
   const unit = o.lines.find((l) => l.unit !== undefined && matchesSpec(kDef(k), l.spec))?.unit ?? o.unit ?? 0;
-  return unit * n * (o.silver && kQ(k) >= 1 ? 2 : 1) * (o.kind === 'standing' && haulToday(g) ? 2 : 1);
+  return standingUnit(g, o, unit) * n * (o.silver && kQ(k) >= 1 ? 2 : 1) * (o.kind === 'standing' && haulToday(g) ? 2 : 1);
 }
+/** what a standing order pays an item once the Freight Office stands (the works project p_freight): 15% more */
+export const FREIGHT_BONUS = 0.15;
+export const standingUnit = (g: Game, o: { kind: string }, unit: number) => (o.kind === 'standing' && g.flags.has('freight_office') ? Math.round(unit * (1 + FREIGHT_BONUS)) : unit);
 
 const fitsLine = (l: OrderLine, k: ItemKey) => l.have < l.n && matchesSpec(kDef(k), l.spec);
 export const fits = (o: Order, k: ItemKey) => !o.done && o.lines.some((l) => fitsLine(l, k));

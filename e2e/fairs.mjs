@@ -117,7 +117,7 @@ check(mid.ticks > 600 && mid.ticks < 3600 && !mid.skipped.length && !mid.idle.le
 let res = null;
 for (let i = 0; i < 40 && !res; i++) { await wait(500); res = await ev(() => (window.__play.win?.data?.mode === 'done' ? window.__play.win.data.res : null)); }
 const st1 = await ev(() => ({ money: window.__game.player.money, tickets: window.__game.player.inv.countId('ticket'), candles: [1, 2, 3, 4].filter((c) => window.__game.flags.has('candle_' + c)), lantern: window.__game.player.inv.countId('f_lantern'), entries: window.__fairEntries }));
-// four crocks of pickles add about 270 coins a minute: past the Professor's 50 and Bram's 250
+// four crocks of pickles add about 130 coins a minute: past the Professor's 20 and Bram's 120
 const sim = await ev(() => window.__testbed.scoreBlueprint(window.__game, window.__drafting.drafting(window.__game).lib.find((e) => e.name === 'Pickle row').bp));
 check(!!res && res.score > 0 && res.score === sim && res.beaten === 2, `score and place: ${JSON.stringify(res)} (the sim scores the line ${sim})`);
 const want = res && res.score > 0 ? [2, 5, 10, 20][res.beaten] : 0;

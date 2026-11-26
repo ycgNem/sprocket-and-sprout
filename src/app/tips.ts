@@ -62,6 +62,8 @@ export const TIPS: Tip[] = [
 export function checkTips(p: PlayScreen) {
   if (p.win) return;
   if (p.hud.toasts.some((t) => t.text.startsWith('Tip:'))) return;
+  // one thing at a time (2.2): a tip waits for the toasts to clear, an achievement banner and a quest ribbon
+  if (p.hud.toasts.length || p.achQ.length || p.app.renderer.juice.banners.length) return;
   // a lesson card on screen has the floor: the tip waits for it (the critic's B3 pile-up of five panels)
   if (p.lessons.q.length) return;
   for (const t of TIPS) {

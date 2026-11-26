@@ -28,7 +28,7 @@ import { drawSprite, sprite } from '../render/atlas';
 import { plannedFenceSprite } from '../render/fences';
 import { TILE } from '../render/art/terrain';
 import { structSize } from '../render/art/structs';
-import { drawHud, HudState, liveToasts, toastLife } from '../ui/hud';
+import { drawHud, HudState, liveToasts, toastLife, toastSlots } from '../ui/hud';
 import { drawLessonCard, queueLesson, type LessonQueue } from '../ui/lessoncard';
 import { drawAskCard } from '../ui/askcard';
 import { pipAsk } from '../sim/people';
@@ -532,7 +532,8 @@ export class PlayScreen implements Screen {
       if (g.sleeping) ui.text('The farm hums through the night...', ui.w / 2, ui.h / 2 + 26, C.pebble, { align: 'center' });
     }
     // like toasts, the banner waits for the window to close rather than covering its title
-    if (!this.modalOpen && !r.juice.banners.length) this.achQ = drawAchBanner(ui, this.achQ, dt, this.hud.narrow ? this.hud.lowY : undefined);
+    // (and for a lesson card to be read: one teaching thing at a time)
+    if (!this.modalOpen && !r.juice.banners.length && !this.lessons.q.length) this.achQ = drawAchBanner(ui, this.achQ, dt, this.hud.narrow ? this.hud.lowY : undefined);
     if (this.debug) WINDOWS.debug?.draw(ui, this, { id: 'debug', t: 0, data: {} });
     ui.end();
 
@@ -559,14 +560,16 @@ export class PlayScreen implements Screen {
     // a backed-up queue plays faster, and news that waited 8 s behind it is dropped: at mine level 30
     // the toasts were still telling of levels 15 and 20 (the 2.1.1 playtest)
     if (!this.modalOpen && !r.juice.banners.length) {
-      const live = liveToasts(this.hud.toasts);
+      const live = liveToasts(this.hud.toasts, toastSlots(this));
       const fast = this.hud.toasts.length > live.length + 1 ? 1.6 : 1;
       for (const t of this.hud.toasts) {
         if (live.includes(t)) t.t += dt * fast;
         else t.wait = (t.wait ?? 0) + dt;
       }
     }
-    this.hud.toasts = this.hud.toasts.filter((t) => t.t < toastLife(t.text) && (t.t > 0 || (t.wait ?? 0) < 8));
+    // (a tip is said once a save, so it is never dropped; with one slot the queue gets longer to wait)
+    const patience = toastSlots(this) === 1 ? 14 : 8;
+    this.hud.toasts = this.hud.toasts.filter((t) => t.t < toastLife(t.text) && (t.t > 0 || (t.wait ?? 0) < patience || t.text.startsWith('Tip:')));
     this.tipT += dt;
     if (this.tipT > 0.5) {
       this.tipT = 0;

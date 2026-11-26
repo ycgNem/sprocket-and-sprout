@@ -21,7 +21,7 @@ export const MODES: ModeDef[] = [
   },
   {
     id: 'rush', name: 'Clockwork Rush', tag: 'One season. Highest score wins.',
-    lines: ['28 days to earn as much as you can', 'Starter factory kit, half-price research, Guild contracts every 3 days', 'Bronze 20k, Silver 40k, Gold 65k'],
+    lines: ['28 days to earn as much as you can', 'Starter factory kit, half-price research, Guild contracts every 3 days', 'Bronze 30k, Silver 55k, Gold 80k'],
   },
   {
     id: 'sandbox', name: 'Sandbox', tag: 'Build freely',
@@ -47,8 +47,9 @@ export const FARMS: FarmDef[] = [
 export const FARM_BY_ID = new Map(FARMS.map((f) => [f.id, f]));
 
 /** Clockwork Rush medal thresholds (coins earned during the season) */
-// bronze / silver / gold: about 0.6x / 1.15x / 1.65x the pace bot's 28-day Rush average (66k on 8
-// seeds, 2026-10-10: it plays the Keeper's Line and reaches the Town Mill): silver asks for more than
-// a script whose works stop growing after day 5 (DECISIONS #90, #97)
-export const RUSH_MEDALS = [40000, 75000, 110000];
+// bronze / silver / gold: about 0.6x / 1.1x / 1.6x the pace bot's 28-day Rush average (49.6k on 8
+// seeds, 2026-11-26, after 2.2's crop and preserve prices; it was 66k and 40/75/110k): it plays the
+// Keeper's Line and reaches the Town Mill, and silver asks for more than a script whose works stop
+// growing after day 5 (DECISIONS #90, #97, #177). The mode card's line says the same numbers.
+export const RUSH_MEDALS = [30000, 55000, 80000];
 export const RUSH_DAYS = 28;

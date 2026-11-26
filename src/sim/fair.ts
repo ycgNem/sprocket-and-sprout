@@ -22,8 +22,9 @@ export interface FairEntry {
 
 /**
  * Year 1 is tuned on the plate against the pacing bot's farms on spring 13 (seeds 2024, 7 and 99) and
- * sample lines (tests/fairs.test.ts records them): a crock of pickled cogbeans adds 68 coins a minute
- * (the keeper's line copied, a gleaner's crock line), two crocks 136, four 271; a furnace row of copper
+ * sample lines (tests/fairs.test.ts records them): a crock of pickled cogbeans adds 33 coins a minute
+ * (the keeper's line copied, a gleaner's crock line), two crocks 66, four 132 (2.2's prices: it was
+ * 68, and the Professor's entry 50 and Bram's 250); a furnace row of copper
  * 276 (its chest's stack of ore runs dry at 4:24), six rows 1,656, six of tin 1,933; the keeper's
  * river mill copied 373; three grist mills on barley 1,119, on grain 2,138, on beets 2,366; three
  * sawmills 2,930; six furnace rows of iron 2,522. So any first line beats the Professor, a dense
@@ -31,8 +32,8 @@ export interface FairEntry {
  * era's lines (grist mills on grain or beets, sawmills) or a smelting line on iron from the Frost.
  */
 export const FAIR_ENTRIES: FairEntry[] = [
-  { who: 'ottoline', what: 'pickled cogbeans from her old crock', base: 50 },
-  { who: 'bram', what: 'copper bars from his furnace', base: 250 },
+  { who: 'ottoline', what: 'pickled cogbeans from her old crock', base: 20 },
+  { who: 'bram', what: 'copper bars from his furnace', base: 120 },
   { who: 'juniper', what: 'flour from their grist mills', base: 2000 },
 ];
 /** each year the entries come back bigger, until the sixth */
@@ -46,7 +47,9 @@ export const FAIR: FestivalDef = FESTIVALS.find((f) => f.id === 'f_fair')!;
 /** this year's three entries, with their scores (the value their lines add, coins a minute) */
 export function fairEntries(year: number): (FairEntry & { score: number })[] {
   const k = FAIR_GROWTH ** (Math.min(FAIR_TOP_YEAR, Math.max(1, year)) - 1);
-  return FAIR_ENTRIES.map((e) => ({ ...e, score: Math.round((e.base * k) / 10) * 10 }));
+  // to the nearest 10 (the nearest 5 under 100, so the Professor's small entry still grows each year)
+  const nice = (v: number) => (v < 100 ? Math.round(v / 5) * 5 : Math.round(v / 10) * 10);
+  return FAIR_ENTRIES.map((e) => ({ ...e, score: nice(e.base * k) }));
 }
 
 /** can this year's run win the Gilded Clock (from the second year)? */

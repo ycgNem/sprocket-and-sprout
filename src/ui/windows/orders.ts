@@ -12,12 +12,14 @@ import { key } from '../../sim/inventory';
 import {
   bagHelps, boardHandIn, custName, custNpc, daysLeftInWeek, dueText, fits, guildRank, haulToday, isTracked, keystoneWait, lineLeft, MAX_TRACKED, orderFull, orderTitle, orders, payWorks, rank,
   offSeason, repOf, seasonsText, shareIn, steadyOf, specLabel, toggleTrack, villagerName, type Order,
+  standingUnit,
 } from '../../sim/systems/orders';
 import { inSeason } from '../../sim/seasonal';
 import { SEASON_NAMES, WEEKDAYS } from '../../data/types';
 import { HARBOR_RANKS, PORT_BY_ID, REP_FULL, REP_HALF, SHIP_NAME } from '../../data/exports';
 import { exportsState, harborOpen, harborRank, harborRep, loadFromBag, manifest, manifestValue, premiumAt } from '../../sim/systems/exports';
 import { festivalNotice } from '../../sim/systems/festivals';
+import { marketNotice } from '../../sim/townlife';
 import type { PlayScreen } from '../../app/play';
 import type { UI } from '../ui';
 import { ICON, ellipsize, textWidth, wrapText } from '../font';
@@ -172,7 +174,7 @@ function drawStanding(ui: UI, play: PlayScreen, x: number, y: number, w: number)
       trackButton(ui, g, o, x + w - 54, yy + 24);
       const onLine = drawLines(ui, o, tx, yy + 39, tw - 120);
       // what it pays now: a shortage's 25% is in the order's unit, the Haul doubles it today
-      const unit = (o.unit ?? def.unit) * (haul ? 2 : 1);
+      const unit = standingUnit(g, o, o.unit ?? def.unit) * (haul ? 2 : 1);
       const pay = unit ? `${ICON.coin}${unit} each${def.silver ? `, silver ${unit * 2}` : ''}${haul ? ' today' : ''}` : def.reward?.text ?? '';
       ui.text(ellipsize(pay, 140), x + w - 10, yy + 39, orderFull(o) ? C.moss : haul ? C.amber : C.oak, { align: 'right' });
       if (!onLine && ui.hoverId !== 'tr' + o.uid && ui.hover(x + 4, yy, w - 8, 52)) {
@@ -320,7 +322,7 @@ function drawExports(ui: UI, play: PlayScreen, x: number, y: number, w: number):
   yy += 12;
   if (!harborOpen(g)) {
     ui.panel(x + 4, yy, w - 8, 44, 'paper', false);
-    ui.para(`The old harbor warehouse at the beach pier is boarded up. Rebuild it on the Works tab ("Rebuild the Harbor") and merchant ships will call for your exports: cities across the sea that buy in quantities only a factory makes, well above the market.`, x + 12, yy + 6, w - 24, C.walnut, 9);
+    ui.para(`The old harbor warehouse at the beach pier is boarded up. Rebuild it on the Works tab ("Rebuild the Harbor") and merchant ships will call for your exports: cities across the sea that buy in quantities only a factory makes, and send back things no shop here sells.`, x + 12, yy + 6, w - 24, C.walnut, 9);
     return yy + 48 - y;
   }
   const o = manifest(g);
@@ -365,7 +367,18 @@ function drawExports(ui: UI, play: PlayScreen, x: number, y: number, w: number):
     }
     // what's aboard, the bonus for all of it, and the buttons
     ui.text(`Aboard: ${ICON.coin}${aboard.toLocaleString()} of ${ICON.coin}${total.toLocaleString()} (${total ? Math.floor((aboard / total) * 100) : 0}%)`, x + 12, ly + 2, C.ink);
-    ui.text(o.done ? `Bonus paid: ${ICON.coin}${(o.pay ?? 0).toLocaleString()}` : `All of it: +${ICON.coin}${(o.pay ?? 0).toLocaleString()} and it sails a day early`, x + 12, ly + 12, o.done ? C.moss : C.copper);
+    // what all of it brings: the bonus, and the port's crate (its keepsake too, the first time)
+    const gift = port && !(s.gifts ?? []).includes(port.id) ? `, and ${port.name}'s keepsake` : port ? ', and a crate from the port' : '';
+    ui.text(o.done ? `Bonus paid: ${ICON.coin}${(o.pay ?? 0).toLocaleString()}` : ellipsize(`All of it: +${ICON.coin}${(o.pay ?? 0).toLocaleString()}${gift}`, w - 140), x + 12, ly + 12, o.done ? C.moss : C.copper);
+    if (!o.done && port && ui.hover(x + 8, ly + 10, w - 140, 11)) {
+      const first = !(s.gifts ?? []).includes(port.id);
+      ui.tip([
+        { text: `A manifest loaded in full`, color: C.amber },
+        { text: `+${(o.pay ?? 0).toLocaleString()} coins, and the ship sails a day early.` },
+        { text: `By the post: ${port.crate.map((c) => `${c.n} ${ITEM_BY_ID.get(c.item)?.name ?? c.item}`).join(', ')}.`, color: C.cream },
+        ...(first ? [{ text: `The first time: the ${ITEM_BY_ID.get(port.keepsake)?.name ?? 'keepsake'}, for your farmhouse.`, color: C.lime }] : []),
+      ], 230);
+    }
     if (!o.done) {
       trackButton(ui, g, o, x + w - 116, ly + 4);
       if (ui.button('xh' + o.uid, x + w - 66, ly + 3, 54, 14, 'Hand in', { style: 'green', disabled: !bagHelps(g, o), tip: 'Takes what your bag has for the manifest (or press F at the warehouse door)' })) {
@@ -382,7 +395,7 @@ function drawExports(ui: UI, play: PlayScreen, x: number, y: number, w: number):
   yy += lines.length * 9 + 6;
   ui.fill(x + 4, yy, w - 8, 13, C.tan);
   ui.fill(x + 4, yy + 12, w - 8, 1, C.oak);
-  ui.text(`Voyages ${s.voyages}  -  loaded in full ${s.full}  -  earned overseas ${ICON.coin}${s.earned.toLocaleString()}`, x + 9, yy + 3, C.ink);
+  ui.text(ellipsize(`Voyages ${s.voyages}  -  in full ${s.full}  -  keepsakes ${(s.gifts ?? []).length}/5  -  earned ${ICON.coin}${s.earned.toLocaleString()}`, w - 18), x + 9, yy + 3, C.ink);
   yy += 16;
   if (!s.log.length) {
     ui.text('No voyages yet.', x + 8, yy + 1, C.pebble);
@@ -417,7 +430,8 @@ export function drawOrders(ui: UI, play: PlayScreen, x: number, y: number, w: nu
     if (ui.button('otab' + id, x + 4 + i * tw, y + 2, tw - 4, 14, `${label} (${counts[id]})`, { active: data.otab === id })) data.otab = id;
   });
   // the Sprocket Fair from spring 9, the Harvest Haul from fall 12: a notice pinned over the list
-  const notice = festivalNotice(g);
+  // (and the Thursday market on its day, src/sim/townlife.ts)
+  const notice = festivalNotice(g) ?? marketNotice(g);
   let top = y + 20;
   if (notice) {
     const lines = wrapText(notice, w - 24);

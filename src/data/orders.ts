@@ -83,7 +83,7 @@ export interface StandingDef {
 export const STANDING: StandingDef[] = [
   // ---- The Copper Kettle (Rowan): food ----
   {
-    id: 'rowan_pickles', biz: 'rowan', spec: 'pickles_cogbean', n: 6, unit: 150, silver: true, weekly: true, after: ['on:k7_town'],
+    id: 'rowan_pickles', biz: 'rowan', spec: 'pickles_cogbean', n: 6, unit: 110, silver: true, weekly: true, after: ['on:k7_town'],
     text: 'Pickled cogbeans for the lunch crowd, every week. The silver ones go to the good tables: I pay double for those.',
     thanks: 'The lunch crowd will clear the jar by noon. Same again next week?',
   },

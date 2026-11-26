@@ -7,6 +7,92 @@ export interface NotePic { src: string; caption: string }
 export interface PatchNote { version: string; date: string; title: string; intro: string; pics?: NotePic[]; sections: NoteSection[] }
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: '2.2',
+    date: 'November 2026',
+    title: 'A Fair Price',
+    intro: `2.2 comes out of a full playthrough of 2.1.1, start to finish. It fixes what broke, evens out what the farm earns from the first day to the last ship, gives the town more to do, and makes four things easier to read at a glance.`,
+    sections: [
+      {
+        title: `Fixes`,
+        items: [
+          `Right-click while holding a building piece no longer lifts a machine from across the farm. It winds what can be wound, and lifts only what is within building reach. Ctrl+Z puts a lifted machine back with its recipe.`,
+          `Dragging a line of belts now marks the tiles that are out of reach and says how many were skipped.`,
+          `The Farmhouse Kitchen fits small windows and scrolls. Its hints for recipes you have not learned wrap onto two lines.`,
+          `Long text is shortened or wrapped where it used to run over: quest steps in the Journal, the research window's era names, villager jobs.`,
+          `The research cost stays above the Research button on small windows.`,
+          `The Silent Clock quest ends when the Clock is restarted from the Journal.`,
+          `The field gantry's seed bin shows every seed it holds, on as many rows as it needs.`,
+          `The Harbor door says Load exports when the ship is in.`,
+          `The opening's bed steps count only the marked bed, and F picks the crate or the crock the current step names, not the arm between them.`,
+          `Old news is dropped: messages that waited too long behind others no longer play late.`,
+          `The build bar hides in town, where nothing can be built.`,
+          `The Controls page lists Shift+F, winding with right-click, I, Ctrl+Z and N.`,
+        ],
+      },
+      {
+        title: `What the farm earns`,
+        items: [
+          `Cogbeans were worth four times any other crop. A bean sells for 20 now (was 46); the plant still bears every two days, so a crock line stays busy.`,
+          `Pickles and jam add to the worth of what goes in: a jar sells for about twice its crop plus 15. Cheap crops no longer make the best jars.`,
+          `Peas give one or two a picking (was two or three). Cogbean oil sells for 110 (was 200), and Rowan pays 110 a jar on the pickle order (was 150).`,
+          `The first day earns about 1,800 coins, not 4,100. A first month earns about 47,000.`,
+          `The Sprocket Fair's entries follow the new prices: the Professor's line adds 20 coins a minute and Bram's 120.`,
+          `Clockwork Rush medals are now 30,000, 55,000 and 80,000 coins.`,
+        ],
+      },
+      {
+        title: `Things to pay for in town`,
+        items: [
+          `Three new town works on the Orders board, paid mostly in coins. Each lasts for good.`,
+          `The Market Hall (12,000 coins, after the Town Mill): the market takes half again as much of one thing before its price drops.`,
+          `The Freight Office (25,000 coins, after the Waterworks): standing orders pay 15% more.`,
+          `The Machinists' Guildhall (45,000 coins, after the Tram): every machine runs 10% faster.`,
+        ],
+      },
+      {
+        title: `The Harbor`,
+        items: [
+          `Ships pay the market's price for your goods (was 40% over), and a manifest loaded in full pays 15% on top (was 40%). One shipload no longer out-earns a whole year.`,
+          `What a full manifest is for now: the port sends back a crate of its own goods by mail, things no shop in the valley sells. Clockwork cores from Brassmouth, rare seed from Port Verdance, starmetal from Saltspire, and more.`,
+          `The first full manifest for each port also brings its keepsake for your farmhouse: a foundry bell, spice jars, a potted palm, a model ship and a samovar. A new achievement, Five Flags, is for all five.`,
+          `Manifests are fair to slow goods. A line of honey or wine asks for what a few machines can make in the week, not ten times that.`,
+          `The Exports tab shows what a full manifest brings and how many keepsakes you have.`,
+        ],
+      },
+      {
+        title: `Professions`,
+        items: [
+          `Governor is a real choice against Engineer now. Burners, drills and steam engines get a third more from every piece of fuel, and powered machines keep full speed until power falls below 60% of what they need (was 75%).`,
+        ],
+      },
+      {
+        title: `A busier town`,
+        items: [
+          `Villagers spend part of the day at the works you rebuilt: Juniper at the Town Mill's wheel, Bram at the pump house, Sable walking her round of the lamps at dusk, the Mayor meeting the tram, Wren on the quay when the ship is in. Each has new things to say there.`,
+          `Shopkeepers work out in front of their shops for part of the day, and the shop stays open while they do. School is held in the yard on dry mornings.`,
+          `The square is no longer empty at noon: four or five villagers come by for lunch on a weekday.`,
+          `Thursday is market day on the square, 9am to 4pm on dry days. Marigold, Bram, Juniper and Clem sell from stalls at their usual prices, and Hazel minds an odds table with a few things from the shops that stayed in.`,
+          `Several shops opened later than their signs said. Their keepers are back on time.`,
+        ],
+      },
+      {
+        title: `Easier to read`,
+        items: [
+          `Tilled soil is drawn as separate beds, so you can count the tiles. Watered soil is the same bed a shade darker.`,
+          `The deepest mine levels are no longer a purple fog: the floor is calmer, the dark is thinner, and gas vents and falling-shard marks stand out.`,
+          `The Harbor warehouse is a proper three-storey building with its crane and lamps.`,
+          `Every seed packet shows its crop.`,
+        ],
+      },
+      {
+        title: `One thing at a time`,
+        items: [
+          `In the first two days only one message shows at a time, and tips wait for banners and lesson cards to clear. After that, two at most (was three).`,
+        ],
+      },
+    ],
+  },
+  {
     version: '2.1.1',
     date: 'October 2026',
     title: 'The Town at Work',

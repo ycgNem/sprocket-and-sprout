@@ -140,6 +140,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   // the Harbor (2.1): exports overseas (src/sim/systems/exports.ts)
   { id: 'harbor', name: 'Ships Call Again', desc: 'Rebuild the Harbor.', cat: 'factory', tier: 2, icon: 'rope', test: (g) => g.flags.has('harbor') },
   { id: 'export_full', name: 'Bon Voyage', desc: 'Load a ship\'s manifest in full before it sails.', cat: 'factory', tier: 2, icon: 'crate_out', ...num('exports_full', 1) },
+  { id: 'keepsakes', name: 'Five Flags', desc: 'Earn the keepsake of every port across the sea.', cat: 'home', tier: 3, icon: 'f_keep_saltspire', ...num('port_keepsakes', 5) },
   { id: 'harbor5', name: 'Merchant Prince', desc: 'Reach the top rank with the Harbor.', cat: 'factory', tier: 3, icon: 'gold_bar', test: (g) => (g.sys.orders?.rep?.harbor ?? 0) >= 45, prog: (g) => [g.sys.orders?.rep?.harbor ?? 0, 45] },
 
   // ---------------- Home & Life ----------------

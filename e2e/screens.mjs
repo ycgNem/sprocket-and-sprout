@@ -180,6 +180,10 @@ const SC = {
   'board-today': async () => ev(`(() => { ${ORDERS}; S.play.openWindow('board', 'today'); })()`),
   // the Orders board: two standing orders and today's asks
   board: async () => ev(`(() => { ${ORDERS}; S.play.openWindow('board'); })()`),
+  // 2.2: the board's Works tab with the town's own works posted (Market Hall, Freight Office, Guildhall),
+  // and the Exports tab with a manifest in port (what a full one brings: the port's keepsake)
+  'board-works': async () => ev(`(async () => { const g = S.g; S.play.closeWindow(); for (const f of ['town_mill', 'waterworks', 'tram', 'bread_town']) g.flags.add(f); for (let i = 0; i < 130; i++) g.tick(); await new Promise((r) => setTimeout(r, 1500)); S.play.hud.toasts.length = 0; S.play.openWindow('board', 'works'); })()`),
+  'board-exports': async () => ev(`(async () => { const g = S.g; S.play.closeWindow(); g.flags.add('tram'); g.flags.add('harbor'); for (const id of ['copper_bar', 'iron_bar', 'brass_gear', 'plank', 'rope', 'bread', 'cheese', 'pickles_cogbean', 'cloth', 'ale']) g.stats.add(S.key(id), 50); const X = await import('/src/sim/systems/exports.ts'); const s = X.exportsState(g); s.opened = true; if (!X.manifest(g)) X.arrive(g); S.play.hud.toasts.length = 0; S.play.openWindow('board', 'exports'); })()`),
   museum: async () => ev(`(() => { S.g.player.inv.add(S.key('amethyst'), 1); S.g.player.inv.add(S.key('old_cog'), 1); S.play.openWindow('museum'); })()`),
   // the farmhouse Kitchen (taller than a 600 px window before 2.1.2) and the gantry's seed bin on two rows
   kitchen: async () => ev(`(() => { S.play.closeWindow(); S.g.player.inv.add(S.key('egg'), 6); S.g.player.inv.add(S.key('milk'), 4); S.play.openWindow('cooking'); })()`),

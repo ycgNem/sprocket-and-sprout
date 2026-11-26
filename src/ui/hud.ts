@@ -38,15 +38,24 @@ export function toastLife(text: string): number {
  * been up a moment, so a burst (loading a farm: quests, tips, orders) rolls in instead of landing
  * all at once (the critic's 2.0 pass). One already showing stays. play.ts ages only these.
  */
-export function liveToasts(list: { t: number }[]) {
+export function liveToasts(list: { t: number }[], max = 2) {
   const out: typeof list = [];
   for (const t of list) {
-    if (out.length >= 3) break;
+    if (out.length >= max) break;
     const prev = out[out.length - 1];
     if (t.t <= 0 && prev && prev.t < 0.6) continue;
     out.push(t);
   }
   return out;
+}
+
+/**
+ * How many toasts may show at once (2.2; it was three, always): one while a lesson card or an
+ * achievement banner has the floor and through the first two days, when the opening is teaching
+ * (the 2.1.1 playtest counted seven things on screen at minute 3); two after that.
+ */
+export function toastSlots(play: PlayScreen): number {
+  return play.lessons.q.length || play.achQ.length || play.g.dayIndex < 2 ? 1 : 2;
 }
 
 export function drawHud(ui: UI, play: PlayScreen, dt: number) {
@@ -115,11 +124,11 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
 
   // ---- toasts (top, between the left column and the right one) ----
   // toasts make room under an achievement banner
-  let toastY = 28 + (play.achQ.length ? 44 : 0);
+  let toastY = 28 + (play.achQ.length && !play.lessons.q.length ? 44 : 0);
   const colL = Math.max(leftW, play.lessons.q.length || g.sys.pipAsk ? 244 : 0) + 4, colR = cx - 6;
   const midX = colR - colL >= 200 ? Math.round((colL + colR) / 2) : Math.round(ui.w / 2);
   const maxW = colR - colL >= 200 ? Math.min(320, colR - colL) : Math.min(320, ui.w - 240);
-  // at most three on screen, oldest first; the rest wait their turn (play.ts ages only these three).
+  // at most two on screen (toastSlots), oldest first; the rest wait their turn (play.ts ages only these).
   // Held (not drawn, not aging) while a window is open, since windows cover the top of the screen;
   // a quest ribbon owns the middle of the screen for a moment: toasts wait for it
   // too narrow between the columns (the 960x600 embed): they stack up from above the hotbar (and the
@@ -128,8 +137,8 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   const buildBar = play.mode !== 'normal' || (!play.win && !!play.heldPlaceable() && play.canBuildNear());
   play.hud.narrow = narrow;
   play.hud.lowY = ui.h - 66 - (buildBar ? 36 : 0);
-  let lowY = play.hud.lowY - (play.achQ.length ? 42 : 0);
-  for (const t of play.modalOpen || play.app.renderer.juice.banners.length ? [] : liveToasts(play.hud.toasts) as typeof play.hud.toasts) {
+  let lowY = play.hud.lowY - (play.achQ.length && !play.lessons.q.length ? 42 : 0);
+  for (const t of play.modalOpen || play.app.renderer.juice.banners.length ? [] : liveToasts(play.hud.toasts, toastSlots(play)) as typeof play.hud.toasts) {
     const life = toastLife(t.text);
     const a = t.t < life - 0.7 ? 1 : 1 - (t.t - (life - 0.7)) / 0.7;
     ui.ctx.globalAlpha = Math.max(0, Math.min(1, a, t.t * 6));

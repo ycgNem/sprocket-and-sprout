@@ -8,7 +8,7 @@ import { key } from '../src/sim/inventory';
 import { serialize, deserialize } from '../src/sim/save';
 import { HARBOR_RANKS, IN_PORT_DAYS, AT_SEA_DAYS, LINE_VALUE, REP_FULL, REP_HALF, linesAt } from '../src/data/exports';
 import { PROJECT_BY_ID } from '../src/data/goals';
-import { exportsState, harborRank, loadFromBag, manifest, manifestValue, shipView } from '../src/sim/systems/exports';
+import { exportsState, harborRank, lineSize, loadFromBag, manifest, manifestValue, premiumAt, shipView } from '../src/sim/systems/exports';
 import { boardHandIn, orders, tagChoices } from '../src/sim/systems/orders';
 import { inSeason } from '../src/sim/seasonal';
 import { shipAll } from '../src/sim/systems/economy';
@@ -62,7 +62,7 @@ describe('the Harbor', () => {
     expect(tagChoices(g).some((c) => c.cust === 'harbor')).toBe(true);
   });
 
-  it("a manifest asks for crazy quantities of goods in season that the farm has made, at a premium", () => {
+  it("a manifest asks for crazy quantities of goods in season that the farm has made, at about the market's price", () => {
     const g = lateFarm();
     const o = openHarbor(g);
     expect(o.kind).toBe('export');
@@ -72,10 +72,12 @@ describe('the Harbor', () => {
       expect(inSeason(l.spec, g.time.season), l.spec).toBe(true);
       expect((g.stats.series.get(key(l.spec) >> 2)?.totalProd ?? 0) > 0, l.spec).toBe(true);
       // about LINE_VALUE coins of goods at their base price: hundreds or thousands of them
-      const base = (l.unit ?? 0) / 1.4;
-      expect(l.n * base).toBeGreaterThan(LINE_VALUE * 0.8);
-      expect(l.n).toBeGreaterThanOrEqual(80);
-      expect(l.unit!).toBeGreaterThan(base);
+      const base = (l.unit ?? 0) / premiumAt(0);
+      // (or what one machine makes of it in LINE_MACHINE_DAYS, for a slow good: 2.2)
+      expect(l.n).toBe(lineSize(l.spec, 0));
+      expect(l.n * base).toBeLessThan(LINE_VALUE * 1.1);
+      expect(l.n).toBeGreaterThanOrEqual(60);
+      expect(l.unit!).toBeGreaterThanOrEqual(Math.floor(base));
     }
     expect(o.due).toBe(g.dayIndex + IN_PORT_DAYS - 1);
     expect(o.pay!).toBeGreaterThan(0);

@@ -416,7 +416,10 @@ function drawStats(ui: UI, play: PlayScreen, st: WinState): boolean {
     ui.text('made', gx + 6, gy + gh - 14, C.moss);
     ui.text('used', gx + 40, gy + gh - 14, C.brick);
     const tot = g.stats.series.get(sel)!;
-    ui.text(`all-time: ${Math.round(tot.totalProd)} made, ${Math.round(tot.totalCons)} used`, gx + gw - 6, gy + gh - 14, C.walnut, { align: 'right' });
+    // (beside the legend: on a narrow graph the totals drop their label rather than run into "used")
+    const room = gw - 12 - (40 + textWidth('used') + 8);
+    const totals = `${Math.round(tot.totalProd)} made, ${Math.round(tot.totalCons)} used`;
+    ui.text(textWidth('all-time: ' + totals) <= room ? 'all-time: ' + totals : totals, gx + gw - 6, gy + gh - 14, C.walnut, { align: 'right', maxW: room });
     ui.text(`per minute, ${labels[res]} window`, gx + gw - 6, gy + 9, C.oak, { align: 'right' });
   }
   return true;

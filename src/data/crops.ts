@@ -1,5 +1,8 @@
 // Crops. Seed + produce items are generated from these entries in items.ts.
 // Prices: (seed + days x 6) x kind / yield, regrowers over a season (ROADMAP.md "Crop numbers").
+// The cogbean is the works' staple, cheap and plentiful (20 a bean since 2.2: at 46 it earned five
+// times any other crop a tile, DECISIONS #177); `npx tsx scripts/croptable.ts` prints every crop's
+// coins a tile a day, and tests/economy.test.ts holds the spread.
 import { C } from './palette';
 import type { CropDef } from './types';
 
@@ -15,7 +18,7 @@ export const CROPS: CropDef[] = [
     look: { style: 'root', leaf: C.leaf, fruit: C.rose, fruit2: C.cream }, edible: 12, desc: 'Crisp and peppery. Ready in no time.', tags: ['vegetable'] }),
   crop({ id: 'spinach', name: 'Spinach', seasons: [SP], stages: [1, 1, 2, 1], price: 52, seedPrice: 22, icon: 'leafy',
     look: { style: 'leafy', leaf: C.moss, fruit: C.grass }, edible: 15, desc: 'Dark tender leaves. Good for a long day.', tags: ['vegetable', 'greens'] }),
-  crop({ id: 'pea', name: 'Sweet Pea', seasons: [SP], stages: [1, 2, 2, 2], regrow: 3, trellis: true, price: 28, seedPrice: 40, icon: 'pod', yield: [2, 3],
+  crop({ id: 'pea', name: 'Sweet Pea', seasons: [SP], stages: [1, 2, 2, 2], regrow: 3, trellis: true, price: 28, seedPrice: 40, icon: 'pod', yield: [1, 2],
     look: { style: 'pod', leaf: C.leaf, fruit: C.lime }, edible: 8, desc: 'Climbs a trellis and keeps giving all spring.', tags: ['vegetable'] }),
   crop({ id: 'strawberry', name: 'Strawberry', seasons: [SP], stages: [1, 1, 2, 2, 2], regrow: 4, price: 47, seedPrice: 60, icon: 'berry',
     look: { style: 'bush', leaf: C.grass, fruit: C.rose, fruit2: C.butter }, edible: 20, cat: 'fruit', desc: 'Sweet, red and loved by nearly everyone.', tags: ['fruit'] }),
@@ -29,7 +32,7 @@ export const CROPS: CropDef[] = [
     look: { style: 'cane', leaf: C.grass, fruit: C.rose }, desc: 'Tart red stalks. Wonderful in pies.', tags: ['vegetable'] }),
   crop({ id: 'flax', name: 'Flax', seasons: [SP, SU], stages: [1, 2, 2, 2], scythe: true, price: 30, seedPrice: 15, icon: 'grain', yield: [1, 2],
     look: { style: 'grain', leaf: C.grass, fruit: C.sky }, desc: 'Blue-flowered stems. A loom turns it into linen.', tags: ['fiber'] }),
-  crop({ id: 'cogbean', name: 'Cogbean', seasons: [SP, SU], stages: [1, 1, 1, 1], regrow: 2, trellis: true, price: 46, seedPrice: 60, icon: 'cogbean', yield: [1, 2],
+  crop({ id: 'cogbean', name: 'Cogbean', seasons: [SP, SU], stages: [1, 1, 1, 1], regrow: 2, trellis: true, price: 20, seedPrice: 60, icon: 'cogbean', yield: [1, 2],
     look: { style: 'pod', leaf: C.moss, fruit: C.brass }, edible: 6, desc: 'An odd bean with toothed pods. Tinkerers love it.', tags: ['vegetable'] }),
 
   // ---------------- Summer ----------------

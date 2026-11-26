@@ -10,7 +10,7 @@ import { OPENING, RIVER } from '../src/sim/opening';
 import { consign, filled, orderShare, orders } from '../src/sim/systems/orders';
 import { powerState } from '../src/sim/systems/power';
 import { RECIPES } from '../src/data/recipes';
-import { machAccept, setRecipe } from '../src/sim/systems/machines';
+import { GOVERNOR_SAT, machAccept, setRecipe } from '../src/sim/systems/machines';
 import { T, Z } from '../src/sim/world/tilemap';
 import { questSys } from '../src/sim/systems/quests';
 import { serialize, deserialize } from '../src/sim/save';
@@ -146,7 +146,7 @@ describe('B7: the Orders board and consignment', () => {
     expect(filled(g, 'rowan_pickles')).toBe(1);
     expect(orders(g).rep.rowan).toBe(1);
     expect(bin.inv!.isEmpty()).toBe(true);
-    expect(g.player.money - before).toBeGreaterThanOrEqual(2 * 300 + 4 * 150);
+    expect(g.player.money - before).toBeGreaterThanOrEqual(4 * 220 + 2 * 110);
     expect(questSys(g).done).toContain('k7_town');
     expect(g.flags.has('recipe_cogbean_oil')).toBe(true);
     secs(g, 1);
@@ -230,7 +230,7 @@ describe("B8: the keeper's river works", () => {
     const plain = run(false), gov = run(true);
     expect(plain.sat).toBeLessThan(0.8);
     expect(gov.net).toBeLessThan(1);
-    expect(gov.sat).toBeCloseTo(Math.min(1, gov.net / 0.75), 5);
+    expect(gov.sat).toBeCloseTo(Math.min(1, gov.net / GOVERNOR_SAT), 5);
     expect(gov.sat).toBeGreaterThan(plain.sat);
   });
 
@@ -409,11 +409,11 @@ describe('the pre-merge review (2.0 beta)', () => {
     bin.inv!.add(key('pickles_cogbean', 1), 4);
     // the crate's Worth reads the same as the post will pay, and reading it changes nothing
     const share = orderShare(g, bin);
-    expect(share.coins).toBe(4 * 300 + 2 * 150);
+    expect(share.coins).toBe(4 * 220 + 2 * 110);
     expect(share.left.reduce((a, n) => a + n, 0)).toBe(2);
     expect(orderShare(g, bin).coins).toBe(share.coins);
     const r = consign(g, [bin]);
-    expect(r.total).toBe(4 * 300 + 2 * 150);
+    expect(r.total).toBe(4 * 220 + 2 * 110);
     expect(bin.inv!.count(key('pickles_cogbean', 1))).toBe(0);
     expect(bin.inv!.count(key('pickles_cogbean'))).toBe(2);
   });

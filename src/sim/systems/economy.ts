@@ -48,14 +48,15 @@ export function market(g: Game): Market {
  * Units sold that halve the price (cheap goods saturate slower). Artisan goods take twice as
  * many: one jar line (about 14 pickles a day) used to halve its own price within a week.
  */
-function satScale(d: ItemDef) {
-  return Math.max(25, Math.round(5000 / Math.max(1, d.price))) * (d.cat === 'artisan' ? 2 : 1);
+function satScale(g: Game, d: ItemDef) {
+  // the Market Hall (the works project p_market) gives the market half again the room
+  return Math.max(25, Math.round(5000 / Math.max(1, d.price))) * (d.cat === 'artisan' ? 2 : 1) * (g.flags.has('market_hall') ? 1.5 : 1);
 }
 
 /** what shipping a lot of an item lately does to its price alone (1 = none, 0.5 = halved) */
 export function satFactor(g: Game, idx: number): number {
   const d = ITEMS[idx];
-  return d ? 1 / (1 + (market(g).sat[idx] ?? 0) / satScale(d)) : 1;
+  return d ? 1 / (1 + (market(g).sat[idx] ?? 0) / satScale(g, d)) : 1;
 }
 
 export function priceMult(g: Game, idx: number): number {
@@ -63,7 +64,7 @@ export function priceMult(g: Game, idx: number): number {
   const d = ITEMS[idx];
   if (!d) return 1;
   const s = m.sat[idx] ?? 0;
-  const sat = 1 / (1 + s / satScale(d));
+  const sat = 1 / (1 + s / satScale(g, d));
   const drift = m.drift[d.cat] ?? 1;
   const hot = m.hot.includes(d.id) ? 1.4 : 1;
   return Math.max(0.4, sat * drift * hot);
@@ -99,7 +100,7 @@ export function sellStack(g: Game, k: number, n: number, factor = 1): number {
     left -= c;
   }
   // the first time shipping a lot of one thing knocks a fifth off its price: the "Saturation" card
-  if (1 / (1 + (m.sat[idx] ?? 0) / satScale(ITEMS[idx])) <= 0.8) lesson(g, 'saturation');
+  if (1 / (1 + (m.sat[idx] ?? 0) / satScale(g, ITEMS[idx])) <= 0.8) lesson(g, 'saturation');
   const id = ITEMS[idx].id;
   m.shipped[id] = (m.shipped[id] ?? 0) + n;
   g.stats.use(k, n);

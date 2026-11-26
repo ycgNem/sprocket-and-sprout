@@ -10,14 +10,16 @@
 //  - after three days at sea it calls again. Standing with the Harbor grows by manifest (all of it,
 //    or at least half by value) and its ranks ask bigger manifests at better prices.
 // src/render/harbor.ts draws the warehouse and the ship; the ship's place is shipView (below).
-import { AT_SEA_DAYS, EXPORT_PORTS, EXPORT_PREMIUM, FULL_BONUS, HARBOR_RANKS, IN_PORT_DAYS, LINE_GROWTH, LINE_MAX, LINE_VALUE, linesAt, PORT_BY_ID, PREMIUM_RANK, REP_FULL, REP_HALF, SHIP_NAME, type ExportPort } from '../../data/exports';
-import { ITEM_BY_ID } from '../../data/items';
+import { AT_SEA_DAYS, EXPORT_PORTS, EXPORT_PREMIUM, FULL_BONUS, HARBOR_RANKS, IN_PORT_DAYS, LINE_GROWTH, LINE_MACHINE_DAYS, LINE_MAX, LINE_VALUE, linesAt, PORT_BY_ID, PREMIUM_RANK, REP_FULL, REP_HALF, SHIP_NAME, type ExportPort } from '../../data/exports';
+import { ITEMS, ITEM_BY_ID, matchesSpec } from '../../data/items';
+import { RECIPES } from '../../data/recipes';
 import { C } from '../../data/palette';
 import { Game, registerSystem } from '../Game';
 import { key, kQ } from '../inventory';
 import { inSeason } from '../seasonal';
 import { HARBOR, SHIP_BERTH } from '../world/townworks';
 import { send } from './goals';
+import { DAY_SECS } from './stats';
 import { deliver, fits, orderFull, orders, orderTitle, postManifest, specLabel, type Order, type OrderLine } from './orders';
 
 export interface ExportsState {
@@ -42,6 +44,8 @@ export interface ExportsState {
   log: { port: string; day: number; share: number; coins: number }[];
   /** the last rank the Harbormaster wrote about */
   rank: number;
+  /** ports whose keepsake has come (the first manifest loaded in full for each) */
+  gifts?: string[];
 }
 
 export function exportsState(g: Game): ExportsState {
@@ -89,6 +93,42 @@ function roundNice(n: number): number {
   return Math.max(step, Math.round(n / step) * step);
 }
 
+/** what grows, is dug or is gathered: a line's machine time stops at these, whatever also makes them */
+const RAW_CATS = new Set(['crop', 'fruit', 'flower', 'forage', 'resource', 'seed', 'fish', 'mineral', 'gem', 'animal', 'ore']);
+const chain = new Map<string, number>();
+/**
+ * Seconds of machine work in one of an item, through its ingredients (a honey bun's oven and the
+ * hive behind its honey): a machine's recipe before a hand recipe, raw goods free. 0 if nothing makes it.
+ */
+export function machineSecs(id: string, path: string[] = []): number {
+  const known = chain.get(id);
+  if (known !== undefined) return known;
+  const d = ITEM_BY_ID.get(id);
+  const r = RECIPES.find((x) => x.station !== 'hand' && x.out.some((o) => o.item === id)) ?? RECIPES.find((x) => x.out.some((o) => o.item === id));
+  if (!d || !r || RAW_CATS.has(d.cat) || path.includes(id) || path.length > 8) return 0;
+  const outN = Math.max(1, r.out.find((o) => o.item === id)!.n);
+  let secs = r.station === 'hand' ? 0 : r.time;
+  // (an ingredient given as a tag, "#honey", counts as the cheapest thing that fits it)
+  for (const i of r.in) {
+    const iid = i.item[0] === '#' ? ITEMS.filter((x) => x.price > 0 && matchesSpec(x, i.item)).sort((a, b) => a.price - b.price)[0]?.id : i.item;
+    if (iid) secs += i.n * machineSecs(iid, [...path, id]);
+  }
+  secs /= outN;
+  if (!path.length) chain.set(id, secs);
+  return secs;
+}
+/**
+ * How many of a good a line asks at a rank: about LINE_VALUE coins of it at its base price, and no
+ * more than LINE_MACHINE_DAYS of one machine's work (both grow with the rank).
+ */
+export function lineSize(id: string, rank: number): number {
+  const grow = 1 + LINE_GROWTH * rank;
+  const byValue = (LINE_VALUE * grow) / Math.max(1, ITEM_BY_ID.get(id)?.price ?? 1);
+  const secs = machineSecs(id);
+  const byTime = secs > 0 ? (LINE_MACHINE_DAYS * grow * DAY_SECS) / secs : Infinity;
+  return Math.max(1, Math.min(LINE_MAX, roundNice(Math.min(byValue, byTime))));
+}
+
 /** The manifest's lines: goods the port buys, in season, that the farm has made (else any it buys in season). */
 export function manifestLines(g: Game, port: ExportPort, rank: number): OrderLine[] {
   const season = g.time.season;
@@ -101,11 +141,10 @@ export function manifestLines(g: Game, port: ExportPort, rank: number): OrderLin
   const picks: string[] = [];
   const bag = [...pool];
   while (picks.length < n && bag.length) picks.push(bag.splice(g.rng.int(0, bag.length - 1), 1)[0]);
-  const value = LINE_VALUE * (1 + LINE_GROWTH * rank);
   const premium = premiumAt(rank);
   return picks.map((id) => {
     const price = ITEM_BY_ID.get(id)!.price;
-    return { spec: id, n: Math.min(LINE_MAX, roundNice(value / price)), have: 0, unit: Math.max(1, Math.round(price * premium)) };
+    return { spec: id, n: lineSize(id, rank), have: 0, unit: Math.max(1, Math.round(price * premium)) };
   });
 }
 
@@ -165,7 +204,33 @@ function filled(g: Game, o: Order, via: 'hand' | 'post' | 'board') {
   g.count('exports_full');
   g.emit({ t: 'sfx', id: 'coin' });
   g.toast(`${orderTitle(o)} loaded in full${via === 'post' ? ' by the post' : ''}! A bonus of ${(o.pay ?? 0).toLocaleString()} coins, and ${SHIP_NAME} sails at dawn.`, undefined, C.lime);
+  portThanks(g, o.port ?? '');
   checkRank(g);
+}
+
+/** ports whose keepsake stands in the farmhouse (or waits in the mail) */
+export const keepsakes = (g: Game): string[] => exportsState(g).gifts ?? [];
+
+/**
+ * A port's thanks for a manifest loaded in full (2.2): a crate of its own goods by the next post,
+ * and with the first one its keepsake, a piece for the farmhouse that comes from nowhere else.
+ */
+function portThanks(g: Game, id: string) {
+  const port = PORT_BY_ID.get(id);
+  if (!port) return;
+  const s = exportsState(g);
+  const first = !(s.gifts ??= []).includes(id);
+  if (first) s.gifts.push(id);
+  const keep = ITEM_BY_ID.get(port.keepsake);
+  const left = EXPORT_PORTS.length - s.gifts.length;
+  send(g, `harbor_thanks_${id}_${s.full}`, {
+    from: 'Harbormaster Penwick', title: first ? `A keepsake from ${port.name}` : `A crate from ${port.name}`,
+    text: first
+      ? `${SHIP_NAME} carried your manifest for ${port.name} in full, and its merchants would not let the captain leave without this: the ${keep?.name ?? 'keepsake'}, for your farmhouse. ${port.thanks} ${left > 0 ? `${left} port${left === 1 ? ' has' : 's have'} yet to send theirs.` : 'That is every port on the chart: no farmhouse on this coast has all five.'}\n- Harbormaster Ada Penwick`
+      : `Another manifest for ${port.name} loaded in full. ${port.thanks}\n- Harbormaster Ada Penwick`,
+    items: [...(first && keep ? [{ item: port.keepsake, n: 1 }] : []), ...port.crate.filter((c) => ITEM_BY_ID.has(c.item))],
+  });
+  if (first) g.count('port_keepsakes');
 }
 
 /** a new rank: the Harbormaster writes, with coins */
@@ -182,7 +247,7 @@ function checkRank(g: Game) {
       text: `Captains up and down the coast know your farm's name now: the Harbor counts you a ${rk.name}. Enclosed, ${rk.coins.toLocaleString()} coins from the merchants' purse. Expect bigger manifests from here on, at ${Math.round(premiumAt(i) * 100)}% of the goods' price${i === 2 || i === 4 ? ', and one more line on every one' : ''}.${i === HARBOR_RANKS.length - 1 ? ' There is no higher name a harbor can give.' : ''}\n- Harbormaster Ada Penwick`,
     });
   }
-  g.toast(`Harbor rank: ${HARBOR_RANKS[r].name}! Bigger manifests, better prices.`, undefined, C.lime);
+  g.toast(`Harbor rank: ${HARBOR_RANKS[r].name}! Bigger manifests, a little more for every good.`, undefined, C.lime);
   g.emit({ t: 'sfx', id: 'chime' });
   s.rank = r;
 }
@@ -197,7 +262,7 @@ function open(g: Game) {
   }
   send(g, 'harbor_open', {
     from: 'Harbormaster Penwick', title: 'Ships call at Thistlewick again',
-    text: `The warehouse is sound, the crane swings and the pier's lamps are lit: thank you. ${SHIP_NAME} calls tomorrow at dawn. Each time it docks it brings a manifest from a port across the sea, and those cities buy in quantities no village shop could dream of. Load what you can in the week it stays: everything pays as it goes aboard, well above the market, and a manifest loaded in full pays a handsome bonus and sends the ship off a day early. Bring goods to the warehouse door, hand them in at the Orders board, or tag a shipping crate for the Harbor and the post will carry them down (a crate tagged for us keeps its goods while the ship is at sea).\n- Harbormaster Ada Penwick`,
+    text: `The warehouse is sound, the crane swings and the pier's lamps are lit: thank you. ${SHIP_NAME} calls tomorrow at dawn. Each time it docks it brings a manifest from a port across the sea, and those cities buy in quantities no village shop could dream of. Load what you can in the week it stays: everything pays as it goes aboard, at a fair price for more than this valley could ever buy, and a manifest loaded in full pays a bonus, sends the ship off a day early, and brings back a crate from that city (and, the first time, a keepsake for your farmhouse found nowhere else). Bring goods to the warehouse door, hand them in at the Orders board, or tag a shipping crate for the Harbor and the post will carry them down (a crate tagged for us keeps its goods while the ship is at sea).\n- Harbormaster Ada Penwick`,
   });
   g.emit({ t: 'scene', x: HARBOR.x + HARBOR.w / 2, y: SHIP_BERTH.y, title: 'The Harbor', text: `The old warehouse stands sound again and its crane swings. ${SHIP_NAME} calls tomorrow at dawn for your exports.`, icon: 'construction_site' });
 }

@@ -346,6 +346,14 @@ export const PROJECTS: ProjectDef[] = [
   // the Bakery Window opens once the town has flour of its own (the Town Mill) and you have an oven
   { id: 'p_bakery', name: 'Bakery Window', area: 'The Mercantile', desc: "The Mercantile's window, kept full: a day's baking from the Town Mill's flour, three days.", items: [{ item: 'bread', n: 4 }, { item: 'cookies', n: 4 }], after: ['flag:bread_town', 'r_cooking'], steady: 3,
     reward: { items: [{ item: 'assembler', n: 1 }], text: "A tinker's bench (assembler)" } },
+  // the town's own works, paid for mostly in coin (2.2; the 2.1.1 playtest: "nothing to buy in the
+  // mid-game"): one after each town keystone, each a lasting change to what the farm earns
+  { id: 'p_market', name: 'The Market Hall', area: 'The square', desc: 'A roof and proper stalls for the market: it takes half again as much of one thing before the price sags.', items: [{ item: 'plank', n: 80 }, { item: 'brick', n: 40 }], money: 12000, after: ['flag:town_mill'],
+    reward: { flag: 'market_hall', text: 'Prices sag half as fast' } },
+  { id: 'p_freight', name: 'The Freight Office', area: 'The square', desc: "A clerk and a scale by the post office: the town's businesses pay 15% more on standing orders.", items: [{ item: 'beam', n: 40 }, { item: 'iron_plate', n: 40 }, { item: 'glass', n: 20 }], money: 25000, after: ['flag:waterworks'],
+    reward: { flag: 'freight_office', text: 'Standing orders +15%' } },
+  { id: 'p_guildhall', name: "The Machinists' Guildhall", area: 'The square', desc: "A hall for the valley's machinists, who keep your works tuned: every machine runs a tenth faster.", items: [{ item: 'brass_gear', n: 60 }, { item: 'spring', n: 40 }, { item: 'glass', n: 40 }], money: 45000, after: ['flag:tram'],
+    reward: { flag: 'guildhall', text: 'Machines run 10% faster' } },
   { id: 'p_quarry', name: 'Quarry Road', area: 'The quarry', desc: 'Stone and gravel to pave the quarry road.', items: [{ item: 'stone', n: 200 }, { item: 'gravel', n: 50 }, { item: 'concrete', n: 20 }], after: ['r_crusher'],
     reward: { items: [{ item: 'drill_brass', n: 2 }], text: 'Two brass drills' } },
 ];

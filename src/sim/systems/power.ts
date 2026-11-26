@@ -3,7 +3,7 @@
 import type { Game } from '../Game';
 import type { Ent } from '../ents';
 import { MState, setState } from '../mstate';
-import { fuelValue } from './machines';
+import { fuelValue, GOVERNOR_FUEL, GOVERNOR_SAT } from './machines';
 import { rustTick } from '../rust';
 
 export interface NetStats {
@@ -241,7 +241,7 @@ export function updatePower(g: Game, dt: number) {
       else setState(e, MState.Idle, gen.cap > 0 ? 'Nothing on its grid needs power' : 'No output right now', g.simTime);
       if (e.def.id === 'steam_engine' && load > 0) {
         if (gen.burn <= 0 && gen.fuel && gen.fuel.n > 0) {
-          gen.burn += fuelValue(gen.fuel.k) * 0.5;
+          gen.burn += fuelValue(gen.fuel.k) * 0.5 * (g.hasPerk('clockmaker') ? GOVERNOR_FUEL : 1);
           g.stats.use(gen.fuel.k, 1);
           if (--gen.fuel.n <= 0) gen.fuel = null;
         }
@@ -249,8 +249,8 @@ export function updatePower(g: Game, dt: number) {
       }
     }
   }
-  // Governor (the profession): machines keep full speed while the grid meets 75% of their demand
-  const gov = g.hasPerk('clockmaker') ? 0.75 : 1;
+  // Governor (the profession): machines keep full speed while the grid meets 60% of their demand
+  const gov = g.hasPerk('clockmaker') ? GOVERNOR_SAT : 1;
   for (const e of g.ents.consumers) {
     if (!e.net || e.off) {
       e.sat = 0;

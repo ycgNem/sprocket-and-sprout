@@ -45,6 +45,13 @@ export const FURNITURE: FurnDef[] = [
   { id: 'f_trophy_tidemother', name: 'Mounted Tidemother', price: 0, desc: 'The Tidemother herself. Wren wept.', sprite: 'trophy:2', w: 1, h: 1, wall: true, solid: false },
   { id: 'f_lantern', name: "Founder's Lantern", price: 0, desc: "The Sprocket Fair's prize for a line that beat two of the town's best. It never seems to burn down.", sprite: 'lantern:0', w: 1, h: 1, solid: true, light: { r: 3.5, c: C.amber } },
   { id: 'f_gilded_clock', name: 'Gilded Clock', price: 0, desc: "A towering clock for a line half again as good as the Sprocket Fair's best entry.", sprite: 'gclock:0', w: 1, h: 1, solid: true },
+  // the five export ports' keepsakes (2.2): each comes once, with the first manifest loaded in full
+  // for that port (src/data/exports.ts, src/sim/systems/exports.ts)
+  { id: 'f_keep_brassmouth', name: 'Brassmouth Foundry Bell', price: 0, desc: "Cast in the foundry city for the farm that filled its ships. It hums when the machines run.", sprite: 'keepsake:0', w: 1, h: 1, solid: true },
+  { id: 'f_keep_verdance', name: 'Verdance Spice Jars', price: 0, desc: 'Painted jars from the market of a hundred kitchens. The top one still smells of clove.', sprite: 'keepsake:1', w: 1, h: 1, solid: true },
+  { id: 'f_keep_ember', name: 'Ember Isles Palm', price: 0, desc: 'A dwarf palm in a red lacquer pot. It has never seen a winter and does not intend to.', sprite: 'keepsake:2', w: 1, h: 1, solid: true },
+  { id: 'f_keep_saltspire', name: 'Saltspire Model Ship', price: 0, desc: "A shipwright's model of the Copper Gull, rigged with real thread.", sprite: 'keepsake:3', w: 1, h: 1, solid: true },
+  { id: 'f_keep_kettleholm', name: 'Kettleholm Samovar', price: 0, desc: 'A copper tea urn from the northern tea rooms. Always, somehow, a little warm.', sprite: 'keepsake:4', w: 1, h: 1, solid: true, light: { r: 1.6, c: C.amber } },
   { id: 'f_globe', name: 'Brass Globe', price: 1800, desc: 'Somewhere on it, very small, is Thistlewick.', sprite: 'globe:0', w: 1, h: 1, solid: true, shop: 'cart' },
   { id: 'f_telescope', name: 'Telescope', price: 2400, desc: 'Points at the stars, or at the neighbors. Your choice.', sprite: 'telescope:0', w: 1, h: 1, solid: true, shop: 'cart' },
   { id: 'f_musicbox', name: 'Music Box', price: 1200, desc: 'Plays a little tune when nobody is looking.', sprite: 'musicbox:0', w: 1, h: 1, solid: true, shop: 'cart' },

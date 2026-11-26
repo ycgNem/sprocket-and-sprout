@@ -16,6 +16,17 @@ below), gathered into one 2.1 entry in the patch notes (2.0's "Updates" section 
 **2.1.1 "The Town at Work" (October 23): Trust is gone (DECISIONS #175)**: no friendship points, gifts, birthdays, heart events or partners; the specialists' rewards are favors after keystones (src/data/favors.ts), recipes are mailed after keystones (Thorne's Hollow sells the glow sorbet card after Grand Works), Thorne's drawings come with keystones. Released as `v2.1.1` (Setup installer only). Mentions of Trust further down this file are history.
 Since 2.1.0 (live, October 14, an "Updates" section in 2.1's notes, installer re-uploaded to v2.1.0 with --clobber): the late game's dead ends (#174: the Prism Shard from the bottom's starstone, Master Angler counts trap shellfish, the Wonders of the Valley quest, an every-item-has-a-source test). 430 tests.
 Next is 2.1.1 or 2.2 from the owner's notes ("What's next").
+**2.2 "A Fair Price" (November 26, 2026) is built on `works` and NOT released** (not merged to
+`main`, not pushed, no `gh release`: the owner says when). It answers a critic's full playthrough of
+2.1.1 and a screen sweep at three sizes (DECISIONS #176-#180): the playtest's bugs (#176); the
+economy (#177: cogbean 20, `preservePrice`, exports at the market's price with each port's keepsake
+and crate, three coin-heavy town works `p_market` / `p_freight` / `p_guildhall`, the Governor's fuel
+thrift, Rush medals 30/55/80k, toasts one or two at a time); the second half's ledger
+`scripts/latepace.ts` and export lines capped by machine time (#178); a town with people in it
+(#179: stints at rebuilt works, shopfronts, the Thursday market, `src/sim/townlife.ts`,
+`src/sim/marketstall.ts`); soil beds, a readable deep mine, the grand Harbor warehouse and generated
+seed packets (#180). 459 tests (1 skipped); `pace.ts story` 47k a month (was 67k), day one 1,800,
+the Mill by day 17 on 8/8 seeds, Rush 49.6k. PixelLab: 10 generations (balance 4632).
 **Since 2.0.0** (each an owner's note, a change commit ending "DECISIONS #N" and a "Patch notes:"
 commit adding a line to 2.0's "Updates" in `src/data/patchnotes.ts` and PATCHNOTES.md): the patch
 notes rewritten for players (#148); Milling's rate stage and cornmeal (#149); the beach's own forage,
@@ -411,6 +422,22 @@ scripts/      art importers and PixelLab helpers (art/README.md), make-icons, sf
   instance (see `mod()` in `e2e/coverage.mjs`). Agents' imports trigger full reloads in open pages.
 
 ## What's next
+
+**2.2 is ready on `works` and waits for the owner's word to release** (merge to `main`, push, the
+installer, `gh release` with `node scripts/release-notes.mjs "2.2"`). Still open after it:
+- **A scripted factory-path player for Steam to the Harbor.** `tests/bot.ts` stops at the
+  Waterworks (`k11_boiler`); `scripts/latepace.ts` is only the arithmetic of the later gates.
+- **The critic's cut list is the owner's call and untouched:** Lantern Night, Frostlight Skate, the
+  combat perks, the Skyship Dock, about half the crops.
+- **Town ideas not built:** a business cart at the farm gate, shop fronts that grow with reputation.
+  Weekends are as empty as before (6-7 of 14 outdoors in winter).
+- **To watch in play:** the keeper's crock still works at 8x (day one now pays about 1,800 through
+  prices alone); cogbean is still the best crop per tile preserved (36 against 27 for cranberry) and
+  the worst per crock; forage that spawns behind the taller warehouse (tiles x 141-144, y 122-125)
+  is hidden until you walk behind it; the old shed's art (`art/harbor/tools/warehouse.mjs`,
+  `art/harbor/raw/pro/`) is no longer built and can go.
+- STYLE.md could say: tilled soil is beds from one pattern, seed packets are generated, a building
+  much taller than its footprint fades when the player is behind it.
 
 **2.1.0 is released (DECISIONS #148-#173).** The economy work planned as 2.0.1 is still open; it can
 be 2.1.1. PixelLab balance 2721 on October 13 (the Harbor spent 24). Exports to watch in play: the

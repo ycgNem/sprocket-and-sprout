@@ -1318,3 +1318,99 @@ recommendations are the decisions.
       and N.
     - Tests: tests/v212fixes.test.ts; the sweep gained `kitchen` and `gantry-seeds`.
 
+177. **The economy after the 2.1.1 playtest (2026-11-26).** The critic's numbers: cogbean 32 coins a
+     tile a day raw and 81 pickled, four times the field; day one paid about 4,100; the first export
+     manifest (235,000) out-earned the first year (about 197,000); nothing to spend on between the
+     Mill and the Harbor; the Governor never worth picking over the Engineer.
+    - **Crops.** Cogbean 46 -> 20 a bean (its two-day regrow and yield stay, so the keeper's "two
+      beds feed one crock" holds); peas yield 1-2 (was 2-3). scripts/croptable.ts prints every
+      crop's coins a tile a day, raw and preserved; tests/economy.test.ts holds the spread (the best
+      under 3x the median raw, 2.5x preserved; cogbean within a third of the next ordinary crop).
+    - **Preserves** are `preservePrice`: price x 1.9 + 15 (was x 1.6 + 40, whose flat 40 made the
+      cheapest crop the best jar). Cogbean oil 200 -> 110; Rowan's pickle order 150 -> 110 each.
+    - **Not changed:** the keeper's crock still works at 8x (the owner's earlier call); day one
+      falls to about 1,800 through prices alone. No farm expansion: the farm is 72x83 tiles already.
+    - **Exports** pay the goods' base price (`EXPORT_PREMIUM` 1.0, was 1.4; +4% a rank, was 8%), a
+      full manifest 15% on top (was 40%), lines of 30,000 (was 40,000): a first manifest in full is
+      about 103,000. What a full manifest is for now is what the port sends back (`portThanks`): a
+      crate of its own goods by letter every time (clockwork cores and brass arms from Brassmouth,
+      starpetal and glowmelon seed from Port Verdance, tonic and sunbell seed from the Ember Isles,
+      starmetal and hardwood from Saltspire, a snowberry sapling and frostmint seed from
+      Kettleholm), and the first time its keepsake, a farmhouse piece from nowhere else
+      (`f_keep_*`, hf:keepsake:0-4). The Exports tab says so on the manifest and counts keepsakes;
+      a new achievement, Five Flags, for all five.
+    - **The town's own works** (PROJECTS, area "The square"), mostly coin, one after each town
+      keystone: the Market Hall (12,000, after the Mill: `market_hall`, the market takes half again
+      as much before a price sags), the Freight Office (25,000, after the Waterworks:
+      `freight_office`, standing orders pay 15% more, `standingUnit`), the Machinists' Guildhall
+      (45,000, after the Tram: `guildhall`, machines 10% faster).
+    - **The Governor** gets a third more from every piece of fuel (burners, drills, steam engines)
+      and keeps full speed down to 60% power (was 75% and nothing else): thrift against the
+      Engineer's speed.
+    - **Clockwork Rush** medals follow the bot's new month (49.6k on 8 seeds): 30k / 55k / 80k (was
+      40 / 75 / 110k, and the mode card said 20 / 40 / 65k).
+    - **The Sprocket Fair's** entries follow the pickle price: the Professor's 20 a minute (was 50),
+      Bram's 120 (was 250); a crock line adds 33 a minute now.
+    - **One thing at a time** (the playtest counted seven on screen at minute 3): one toast at once
+      through the first two days and while a lesson card or achievement banner is up, two after
+      (was three); a tip waits for toasts, banners and ribbons; an achievement banner waits for a
+      lesson card.
+    - Bots after it: `pace.ts story` 47,068 over 28 days on 8 seeds (was about 67,000), day one
+      1,800; `mill20.ts` reaches the Mill on 8 of 8 seeds (day 17); Rush 49,639.
+    - Not done, the owner's call: the critic's cuts (Lantern Night, Frostlight Skate, the combat
+      perks, the Skyship Dock, about half the crops).
+178. **The second half's ledger, and export lines sized by machine time (2026-11-26).** The pacing
+     bot stops at the Waterworks, so nothing had measured Steam to the Harbor (the 2.1.1 playtest).
+     scripts/latepace.ts is its arithmetic: every keystone, works project, megaproject, era of
+     research and first manifest worked back through the recipes to machine-days and raw goods. It
+     is not a player (no walking, no building, no money over time); a scripted factory-path player
+     is still to be written.
+    - What it showed: the keystones and works climb evenly (the Mill 0.4 machine-days, the
+      Waterworks 6, the Tram 3, the Harbor 4 and 30,000 coins; research 5, 35, 62 and 90 for eras 2
+      to 5; megaprojects 29 to 129). The outlier was exports: a line was sized by value alone, so
+      one of honey was 125 machine-days, wine 25 to 50, cheap pickles 34, and copper bars 4. A
+      manifest with a slow good on it could not be filled in its week, and a full manifest is now
+      what brings the port's keepsake.
+    - **A line is capped by machine time** (`lineSize`, `machineSecs`, `LINE_MACHINE_DAYS` 16 at the
+      first rank, growing with the rank as the value does): at most what one machine makes in 16
+      days, counted through its ingredients (a honey bun's oven and the hive behind its honey).
+      Honey 300 -> 40, grape wine 283 -> 90, pickled cogbeans 566 -> 270, brick 2,500 -> 1,600;
+      bars, cloth, bread and most goods are unchanged.
+179. **A town with people in it, and no Trust (2026-11-26).** The 2.1.1 playtest: six of fourteen
+     villagers outdoors at most, the square empty at noon. Nothing here is friendship: no points,
+     gifts or meters, and business reputation is not read.
+    - **Stints** (`StintDef`, `NPCDef.stints`, src/sim/townlife.ts, pure): a villager spends part of
+      a dry day at a work the town has rebuilt, by its flag: Juniper, Rowan and Hazel at the Town
+      Mill, Bram, Ines and Pip at the Waterworks and its fountain, Sable on a round of six lamps at
+      dusk, Thorne, the Mayor and Bram at the tram stops, the Mayor and Hazel under the Clock at
+      noon, Wren and Roxy at the Harbor while the ship is in. Lines spoken only there
+      (`DialogueLine.at`).
+    - **Shopfronts.** Keepers work out in front of their shops in staggered spells and the door
+      still serves (`keeperIn` is true inside or out front); school is in the yard on dry mornings;
+      lunch brings four or five to the square. Several keepers' return times moved earlier: shops
+      were opening late against their signs.
+    - **Thursday market** on the square, 9am to 4pm, dry days, not in Rush, festivals first
+      (src/sim/marketstall.ts): Marigold, Bram, Juniper and Clem sell their own shops' stock from
+      stalls at their prices; Hazel's odds table carries about six things from the shops that stayed
+      in (through `shopStock`, so nothing locked is sold early; it is not in `SHOPS`). No saved
+      state: it follows the day, the weather and the flags. A morning toast, the almanac and a
+      notice on the Orders board announce it.
+    - Measured (seed 4242): 8 to 11 of 14 outdoors on the town side 9:00 to 18:00 on dry weekdays;
+      4 to 5 on the square from 12:00 to 13:00; 8 to 9 through the market. Weekends unchanged.
+    - Not done: a business cart at the farm gate, shop fronts that grow with reputation.
+    - Tests: tests/townlife.test.ts (18), e2e/townlife.ts (13 browser checks).
+180. **Four things easier to read (2026-11-26).** From the same playtest; 10 PixelLab generations
+     (the warehouse), the rest by script or by hand.
+    - **Tilled soil** is beds from one pattern (art/terrain/tools/beds.ts, a step of build.sh): a lit
+      rim, three furrows, a groove, corners open; watered soil is the same bed a step darker, cut on
+      the tile (src/render/blend.ts).
+    - **The deep mine.** Crystal and Starfall floor specks a step down their ramps; Starfall `dark`
+      0.72 -> 0.62 and its tint to ink, Crystal 0.93 -> 0.9 (it stays near black: setting lamps down
+      is its game); a quiet gas pocket has a vent mouth and a green glint. No play values changed.
+    - **The Harbor warehouse** is three storeys with a cupola and the crane on its roof
+      (art/harbor/tools/grand.ts builds restored, derelict and winter frames from one pick); same
+      footprint and door. It fades to half when you walk behind it; two lanterns light at night.
+    - **Seed packets** are generated from the crop's own icon (`{"packet": ...}` in
+      art/icons/picks.json, art/icons/tools/packet.ts): never drawn by hand again.
+    - **The five port keepsakes** (hf:keepsake:0-4 and their item icons) are hand-pixeled
+      (art/home/keepsakes.ts).

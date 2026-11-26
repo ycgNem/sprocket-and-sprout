@@ -9,7 +9,7 @@ import { key, kDef, kStack } from '../inventory';
 import { takersOf, worksTally } from '../lines';
 import { PORT_HANDLERS, portAccept, portInsert } from '../ports';
 import { canPlant, canTill, cropTotal, fertilize, harvest, inGreenhouse, plant, till } from './farming';
-import { fuelValue } from './machines';
+import { fuelValue, GOVERNOR_FUEL } from './machines';
 import { O, T } from '../world/tilemap';
 import { MState, offText, setState } from '../mstate';
 import { rustTick } from '../rust';
@@ -217,7 +217,7 @@ function drillTick(g: Game, e: Ent, dt: number) {
     if (e.st.burn <= 0) {
       const f = e.st.fuel;
       if (f && f.n > 0) {
-        e.st.burn += fuelValue(f.k);
+        e.st.burn += fuelValue(f.k) * (g.hasPerk('clockmaker') ? GOVERNOR_FUEL : 1);
         g.stats.use(f.k, 1);
         f.n--;
         if (f.n <= 0) e.st.fuel = null;
