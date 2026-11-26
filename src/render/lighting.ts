@@ -17,6 +17,8 @@ export class Lighting {
   flash = 0;
 
   draw(main: CanvasRenderingContext2D, g: Game, r: Renderer, underground: boolean) {
+    // a window of no size (the desktop app minimized): a 0-wide light map throws on drawImage every frame
+    if (!(r.W > 0 && r.H > 0)) return;
     const night = 1 - g.daylight;
     const house = g.player.where === 'house';
     // the brighter imported palette needs a deeper overcast to read as a storm

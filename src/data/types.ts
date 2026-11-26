@@ -319,16 +319,18 @@ export type ObjectiveDef = ObjectiveBase & (
   | { t: 'research'; id: string }
   | { t: 'floor'; n: number }
   | { t: 'catch'; n: number; fish?: string }
-  | { t: 'till'; n: number }
+  /** `bed`: only the opening's marked gleaner bed counts (OPENING.bed, counted from the soil) */
+  | { t: 'till'; n: number; bed?: boolean }
   /** seeds planted; `crop`: only that crop */
-  | { t: 'plant'; n: number; crop?: string }
+  | { t: 'plant'; n: number; crop?: string; bed?: boolean }
   /** plants of a crop standing in reach of your own gleaners (not the keeper's), right now */
   | { t: 'gleaned'; crop: string; n: number }
-  | { t: 'water'; n: number }
+  | { t: 'water'; n: number; bed?: boolean }
   | { t: 'harvest'; n: number; item?: string }
   | { t: 'money'; n: number }
   | { t: 'sleep' }
-  | { t: 'visit'; loc: LocationId }
+  /** `or`: a flag that counts as the visit (the Clock restarted from the Journal never walked there) */
+  | { t: 'visit'; loc: LocationId; or?: string }
   | { t: 'produce'; item: string; perMin: number }
   /** goods put into the shipping crate (deposit time, not the post's); `auto`: only by arm or belt,
    *  and a hand load of a machine starts the count again (the line must run by itself) */

@@ -13,14 +13,14 @@ import { ICON } from '../ui/font';
 import { ITEM_BY_ID, matchesSpec } from '../data/items';
 import { TREE_BY_ID } from '../data/trees';
 import { SEASON_NAMES } from '../data/types';
-import type { NPCLook, StructureDef } from '../data/types';
+import type { NPCLook, RecipeDef, StructureDef } from '../data/types';
 import { REACH_KINDS, reachTiles } from '../ui/reach';
 import { SEC_PER_MIN, type Game, type GameEvent } from '../sim/Game';
 import { DX, DY, Dir, Ent, entName, entById, HOUSE_IDS } from '../sim/ents';
 import { canPlaceIndoors, hereEnts, placeIndoors } from '../sim/indoors';
 import { onTile } from '../sim/near';
 import { key, kDef, kId, itemName } from '../sim/inventory';
-import { canPlace, deconstruct, place, rotateStruct, structFootprint } from '../sim/build';
+import { BUILD_ZONES, canPlace, deconstruct, place, rotateStruct, structFootprint } from '../sim/build';
 import { eatHeld, interact, useHeld } from '../sim/actions';
 import { facingTile, curMap } from '../sim/systems/player';
 import { saveGame, freeSlot, exportSaveJSON } from '../sim/save';
@@ -52,7 +52,7 @@ import { PULSE_COL, pulseEnts, pulseOf } from '../ui/pulse';
 import { checkTips } from './tips';
 import { drawFx, Juice, ladderPitch, RIBBON_Y, type Pt } from '../render/juice';
 import { ACH_BY_ID } from '../sim/systems/achievements';
-import { promptAt, questTarget, tilePrompt, toolVerb } from '../sim/prompts';
+import { promptAt, questTarget, stepFacing, tilePrompt, toolVerb } from '../sim/prompts';
 import { POST_TIMES } from '../sim/systems/economy';
 import { quote } from '../sim/systems/economy';
 import { unlocksOf } from '../sim/systems/research';
@@ -72,6 +72,21 @@ const fitZoom = (h: number) => Math.max(2, Math.round(h / (16 * 20)));
 /** the zoom a farm loads at: at least 3x on a window 700+ px tall (the critic's 2.0 pass: at 2x a
  *  day-5 yard read as a farm again after a reload, the works a twentieth of the frame) */
 const homeZoom = (h: number) => Math.max(fitZoom(h), h >= 700 ? 3 : 2);
+
+/** a structure right-click lifted while building, for Ctrl+Z to set back */
+interface Lifted {
+  def: string;
+  x: number;
+  y: number;
+  rot: Dir;
+  where: 'world' | 'house';
+  recipe: RecipeDef | null;
+  locked: boolean;
+  filter?: number[];
+  limit?: number;
+  sFilter?: number;
+  sPrio?: number;
+}
 
 export class PlayScreen implements Screen {
   app: App;
@@ -124,7 +139,8 @@ export class PlayScreen implements Screen {
   /** lesson cards waiting to show (src/ui/lessoncard.ts) */
   lessons: LessonQueue = { q: [] };
   /** your last five placements (one drag each), taken back with Ctrl+Z (ROADMAP.md 6.5) */
-  private undoStack: { ids: number[]; t: number }[] = [];
+  /** Ctrl+Z's history: a drag's placements, or a structure lifted by right-click (put back where it stood) */
+  private undoStack: { ids: number[]; t: number; lift?: Lifted }[] = [];
   private lastWhere = '';
   tipT = 0;
   /** money last frame: a rise while you play becomes a coin shower into the odometer */
@@ -313,6 +329,22 @@ export class PlayScreen implements Screen {
       }
     if (best >= 0) p.sel = best;
     return best >= 0;
+  }
+
+  /**
+   * Whether building means anything where you stand: the farm or the quarry within building reach,
+   * the farmhouse floor, or a piece that goes by water (a fish trap, a water wheel).
+   */
+  canBuildNear(): boolean {
+    const g = this.g, p = g.player;
+    if (p.where === 'house') return true;
+    if (p.where !== 'world') return false;
+    const def = STRUCT_BY_ID.get(this.heldPlaceable() ?? '');
+    if (def && (def.kind === 'fishtrap' || def.id === 'waterwheel')) return true;
+    const r = 9 + g.mods.reach;
+    for (let dy = -r; dy <= r; dy += 3)
+      for (let dx = -r; dx <= r; dx += 3) if (BUILD_ZONES.has(g.map.z(Math.floor(p.x + dx), Math.floor(p.y + dy)))) return true;
+    return false;
   }
 
   heldPlaceable(): string | null {
@@ -524,8 +556,17 @@ export class PlayScreen implements Screen {
     app.audio.update(dt, g, near);
     // hud timers
     // toasts wait while a window covers the screen, then play out once it closes
-    if (!this.modalOpen && !r.juice.banners.length) for (const t of liveToasts(this.hud.toasts)) t.t += dt;
-    this.hud.toasts = this.hud.toasts.filter((t) => t.t < toastLife(t.text));
+    // a backed-up queue plays faster, and news that waited 8 s behind it is dropped: at mine level 30
+    // the toasts were still telling of levels 15 and 20 (the 2.1.1 playtest)
+    if (!this.modalOpen && !r.juice.banners.length) {
+      const live = liveToasts(this.hud.toasts);
+      const fast = this.hud.toasts.length > live.length + 1 ? 1.6 : 1;
+      for (const t of this.hud.toasts) {
+        if (live.includes(t)) t.t += dt * fast;
+        else t.wait = (t.wait ?? 0) + dt;
+      }
+    }
+    this.hud.toasts = this.hud.toasts.filter((t) => t.t < toastLife(t.text) && (t.t > 0 || (t.wait ?? 0) < 8));
     this.tipT += dt;
     if (this.tipT > 0.5) {
       this.tipT = 0;
@@ -558,7 +599,7 @@ export class PlayScreen implements Screen {
       this.promptKey = '';
       return;
     }
-    const [fx, fy] = facingTile(g);
+    const [fx, fy] = stepFacing(g, ...facingTile(g));
     let pr = promptAt(g, fx, fy);
     let key = keyLabel(this.app.input.binds.interact[0] ?? 'KeyF');
     if (!pr && g.daysPlayed < 3 && !this.outOfReach) {
@@ -888,7 +929,7 @@ export class PlayScreen implements Screen {
       }
     }
     if (input.wasPressed('interact')) {
-      const [fx, fy] = facingTile(g);
+      const [fx, fy] = stepFacing(g, ...facingTile(g));
       // Shift+F opens a structure's window instead of collecting and loading (to lock a recipe);
       // not while walking: Shift is also the walk-slowly key
       const walking = input.isDown('up') || input.isDown('down') || input.isDown('left') || input.isDown('right');
@@ -1017,12 +1058,15 @@ export class PlayScreen implements Screen {
       if (input.mouse.pressed[0]) this.drag = { x: tt.x, y: tt.y };
       if (input.mouse.released[0] && this.drag) {
         const line = this.dragLine(placeable, this.drag.x, this.drag.y, tt.x, tt.y);
-        let placed = 0;
+        let placed = 0, far = 0;
         const ids: number[] = [];
         for (const L of line) {
           const st = p.inv.slots[p.sel];
           if (!st || kDef(st.k).places !== placeable) break;
-          if (!this.reachOk(L.x, L.y, buildReach)) continue;
+          if (!this.reachOk(L.x, L.y, buildReach)) {
+            if (this.canPlaceHere(placeable, L.x, L.y, L.rot).ok) far++;
+            continue;
+          }
           if (!this.canPlaceHere(placeable, L.x, L.y, L.rot).ok) continue;
           p.inv.remove(st.k, 1);
           ids.push(this.placeHere(placeable, L.x, L.y, L.rot).id);
@@ -1035,9 +1079,14 @@ export class PlayScreen implements Screen {
           if (!chk.ok) {
             this.toast(chk.reason ?? "Can't place that here.");
             app.audio.sfx('error');
-          } else if (!this.reachOk(tt.x, tt.y, buildReach)) this.toast('Too far away.');
+          }
+          far = 0; // a single tile out of reach says so below
+          if (chk.ok && !this.reachOk(tt.x, tt.y, buildReach)) this.toast('Too far away: walk closer.');
         }
         g.sys.quests?.notify?.(g, 'build', placed, placeable);
+        // a drag never skips tiles silently: say how many were out of reach (the 2.1.1 playtest)
+        if (far && placed) this.toast(`Placed ${placed}. ${far} ${far > 1 ? 'tiles were' : 'tile was'} out of reach: walk closer and drag again.`, undefined, C.rose);
+        else if (far) this.toast('Out of reach: walk closer to build there.', undefined, C.rose);
         if (ids.length) {
           const left = p.inv.slots[p.sel];
           if (left) this.placedWith = { sel: p.sel, k: left.k };
@@ -1048,13 +1097,7 @@ export class PlayScreen implements Screen {
         }
         this.drag = null;
       }
-      if (input.mouse.pressed[2]) {
-        const e = hereEnts(g)?.rootAt(t.x, t.y);
-        if (e) deconstruct(g, e);
-        // Shift+right-click picks up farmhouse furniture with a structure in hand too
-        else if ((input.press.shift || input.shift) && p.where === 'house' && decorAt(g, t.x, t.y)) pickupDecor(g, t.x, t.y);
-        else interact(g, t.x, t.y);
-      }
+      if (input.mouse.pressed[2]) this.rightClickBuilding(t, buildReach);
       return;
     }
     // tools & items
@@ -1118,6 +1161,83 @@ export class PlayScreen implements Screen {
     }
   }
 
+  /**
+   * Right-click with a building piece in hand (the 2.1.1 playtest: it lifted any machine under the
+   * mouse, from anywhere, and Undo couldn't bring it back, while the machine's tip said "Right-click:
+   * wind it"). A spring arm or gleaner in winding reach is wound, as with empty hands; anything else
+   * is lifted only within building reach, and Ctrl+Z sets it back where it stood, recipe and all.
+   */
+  private rightClickBuilding(t: { x: number; y: number }, buildReach: number) {
+    const g = this.g, p = g.player, input = this.app.input;
+    const e = hereEnts(g)?.rootAt(t.x, t.y);
+    if (e && !e.ghost && isWindable(e) && (this.reachOk(e.x, e.y, 2.6) || (e.w > 1 && this.reachOk(e.x + e.w - 1, e.y + e.h - 1, 2.6)))) {
+      windArm(g, e);
+      return;
+    }
+    if (e) {
+      if (!this.reachOk(t.x, t.y, buildReach)) {
+        this.toast('Too far away to pick that up: walk closer.');
+        this.app.audio.sfx('error');
+        return;
+      }
+      const lift: Lifted | null = e.ghost || e.st.fixed || e.st.rust ? null : {
+        def: e.def.id, x: e.x, y: e.y, rot: e.rot, where: p.where === 'house' ? 'house' : 'world',
+        recipe: e.mach?.recipe ?? null, locked: !!e.mach?.locked,
+        filter: e.arm ? [...e.arm.filter] : undefined, limit: e.arm?.limit,
+        sFilter: e.belt?.sFilter, sPrio: e.belt?.sPrio,
+      };
+      const name = entName(e).toLowerCase();
+      if (deconstruct(g, e) && lift) {
+        this.undoStack.push({ ids: [], t: this.playtime, lift });
+        if (this.undoStack.length > 5) this.undoStack.shift();
+        if (e.def.kind !== 'belt' && e.def.kind !== 'pole') this.toast(`Picked up the ${name} (Ctrl+Z puts it back).`);
+      }
+      return;
+    }
+    // Shift+right-click picks up farmhouse furniture with a structure in hand too
+    if ((input.press.shift || input.shift) && p.where === 'house' && decorAt(g, t.x, t.y)) pickupDecor(g, t.x, t.y);
+    else interact(g, t.x, t.y);
+  }
+
+  /** Ctrl+Z on a lifted structure: back on its tiles from the bag, with its recipe, filter and limit */
+  private unlift(L: Lifted): boolean {
+    const g = this.g, p = g.player;
+    const def = STRUCT_BY_ID.get(L.def);
+    if (!def) return false;
+    const k = key(def.item);
+    if ((p.where === 'house' ? 'house' : 'world') !== L.where) {
+      this.toast(L.where === 'house' ? 'Go back inside the farmhouse to undo that.' : 'Go back out to the farm to undo that.');
+      return false;
+    }
+    if (p.inv.count(k) <= 0) {
+      this.toast(`The ${def.name.toLowerCase()} isn't in your bag any more.`);
+      return false;
+    }
+    const chk = this.canPlaceHere(L.def, L.x, L.y, L.rot);
+    if (!chk.ok) {
+      this.toast(`Can't put the ${def.name.toLowerCase()} back: ${(chk.reason ?? 'something is there now').toLowerCase()}.`);
+      return false;
+    }
+    p.inv.remove(k, 1);
+    const e = this.placeHere(L.def, L.x, L.y, L.rot);
+    if (e.mach) {
+      e.mach.recipe = L.recipe;
+      e.mach.locked = L.locked;
+    }
+    if (e.arm) {
+      if (L.filter) e.arm.filter = L.filter;
+      if (L.limit !== undefined) e.arm.limit = L.limit;
+    }
+    if (e.belt) {
+      if (L.sFilter !== undefined) e.belt.sFilter = L.sFilter;
+      if (L.sPrio !== undefined) e.belt.sPrio = L.sPrio;
+    }
+    if (p.where === 'world') this.works.changed(g, L.x, L.y);
+    this.toast(`Undone: the ${def.name.toLowerCase()} is back.`);
+    this.app.audio.sfx('place');
+    return true;
+  }
+
   /** during "A Helping Hand", an arm held within a tile of the marked spot snaps onto it */
   /**
    * Ctrl+Z: pick up your last placement (one drag), with a full refund; the last five are kept, with
@@ -1128,6 +1248,11 @@ export class PlayScreen implements Screen {
     const last = this.undoStack.pop();
     if (!last) {
       this.toast('Nothing to undo (Ctrl+Z takes back your last five placements).');
+      return;
+    }
+    if (last.lift) {
+      // it couldn't go back: keep it on the stack, so a second Ctrl+Z after fixing the cause works
+      if (!this.unlift(last.lift)) this.undoStack.push(last);
       return;
     }
     let n = 0, name = '';
@@ -1233,7 +1358,7 @@ export class PlayScreen implements Screen {
         for (const L of line) {
           const chk = this.canPlaceHere(placeable, L.x, L.y, L.rot);
           const inReach = this.reachOk(L.x, L.y, 9 + g.mods.reach);
-          this.drawGhostStruct(placeable, L.x, L.y, L.rot, chk.ok && inReach, planned);
+          this.drawGhostStruct(placeable, L.x, L.y, L.rot, chk.ok && inReach, planned, chk.ok && !inReach);
         }
         this.drawPlacementHints(placeable, t.x, t.y);
         // an arm's take/drop squares show on hover while placing too (ROADMAP.md 4.4)
@@ -1567,9 +1692,26 @@ export class PlayScreen implements Screen {
   }
 
   /** `planned`: the tiles placed along with this one ("x,y" -> structure id), so fences preview joined */
-  drawGhostStruct(defId: string, x: number, y: number, rot: Dir, ok: boolean, planned?: Map<string, string>) {
+  drawGhostStruct(defId: string, x: number, y: number, rot: Dir, ok: boolean, planned?: Map<string, string>, far = false) {
     const ctx = this.app.renderer.ctx;
     const def = STRUCT_BY_ID.get(defId)!;
+    if (far) {
+      // out of reach: no ghost of the piece, a crossed red square (it won't be built; the 2.1.1 playtest)
+      ctx.fillStyle = rgba(C.rose, 0.22);
+      ctx.strokeStyle = rgba(C.rose, 0.95);
+      ctx.lineWidth = 1;
+      for (const t of structFootprint(def, x, y, def.rotatable ? rot : 0)) {
+        ctx.fillRect(t.x * TILE, t.y * TILE, TILE, TILE);
+        ctx.strokeRect(t.x * TILE + 0.5, t.y * TILE + 0.5, TILE - 1, TILE - 1);
+        ctx.beginPath();
+        ctx.moveTo(t.x * TILE + 4, t.y * TILE + 4);
+        ctx.lineTo(t.x * TILE + TILE - 4, t.y * TILE + TILE - 4);
+        ctx.moveTo(t.x * TILE + TILE - 4, t.y * TILE + 4);
+        ctx.lineTo(t.x * TILE + 4, t.y * TILE + TILE - 4);
+        ctx.stroke();
+      }
+      return;
+    }
     ctx.globalAlpha = 0.6;
     if (def.kind === 'belt') drawSprite(ctx, sprite(`belt:${def.tier}:${rot}:0:0`), x * TILE, y * TILE);
     else if (def.kind === 'underground') drawSprite(ctx, sprite(`ug:${def.tier}:${rot}:1:0`), x * TILE, y * TILE);

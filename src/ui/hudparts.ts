@@ -481,10 +481,13 @@ export function drawHotbar(ui: UI, play: PlayScreen, dt: number) {
   void ICON;
 }
 
-/** Build toolbar: shown above the hotbar while placing or in an area mode; replaces the old text banner. */
-export function drawBuildBar(ui: UI, play: PlayScreen) {
-  const placing = !play.win && !!play.heldPlaceable();
-  if (play.mode === 'normal' && !placing) return;
+/**
+ * Build toolbar: shown above the hotbar while placing or in an area mode; replaces the old text banner.
+ * Not where nothing can be built (town: the 2.1.1 playtest). Returns its box, message line included.
+ */
+export function drawBuildBar(ui: UI, play: PlayScreen): { x: number; y: number; w: number; h: number } | null {
+  const placing = !play.win && !!play.heldPlaceable() && play.canBuildNear();
+  if (play.mode === 'normal' && !placing) return null;
   const tools: { id: 'rotate' | 'decon' | 'copy' | 'paste'; key: string; label: string }[] = [
     { id: 'rotate', key: 'R', label: 'Rotate' },
     { id: 'decon', key: 'X', label: 'Remove' },
@@ -510,6 +513,8 @@ export function drawBuildBar(ui: UI, play: PlayScreen) {
   const msg = play.mode === 'decon' ? 'Drag a box to pick structures back up' : play.mode === 'copy' ? 'Drag a box to copy it as a blueprint' : play.mode === 'paste' ? 'Click to paste, R rotates' : 'Click to place, drag for a line. Time runs slow while you build.';
   ui.text(msg, ui.w / 2, y - 10, play.mode === 'decon' ? C.blush : C.cream, { align: 'center', shadow: C.ink });
   if (ui.hover(x, y, w, 22)) ui.block(x, y, w, 22);
+  const mw = textWidth(msg) + 4;
+  return { x: Math.min(x, Math.floor(ui.w / 2 - mw / 2)), y: y - 12, w: Math.max(w, mw), h: 34 };
 }
 
 /** Clockwork Rush progress box at the top of the quest column; returns the next y. */

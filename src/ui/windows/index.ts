@@ -92,7 +92,8 @@ function drawPause(ui: UI, play: PlayScreen, st: WinState): boolean {
 }
 
 function drawHelp(ui: UI, play: PlayScreen, st: WinState): boolean {
-  const w = 380, h = 250;
+  // (20 lines at 11 px: the list grew by the keys it left out, and still fits a 600 px window)
+  const w = 400, h = 272;
   const { x, y } = centered(ui, w, h);
   if (!frame(ui, x, y, w, h, 'Controls')) {
     st.data.help = false;
@@ -108,6 +109,10 @@ function drawHelp(ui: UI, play: PlayScreen, st: WinState): boolean {
     ['Move', `${move} (hold ${k('run')} to walk slowly)`],
     ['Use tool / place', 'Left click (hold to repeat; hold hoe/can to charge)'],
     ['Interact / harvest / talk', `Right click or ${k('interact')}`],
+    ['Open a machine', `Shift + ${k('interact')} (pick or lock its recipe)`],
+    ['Wind an arm or gleaner', 'Right click it (twice as fast for 30 seconds)'],
+    ['Inspect a line', `Hold ${k('inspect')} over a machine (why it stopped)`],
+    ['Undo', 'Ctrl + Z (your last five placements)'],
     ['Hotbar', '1-0 or mouse wheel'],
     ['Backpack / crafting', `${k('inventory')} / ${k('craft')}`],
     ['Research tree', k('research')],
@@ -118,12 +123,13 @@ function drawHelp(ui: UI, play: PlayScreen, st: WinState): boolean {
     ['Deconstruct area', `${k('deconstruct')} then drag a box`],
     ['Copy / paste blueprint', `${k('copy')} drag a box, then ${k('paste')} to paste`],
     ['Eat held item', k('eat')],
+    ['Next song', k('music')],
     ['Zoom', `${k('zoomIn')} in, ${k('zoomOut')} out, or Ctrl + wheel`],
     ...(DEBUG_KEYS ? [['Debug panel', k('debug')] as [string, string]] : []),
   ];
   lines.forEach(([a, c], i) => {
-    ui.text(a, x + 14, y + 18 + i * 13, C.ink);
-    ui.text(c, x + 140, y + 18 + i * 13, C.walnut);
+    ui.text(a, x + 14, y + 18 + i * 11, C.ink);
+    ui.text(c, x + 146, y + 18 + i * 11, C.walnut, { maxW: w - 160 });
   });
   if (ui.button('hback', x + w / 2 - 30, y + h - 24, 60, 16, 'Back')) st.data.help = false;
   return true;

@@ -110,7 +110,7 @@ export const ECHOES: EchoDef[] = [
   { lesson: 'reputation', q: 'What does a new rank with a business open?',
     answers: ['Its next order and new stock.', 'A discount on everything.', 'Nothing much.'], right: 0,
     yes: "Its next order and new stock! Bram has a blast furnace for Purveyors!",
-    no: "A new rank opens its next order and new stock! Each order you fill raises a business's trust in you." },
+    no: "A new rank opens its next order and new stock! Each order you fill raises your standing with that business." },
   { lesson: 'undo', q: 'You put something in the wrong spot. What now?',
     answers: ['Break it with the axe.', 'Ctrl+Z takes it back, full refund.', 'Live with it forever.'], right: 1,
     yes: 'Ctrl+Z! Your last five placements!',

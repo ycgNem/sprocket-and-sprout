@@ -1282,3 +1282,39 @@ recommendations are the decisions.
       that sells for 3,750; it's no longer sold.
     - **New:** an achievement, The Town's Thanks (every favor); the Journal's Town tab shows each
       villager's favor and recipes. An older save's points, gifts and scenes are dropped on load.
+
+176. **The 2.1.1 playtest's bugs (a critic's full playthrough and a screen sweep at three sizes; the
+    owner: "look through the review and add/revise the game accordingly, as well as fix bugs").**
+    - **Right-click while building.** With a piece in hand it lifted whatever stood under the mouse,
+      from any distance, and Ctrl+Z couldn't set it back, while a machine's tip said "Right-click:
+      wind it". Now (`rightClickBuilding`, src/app/play.ts) a spring arm or gleaner in winding reach
+      is wound as with empty hands, anything else is lifted only within building reach, and the lift
+      goes on the undo stack (`Lifted`: its tile, facing, recipe, lock, arm filter and limit, a
+      splitter's settings), so Ctrl+Z puts it back from the bag.
+    - **Dragging a line.** Tiles out of reach were skipped silently and drawn in a red that read as
+      the green. They're a crossed red square with no ghost of the piece, and the drag says "Placed
+      9. 2 tiles were out of reach".
+    - **Text that ran over.** `ui.text`'s `maxW` was passed in six places and never used; it
+      shortens with ".." now. The Kitchen is never taller than the screen and its list scrolls; an
+      unknown recipe's hint wraps on two lines. The research window's details scroll above a fixed
+      cost line and button (the cost hid under "Research this" on a short window); a narrow era band
+      uses `ERA_KEYSTONE_SHORT`. The Journal's quest steps wrap, the title makes room for the giver,
+      and the list scrolls by its real height. Ottoline's job is "Inventor at the Cogwhistle
+      Workshop".
+    - **The Silent Clock** counts the Clock restarted from the Journal (`or: 'clock_fixed'` on a
+      visit objective), so Grand Works no longer waits behind it.
+    - **The gantry's seed bin** wraps onto as many rows as it holds (`seedBinLayout`).
+    - **The Harbor's door** says "Load exports" with the ship in and "Exports" with it at sea.
+    - **The opening's bed steps** (`bed: true` on till, plant and water) count the four marked tiles
+      from their soil, not any tile tilled anywhere.
+    - **F leans toward the step** (`stepFacing`, src/sim/prompts.ts): facing the arm between the
+      crate and the crock, F goes to the crate or crock beside it when the Now strip's step names
+      it, or when it takes what you hold.
+    - **Smaller:** toasts that waited 8 seconds behind others are dropped and a backed-up queue
+      plays faster; the build bar hides where nothing can be built (`canBuildNear`) and labels step
+      around it; the Town tab keeps a stranger's favor secret; the last Trust and birthday wording
+      is gone; the lighting skips a window of no size; a festival's intro starts below the close
+      button; Today's names clear the portrait; the Controls page lists Shift+F, winding, I, Ctrl+Z
+      and N.
+    - Tests: tests/v212fixes.test.ts; the sweep gained `kitchen` and `gantry-seeds`.
+

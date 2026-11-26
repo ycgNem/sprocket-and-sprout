@@ -34,7 +34,7 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
   const playerGridH = 3 * (SLOT + 2) + 14;
   let topH = 100;
   if (e.inv && (kind === 'chest' || kind === 'shipbin' || kind === 'building' || kind === 'harvester' || kind === 'planter' || kind === 'fishtrap' || kind === 'tapper' || kind === 'drill' || kind === 'gleaner' || kind === 'gantry'))
-    topH = 24 + Math.ceil(e.inv.size / 12) * (SLOT + 2) + 16 + (kind === 'shipbin' ? 30 : 0) + (kind === 'gantry' ? 22 : 0);
+    topH = 24 + Math.ceil(e.inv.size / 12) * (SLOT + 2) + 16 + (kind === 'shipbin' ? 30 : 0) + (kind === 'gantry' ? 4 + 18 * seedBinRows(e, w - 28) : 0);
   if (e.mach) topH = 150;
   if (kind === 'pole' || kind === 'generator' || kind === 'accumulator') topH = 140;
   if (STRUCT_PANELS[kind]) topH = st.data.topH ?? 150;
@@ -143,20 +143,37 @@ export function drawStruct(ui: UI, play: PlayScreen, st: WinState): boolean {
  * item the market is most flooded with.
  */
 /** how many of each item key an inventory holds */
+/** where each seed of the gantry's bin sits: it wraps onto more rows (an 8th seed type fell off the end) */
+function seedBinLayout(e: Ent, w: number): { id: string; n: number; dx: number; row: number; bw: number }[] {
+  const out: { id: string; n: number; dx: number; row: number; bw: number }[] = [];
+  const x0 = textWidth('Seed bin') + 8;
+  let dx = x0, row = 0;
+  for (const [id, n] of Object.entries(seedBin(e)).filter(([, n]) => n > 0)) {
+    const bw = 18 + textWidth(n.toLocaleString()) + 6;
+    if (dx + bw > w && dx > x0) {
+      dx = x0;
+      row++;
+    }
+    out.push({ id, n, dx, row, bw });
+    dx += bw;
+  }
+  return out;
+}
+const seedBinRows = (e: Ent, w: number) => 1 + Math.max(0, ...seedBinLayout(e, w).map((s) => s.row));
+
 /** the gantry's seed bin (no limit): each seed and its count; click one to take it back to your bag */
-function seedBinRow(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: number) {
+function seedBinRow(ui: UI, play: PlayScreen, e: Ent, x: number, top: number, w: number) {
   const g = play.g;
-  const bin = Object.entries(seedBin(e)).filter(([, n]) => n > 0);
-  ui.text('Seed bin', x, y + 5, C.oak);
-  let sx = x + textWidth('Seed bin') + 8;
+  const bin = seedBinLayout(e, w);
+  ui.text('Seed bin', x, top + 5, C.oak);
+  const sx0 = x + textWidth('Seed bin') + 8;
   if (!bin.length) {
-    ui.text(ellipsize('Empty. Shift-click seeds in, or feed it with an arm: it takes any number.', x + w - sx), sx, y + 5, C.walnut);
+    ui.text(ellipsize('Empty. Shift-click seeds in, or feed it with an arm: it takes any number.', x + w - sx0), sx0, top + 5, C.walnut);
     return;
   }
-  for (const [id, n] of bin) {
+  for (const { id, n, dx, row, bw } of bin) {
     const label = n.toLocaleString();
-    const bw = 18 + textWidth(label) + 6;
-    if (sx + bw > x + w) break;
+    const sx = x + dx, y = top + row * 18;
     const k = key(id);
     ui.itemIcon(k, sx, y, 16);
     ui.text(label, sx + 18, y + 5, C.ink);
@@ -169,7 +186,6 @@ function seedBinRow(ui: UI, play: PlayScreen, e: Ent, x: number, y: number, w: n
         if (left) binSeeds(e, k, left);
       }
     }
-    sx += bw;
   }
 }
 

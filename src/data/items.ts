@@ -349,7 +349,7 @@ const food: [string, string, number, string, IconSpec, number][] = [
   ['berry_tart', 'Berry Tart', 300, 'Jammy and buttery.', { t: 'pie', c: [C.rose, C.tan] }, 80],
   ['omelet', 'Omelet', 180, 'Fluffy and quick.', { t: 'dish', c: [C.butter, C.amber] }, 70],
   ['pancakes', 'Pancake Stack', 260, 'With syrup, naturally.', { t: 'dish', c: [C.tan, C.terracotta] }, 90],
-  ['cake', 'Celebration Cake', 450, 'For birthdays and harvests.', { t: 'cake', c: [C.blush, C.cream] }, 120],
+  ['cake', 'Celebration Cake', 450, 'For harvests and celebrations.', { t: 'cake', c: [C.blush, C.cream] }, 120],
   ['cookies', 'Oat Cookies', 140, 'A little jar of happiness.', { t: 'cookie', c: [C.tan, C.walnut] }, 40],
   ['pizza', 'Hearth Pizza', 400, 'Cheese, tomato and a smoky crust.', { t: 'pie', c: [C.terracotta, C.butter] }, 130],
   ['baked_potato', 'Baked Potato', 150, 'Fluffy inside, crackly outside.', { t: 'tuber', c: [C.tan, C.oak] }, 70],

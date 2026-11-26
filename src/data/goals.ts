@@ -39,9 +39,10 @@ export const QUESTS: QuestDef[] = [
     desc: "The cellar holds the keeper's last beans. The keeper's gleaner sits on a half-planted bed east of the crock: plant it, and bring the gleaner back.",
     hint: 'The hoe on the marked tiles, then the cogbean seeds, then the watering can. Then F at the gleaner.',
     objectives: [
-      { t: 'till', n: 4, label: "Till the gleaner's bed (hoe)", why: "The cellar is the keeper's last beans. This bed is tomorrow's." },
-      { t: 'plant', n: 4, label: 'Plant the cogbean seeds', why: 'Cogbeans ripen in 4 watered days, then every 2.' },
-      { t: 'water', n: 4, label: 'Water them (can)', why: 'Seeds only grow on days they are watered.' },
+      // only the marked bed counts: tilling anywhere ticked it off, and the gleaner did nothing (2.1.1 playtest)
+      { t: 'till', n: 4, bed: true, label: "Till the gleaner's marked bed (hoe)", why: "The cellar is the keeper's last beans. This bed is tomorrow's: the four marked tiles beside the gleaner." },
+      { t: 'plant', n: 4, bed: true, label: 'Plant cogbean seeds in the bed', why: 'Cogbeans ripen in 4 watered days, then every 2.' },
+      { t: 'water', n: 4, bed: true, label: 'Water them (can)', why: 'Seeds only grow on days they are watered.' },
       { t: 'restore', struct: 'gleaner', label: "Restore the keeper's gleaner (F)", why: 'It picks what ripens in the 3x3 around it, from noon.' },
     ],
     reward: { money: 100 } },
@@ -220,7 +221,8 @@ export const QUESTS: QuestDef[] = [
     done: 'Hold the cage (or the tank) and click the floor to set it down: the hamster wants a name. It eats a seed a day.' },
   { id: 's_clock', title: 'The Silent Clock', giver: 'tobias', after: ['k9_bed'],
     desc: "The town clocktower stopped decades ago. Mayor Thistle hopes the town's works can start it again, one at a time. Visit the clocktower: its door has the Orders board's Works tab.",
-    objectives: [{ t: 'visit', loc: 'clocktower' }],
+    // the Clock restarted from the Journal's Orders tab counts: the quest outlived it (2.1.1 playtest)
+    objectives: [{ t: 'visit', loc: 'clocktower', or: 'clock_fixed' }],
     reward: { money: 100, flag: 'board_seen' } },
   { id: 's_animals', title: 'Feathered Friends', giver: 'clem', after: ['k9_bed'],
     desc: 'Clem shyly suggests that a farm is not a farm without animals. Buy a coop from Juniper and a chicken from Meadowlark Ranch.',

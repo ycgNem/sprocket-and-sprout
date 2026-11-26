@@ -20,7 +20,7 @@ export const RECIPE_TEACHERS: Record<string, RecipeTeacher> = {
   pizza: { npc: 'rowan', after: 'waterworks', note: 'Hearth pizza, the way my grandmother made it in the old brick oven.' },
   mushroom_risotto: { npc: 'rowan', after: 'tram', note: 'My risotto. I have never written this down for anyone. Stir like you mean it.' },
   berry_tart: { npc: 'marigold', after: 'town_mill', note: 'My berry tart. Folks ask for it at every church supper.' },
-  cake: { npc: 'marigold', after: 'waterworks', note: 'The celebration cake. For birthdays, harvests, and bad days that need fixing.' },
+  cake: { npc: 'marigold', after: 'waterworks', note: 'The celebration cake. For harvests, keystones, and bad days that need fixing.' },
   fried_fish: { npc: 'wren', after: 'town_mill', note: 'How we fry the catch down at the hut. Hot oil, cold batter.' },
   fish_stew: { npc: 'wren', after: 'waterworks', note: 'Fisher\'s stew. Whatever came up in the net, simmered with love.' },
   corn_chowder: { npc: 'clem', after: 'town_mill', note: 'Corn chowder for cold mornings at the ranch. Use good milk.' },

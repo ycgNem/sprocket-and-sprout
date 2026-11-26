@@ -17,6 +17,8 @@ const E1 = [G], E2 = [G, CU], E3 = [G, CU, R], E4 = [G, CU, R, B], E5 = [G, CU, 
 export const ERA_NAMES = ['', 'Spring', 'Water', 'Steam', 'Clockwork', 'Starlight'] as const;
 /** the town keystone(s) each era builds toward, for the research window's era headers */
 export const ERA_KEYSTONE = ['', "The Keeper's Line", 'The Town Mill', 'The Waterworks, Lamplighting', 'The Tram', 'The Clock'] as const;
+/** the same, for a narrow era band (the research window cut "The Waterworks, Lamplig..") */
+export const ERA_KEYSTONE_SHORT = ['', "Keeper's Line", 'Town Mill', 'Waterworks, Lamps', 'Tram', 'Clock'] as const;
 
 export const RESEARCH: ResearchDef[] = [
   // ---- Era 1, Spring: sprout bundles ----

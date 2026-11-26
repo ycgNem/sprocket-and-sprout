@@ -1,7 +1,7 @@
 // Factory windows: research tree, production statistics with graphs, power grid overview.
 import { C } from '../../data/palette';
 import { ITEMS, ITEM_BY_ID } from '../../data/items';
-import { ERA_KEYSTONE, ERA_NAMES, RESEARCH, RESEARCH_BY_ID, eraCol } from '../../data/research';
+import { ERA_KEYSTONE, ERA_KEYSTONE_SHORT, ERA_NAMES, RESEARCH, RESEARCH_BY_ID, eraCol } from '../../data/research';
 import { key } from '../../sim/inventory';
 import { QUEST_BY_ID } from '../../data/goals';
 import { nowLines } from '../../sim/systems/quests';
@@ -148,7 +148,8 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     else {
       ui.itemIcon(key(ERA_BUNDLE[era]), bx + 3, vy + 4, 10);
       ui.text(ERA_NAMES[era] + (now ? ' (now)' : ''), bx + 16, vy + 4, C.ink);
-      ui.text(ellipsize(ERA_KEYSTONE[era], bw - 8), bx + 4, vy + 13, C.walnut);
+      const ks = textWidth(ERA_KEYSTONE[era]) <= bw - 8 ? ERA_KEYSTONE[era] : ERA_KEYSTONE_SHORT[era];
+      ui.text(ellipsize(ks, bw - 8), bx + 4, vy + 13, C.walnut);
     }
   }
   // connections: a line from another era is faint unless its node is picked, so the bands stay readable
@@ -264,9 +265,15 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     ui.para('Five eras, left to right. Each era has a keystone (the copper frames): look, try, keep it running, then study it. Scroll to move down, shift + scroll to move across. Fit shows the whole tree.', px + 6, py + 56, pw - 12, C.walnut);
     return true;
   }
-  let yy = py + 54;
-  ui.text(ellipsize(sel.name, pw - 12), px + 6, yy, C.ink);
-  ui.text(ERA_NAMES[sel.era], px + pw - 6, yy, C.oak, { align: 'right' });
+  // the details scroll between the header and a fixed cost line over the button: on a short window
+  // the keystone's stages pushed the cost under "Research this" (the 2.1.1 sweep)
+  const costY = py + h - 64, top = py + 52, bot = costY - 3;
+  const off = ui.scrollOffset('rdetail', px + 2, top, pw - 4, bot - top, st.data.rdH ?? 0);
+  ui.clip(px + 2, top, pw - 4, bot - top);
+  let yy = top + 2 - off;
+  const eraW = textWidth(ERA_NAMES[sel.era]);
+  ui.text(ellipsize(sel.name, pw - 18 - eraW), px + 6, yy, C.ink);
+  ui.text(ERA_NAMES[sel.era], px + pw - 8, yy, C.oak, { align: 'right' });
   yy += 11;
   yy += ui.para(sel.desc, px + 6, yy, pw - 12, C.walnut) + 3;
   // a keystone's stages (look, try, keep it up), each with its check; the study is the fourth
@@ -292,29 +299,32 @@ function drawResearch(ui: UI, play: PlayScreen, st: WinState): boolean {
     yy += 2;
   }
   const units = researchUnits(sel.id, g);
-  // "15 of each" when a topic takes several bundles: the critic read "15 x [green][copper]" as 15 in all
-  const costText = `Cost: ${units} ${sel.cost.length > 1 ? 'of each' : 'x'}`;
-  ui.text(costText, px + 6, yy, C.oak);
-  sel.cost.forEach((c, i) => ui.itemIcon(key(c.item), px + 10 + textWidth(costText) + i * 15, yy - 4, 14));
-  yy += 14;
   // what you have toward it (bag + desks), so a pick you can't afford yet says so up front
   const have = (id: string) => g.player.inv.countId(id) + labs.reduce((a, l) => a + (l.inv?.countId(id) ?? 0), 0);
   const short = sel.cost.filter((c) => have(c.item) < units);
   if (!g.research.done.has(sel.id)) {
-    // (only where it fits above the Research button: a short window has no room for it)
     const haveLine = short.length ? `You have ${short.map((c) => `${have(c.item)} ${ITEM_BY_ID.get(c.item)?.name.split(' ')[0].toLowerCase()}`).join(', ')} of ${units}: craft more (C)` : 'You have enough bundles';
-    if (yy + wrapText(haveLine, pw - 12).length * 9 <= py + h - 50) yy += ui.para(haveLine, px + 6, yy, pw - 12, short.length ? C.brick : C.moss) + 2;
+    yy += ui.para(haveLine, px + 6, yy, pw - 12, short.length ? C.brick : C.moss) + 2;
   }
   const unl = unlocksOf(sel.id);
-  if (unl.items.length && yy < py + h - 90) {
+  if (unl.items.length) {
     ui.text('Unlocks:', px + 6, yy, C.oak);
     yy += 10;
-    unl.items.slice(0, 14).forEach((id, i) => {
+    const shown = unl.items.slice(0, 14);
+    shown.forEach((id, i) => {
       const ix = px + 6 + (i % 7) * 20, iy = yy + Math.floor(i / 7) * 20;
       ui.slot(ix, iy, { k: key(id), n: 1 }, { size: 18 });
-      if (ui.hover(ix, iy, 18, 18)) ui.tip(itemTooltip(g, key(id)).slice(0, 3));
+      if (iy + 18 > top && iy < bot && ui.hover(ix, iy, 18, 18)) ui.tip(itemTooltip(g, key(id)).slice(0, 3));
     });
+    yy += Math.ceil(shown.length / 7) * 20;
   }
+  st.data.rdH = yy + off - top;
+  ui.unclip();
+  // "15 of each" when a topic takes several bundles: the critic read "15 x [green][copper]" as 15 in all
+  const costText = `Cost: ${units} ${sel.cost.length > 1 ? 'of each' : 'x'}`;
+  ui.fill(px + 2, costY - 3, pw - 4, 1, C.tan);
+  ui.text(costText, px + 6, costY + 2, C.oak);
+  sel.cost.forEach((c, i) => ui.itemIcon(key(c.item), px + 10 + textWidth(costText) + i * 15, costY - 2, 14));
   const done = g.research.done.has(sel.id);
   const avail = canResearch(g, sel.id);
   if (!done && ui.button('rstart', px + 6, py + h - 48, pw - 12, 16, g.research.current === sel.id ? 'Researching...' : avail ? 'Research this' : 'Locked', { disabled: !avail || g.research.current === sel.id, style: 'green' })) setResearch(g, sel.id);

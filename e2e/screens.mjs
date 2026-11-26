@@ -181,6 +181,9 @@ const SC = {
   // the Orders board: two standing orders and today's asks
   board: async () => ev(`(() => { ${ORDERS}; S.play.openWindow('board'); })()`),
   museum: async () => ev(`(() => { S.g.player.inv.add(S.key('amethyst'), 1); S.g.player.inv.add(S.key('old_cog'), 1); S.play.openWindow('museum'); })()`),
+  // the farmhouse Kitchen (taller than a 600 px window before 2.1.2) and the gantry's seed bin on two rows
+  kitchen: async () => ev(`(() => { S.play.closeWindow(); S.g.player.inv.add(S.key('egg'), 6); S.g.player.inv.add(S.key('milk'), 4); S.play.openWindow('cooking'); })()`),
+  'gantry-seeds': async () => ev(`(async () => { const g = S.g; const F = await import('/src/sim/systems/fieldworks.ts'); S.play.closeWindow(); (${clearArea})(44, 30, 60, 40); const e = window.__build.place(g, 'field_gantry', 50, 34, 0); for (const [id, n] of [['cogbean_seed', 1200], ['wheat_seed', 800], ['barley_seed', 640], ['potato_seed', 300], ['radish_seed', 250], ['corn_seed', 2000], ['pumpkin_seed', 90], ['strawberry_seed', 75], ['cotton_seed', 410]]) F.binSeeds(e, S.key(id), n); g.player.x = 51; g.player.y = 37; S.play.openWindow('struct', e.id); })()`),
   friends: async () => ev(`(() => { for (const n of S.g.sys.npcs.list) n.met = true; S.play.openWindow('journal'); S.play.win.data.tab = 'friends'; })()`),
   collections: async () => ev(`(() => { S.play.openWindow('journal'); S.play.win.data.tab = 'collect'; S.play.win.data.sub = 'fish'; })()`),
   journal: async () => ev(`(() => { S.play.openWindow('journal'); })()`),

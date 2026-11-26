@@ -101,11 +101,12 @@ function drawToday(ui: UI, play: PlayScreen, x: number, y: number, w: number): n
     const npc = o.cust;
     ui.panel(x + 4, yy, w - 8, 40, 'paper', false);
     portrait(ui, npc, x + 8, yy + 4, 24, 0);
-    const tx = x + 40;
+    // (the portrait's frame ends at x + 40: the name sat against it)
+    const tx = x + 46;
     const biz = BUSINESS_BY_ID.get(npc);
-    ui.text(villagerName(npc) + (biz ? `, ${biz.name}` : ''), tx, yy + 4, C.ink);
-    ui.text(ellipsize(`"${o.text ?? ''}"`, w - 120), tx, yy + 14, C.walnut);
-    const onLine = drawLines(ui, o, tx, yy + 27, w - 170);
+    ui.text(villagerName(npc) + (biz ? `, ${biz.name}` : ''), tx, yy + 4, C.ink, { maxW: w - 126 });
+    ui.text(ellipsize(`"${o.text ?? ''}"`, w - 126), tx, yy + 14, C.walnut);
+    const onLine = drawLines(ui, o, tx, yy + 27, w - 176);
     ui.text(`${ICON.coin}${o.pay}${o.rep ? ' + reputation' : ''}`, x + w - 12, yy + 27, C.oak, { align: 'right' });
     ui.text(o.done ? 'Done!' : dueText(g, o), x + w - 12, yy + 4, o.done ? C.moss : C.oak, { align: 'right' });
     if (!o.done) trackButton(ui, g, o, x + w - 56, yy + 13);

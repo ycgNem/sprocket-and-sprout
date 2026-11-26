@@ -65,11 +65,13 @@ export class WorksView {
     const box = (text: string[], x: number, y: number, col: number) => {
       const w = Math.max(...text.map((t) => textWidth(t))) + 8, h = text.length * 9 + 4;
       const bx = Math.round(Math.max(2, Math.min(ui.w - w - 2, x - w / 2)));
-      let by = Math.round(Math.max(2, Math.min(ui.h - 70 - h, y)));
+      // (above the hotbar, and above the build bar while it shows)
+      const floor = Math.min(ui.h - 70, (play.hud.lowY ?? ui.h - 66) - 4);
+      let by = Math.round(Math.max(2, Math.min(floor - h, y)));
       for (let k = 0; k < 6; k++) {
         const o = drawn.find((d) => bx < d.x + d.w + 2 && bx + w + 2 > d.x && by < d.y + d.h + 1 && by + h + 1 > d.y);
         if (!o) break;
-        by = o.y + o.h + 2 + h <= ui.h - 70 ? o.y + o.h + 2 : o.y - h - 2;
+        by = o.y + o.h + 2 + h <= floor ? o.y + o.h + 2 : o.y - h - 2;
       }
       drawn.push({ x: bx, y: by, w, h });
       ui.keepClear.push({ x: bx, y: by, w, h });

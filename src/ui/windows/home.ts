@@ -15,13 +15,15 @@ import { NPC_BY_ID } from '../../data/npcs';
 import { adoptPet, declinePet, petSys, PET_COATS } from '../../sim/systems/pet';
 import { DEFAULT_HAMSTER_NAMES, HAMSTER_COATS, hamsterSys, nameHamster } from '../../sim/systems/hamster';
 import { sprite, drawFit } from '../../render/atlas';
+import { wrapText } from '../font';
 
 const OVEN = recipesForStation('oven');
 
 function drawCooking(ui: UI, play: PlayScreen, st: WinState): boolean {
   const g = play.g;
   const pan = pantry(g);
-  const W = 440, H = 318;
+  // never taller than the screen (1366x620 and 960x600 cut off its title and its foot): the list scrolls
+  const W = 440, H = Math.min(318, ui.h - 16);
   const { x, y } = centered(ui, W, H);
   if (!frame(ui, x, y, W, H, 'Farmhouse Kitchen')) return false;
   const tab: string = st.data.tab ?? 'Cook';
@@ -38,11 +40,14 @@ function drawCooking(ui: UI, play: PlayScreen, st: WinState): boolean {
   const onlyReady = !!st.data.ready;
   if (ui.button('kready', x + W - 104, y + 12, 90, 14, onlyReady ? 'Show all' : 'Can cook now', { style: 'flat' })) st.data.ready = !onlyReady;
   const list = OVEN.filter((r) => (!onlyReady || canCookHome(g, r))).sort((a, b) => (g.unlocked(a.unlock) ? 0 : 1) - (g.unlocked(b.unlock) ? 0 : 1));
-  const colW = (W - 30) / 2;
+  const colW = (W - 34) / 2;
+  const ly = y + 32, lh = H - 50;
+  const off = ui.scrollOffset('kitchen', x + 8, ly, W - 16, lh, Math.ceil(list.length / 2) * 24 + 2);
+  ui.clip(x + 8, ly, W - 16, lh);
   list.forEach((r, n) => {
     const col = n % 2, row = Math.floor(n / 2);
-    const rx = x + 12 + col * (colW + 6), ry = y + 34 + row * 24;
-    if (ry > y + H - 26) return;
+    const rx = x + 12 + col * (colW + 6), ry = ly + 2 + row * 24 - off;
+    if (ry + 22 < ly || ry > ly + lh) return;
     const can = canCookHome(g, r);
     const out = ITEM_BY_ID.get(r.out[0].item)!;
     if (!g.unlocked(r.unlock)) {
@@ -50,10 +55,12 @@ function drawCooking(ui: UI, play: PlayScreen, st: WinState): boolean {
       ui.fill(rx, ry, colW, 22, C.tan, 0.2);
       ui.itemIcon(key(out.id), rx + 3, ry + 3, 16, 0, 0.25);
       const t = RECIPE_TEACHERS[out.id];
-      ui.text('Unknown recipe', rx + 22, ry + 2, C.oak);
       const who = t ? shortName(NPC_BY_ID.get(t.npc)?.name ?? t.npc) : '';
       const how = !t ? 'Not learned yet' : t.sold ? `${who} sells the recipe card` : t.after ? `${who} sends it ${KEYSTONE_WHEN[t.after] ?? 'later'}` : 'Not learned yet';
-      ui.text(how, rx + 22, ry + 12, C.walnut, { maxW: colW - 26 });
+      // the hint wraps under "Unknown recipe:" (2.1.1's hints ran past the row)
+      const ln = wrapText(`Unknown recipe: ${how}`, colW - 26);
+      ui.text(ln[0], rx + 22, ry + 2, C.oak);
+      if (ln[1]) ui.text(ln.slice(1).join(' '), rx + 22, ry + 12, C.oak, { maxW: colW - 26 });
       return;
     }
     ui.fill(rx, ry, colW, 22, can ? C.cream : C.tan, can ? 0.6 : 0.35);
@@ -72,6 +79,7 @@ function drawCooking(ui: UI, play: PlayScreen, st: WinState): boolean {
       if (made) play.toast(`Cooked ${made > 1 ? made + 'x ' : ''}${out.name}!`);
     }
   });
+  ui.unclip();
   if (!list.length) ui.para('Nothing you can cook right now. Bring home some ingredients!', x + 20, y + 50, W - 40, C.walnut);
   return true;
 }

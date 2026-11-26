@@ -2,7 +2,7 @@
 import { C, PALETTE, rgba } from '../data/palette';
 import type { Input } from '../engine/input';
 import { sprite, drawFit, drawItemIcon } from '../render/atlas';
-import { drawText, textWidth, wrapText, LINE_H, FONT_H } from './font';
+import { drawText, ellipsize, textWidth, wrapText, LINE_H, FONT_H } from './font';
 import { drawSkin } from './skin';
 import { ITEMS } from '../data/items';
 import type { AuditRec, AuditKind } from './audit';
@@ -177,6 +177,8 @@ export class UI {
 
   text(s: string, x: number, y: number, c = C.ink, opts: { scale?: number; shadow?: number; align?: 'left' | 'center' | 'right'; maxW?: number } = {}) {
     const sc = opts.scale ?? 1;
+    // a width cap shortens the line with '..' (callers passed maxW for years and it did nothing)
+    if (opts.maxW !== undefined && textWidth(s) * sc > opts.maxW) s = ellipsize(s, opts.maxW / sc);
     let tx = x;
     if (opts.align === 'center') tx = x - Math.floor((textWidth(s) * sc) / 2);
     else if (opts.align === 'right') tx = x - textWidth(s) * sc;

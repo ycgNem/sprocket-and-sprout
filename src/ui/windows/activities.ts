@@ -124,18 +124,21 @@ function drawFestival(ui: UI, play: PlayScreen, st: WinState): boolean {
     if (ui.button('fdone', x + w / 2 - 30, y + h - 26, 60, 18, 'Hooray!', { style: 'green' })) return false;
     return true;
   }
-  const w = 300, h = 210;
+  // the intro starts below the close button (it ran under it: the 2.1.1 sweep) and pushes the rest down
+  const intro = wrapText(f.intro, 300 - 24);
+  const dy = Math.max(0, 20 + intro.length * 10 + 4 - 70);
+  const w = 300, h = 210 + dy;
   const { x, y } = centered(ui, w, h);
   if (!frame(ui, x, y, w, h, festivalName(f, true))) return false;
-  wrapText(f.intro, w - 24).forEach((l, i) => ui.text(l, x + 12, y + 14 + i * 10, C.walnut));
+  intro.forEach((l, i) => ui.text(l, x + 12, y + 20 + i * 10, C.walnut));
   const played = g.flags.has(`fest_${f.id}_${g.time.year}`);
-  ui.text(`Prizes: ${f.prizes.map((p) => `${p.score}+ pts`).join(', ')}`, x + 12, y + 70, C.oak);
-  if (ui.button('fplay', x + 12, y + 84, 120, 20, played ? 'Play for fun' : 'Play!', { style: 'green' })) {
+  ui.text(`Prizes: ${f.prizes.map((p) => `${p.score}+ pts`).join(', ')}`, x + 12, y + 70 + dy, C.oak);
+  if (ui.button('fplay', x + 12, y + 84 + dy, 120, 20, played ? 'Play for fun' : 'Play!', { style: 'green' })) {
     st.data.mode = 'play';
     st.data.game = null;
   }
-  ui.text(`Best: ${g.counters['best_' + f.id] ?? 0}`, x + 140, y + 90, C.walnut);
-  drawTokenStall(ui, play, x + 12, y + 114, f.host);
+  ui.text(`Best: ${g.counters['best_' + f.id] ?? 0}`, x + 140, y + 90 + dy, C.walnut);
+  drawTokenStall(ui, play, x + 12, y + 114 + dy, f.host);
   return true;
 }
 

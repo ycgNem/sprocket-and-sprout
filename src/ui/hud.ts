@@ -16,7 +16,8 @@ import { drawTrackedOrders } from './ordertrack';
 
 export interface HudState {
   pickups: { k: number; n: number; t: number }[];
-  toasts: { text: string; t: number; icon?: string; color?: number }[];
+  /** `wait`: seconds spent queued behind the three on screen (stale news is dropped) */
+  toasts: { text: string; t: number; icon?: string; color?: number; wait?: number }[];
   /** screen areas the HUD drew this frame (tracker, toasts, pickups, right column, hotbar), for overlays to avoid */
   occupied?: { x: number; y: number; w: number; h: number }[];
   /** the bottom of the top-left column (Rush tracker + Now strip), where lesson cards hang */
@@ -83,7 +84,9 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   occ.push({ x: 0, y: ui.h - 52, w: ui.w, h: 52 });
 
   // ---- build toolbar (while placing or in an area mode) ----
-  drawBuildBar(ui, play);
+  const bb = drawBuildBar(ui, play);
+  // labels drawn after the HUD (the key bubble, the guide note, the compass) step around it
+  if (bb) occ.push(bb);
 
   // ---- pickups (left) ----
   play.hud.pickups.forEach((pk, i) => {
@@ -122,7 +125,7 @@ export function drawHud(ui: UI, play: PlayScreen, dt: number) {
   // too narrow between the columns (the 960x600 embed): they stack up from above the hotbar (and the
   // build bar, and an achievement banner), clear of the Now strip
   const narrow = colR - colL < 200;
-  const buildBar = play.mode !== 'normal' || (!play.win && !!play.heldPlaceable());
+  const buildBar = play.mode !== 'normal' || (!play.win && !!play.heldPlaceable() && play.canBuildNear());
   play.hud.narrow = narrow;
   play.hud.lowY = ui.h - 66 - (buildBar ? 36 : 0);
   let lowY = play.hud.lowY - (play.achQ.length ? 42 : 0);

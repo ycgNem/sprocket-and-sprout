@@ -15,6 +15,7 @@ import { key, kDef } from '../inventory';
 import { npcSys } from './npcs';
 import { portGraph } from '../lines';
 import { allEnts } from '../indoors';
+import { OPENING } from '../opening';
 import { stageCount, stageNext, stages, validateText } from './research';
 
 export interface ActiveQuest {
@@ -99,8 +100,9 @@ export function objDone(g: Game, o: ObjectiveDef, prog: number): boolean {
     // `met`: having already met them counts (you said hello before the quest asked)
     case 'talk': return prog >= 1 || (!!o.met && !!npcSys(g).byId.get(o.npc)?.met);
     case 'sleep':
-    case 'visit':
       return prog >= 1;
+    case 'visit':
+      return prog >= 1 || (!!o.or && g.flags.has(o.or));
     // a rusted structure brought back: the one at a tile, or no rusted one of the kind left
     case 'restore': {
       // the piece at a tile: restored, even if it has been picked up and moved since (a rusted one
@@ -309,8 +311,8 @@ function notify(g: Game, type: string, n: number, extra?: string, opts?: { auto?
         case 'load': if (o.struct === extra) a.prog[i] += n; break;
         case 'build': if (o.struct === extra) a.prog[i] += n; break;
         case 'catch': if (!o.fish || o.fish === extra) a.prog[i] += n; break;
-        case 'plant': if (!o.crop || o.crop === extra) a.prog[i] += n; break;
-        case 'till': case 'water': a.prog[i] += n; break;
+        case 'plant': if (!o.bed && (!o.crop || o.crop === extra)) a.prog[i] += n; break;
+        case 'till': case 'water': if (!o.bed) a.prog[i] += n; break;
         case 'sleep': a.prog[i] = 1; break;
         case 'visit': if (o.loc === extra) a.prog[i] = 1; break;
         case 'crate':
@@ -428,13 +430,20 @@ registerSystem({
   tick(g) {
     if (g.tickN % 60 === 0) {
       const q = questSys(g);
-      // visit objectives
+      // visit objectives, and the opening's bed steps (counted from the bed's soil, kept once reached)
       for (const a of q.active) {
         const def = QUEST_BY_ID.get(a.id);
         def?.objectives.forEach((o, i) => {
           if (o.t === 'visit') {
             const l = g.map.locs.get(o.loc);
             if (l && Math.hypot(g.player.x - l[0], g.player.y - l[1]) < 4) a.prog[i] = 1;
+          } else if ((o.t === 'till' || o.t === 'plant' || o.t === 'water') && o.bed) {
+            let n = 0;
+            for (const [x, y] of OPENING.bed) {
+              const s = g.soil.get(g.map.idx(x, y));
+              if (o.t === 'till' ? !!s : o.t === 'plant' ? !!s?.crop && (!o.crop || s.crop.id === o.crop) : !!s?.crop && !!s.water) n++;
+            }
+            a.prog[i] = Math.max(a.prog[i] ?? 0, n);
           }
         });
       }

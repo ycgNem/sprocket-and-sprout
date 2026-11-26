@@ -59,22 +59,26 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
   else if (st.data.tab === 'orders') drawOrders(ui, play, bx + 2, by + 2, bw - 4, bh - 4, st);
   else if (st.data.tab === 'quests') {
     const q = questSys(g);
-    let yy = by + 6 - ui.scrollOffset('jq', bx, by, bw, bh, 40 + q.active.length * 60 + q.done.length * 10);
+    // (the list's real height from the last frame: the old estimate cut long quests off the end)
+    const qoff = ui.scrollOffset('jq', bx, by, bw, bh, st.data.qH ?? 40 + q.active.length * 60 + q.done.length * 10);
+    let yy = by + 6 - qoff;
     ui.clip(bx, by, bw, bh);
     // the main path first (as in the Now strip), then the tutorial steps, then the rest
     const rank = (id: string) => (QUEST_BY_ID.get(id)?.main ? 0 : QUEST_BY_ID.get(id)?.tutorial ? 1 : 2);
     for (const a of [...q.active].sort((p, r) => rank(p.id) - rank(r.id))) {
       const d = QUEST_BY_ID.get(a.id);
       if (!d) continue;
-      ui.text(d.main ? `${d.title}  (the main path)` : d.title, bx + 8, yy, C.ink);
-      ui.text(`from ${NPC_BY_ID.get(d.giver)?.name ?? 'the town'}`, bx + bw - 8, yy, C.oak, { align: 'right' });
+      // the giver on the right, the title shortened to fit beside it (they ran into each other)
+      const from = `from ${NPC_BY_ID.get(d.giver)?.name ?? 'the town'}`;
+      ui.text(from, bx + bw - 8, yy, C.oak, { align: 'right' });
+      ui.text(d.main ? `${d.title}  (the main path)` : d.title, bx + 8, yy, C.ink, { maxW: bw - 28 - textWidth(from) });
       yy += 11;
       yy += ui.para(d.desc, bx + 8, yy, bw - 16, C.walnut, 9) + 2;
-      // done steps in green, the ones still to do in ink
+      // done steps in green, the ones still to do in ink; a long step wraps under its mark
       d.objectives.forEach((o, i) => {
         const done = objDone(g, o, a.prog[i]);
-        ui.text((done ? '+ ' : '- ') + objText(g, o, a.prog[i]), bx + 14, yy, done ? C.moss : C.ink);
-        yy += 10;
+        ui.text(done ? '+' : '-', bx + 14, yy, done ? C.moss : C.ink);
+        yy += ui.para(objText(g, o, a.prog[i]), bx + 22, yy, bw - 36, done ? C.moss : C.ink, 9) + 1;
       });
       if (d.hint) {
         yy += ui.para('Tip: ' + d.hint, bx + 14, yy, bw - 28, C.oak, 9);
@@ -85,10 +89,11 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
       ui.text(`Completed (${q.done.length})`, bx + 8, yy, C.oak);
       yy += 11;
       for (const id of q.done.slice().reverse()) {
-        ui.text('+ ' + (QUEST_BY_ID.get(id)?.title ?? id), bx + 14, yy, C.moss);
+        ui.text('+ ' + (QUEST_BY_ID.get(id)?.title ?? id), bx + 14, yy, C.moss, { maxW: bw - 26 });
         yy += 10;
       }
     }
+    st.data.qH = yy + qoff - by + 4;
     ui.unclip();
   } else if (st.data.tab === 'friends') {
     const list = npcSys(g).list;
@@ -134,9 +139,10 @@ function drawJournal(ui: UI, play: PlayScreen, st: WinState): boolean {
       ui.text(n.met ? d.name : '???', bx + 34, ry + 3, C.ink);
       // the job, and what they give the works as the town wakes (src/data/favors.ts, Thorne's drawings)
       ui.text(ellipsize(n.met ? d.job : "You haven't met yet", 230 - 34 - 6), bx + 34, ry + 13, C.oak);
-      const favor = FAVORS.find((f) => f.npc === n.id);
+      // a stranger's favor stays a secret until you've met them (the 2.1.1 playtest)
+      const favor = n.met ? FAVORS.find((f) => f.npc === n.id) : undefined;
       if (favor) ui.text(ellipsize(favor.title, bw - 230 - 46), bx + 230, ry + 3, g.flags.has('favor:' + favor.id) ? C.moss : C.walnut);
-      else if (n.id === 'thorne') ui.text(`Drawings: ${DRAWINGS.filter((x) => g.flags.has('drawing:' + x.id)).length} of ${DRAWINGS.length}`, bx + 230, ry + 3, C.walnut);
+      else if (n.id === 'thorne' && n.met) ui.text(`Drawings: ${DRAWINGS.filter((x) => g.flags.has('drawing:' + x.id)).length} of ${DRAWINGS.length}`, bx + 230, ry + 3, C.walnut);
       if (n.talked) ui.text('talked', bx + bw - 8, ry + 3, C.moss, { align: 'right' });
       if (ui.hover(bx, ry, bw, rowH - 2) && n.met) {
         const lines = [{ text: d.name, color: C.amber }, { text: d.personality }];

@@ -142,7 +142,9 @@ function ownPrompt(g: Game, tx: number, ty: number): Prompt | null {
   const b = buildingFaced(g, m, tx, ty);
   if (b && (ty === b.y + b.h - 1 || ty === b.y + b.h) && Math.abs(tx - b.door[0]) <= 1) {
     // the town keystones' landmarks (src/sim/systems/townworks.ts) are looked at, not entered
-    const verb = b.kind === 'farmhouse' ? 'Enter' : b.kind === 'mine' ? 'Enter the Deepworks' : b.kind === 'tower' ? 'Clocktower' : b.kind === 'greenhouse' ? (g.flags.has('greenhouse_fixed') ? '' : 'Old greenhouse') : b.kind === 'landmark' ? 'Look' : 'Enter the ' + b.name.split(' ').pop();
+    // the Harbor's door loads the manifest once it's open (it said "Look" with the ship in: 2.1.1 playtest)
+    const harbor = b.id === 'harbor' && g.flags.has('harbor') ? (g.sys.exports?.ship === 'port' ? 'Load exports' : 'Exports') : '';
+    const verb = harbor || (b.kind === 'farmhouse' ? 'Enter' : b.kind === 'mine' ? 'Enter the Deepworks' : b.kind === 'tower' ? 'Clocktower' : b.kind === 'greenhouse' ? (g.flags.has('greenhouse_fixed') ? '' : 'Old greenhouse') : b.kind === 'landmark' ? 'Look' : 'Enter the ' + b.name.split(' ').pop());
     if (verb) return { verb, x: b.door[0] + 0.5, y: b.y + b.h - 1.2 };
   }
   if (b && b.id === 'greenhouse') return null;
@@ -296,4 +298,50 @@ export function questTarget(g: Game): { x: number; y: number; label: string; npc
     });
   }
   return best;
+}
+
+/**
+ * F's tile, leaning toward what you mean. The keeper's yard stacks the crate, its arm and the crock
+ * in one column and the player's sprite hides the middle one, so F kept landing on the arm (the
+ * 2.1.1 playtest). When the faced tile isn't what the Now strip's step names (the crate to carry
+ * pickles to, the crock to feed, a rusted piece to restore) but that thing stands right beside it,
+ * across your facing, F goes there; so does F at an arm when the thing beside it takes what you hold.
+ */
+export function stepFacing(g: Game, fx: number, fy: number): [number, number] {
+  const p = g.player;
+  if (p.where !== 'world') return [fx, fy];
+  const want = stepWants(g);
+  const faced = g.ents.rootAt(fx, fy);
+  if (faced && !faced.ghost && want?.(faced)) return [fx, fy];
+  // a villager, a crop or a door on the faced tile keeps F
+  if (!faced && tilePrompt(g, fx, fy)) return [fx, fy];
+  const held = p.inv.slots[p.sel];
+  const takesHeld = (e: Ent) => !!held && !e.st.rust && (e.def.kind === 'shipbin' ? kDef(held.k).price > 0 : !!e.mach && machAccept(g, e, held.k, true) > 0);
+  const pick = want ?? (faced?.def.kind === 'arm' ? takesHeld : null);
+  if (!pick) return [fx, fy];
+  const side: [number, number][] = p.dir === 1 || p.dir === 3 ? [[fx, fy - 1], [fx, fy + 1]] : [[fx - 1, fy], [fx + 1, fy]];
+  // the one nearer your body first
+  const dist = (t: [number, number]) => Math.hypot(t[0] + 0.5 - p.x, t[1] + 0.5 - (p.y - 0.3));
+  side.sort((a, b) => dist(a) - dist(b));
+  for (const t of side) {
+    if (dist(t) > 1.9) continue;
+    const e = g.ents.rootAt(t[0], t[1]);
+    if (e && !e.ghost && e !== faced && pick(e)) return t;
+  }
+  return [fx, fy];
+}
+
+/** what the Now strip's current step wants F on, as a test on a structure (null: nothing in particular) */
+function stepWants(g: Game): ((e: Ent) => boolean) | null {
+  const now = (g.sys.quests?.now?.(g, 1) ?? [])[0] as { id: string; index: number } | undefined;
+  const o = now ? QUEST_BY_ID.get(now.id)?.objectives[now.index] : undefined;
+  if (!o) return null;
+  switch (o.t) {
+    case 'crate': return o.auto ? null : (e) => e.def.kind === 'shipbin';
+    case 'load': return (e) => e.def.id === o.struct;
+    case 'restore':
+      if (o.at) return (e) => !!e.st.rust && e.x === o.at![0] && e.y === o.at![1];
+      return o.struct ? (e) => !!e.st.rust && e.def.id === o.struct : (e) => !!e.st.rust;
+    default: return null;
+  }
 }
